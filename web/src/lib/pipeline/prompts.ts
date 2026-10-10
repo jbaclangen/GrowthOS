@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import type { CrawlResult } from "@/lib/integrations/crawler";
+import { hasOwnerInputs, type OwnerInputs } from "@/lib/owner-inputs";
 
 // Prompts and output schemas for the website-intel pipeline. Shared by the pipeline and the
 // model-comparison script so both send exactly the same instructions.
@@ -116,12 +117,27 @@ const GROUNDING = `Evidence rules:
 - PageSpeed data contains only the scores shown; don't describe specific load times or Core Web Vitals values.
 - When something important can't be confirmed from the data, say it is unconfirmed and suggest checking it, instead of assuming.`;
 
-export function profilePrompt(digest: string) {
+// Guided onboarding answers (BI-12). Customer-provided, so they outrank anything inferred from the website.
+function ownerContext(owner?: OwnerInputs | null) {
+  if (!owner || !hasOwnerInputs(owner)) return "";
+  const lines = [
+    owner.goal && `- Main goal for the next few months: ${owner.goal}`,
+    owner.serviceArea && `- Where they serve customers: ${owner.serviceArea}`,
+    owner.tools.length && `- Tools they already use: ${owner.tools.join(", ")}`,
+  ].filter(Boolean);
+  return `
+FROM THE OWNER (confirmed by the business owner; when it differs from the website, the owner is right):
+${lines.join("\n")}
+`;
+}
+
+export function profilePrompt(digest: string, owner?: OwnerInputs | null) {
   return `Analyze this business from its website content and return a Business Intelligence Profile as JSON with exactly these keys:
 {"company_name": string, "industry": string, "summary": string (2-3 sentences), "services": string[], "target_customers": string, "locations": string[], "offers": string, "unique_value": string, "brand_voice": {"tone": string, "traits": string[]}, "likely_competitors": string[] (types of competitors if names unknown), "strengths": string[], "gaps": string[] (marketing/website weaknesses), "regulated": {"is_regulated": boolean (true if the business's marketing is legally regulated, e.g. insurance, Medicare, healthcare, financial, legal, real estate, alcohol, cannabis), "area": string (e.g. "Medicare insurance", or ""), "considerations": string[] (marketing rules that commonly apply in that area, phrased as things to check; [] if not regulated)}}
-Only use what the content supports; write "unknown" where it doesn't. Keep every list to at most 8 items and each item under 25 words.
+Only use what the content supports; write "unknown" where it doesn't. Keep every list to at most 8 items and each item under 25 words.${owner?.serviceArea ? " Base \"locations\" on the owner's service area." : ""}
 ${GROUNDING}
 ${UNTRUSTED}
+${ownerContext(owner)}
 
 <website_content>${digest}</website_content>`;
 }
@@ -131,6 +147,7 @@ export function opportunitiesPrompt(input: {
   signals: Signals;
   psi: PageSpeedScores | null;
   pageUrls: string[];
+  owner?: OwnerInputs | null;
 }) {
   return `You are assessing growth opportunities for this business.
 
@@ -142,11 +159,12 @@ PAGES FOUND: ${input.pageUrls.join(", ")}
 Return JSON:
 {"scores": {"content_clarity": 0-100, "conversion_readiness": 0-100, "online_presence": 0-100},
  "opportunities": [exactly 5 items, highest value first: {"title": string, "area": one of "website"|"seo"|"content"|"conversion"|"social"|"crm"|"ads" (a single string), "why": string (the evidence, naming where it comes from: the website, the website signals, or PageSpeed), "action": string (concrete first step), "impact": "high"|"medium"|"low", "effort": "high"|"medium"|"low"}]}
-Be specific to this business; no generic advice.
+Be specific to this business; no generic advice.${input.owner?.goal ? " Rank opportunities by how directly they serve the owner's main goal, and say how each one serves it in \"why\"." : ""}${input.owner?.tools.length ? " Build on the tools the owner already uses; don't recommend adopting a tool they already have." : ""}
+${ownerContext(input.owner)}
 ${GROUNDING}${input.intel.regulated.is_regulated ? `\nThis business is in a regulated area (${input.intel.regulated.area}). Don't recommend tactics that are commonly restricted there without noting that compliance review is needed.` : ""}`;
 }
 
-export function planPrompt(input: { intel: BusinessIntel; opportunityTitles: string[] }) {
+export function planPrompt(input: { intel: BusinessIntel; opportunityTitles: string[]; owner?: OwnerInputs | null }) {
   return `Create a 30-day marketing content plan for this business, starting tomorrow.
 
 BUSINESS PROFILE: ${JSON.stringify(input.intel)}
@@ -155,11 +173,12 @@ TOP OPPORTUNITIES: ${JSON.stringify(input.opportunityTitles)}
 Return JSON:
 {"strategy": {"primary_goal": string, "audience": string, "pillars": [{"name": string, "purpose": string}] (3-4), "channels": string[]},
  "days": [30 items: {"day": 1-30, "channel": "facebook"|"instagram"|"linkedin"|"blog"|"email"|"google_business"|"video", "pillar": string, "format": string, "topic": string (specific), "objective": string}]}
-Use channels that fit this business. Not every day needs a post, but include at least 20 days. Keep "topic" and "objective" under 15 words each. Make topics timely for the next 30 days from today's date (seasons, deadlines, enrollment periods), using the correct year.
+Use channels that fit this business. Not every day needs a post, but include at least 20 days. Keep "topic" and "objective" under 15 words each. Make topics timely for the next 30 days from today's date (seasons, deadlines, enrollment periods), using the correct year.${input.owner?.goal ? " \"primary_goal\" must serve the owner's main goal." : ""}${input.owner?.tools.length ? " Prefer channels the owner already uses." : ""}${input.owner?.serviceArea ? " Keep local topics within the owner's service area." : ""}
+${ownerContext(input.owner)}
 ${GROUNDING}`;
 }
 
-export function writerPrompt(input: { intel: BusinessIntel; posts: Plan["days"] }) {
+export function writerPrompt(input: { intel: BusinessIntel; posts: Plan["days"]; owner?: OwnerInputs | null }) {
   const { intel } = input;
   const regulated = intel.regulated.is_regulated
     ? `
@@ -175,6 +194,7 @@ Set "compliance_note" to "" unless a post makes a claim the business should veri
 Brand voice: ${intel.brand_voice.tone}; traits: ${intel.brand_voice.traits.join(", ")}.
 Services: ${intel.services.join(", ")}. Audience: ${intel.target_customers}. Location: ${intel.locations.join(", ")}.
 
+${ownerContext(input.owner)}
 POSTS TO WRITE: ${JSON.stringify(input.posts)}
 
 Return JSON: {"items": [{"day": number (same as input), "title": string, "body": string (ready to publish; length: blog 300-450 words, email 120-200 words, facebook/instagram/linkedin/google_business/video script under 120 words), "cta": string, "image_prompt": string (for a designer/AI image tool), "hashtags": string[], "compliance_note": string (under 60 words)}]}

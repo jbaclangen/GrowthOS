@@ -4,6 +4,7 @@ import { runWorkerJson } from "@/lib/ai/router";
 import { crawlSite } from "@/lib/integrations/crawler";
 import { pageSpeed } from "@/lib/integrations/google";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { fromProfileRow } from "@/lib/owner-inputs";
 import {
   MAX_TOKENS,
   contentSchema,
@@ -64,6 +65,15 @@ export async function runWebsiteIntel(jobId: string) {
 
   await db.from("ai_jobs").update({ status: "running", started_at: new Date().toISOString() }).eq("id", jobId);
 
+  // Guided onboarding answers (Customer-provided). Read fresh each run so edits apply to re-runs.
+  const { data: ownerRow } = await db
+    .from("business_profiles")
+    .select("goals, service_area, current_tools")
+    .eq("id", businessProfileId)
+    .eq("organization_id", org)
+    .single();
+  const owner = ownerRow ? fromProfileRow(ownerRow) : null;
+
   try {
     // 1. Crawl + PageSpeed in parallel (PageSpeed is slow and optional).
     await setStep("crawling");
@@ -98,7 +108,7 @@ export async function runWebsiteIntel(jobId: string) {
         messages: [
           {
             role: "user",
-            content: profilePrompt(digest),
+            content: profilePrompt(digest, owner),
           },
         ],
       },
@@ -121,6 +131,7 @@ export async function runWebsiteIntel(jobId: string) {
               signals: crawl.signals,
               psi,
               pageUrls: crawl.pages.map((p) => p.url),
+              owner,
             }),
           },
         ],
@@ -188,6 +199,7 @@ export async function runWebsiteIntel(jobId: string) {
             content: planPrompt({
               intel,
               opportunityTitles: opp.opportunities.slice(0, 5).map((o) => o.title),
+              owner,
             }),
           },
         ],
@@ -249,7 +261,7 @@ export async function runWebsiteIntel(jobId: string) {
         messages: [
           {
             role: "user",
-            content: writerPrompt({ intel, posts: firstBatch }),
+            content: writerPrompt({ intel, posts: firstBatch, owner }),
           },
         ],
       },
