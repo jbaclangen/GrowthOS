@@ -74,7 +74,8 @@ decision. Never describe the product as doing something the code doesn't do, wha
 ## MVP demo flow
 login → `/onboarding` (website URL + optional goal, service area, tools — BI-12) → `startAnalysis` creates an
 `onboarding_sessions` row and queues a `website_evidence` job (crawl + PageSpeed → business profile) via `after()` →
-`/onboarding/[sessionId]` discovery (pain points + free text, D-028) → `/review` (confirm, top three) → `startPlanIfReady`
+`/onboarding/[sessionId]` discovery (pain points + free text, D-028) → `/review` (confirm, top three) → `/questions` (up to 4
+adaptive follow-ups, ON-5) → `startPlanIfReady`
 queues one `website_plan` job once discovery is done and evidence succeeded → `/analysis/[id]` polls until done.
 Plan: growth score + 5 priority-led opportunities → 30-day plan → 5 drafted posts (status `needs_approval`).
 Re-run queues `website_intel`, which does both halves with the latest finished discovery. `AI_MODE=free` uses OpenRouter free models (~3–4 min per run, ~50 free requests/day).

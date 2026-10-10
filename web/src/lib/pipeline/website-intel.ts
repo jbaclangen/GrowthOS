@@ -7,6 +7,7 @@ import { pageSpeed } from "@/lib/integrations/google";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { fromProfileRow, type OwnerInputs } from "@/lib/owner-inputs";
 import { startPlanIfReady } from "@/lib/onboarding/orchestrate";
+import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
 import {
   MAX_TOKENS,
   contentSchema,
@@ -161,11 +162,20 @@ export async function loadDiscovery(
   const { data: session } = await query.order("created_at", { ascending: false }).limit(1).maybeSingle();
   if (!session || session.status !== "completed") return null;
 
-  const { data: rows } = await db
-    .from("onboarding_responses")
-    .select("kind, pain_point_id, source, confirmed, original_text, customer_priority")
-    .eq("organization_id", org)
-    .eq("session_id", session.id);
+  const [{ data: rows }, { data: followUps }] = await Promise.all([
+    db
+      .from("onboarding_responses")
+      .select("kind, pain_point_id, source, confirmed, original_text, customer_priority")
+      .eq("organization_id", org)
+      .eq("session_id", session.id),
+    db
+      .from("onboarding_follow_ups")
+      .select("pain_point_id, question_key, answer, created_at")
+      .eq("organization_id", org)
+      .eq("session_id", session.id)
+      .eq("status", "answered")
+      .order("created_at"),
+  ]);
 
   return {
     painPoints: (rows ?? [])
@@ -176,6 +186,11 @@ export async function loadDiscovery(
         ownerWords: r.source === "ai_suggested" ? r.original_text : null,
       })),
     statements: (rows ?? []).filter((r) => r.kind === "statement" && r.original_text).map((r) => r.original_text as string),
+    followUps: (followUps ?? []).flatMap((f) => {
+      const question = getQuestion(f.pain_point_id, f.question_key);
+      if (!question || !f.answer) return [];
+      return [{ painPointId: f.pain_point_id, question: question.text, answer: answerLabel(f.pain_point_id, f.question_key, f.answer) }];
+    }),
   };
 }
 

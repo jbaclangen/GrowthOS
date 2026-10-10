@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ScoreBadge } from "@/components/score-badge";
+import { isOpen } from "@/lib/onboarding/steps";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -46,7 +47,7 @@ async function Dashboard() {
     if (!latestSession.has(s.business_profile_id)) latestSession.set(s.business_profile_id, s.status);
   }
   for (const [id, status] of latestSession) {
-    if (status === "discovering" || status === "reviewing") latestStatus.set(id, "awaiting_answers");
+    if (isOpen(status)) latestStatus.set(id, "awaiting_answers");
   }
 
   return (

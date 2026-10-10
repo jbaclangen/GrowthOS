@@ -10,6 +10,8 @@ import { ContentActions, RerunButton } from "./controls";
 import { OwnerPanel } from "./owner-panel";
 import { fromProfileRow } from "@/lib/owner-inputs";
 import { getPainPoint } from "@/lib/onboarding/catalog";
+import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
+import { continueLabel, isOpen, onboardingPath } from "@/lib/onboarding/steps";
 import Link from "next/link";
 
 export const metadata: Metadata = { title: "Growth assessment" };
@@ -98,14 +100,22 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const { data: answers } = session
-    ? await supabase
-        .from("onboarding_responses")
-        .select("kind, pain_point_id, confirmed, original_text, customer_priority")
-        .eq("session_id", session.id)
-    : { data: [] };
+  const [{ data: answers }, { data: followUps }] = session
+    ? await Promise.all([
+        supabase
+          .from("onboarding_responses")
+          .select("kind, pain_point_id, confirmed, original_text, customer_priority")
+          .eq("session_id", session.id),
+        supabase
+          .from("onboarding_follow_ups")
+          .select("pain_point_id, question_key, answer, created_at")
+          .eq("session_id", session.id)
+          .eq("status", "answered")
+          .order("created_at"),
+      ])
+    : [{ data: [] }, { data: [] }];
 
-  const discoveryOpen = session?.status === "discovering" || session?.status === "reviewing";
+  const discoveryOpen = isOpen(session?.status);
   const jobStep = (job?.output as { step?: StepKey } | null)?.step;
   // Evidence is in and discovery is done, but the plan job hasn't been created yet: show it as starting.
   const planPending =
@@ -123,6 +133,13 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
     .map((a) => ({ id: a.pain_point_id as string, priority: a.customer_priority as number | null }));
   const ownStatement = (answers ?? []).find((a) => a.kind === "statement")?.original_text ?? null;
   const priorityOf = new Map(confirmedIssues.map((c) => [c.id, c.priority]));
+  const detailsOf = (painPointId: string) =>
+    (followUps ?? [])
+      .filter((f) => f.pain_point_id === painPointId && f.answer && getQuestion(f.pain_point_id, f.question_key))
+      .map((f) => ({
+        question: getQuestion(f.pain_point_id, f.question_key)!.text,
+        answer: answerLabel(f.pain_point_id, f.question_key, f.answer as string),
+      }));
 
   const intel = profile.intelligence as Partial<BusinessIntel>;
   const data = report?.data as ReportData | undefined;
@@ -152,10 +169,10 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
             analysis keeps running in the meantime.
           </p>
           <Link
-            href={session.status === "reviewing" ? `/onboarding/${session.id}/review` : `/onboarding/${session.id}`}
+            href={onboardingPath({ ...session, business_profile_id: id })}
             className="btn-primary mt-3"
           >
-            {session.status === "reviewing" ? "Confirm your priorities" : "Answer the questions"}
+            {continueLabel(session.status)}
           </Link>
         </section>
       )}
@@ -179,7 +196,14 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
                   <span className="w-24 shrink-0 text-xs text-muted">
                     {c.priority ? `Priority ${c.priority}` : "Also noted"}
                   </span>
-                  {getPainPoint(c.id)?.label}
+                  <span>
+                    {getPainPoint(c.id)?.label}
+                    {detailsOf(c.id).map((d) => (
+                      <span key={d.question} className="mt-0.5 block text-xs text-muted">
+                        {d.question} <span className="text-foreground">{d.answer}</span>
+                      </span>
+                    ))}
+                  </span>
                 </li>
               ))}
             </ul>

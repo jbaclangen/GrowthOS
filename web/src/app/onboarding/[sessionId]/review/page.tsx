@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { categoryLabel, getPainPoint } from "@/lib/onboarding/catalog";
+import { isOpen, onboardingPath } from "@/lib/onboarding/steps";
 import { EvidenceStatus } from "../evidence-status";
 import { ReviewForm, type Candidate } from "./review-form";
 
@@ -29,8 +30,8 @@ async function Review({ params }: PageProps<"/onboarding/[sessionId]/review">) {
     .eq("id", sessionId)
     .maybeSingle();
   if (!session) notFound();
-  if (session.status === "completed" || session.status === "skipped") redirect(`/analysis/${session.business_profile_id}`);
-  if (session.status === "discovering") redirect(`/onboarding/${session.id}`);
+  // Reachable while answering follow-ups too, so the owner can change their priorities.
+  if (!isOpen(session.status) || session.status === "discovering") redirect(onboardingPath(session));
 
   const { data: answers } = await supabase
     .from("onboarding_responses")
@@ -57,10 +58,10 @@ async function Review({ params }: PageProps<"/onboarding/[sessionId]/review">) {
 
   return (
     <>
-      <p className="eyebrow">Step 3 of 3</p>
+      <p className="eyebrow">Step 3 of 4</p>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">Confirm your priorities</h1>
       <p className="mt-2 text-sm text-muted">
-        Keep the issues that apply and choose what matters most. Your top three come first in your plan.
+        Keep the issues that apply and choose what matters most. Your top three come first in your plan; next, a few short questions about them.
       </p>
       <EvidenceStatus jobId={session.evidence_job_id} />
 

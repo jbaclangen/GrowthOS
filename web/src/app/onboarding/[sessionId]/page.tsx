@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isOpen, onboardingPath } from "@/lib/onboarding/steps";
 import { DiscoveryForm } from "./discovery-form";
 import { EvidenceStatus } from "./evidence-status";
 
@@ -28,7 +29,7 @@ async function Discovery({ params }: PageProps<"/onboarding/[sessionId]">) {
     .eq("id", sessionId)
     .maybeSingle();
   if (!session) notFound();
-  if (session.status === "completed" || session.status === "skipped") redirect(`/analysis/${session.business_profile_id}`);
+  if (!isOpen(session.status)) redirect(onboardingPath(session));
 
   const { data: answers } = await supabase
     .from("onboarding_responses")
@@ -42,7 +43,7 @@ async function Discovery({ params }: PageProps<"/onboarding/[sessionId]">) {
 
   return (
     <>
-      <p className="eyebrow">Step 2 of 3 · {business?.company_name}</p>
+      <p className="eyebrow">Step 2 of 4 · {business?.company_name}</p>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">What&apos;s making it hardest for your business to grow right now?</h1>
       <p className="mt-2 text-sm text-muted">
         Your answers decide what Braventa looks at first. Choose what applies, describe it in your own words, or both.
