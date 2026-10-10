@@ -122,7 +122,7 @@ export function ReviewForm({ sessionId, candidates }: { sessionId: string; candi
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className="btn-primary">
-          {pending ? "Saving…" : "Build my plan"}
+          {pending ? "Saving…" : "Continue"}
         </button>
         <Link href={`/onboarding/${sessionId}`} className="text-sm text-muted underline-offset-2 hover:underline">
           Change answers

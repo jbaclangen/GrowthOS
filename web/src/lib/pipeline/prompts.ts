@@ -138,6 +138,8 @@ ${lines.join("\n")}
 export type DiscoveryContext = {
   painPoints: { id: string; priority: number | null; ownerWords: string | null }[];
   statements: string[];
+  // Answers to the adaptive follow-up questions (ON-5), already resolved to readable text.
+  followUps?: { painPointId: string; question: string; answer: string }[];
 };
 
 export function hasDiscovery(d?: DiscoveryContext | null): d is DiscoveryContext {
@@ -155,12 +157,18 @@ function discoveryContext(d?: DiscoveryContext | null) {
       .join(", ");
     const rank = pp.priority ? `PRIORITY ${pp.priority}` : "also mentioned";
     const words = pp.ownerWords ? ` — in their words: "${pp.ownerWords}"` : "";
-    return [`- [${rank}] ${entry.id}: ${entry.label}${words}. Braventa solutions: ${solutions}`];
+    const details = (d.followUps ?? [])
+      .filter((f) => f.painPointId === pp.id)
+      .map((f) => `    · ${f.question} "${f.answer}"`);
+    return [`- [${rank}] ${entry.id}: ${entry.label}${words}. Braventa solutions: ${solutions}`, ...details];
   });
+  const followUpNote = d.followUps?.length
+    ? "\nLines starting with · are the owner's answers to follow-up questions; use them to make each step fit how the business works today."
+    : "";
   const statements = d.statements.map((s) => `- "${s}"`).join("\n");
   return `
 WHAT THE OWNER SAYS IS HOLDING THE BUSINESS BACK (confirmed by the owner in onboarding):
-${lines.join("\n")}${statements ? `\nIn their own words:\n${statements}` : ""}
+${lines.join("\n")}${statements ? `\nIn their own words:\n${statements}` : ""}${followUpNote}
 Solution availability: "available" = Braventa does this today; "planned" = not available yet; "manual" = Braventa only recommends, the owner does it with their own tools.
 `;
 }
