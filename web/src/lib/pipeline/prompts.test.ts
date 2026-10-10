@@ -73,3 +73,14 @@ describe("parseJsonLoose", () => {
     expect(() => parseJsonLoose("no json here")).toThrow();
   });
 });
+
+describe("summarizeError", () => {
+  it("keeps one short line for the usage log", async () => {
+    const { summarizeError } = await import("@/lib/ai/router");
+    const long = new Error(`OpenRouter 429: ${"x".repeat(500)}\nsecond line with details`);
+    const s = summarizeError(long);
+    expect(s.startsWith("Error: OpenRouter 429:")).toBe(true);
+    expect(s.length).toBe(200);
+    expect(s).not.toContain("second line");
+  });
+});

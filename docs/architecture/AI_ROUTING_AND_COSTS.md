@@ -135,9 +135,11 @@ re-tested on more sites, or when cost per customer matters more than depth.
   since the start of the calendar month, database time) with the admin client. If spend >= budget it throws
   `BudgetExceededError`; the pipeline then marks the job failed with that message. If either read fails
   (or the org row is missing) it throws before calling the model — the check fails closed.
-- After every successful call it inserts one `ai_usage` row with OpenRouter's reported `usage.cost`
-  (`usage: {include: true}`) and token counts. An insert failure is logged to the console and does not fail
-  the call.
+- Every call inserts one `ai_usage` row with `latency_ms` (wall time including retries) and `status`. A
+  successful call (`ok`) records OpenRouter's reported `usage.cost` (`usage: {include: true}`) and token counts; a
+  call that fails after retries (`error`) records cost 0 and a one-line `error` summary (at most 200 characters,
+  `summarizeError()`), then the error is rethrown unchanged. An insert failure is logged to the console and does
+  not fail the call. Migration `20261010155623_ai_usage_latency_and_failures.sql`.
 
 Known limitations:
 
@@ -146,7 +148,6 @@ Known limitations:
 | Free models report cost 0 | In `AI_MODE=free` the budget never trips; the real limit is the shared daily request cap |
 | Check-then-spend | The check happens before the call; a single call can overshoot, and parallel calls for the same org can all pass the check |
 | Org lookup failure skips the check | `if (org && ...)` — if the organizations read errors, the call proceeds unchecked (`router.ts:65`) |
-| Failed calls are not logged | HTTP errors from OpenRouter throw before the insert, so failures and their latency are invisible in `ai_usage` |
 | No per-user or per-request limits | `rerunAnalysis` can be triggered repeatedly; each run is ~4–8+ calls |
 | Budget is per org, orgs are free to create | A user can create more orgs via `create_organization` to get more budget |
 | No user-visible usage | Nothing in the UI shows spend or remaining budget yet (brief §5 asks for transparent usage) |
@@ -160,7 +161,7 @@ Known limitations:
 | Strong models for strategy and critical review | Partial | `complex` used for profile, audit, plan. `qa` defined but no QA step runs |
 | Deterministic code for calculations and rules | Implemented for the growth score | `computeGrowthScore` blends AI and PageSpeed scores in code; crawler signals (HTTPS, H1s, schema, alt text) are computed, not inferred |
 | Reuse business knowledge; cache | **Not implemented** | Crawled pages are stored in `knowledge_documents` but re-runs re-crawl and re-prompt from scratch; no prompt or response cache; no embeddings |
-| Track model, tokens, latency, failures, cost | Partial | Model, tokens, cost: yes. Latency: **no**. Failures: only as `ai_jobs.error` text, not per call |
+| Track model, tokens, latency, failures, cost | Implemented | Per call in `ai_usage`: model, tokens, cost, `latency_ms`, `status`, `error` (2026-10-10) |
 | Configurable fallbacks | Implemented (code-level) | Chains in `router.ts`; changing them requires a deploy. No per-org or per-worker override |
 | Evaluate quality before moving to cheaper models | **Not implemented** | No eval set, no QA scoring, no record of which model produced which artefact beyond `ai_usage.model` |
 | Minimise customer data sent to models | Partial | Inputs are bounded (20k-char site digest, 6 pages); no redaction; full profile JSON is re-sent to each later step |
@@ -184,8 +185,7 @@ Known limitations:
    review is acceptable at MVP); record the result in the decision log.
 8. Customer CRM data or other non-public data must not be sent to free-tier models whose providers may
    retain or train on prompts (decision needed; see open questions).
-9. Planned router improvements, in priority order: log latency and failures per call (add `latency_ms`,
-   `status`, `error` to `ai_usage`); re-check budget atomically
+9. Planned router improvements, in priority order (per-call latency and failure logging done 2026-10-10): re-check budget atomically
    or reserve estimated cost; a runtime override for chains (env or table); cache by
    (worker, model, input hash) for idempotent steps; a `qa_reviewer` pass before `needs_approval` for
    publishable content.

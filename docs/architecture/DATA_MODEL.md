@@ -19,6 +19,7 @@ of record (see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)); security impli
 | `20261010061126_advisor_fixes.sql` | Revokes `is_member` / `is_org_admin` from `anon`; splits the memberships admin policy by action; adds FK indexes |
 | `20261010121043_content_approval_guard.sql` | Trigger `guard_content_item_write` on `content_items`: limits client status changes and sets `approved_by` / `approved_at` (D-018) |
 | `20261010150627_business_profile_owner_inputs.sql` | Adds `business_profiles.service_area` (text) and `current_tools` (text[]), length checks on `goals`/`service_area` and at most 15 tools, and column comments marking all three as Customer-provided (BI-12) |
+| `20261010155623_ai_usage_latency_and_failures.sql` | Adds `ai_usage.latency_ms`, `status` (`ok`/`error`, default `ok`) and `error` (≤ 500 chars) so failed calls and latency are recorded per call |
 
 All three are applied to the Supabase project. Local file names match the versions recorded there
 (`list_migrations`); name new files with the version the project records, or apply them with the
@@ -60,7 +61,7 @@ RLS legend: **M-all** = policy "members all": `for all to authenticated using/wi
 | `content_items` | One planned or drafted piece | `calendar_id`, `campaign_id`, `channel`, `content_type`, `scheduled_for`, `title`, `brief`, `body`, `qa_notes` (jsonb; currently holds `image_prompt`), `status`, `approved_by`, `approved_at` | M-all | Yes: pipeline, analysis page, `setContentStatus` |
 | `integrations` | Connected external accounts per org | `provider` (unique per org), `status`, `external_account_id`, `scopes[]`, `metadata`, `vault_secret_id`, `connected_at`, `last_synced_at` | M-read | **Not used** |
 | `ai_jobs` | Background job record and progress | `worker`, `task_class`, `status`, `input` (jsonb), `output` (jsonb; `step`, then `report_id`, `calendar_id`, `growth_score`), `error`, `n8n_execution_id` (unused), `created_by`, timestamps | M-all | Yes: actions (insert as user), pipeline (admin), pages (read) |
-| `ai_usage` | Per-call AI ledger | `job_id`, `worker`, `model`, `input_tokens`, `output_tokens`, `cost_usd` | M-read | Yes: written by `runWorker` via admin client; read through `ai_spend_mtd` |
+| `ai_usage` | Per-call AI ledger | `job_id`, `worker`, `model`, `input_tokens`, `output_tokens`, `cost_usd`, `latency_ms`, `status` (`ok`/`error`), `error` (one-line summary; failed calls cost 0) | M-read | Yes: written by `runWorker` via admin client; read through `ai_spend_mtd` |
 | `reports` | Generated reports | `report_type` (`growth_plan` today; also intended `website_audit`, `crm_summary`), `title`, `summary`, `data` (jsonb: scores, PageSpeed, signals, opportunities, pages, `business_profile_id`) | M-all | Yes: pipeline writes; analysis page reads by `data->>business_profile_id` |
 | `subscriptions` | Billing state per org | `stripe_customer_id`, `stripe_subscription_id`, `plan`, `status` (default `trialing`), `current_period_end` | M-read | **Not used** (billing not implemented) |
 
