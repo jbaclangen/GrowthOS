@@ -34,13 +34,15 @@ did not approve.
 - Writes to server-owned ledgers (`ai_usage`, `integrations`, `subscriptions`) have no user write policy;
   only the admin client can write them.
 
-- **Content approval is enforced in the database** (migration `20261010000002_content_approval_guard.sql`,
+- **Content approval is enforced in the database** (migration `20261010121043_content_approval_guard.sql`,
   D-018). A `before insert or update` trigger on `content_items` applies to the `authenticated` role (app
   server actions and direct Data API calls alike): inserts must start as `brief`/`draft`; status may only
   move between `needs_approval`, `approved` and `rejected`; `approved_by`/`approved_at` are always set by the
   trigger (`auth.uid()`, `now()` on approval, cleared otherwise) and client values are ignored. `scheduled`
   and `published` can only be set by the secret-key client. `setContentStatus` keeps working unchanged.
-  **Written, not yet applied to the remote project** — apply it before the fix is live.
+  Applied to the remote project 2026-10-10 and verified there in a rolled-back test as a real member:
+  forged approver/time replaced, approve/undo/reject work, `published` (update or insert) and
+  `brief`→`approved` blocked, `service_role` unrestricted. Security advisors report nothing new.
 
 Current gaps:
 - **Members can still write the other M-all tables directly** through the Supabase Data API with the

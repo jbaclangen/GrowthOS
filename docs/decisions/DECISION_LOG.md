@@ -33,6 +33,7 @@ Do not rewrite history.
 | D-020 | 2026-10-10 | AI assistant is not in the MVP but is committed for the Next phase (resolves Q-021) | Founder |
 | D-021 | 2026-10-10 | Guided onboarding questions (BI-12) are in the MVP (resolves Q-022) | Founder |
 | D-022 | 2026-10-10 | Opportunity tracking (MS-5) and the "do this first" summary (UX-1) are in the MVP (resolves Q-023) | Founder |
+| D-023 | 2026-10-10 | Withdrawn — this number was briefly used for the crawler/approval-rules decision, which keeps its original ID D-018 | Withdrawn |
 | D-024 | 2026-10-10 | Paid AI lineup: Sonnet for profile, plan and drafts; Opus for opportunities and for drafts in regulated industries; analyses grounded in source data | Provisional |
 | D-025 | 2026-10-10 | Founder approval of the brand system (messaging, palette, US English) | Founder |
 | D-026 | 2026-10-10 | New logo: **Monolith** symbol + **Syncopate Bold** uppercase wordmark | Superseded by D-027 |
@@ -166,6 +167,7 @@ caps, lowercase stays legible at 20px nav-bar heights, and it reads approachable
 The brand name in running text is still written "Braventa" (capital B). Uppercase Quicksand remains
 available for short marketing section heads.
 
+
 ## D-018 — Crawler reach and client-side approval rules
 **Status:** Provisional (P1 security fixes, 2026-10-10). Two policy choices made while closing the findings in
 [`SECURITY_AND_PRIVACY.md`](../architecture/SECURITY_AND_PRIVACY.md):
@@ -177,9 +179,8 @@ available for short marketing section heads.
   may only move `content_items` between `needs_approval`, `approved` and `rejected`, and may only insert
   items as `brief` or `draft`. `approved_by` / `approved_at` are set by the database (`auth.uid()`,
   `now()`), never by the client. Every other status — including `scheduled` and `published` — can only be
-  set by server code using the secret key. Migration `20261010000002_content_approval_guard.sql`.
+  set by server code using the secret key. Migration `20261010121043_content_approval_guard.sql`.
 Revisit when multi-user organizations add roles (who may approve) or when publishing ships (D-013).
-
 ## D-019 — Product vision adopted as planning context
 **Status:** Founder (2026-10-10: founder supplied the document, instructed that the existing baseline stays
 and approved the documentation updates from the assessment). The founder's
@@ -209,6 +210,10 @@ to the pipeline prompts. Answers are optional so the two-field start stays fast.
 "do this first" summary at the top of the results page: top open opportunity, drafts awaiting approval, next
 step) become MVP. Serves the vision's success criterion that recommendations lead to actions.
 
+## D-023 — Withdrawn
+**Status:** Withdrawn. PR #1 briefly renumbered the crawler/approval-rules decision to D-023 while a parallel
+session recorded the brand approval as D-025. Resolved by keeping original IDs (D-018 crawler rules, D-025
+brand approval); D-023 is not reused.
 ## D-024 — Paid AI lineup and grounded analysis
 **Status:** Provisional (2026-10-10). The founder approved switching to paid models after a model comparison
 and added USD 15 of OpenRouter credit; the specific lineup awaits the founder's review of real results.
