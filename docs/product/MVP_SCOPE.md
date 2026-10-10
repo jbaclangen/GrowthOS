@@ -45,7 +45,7 @@ All paths relative to the repository root.
 | Website reading | Home page plus up to 5 priority pages; homepage technical signals | `web/src/lib/integrations/crawler.ts` |
 | PageSpeed | Google PageSpeed mobile scores; failure is tolerated | `web/src/lib/integrations/google.ts` |
 | Business profile | AI-generated structured profile and brand voice | `gatherEvidence` in `web/src/lib/pipeline/website-intel.ts` |
-| Growth score and five opportunities | Deterministic score from measured and assessed dimensions; ranked opportunities with evidence, first step, impact, effort | `computeGrowthScore`, `website_auditor` step in `website-intel.ts` |
+| Growth score, diagnosis and growth plan | Deterministic growth score from measured and assessed dimensions. One Opus call returns a diagnosis (summary, 3–6 findings each tagged Verified / From you / Inferred with a confidence level, up to 4 open questions) and one plan of 5–7 actions that replaces the five opportunities: pain points addressed, why, first step, dependencies, success metric, Braventa capability (available or not yet, with a manual alternative), impact, urgency, effort, confidence. Four separate priorities: the owner's, the model's rank, a score computed in code ((impact × urgency × confidence) ÷ effort; the owner's urgency answer overrides the model's) and the final order the owner confirms (owner priorities first). The owner marks findings right or wrong with a correction; corrections re-run only the diagnosis step. Confirming sets the plan (ON-7, ON-8, D-029) | `computeGrowthScore`, `diagnose` / `storeDiagnosis` / `reviseDiagnosis` in `website-intel.ts`, `web/src/lib/plan/priority.ts`, `web/src/app/analysis/plan-actions.ts`, `web/src/app/analysis/[id]/plan-section.tsx`; tables `diagnoses`, `diagnosis_findings`, `growth_plan_items` |
 | 30-day plan | Strategy (goal, audience, pillars, channels) and 20–30 dated items | `content_strategist` step in `website-intel.ts` |
 | First five drafts | Drafted in brand voice with CTA, hashtags, image idea; status `needs_approval` | `content_writer` step in `website-intel.ts` |
 | Progress and results page | Live step list while running; failure message; full results when done | `web/src/app/analysis/[id]/page.tsx`, `auto-refresh.tsx` |
@@ -91,8 +91,8 @@ sequence.
 | # | Item | Requirement | Why | Size |
 |---|---|---|---|---|
 | 10 | **Guided onboarding questions** (optional: primary goal, service area, current tools) | BI-12 (D-021) | Better context for every output; answers are Customer-provided provenance | Small — **Live** |
-| 11 | **Opportunity tracking** — accept, dismiss, done | MS-5 (D-022) | Recommendations lead to actions, not just text | Small |
-| 12 | **"Do this first" summary** at the top of the results page | UX-1 (D-022) | The next best action is obvious without reading the whole page | Small |
+| 11 | **Opportunity tracking** — accept, dismiss, done | MS-5 (D-022) | Recommendations lead to actions, not just text | Small — **Live** (on plan items) |
+| 12 | **"Do this first" summary** at the top of the results page | UX-1 (D-022) | The next best action is obvious without reading the whole page | Small — **Live** |
 
 **Deferred but committed: AI assistant (BI-11, D-020)** — Next phase, after knowledge-base retrieval (BI-8)
 and paid AI mode.

@@ -18,8 +18,8 @@ import type { OwnerInputs } from "@/lib/owner-inputs";
 import {
   MAX_TOKENS,
   contentSchema,
-  opportunitiesPrompt,
-  opportunitiesSchema,
+  diagnosisPrompt,
+  diagnosisSchema,
   planPrompt,
   planSchema,
   profilePrompt,
@@ -101,22 +101,22 @@ for (const site of sites) {
     try {
       const p = await step(model, "business_analyst", profilePrompt(digest, OWNER), MAX_TOKENS.profile, (v) => profileSchema.parse(v));
       const o = await step(model, "website_auditor",
-        opportunitiesPrompt({ intel: p.value, signals: crawl.signals, psi, pageUrls: crawl.pages.map((x) => x.url), owner: OWNER }),
-        MAX_TOKENS.opportunities, (v) => opportunitiesSchema.parse(v));
+        diagnosisPrompt({ intel: p.value, signals: crawl.signals, psi, pageUrls: crawl.pages.map((x) => x.url), owner: OWNER }),
+        MAX_TOKENS.diagnosis, (v) => diagnosisSchema.parse(v));
       const pl = await step(model, "content_strategist",
-        planPrompt({ intel: p.value, opportunityTitles: o.value.opportunities.slice(0, 5).map((x) => x.title), owner: OWNER }),
+        planPrompt({ intel: p.value, planTitles: o.value.plan.map((x) => x.title), owner: OWNER }),
         MAX_TOKENS.plan, (v) => planSchema.parse(v));
       const firstBatch = pl.value.days.slice().sort((a, b) => a.day - b.day).slice(0, 5);
       const w = await step(model, "content_writer", writerPrompt({ intel: p.value, posts: firstBatch, owner: OWNER }), MAX_TOKENS.writer,
         (v) => contentSchema.parse(v));
 
       const steps = [p.meta, o.meta, pl.meta, w.meta];
-      const oppText = o.value.opportunities.map((x) => `${x.title}. ${x.why} ${x.action}`).join("\n");
+      const oppText = [...o.value.findings.map((x) => `${x.statement} ${x.evidence}`), ...o.value.plan.map((x) => `${x.title}. ${x.why} ${x.first_action} ${x.success_metric}`)].join("\n");
       const draftText = w.value.items.map((x) => `${x.title}\n${x.body}\n${x.cta}`).join("\n");
       const planText = pl.value.days.map((d) => d.topic).join("\n");
       const checks = {
         regulated: p.value.regulated,
-        unsupported_figures_in_opportunities: unsupportedFigures(oppText, evidence),
+        unsupported_figures_in_diagnosis: unsupportedFigures(oppText, evidence),
         unsupported_figures_in_drafts: unsupportedFigures(draftText, evidence),
         stale_years: staleYears(`${oppText}\n${planText}\n${draftText}`, currentYear),
         drafts_with_compliance_note: w.value.items.filter((x) => x.compliance_note.trim()).length,
@@ -129,9 +129,9 @@ for (const site of sites) {
         retries: steps.reduce((s, x) => s + x.attempts - 1, 0),
       };
       writeFileSync(join(outDir, `${host}__${model.replace(/\//g, "_")}.json`),
-        JSON.stringify({ site, model, owner: OWNER, totals, checks, steps, profile: p.value, opportunities: o.value, plan: pl.value, drafts: w.value }, null, 2));
+        JSON.stringify({ site, model, owner: OWNER, totals, checks, steps, profile: p.value, diagnosis: o.value, plan: pl.value, drafts: w.value }, null, 2));
       const line = `${label}: ${totals.seconds}s, $${totals.cost_usd}, retries ${totals.retries}, ` +
-        `unsupported figures opp/drafts ${checks.unsupported_figures_in_opportunities.length}/${checks.unsupported_figures_in_drafts.length}, ` +
+        `unsupported figures diagnosis/drafts ${checks.unsupported_figures_in_diagnosis.length}/${checks.unsupported_figures_in_drafts.length}, ` +
         `stale years ${checks.stale_years.length}, regulated ${checks.regulated.is_regulated ? checks.regulated.area : "no"}, ` +
         `compliance notes ${checks.drafts_with_compliance_note}/${checks.drafts}`;
       console.log(line);

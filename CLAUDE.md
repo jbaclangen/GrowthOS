@@ -30,7 +30,8 @@ decision. Never describe the product as doing something the code doesn't do, wha
 ## Working rules
 - Treat approved specs as the source of truth; keep naming, positioning, voice, tokens, and UI conventions consistent.
 - Never invent capabilities or present planned features as live. Live today: website analysis + pain-point discovery → business
-  profile → growth score + 5 opportunities → 30-day plan → 5 drafted posts with approve/reject. No CRM, publishing,
+  profile → growth score + diagnosis the owner confirms or corrects → one prioritized growth plan (accept / dismiss /
+  done) → 30-day plan → 5 drafted posts with approve/reject. No CRM, publishing,
   email sending, automation, analytics, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
 - Style only with design tokens and shared primitives: semantic Tailwind roles (`bg-surface`, `text-muted`,
@@ -77,6 +78,7 @@ login → `/onboarding` (website URL + optional goal, service area, tools — BI
 `/onboarding/[sessionId]` discovery (pain points + free text, D-028) → `/review` (confirm, top three) → `/questions` (up to 4
 adaptive follow-ups, ON-5) → `startPlanIfReady`
 queues one `website_plan` job once discovery is done and evidence succeeded → `/analysis/[id]` polls until done.
-Plan: growth score + 5 priority-led opportunities → 30-day plan → 5 drafted posts (status `needs_approval`).
+Plan: growth score + diagnosis + growth plan (`diagnoses`, `diagnosis_findings`, `growth_plan_items`) → 30-day plan → 5
+drafted posts (status `needs_approval`). Owner corrections queue a `diagnosis_update` job (diagnosis step only).
 Re-run queues `website_intel`, which does both halves with the latest finished discovery. `AI_MODE=free` uses OpenRouter free models (~3–4 min per run, ~50 free requests/day).
 Pages read cookies, so with Cache Components their content must sit inside `<Suspense>`.

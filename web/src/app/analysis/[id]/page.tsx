@@ -9,6 +9,7 @@ import { AutoRefresh } from "./auto-refresh";
 import { ContentActions, RerunButton } from "./controls";
 import { OwnerPanel } from "./owner-panel";
 import { fromProfileRow } from "@/lib/owner-inputs";
+import { DiagnosisSection, DoThisFirst, PlanSection, type DiagnosisRow, type FindingRow, type PlanItemRow } from "./plan-section";
 import { getPainPoint } from "@/lib/onboarding/catalog";
 import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
 import { continueLabel, isOpen, onboardingPath } from "@/lib/onboarding/steps";
@@ -31,7 +32,8 @@ type ReportData = {
   scores: { content_clarity: number; conversion_readiness: number; online_presence: number };
   pagespeed: { performance: number; seo: number; accessibility: number; bestPractices: number } | null;
   pagespeed_error: string | null;
-  opportunities: Opportunity[];
+  // Reports from before the single plan (ON-8) list five opportunities instead.
+  opportunities?: Opportunity[];
   pages: { url: string; title: string }[];
 };
 type Strategy = {
@@ -63,7 +65,7 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
   const [{ data: job }, { data: report }, { data: calendar }] = await Promise.all([
     supabase
       .from("ai_jobs")
-      .select("status, error, output, created_at")
+      .select("worker, status, error, output, created_at")
       .eq("input->>businessProfileId", id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -115,8 +117,39 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
       ])
     : [{ data: [] }, { data: [] }];
 
+  // Diagnosis and growth plan (ON-7, ON-8): the newest one that isn't replaced, plus any earlier confirmed plan.
+  const { data: diagnoses } = await supabase
+    .from("diagnoses")
+    .select("id, status, summary, missing_info, version, confirmed_at, created_at")
+    .eq("business_profile_id", id)
+    .in("status", ["proposed", "confirmed"])
+    .order("created_at", { ascending: false })
+    .limit(2);
+  const diagnosis = (diagnoses?.[0] ?? null) as DiagnosisRow | null;
+  const earlierConfirmed = diagnoses?.[1]?.status === "confirmed" ? diagnoses[1] : null;
+  const [{ data: findingRows }, { data: planRows }] = diagnosis
+    ? await Promise.all([
+        supabase
+          .from("diagnosis_findings")
+          .select("id, position, statement, evidence, provenance, confidence, owner_verdict, owner_note")
+          .eq("diagnosis_id", diagnosis.id)
+          .order("position"),
+        supabase
+          .from("growth_plan_items")
+          .select(
+            "id, title, area, pain_point_ids, finding_positions, why, first_action, dependencies, success_metric, solution_ids, manual_alternative, impact, urgency, urgency_from_owner, effort, confidence, customer_priority, ai_priority, calculated_priority, final_priority, status",
+          )
+          .eq("diagnosis_id", diagnosis.id),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const findings = (findingRows ?? []) as FindingRow[];
+  const planItems = (planRows ?? []).map((r) => ({ ...r, calculated_priority: Number(r.calculated_priority) })) as PlanItemRow[];
+
   const discoveryOpen = isOpen(session?.status);
   const jobStep = (job?.output as { step?: StepKey } | null)?.step;
+  const jobActive = job?.status === "queued" || job?.status === "running";
+  // Corrections being applied (ON-7): only the diagnosis is rebuilt, so the rest of the page stays as it is.
+  const updatingDiagnosis = jobActive && job?.worker === "diagnosis_update";
   // Evidence is in and discovery is done, but the plan job hasn't been created yet: show it as starting.
   const planPending =
     !!session &&
@@ -124,7 +157,7 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
     !session.plan_job_id &&
     job?.status === "succeeded" &&
     jobStep === "evidence_done";
-  const running = job?.status === "queued" || job?.status === "running" || planPending;
+  const running = (jobActive && !updatingDiagnosis) || planPending;
   const progressStep: StepKey = planPending || jobStep === "evidence_done" ? "scoring" : (jobStep ?? "crawling");
 
   const confirmedIssues = (answers ?? [])
@@ -156,7 +189,7 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
           </a>
           {profile.industry && <p className="mt-1 text-sm text-muted">{profile.industry}</p>}
         </div>
-        {!running && !discoveryOpen && <RerunButton businessProfileId={id} />}
+        {!running && !updatingDiagnosis && !discoveryOpen && <RerunButton businessProfileId={id} />}
       </header>
 
       {discoveryOpen && session && (
@@ -178,6 +211,14 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
       )}
 
       {running && <Progress step={progressStep} />}
+
+      {diagnosis && !running && (
+        <DoThisFirst
+          diagnosis={diagnosis}
+          items={planItems}
+          draftsWaiting={drafts.filter((d) => d.status === "needs_approval").length}
+        />
+      )}
 
       <OwnerPanel businessProfileId={id} inputs={fromProfileRow(profile)} />
 
@@ -262,6 +303,17 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
             </section>
           )}
 
+          {diagnosis ? (
+            <>
+              <DiagnosisSection
+                diagnosis={diagnosis}
+                findings={findings}
+                updating={updatingDiagnosis}
+                replacesConfirmedOn={earlierConfirmed?.confirmed_at ? new Date(earlierConfirmed.confirmed_at).toLocaleDateString() : null}
+              />
+              <PlanSection items={planItems} confirmed={diagnosis.status === "confirmed"} />
+            </>
+          ) : data.opportunities?.length ? (
           <section>
             <h2 className="text-lg font-semibold">Top 5 opportunities</h2>
             <ol className="mt-3 space-y-3">
@@ -295,6 +347,7 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
               ))}
             </ol>
           </section>
+          ) : null}
         </>
       )}
 
@@ -321,7 +374,7 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
       )}
 
       {drafts.length > 0 && (
-        <section>
+        <section id="drafts" className="scroll-mt-6">
           <h2 className="text-lg font-semibold">First content batch</h2>
           <p className="text-sm text-muted">Nothing is published until you approve it.</p>
           <div className="mt-3 space-y-3">
@@ -391,7 +444,7 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
         </section>
       )}
 
-      {running && <AutoRefresh />}
+      {(running || updatingDiagnosis) && <AutoRefresh />}
     </div>
   );
 }

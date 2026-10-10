@@ -57,7 +57,7 @@ failure. Both attempts are logged to `ai_usage`. After two failures it throws
 | Worker | Task class | Used in code today |
 |---|---|---|
 | `business_analyst` | complex | Yes — pipeline step 2 (profile) |
-| `website_auditor` | complex | Yes — pipeline step 3 (scores + opportunities) |
+| `website_auditor` | complex | Yes — pipeline step 3 (scores + diagnosis + growth plan, ON-7/ON-8); also the `diagnosis_update` job that applies the owner's corrections |
 | `content_strategist` | complex | Yes — pipeline step 4 (30-day plan) |
 | `content_writer` | standard | Yes — pipeline step 5 (first 5 posts) |
 | `seo_analyst` | standard | No |
@@ -122,7 +122,7 @@ After the prompt fixes (date, evidence rules, regulated-industry handling) no mo
 ratings or past years. Findings that shaped the code: the old 2,500-token profile ceiling cut off every
 paid model; long drafts needed per-channel length limits; Sonnet sometimes returns `area` as a list.
 
-**Chosen lineup and expected cost:** profile Sonnet, opportunities Opus, plan Sonnet, drafts Sonnet (Opus when
+**Chosen lineup and expected cost:** profile Sonnet, opportunities (now diagnosis and plan) Opus, plan Sonnet, drafts Sonnet (Opus when
 regulated) — about **$0.23 per analysis, about $0.32 for regulated businesses** (end-to-end run on
 thebenefitlink.com 2026-10-10: profile $0.041, opportunities $0.070, plan $0.071, drafts $0.142 — plus $0.167 for
 a cut-off first draft attempt, which the higher ceiling now prevents). Revisit when Haiku-class quality is
@@ -189,3 +189,8 @@ Known limitations:
    or reserve estimated cost; a runtime override for chains (env or table); cache by
    (worker, model, input hash) for idempotent steps; a `qa_reviewer` pass before `needs_approval` for
    publishable content.
+
+**Update 2026-10-11 (ON-7, ON-8):** the diagnosis step writes more than the five opportunities did (findings with
+evidence, a 5–7 item plan, open questions). End-to-end run on benguetlinemenelectrical.com: profile $0.030,
+diagnosis $0.133, 30-day plan $0.065, drafts $0.050, so about **$0.28 per analysis**; one correction round (diagnosis
+re-run) $0.142. Follow-up question selection and classification on Haiku add under $0.002.

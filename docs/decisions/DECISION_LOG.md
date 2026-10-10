@@ -292,3 +292,20 @@ connected_system observation → Verified; ai_hypothesis → Inferred; manually_
 confirmed); adaptive follow-ups are a bounded question flow (about 4 questions, economical model), not the
 assistant (D-020); a `growth_plan_items` table backs the plan and also delivers MS-5 and UX-1 (D-022). Staging:
 ON-1 – ON-8 in [PRODUCT_REQUIREMENTS.md](../product/PRODUCT_REQUIREMENTS.md).
+
+## D-029 — How the diagnosis and plan are confirmed and ordered
+**Status:** Provisional (2026-10-11, implementation of ON-7/ON-8 under D-028; awaiting founder review of real runs).
+- **One call, one plan.** The Opus step returns the scores, a diagnosis (summary, 3–6 findings, up to 4 open
+  questions) and a 5–7 item plan in one response; content planning uses the plan titles. Correcting the diagnosis
+  does not rebuild the 30-day plan or drafts.
+- **Provenance.** Each finding carries a source mapped to the provenance classes: owner → Customer-provided (shown
+  "From you"), website or PageSpeed → Verified, model reasoning → Inferred, each with high/medium/low confidence.
+- **Corrections.** The owner marks findings right or wrong, optionally saying what is true. Wrong findings must be
+  resolved before confirming: "Update the plan with my corrections" re-runs only the diagnosis, with the corrections
+  as owner-provided facts, and supersedes the earlier version.
+- **Order.** Final order = the owner's priorities 1–3 first, then the calculated score
+  ((impact × urgency × confidence) ÷ effort on 1–5 scales, computed in code), then the model's rank. The owner's
+  answer to the urgency follow-up replaces the model's urgency. Dismissed items get no final priority. Owners can't
+  reorder items yet (Q-027).
+- **Tracking.** MS-5 statuses (open, accepted, dismissed, done) live on `growth_plan_items` and can be changed once
+  the plan is confirmed. Owners can update only review and status columns (column grants); the pipeline writes the rest.

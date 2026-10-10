@@ -8,11 +8,12 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { fromProfileRow, type OwnerInputs } from "@/lib/owner-inputs";
 import { startPlanIfReady } from "@/lib/onboarding/orchestrate";
 import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
+import { orderPlan, toFindings, toPlanItems, type DiscoveryFacts } from "@/lib/plan/priority";
 import {
   MAX_TOKENS,
   contentSchema,
-  opportunitiesPrompt,
-  opportunitiesSchema,
+  diagnosisPrompt,
+  diagnosisSchema,
   planPrompt,
   planSchema,
   profilePrompt,
@@ -20,6 +21,8 @@ import {
   siteDigest,
   writerPrompt,
   type BusinessIntel,
+  type Corrections,
+  type Diagnosis,
   type DiscoveryContext,
   type PageSpeedScores,
 } from "./prompts";
@@ -28,15 +31,16 @@ export type { BusinessIntel } from "./prompts";
 
 // The analysis runs in two phases (D-028):
 // - evidence (worker "website_evidence"): crawl + PageSpeed → business profile. Starts at the URL step.
-// - plan (worker "website_plan"): opportunities + growth score → 30-day plan → first drafts. Starts when the
-//   evidence is in and the owner has finished or skipped discovery (see startPlanIfReady).
+// - plan (worker "website_plan"): growth score + diagnosis + growth plan (ON-7, ON-8) → 30-day plan → first
+//   drafts. Starts when the evidence is in and the owner has finished or skipped discovery (see startPlanIfReady).
 // "website_intel" (re-run) does both in one job, reusing the latest confirmed discovery answers.
+// "diagnosis_update" re-runs only the diagnosis with the owner's corrections, reusing the stored evidence.
 // Runs server-side against ai_jobs rows; every write is scoped to the job's organization.
 
 export const STEPS = [
   { key: "crawling", label: "Reading the website" },
   { key: "profiling", label: "Understanding the business" },
-  { key: "scoring", label: "Scoring growth and finding opportunities" },
+  { key: "scoring", label: "Diagnosing and building your growth plan" },
   { key: "planning", label: "Building the 30-day plan" },
   { key: "writing", label: "Drafting your first posts" },
   { key: "done", label: "Done" },
@@ -189,44 +193,161 @@ export async function loadDiscovery(
     followUps: (followUps ?? []).flatMap((f) => {
       const question = getQuestion(f.pain_point_id, f.question_key);
       if (!question || !f.answer) return [];
-      return [{ painPointId: f.pain_point_id, question: question.text, answer: answerLabel(f.pain_point_id, f.question_key, f.answer) }];
+      return [
+        {
+          painPointId: f.pain_point_id,
+          question: question.text,
+          answer: answerLabel(f.pain_point_id, f.question_key, f.answer),
+          key: f.question_key,
+          value: f.answer,
+        },
+      ];
     }),
   };
+}
+
+// ON-7/ON-8: one call on the strongest tier returns the scores, the diagnosis and the plan.
+function diagnose(
+  ctx: Ctx,
+  evidence: Evidence,
+  intel: BusinessIntel,
+  discovery: DiscoveryContext | null,
+  corrections: Corrections | null,
+) {
+  return runWorkerJson(
+    {
+      organizationId: ctx.org,
+      jobId: ctx.jobId,
+      worker: "website_auditor",
+      maxTokens: MAX_TOKENS.diagnosis,
+      messages: [
+        {
+          role: "user",
+          content: diagnosisPrompt({
+            intel,
+            signals: evidence.signals,
+            psi: evidence.psi,
+            pageUrls: evidence.pages.map((p) => p.url),
+            owner: ctx.owner,
+            discovery,
+            corrections,
+          }),
+        },
+      ],
+    },
+    (v) => diagnosisSchema.parse(v),
+  );
+}
+
+function discoveryFacts(discovery: DiscoveryContext | null): DiscoveryFacts {
+  return {
+    priorityOf: new Map((discovery?.painPoints ?? []).map((p) => [p.id, p.priority])),
+    urgencyOf: new Map(
+      (discovery?.followUps ?? []).filter((f) => f.key === "urgency").map((f) => [f.painPointId, f.value]),
+    ),
+  };
+}
+
+// Saves a diagnosis with its findings and plan items. Every row is scoped to the job's organization.
+async function storeDiagnosis(
+  ctx: Ctx,
+  raw: Diagnosis,
+  discovery: DiscoveryContext | null,
+  opts: { reportId: string | null; revises?: { id: string; version: number } },
+) {
+  const { db, org } = ctx;
+  const facts = discoveryFacts(discovery);
+  const findings = toFindings(raw.findings, facts);
+  const items = orderPlan(toPlanItems(raw.plan, findings, facts));
+
+  const { data: diagnosis, error } = await db
+    .from("diagnoses")
+    .insert({
+      organization_id: org,
+      business_profile_id: ctx.businessProfileId,
+      report_id: opts.reportId,
+      job_id: ctx.jobId,
+      revises_id: opts.revises?.id ?? null,
+      version: (opts.revises?.version ?? 0) + 1,
+      summary: raw.summary.slice(0, 1500),
+      missing_info: raw.missing_info.slice(0, 4),
+    })
+    .select("id")
+    .single();
+  if (error || !diagnosis) throw new Error(`saving the diagnosis failed: ${error?.message}`);
+
+  const scoped = { organization_id: org, diagnosis_id: diagnosis.id };
+  const [{ error: fErr }, { error: iErr }] = await Promise.all([
+    db.from("diagnosis_findings").insert(findings.map((f) => ({ ...scoped, ...f }))),
+    db.from("growth_plan_items").insert(
+      items.map(({ title, area, pain_point_ids, finding_positions, why, evidence, first_action, dependencies, success_metric, solution_ids, manual_alternative, impact, urgency, urgency_from_owner, effort, confidence, customer_priority, ai_priority, calculated_priority }) => ({
+        ...scoped,
+        title, area, pain_point_ids, finding_positions, why, evidence, first_action, dependencies, success_metric,
+        solution_ids, manual_alternative, impact, urgency, urgency_from_owner, effort, confidence,
+        customer_priority, ai_priority, calculated_priority,
+      })),
+    ),
+  ]);
+  if (fErr || iErr) throw new Error(`saving the plan failed: ${(fErr ?? iErr)?.message}`);
+  return { diagnosisId: diagnosis.id, items };
+}
+
+// The owner corrected the diagnosis: re-run only the diagnosis step with their corrections, reusing the
+// stored website evidence. The 30-day plan and drafts are kept.
+async function reviseDiagnosis(ctx: Ctx, diagnosisId: string) {
+  const { db, org } = ctx;
+  const { data: previous } = await db
+    .from("diagnoses")
+    .select("id, version, status, report_id, business_profile_id")
+    .eq("id", diagnosisId)
+    .eq("organization_id", org)
+    .single();
+  if (!previous || previous.business_profile_id !== ctx.businessProfileId) throw new Error("The diagnosis wasn't found.");
+
+  const [{ data: report }, { data: profile }, { data: findings }] = await Promise.all([
+    db.from("reports").select("data").eq("id", previous.report_id ?? "").eq("organization_id", org).maybeSingle(),
+    db.from("business_profiles").select("intelligence").eq("id", ctx.businessProfileId).eq("organization_id", org).single(),
+    db
+      .from("diagnosis_findings")
+      .select("statement, owner_verdict, owner_note, position")
+      .eq("diagnosis_id", previous.id)
+      .eq("organization_id", org)
+      .order("position"),
+  ]);
+  const data = report?.data as (Evidence & { pagespeed?: PageSpeedScores | null; pagespeed_error?: string | null }) | undefined;
+  const intel = profileSchema.safeParse(profile?.intelligence);
+  if (!data?.signals || !intel.success) throw new Error("The website analysis is missing. Re-run the analysis.");
+  const evidence: Evidence = {
+    signals: data.signals,
+    psi: data.pagespeed ?? null,
+    psiError: data.pagespeed_error ?? null,
+    pages: data.pages ?? [],
+  };
+
+  const corrections: Corrections = {
+    confirmed: (findings ?? []).filter((f) => f.owner_verdict === "confirmed").map((f) => f.statement),
+    wrong: (findings ?? [])
+      .filter((f) => f.owner_verdict === "rejected" || f.owner_note)
+      .map((f) => ({ statement: f.statement, note: f.owner_note })),
+  };
+  const discovery = await loadDiscovery(db, org, ctx.businessProfileId);
+
+  await ctx.setStep("scoring");
+  const raw = await diagnose(ctx, evidence, intel.data, discovery, corrections);
+  const { diagnosisId: revisedId } = await storeDiagnosis(ctx, raw, discovery, {
+    reportId: previous.report_id,
+    revises: { id: previous.id, version: previous.version },
+  });
+  await db.from("diagnoses").update({ status: "superseded" }).eq("id", previous.id).eq("organization_id", org);
+  return revisedId;
 }
 
 async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, discovery: DiscoveryContext | null) {
   const { db, org, jobId, owner } = ctx;
 
   await ctx.setStep("scoring");
-  const opp = await runWorkerJson(
-    {
-      organizationId: org,
-      jobId,
-      worker: "website_auditor",
-      maxTokens: MAX_TOKENS.opportunities,
-      messages: [
-        {
-          role: "user",
-          content: opportunitiesPrompt({
-            intel,
-            signals: evidence.signals,
-            psi: evidence.psi,
-            pageUrls: evidence.pages.map((p) => p.url),
-            owner,
-            discovery,
-          }),
-        },
-      ],
-    },
-    (v) => opportunitiesSchema.parse(v),
-  );
-  const growthScore = computeGrowthScore(evidence.psi, opp.scores);
-
-  // Only link opportunities to pain points the owner actually confirmed.
-  const confirmed = new Set(discovery?.painPoints.map((p) => p.id) ?? []);
-  const opportunities = opp.opportunities
-    .slice(0, 5)
-    .map((o) => ({ ...o, pain_point_ids: o.pain_point_ids.filter((id) => confirmed.has(id)) }));
+  const raw = await diagnose(ctx, evidence, intel, discovery, null);
+  const growthScore = computeGrowthScore(evidence.psi, raw.scores);
 
   await db
     .from("business_profiles")
@@ -244,11 +365,10 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
       data: {
         business_profile_id: ctx.businessProfileId,
         growth_score: growthScore,
-        scores: opp.scores,
+        scores: raw.scores,
         pagespeed: evidence.psi,
         pagespeed_error: evidence.psiError,
         signals: evidence.signals,
-        opportunities,
         pages: evidence.pages,
         discovery_priorities: [...(discovery?.painPoints ?? [])]
           .filter((p) => p.priority)
@@ -258,6 +378,8 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
     })
     .select("id")
     .single();
+
+  const { items: planItems } = await storeDiagnosis(ctx, raw, discovery, { reportId: report?.id ?? null });
 
   await ctx.setStep("planning");
   const plan = await runWorkerJson(
@@ -269,7 +391,7 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
       messages: [
         {
           role: "user",
-          content: planPrompt({ intel, opportunityTitles: opportunities.map((o) => o.title), owner, discovery }),
+          content: planPrompt({ intel, planTitles: planItems.map((i) => i.title), owner, discovery }),
         },
       ],
     },
@@ -357,7 +479,14 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
   return { reportId: report?.id ?? null, calendarId: calendar.id, growthScore };
 }
 
-type JobInput = { businessProfileId: string; websiteUrl: string; sessionId?: string; evidenceJobId?: string };
+type JobInput = {
+  businessProfileId: string;
+  websiteUrl: string;
+  sessionId?: string;
+  evidenceJobId?: string;
+  // diagnosis_update: the diagnosis the owner corrected.
+  diagnosisId?: string;
+};
 
 // Runs one analysis job of any phase. Never throws: failures are recorded on the job row.
 export async function runAnalysisJob(jobId: string): Promise<void> {
@@ -411,6 +540,10 @@ export async function runAnalysisJob(jobId: string): Promise<void> {
       const discovery = await loadDiscovery(db, org, input.businessProfileId, input.sessionId);
       const result = await buildPlan(ctx, evidence, intel.data, discovery);
       await finish({ step: "done", report_id: result.reportId, calendar_id: result.calendarId, growth_score: result.growthScore });
+    } else if (job.worker === "diagnosis_update") {
+      if (!input.diagnosisId) throw new Error("No diagnosis to update.");
+      const diagnosisId = await reviseDiagnosis(ctx, input.diagnosisId);
+      await finish({ step: "done", diagnosis_id: diagnosisId });
     } else {
       const { evidence, intel } = await gatherEvidence(ctx);
       const discovery = await loadDiscovery(db, org, input.businessProfileId);

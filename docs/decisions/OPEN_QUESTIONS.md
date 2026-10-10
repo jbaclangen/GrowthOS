@@ -29,6 +29,9 @@ validation; **P3** can wait.
 | Q-017 | P3 | Community platform. | Community guidelines assume one exists. | None until there are customers to gather. |
 | Q-019 | P1 | Vercel Hobby is for non-commercial use. Upgrade to Pro before charging customers? | Terms-of-service compliance. | Upgrade when the first paying customer signs. |
 | Q-020 | P3 | Should the internal n8n callback header `X-GrowthOS-Secret` be renamed? | Internal only; renaming needs a matching n8n change. | Leave until n8n workflows are built. |
+| Q-026 | P2 | Re-running the analysis after a plan is confirmed creates a new proposed diagnosis; confirming it replaces the earlier plan, and its accept/dismiss/done statuses are not carried over. Carry statuses over to matching items, or have re-runs refresh only the evidence? | Spec §10: don't silently rewrite user-approved plans. Nothing changes until the owner confirms, but the old statuses are then lost. | Carry over statuses for items that address the same pain points, once owners use re-run. |
+| Q-027 | P3 | Should owners be able to reorder plan items, not only accept, dismiss or complete them? | Spec §7 keeps a separate final priority; today it is computed from the owner's top three and the score. | Add ordering if design partners ask for it. |
+| Q-028 | P3 | Apply the (declined) migration adding covering indexes for the composite (id, organization_id) foreign keys? | Supabase performance advisor, INFO level; no impact at MVP data volumes. | Apply before the first customers, after review. |
 | Q-024 | P3 | Should model IDs be configurable without a code change (env or database)? Vision §10. | Swapping a failing or retired model currently needs a deploy. | Not before paid mode; revisit when switching to `AI_MODE=paid`. |
 
 ## Resolved

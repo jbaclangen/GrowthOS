@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeGrowthScore } from "./website-intel";
-import { opportunitiesPrompt, profilePrompt, profileSchema, siteDigest } from "./prompts";
+import { diagnosisPrompt, profilePrompt, profileSchema, siteDigest } from "./prompts";
 import { parseJsonLoose } from "@/lib/ai/router";
 
 const intel = profileSchema.parse({
@@ -39,7 +39,7 @@ describe("prompts", () => {
 
   it("adds owner answers only when there are any, marked as owner-confirmed", () => {
     expect(profilePrompt("x", { goal: null, serviceArea: null, tools: [] })).not.toContain("FROM THE OWNER");
-    const withOwner = opportunitiesPrompt({
+    const withOwner = diagnosisPrompt({
       intel,
       signals: {
         hasHttps: true, hasMetaDescription: true, h1Count: 1, hasContactForm: true,
@@ -51,7 +51,8 @@ describe("prompts", () => {
     });
     expect(withOwner).toContain("FROM THE OWNER");
     expect(withOwner).toContain("- Main goal for the next few months: More leads and inquiries");
-    expect(withOwner).toContain("Rank opportunities by how directly they serve the owner's main goal");
+    expect(withOwner).toContain("Say how each plan item serves the owner's main goal");
+    expect(withOwner).toContain("set every \"pain_point_ids\" to []");
   });
 
   it("caps the site digest at the requested size", () => {

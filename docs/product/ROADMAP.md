@@ -41,7 +41,7 @@ one sitting. Growth Loop coverage: Understand, plus plan, create, approve.
 | Opportunity tracking; "do this first" summary | MS-5, UX-1 (D-022) | Not started |
 | AI-assisted onboarding, stage 1: catalog, discovery, top three, website analysis in parallel | ON-1 – ON-4 (D-028) | Not started |
 | AI-assisted onboarding, stage 2: adaptive follow-ups, saved progress | ON-5, ON-6 | Live |
-| AI-assisted onboarding, stage 3: confirmed diagnosis and single plan (replaces 5 opportunities) | ON-7, ON-8 (delivers MS-5, UX-1) | Not started |
+| AI-assisted onboarding, stage 3: confirmed diagnosis and single plan (replaces 5 opportunities) | ON-7, ON-8 (delivers MS-5, UX-1) | Live |
 
 **Exit criteria:** the MVP items above are live, and the first design partners can complete the
 first-run journey ([USER_JOURNEYS.md](USER_JOURNEYS.md)) without help.
