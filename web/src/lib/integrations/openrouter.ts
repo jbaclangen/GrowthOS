@@ -2,6 +2,9 @@ import "server-only";
 import { env } from "@/lib/env";
 
 const BASE = "https://openrouter.ai/api/v1";
+// Free models can take a minute or more on long outputs; past this we give up rather than hang the job.
+const CHAT_TIMEOUT_MS = 120_000;
+const KEY_TIMEOUT_MS = 15_000;
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
@@ -18,7 +21,7 @@ function headers() {
     Authorization: `Bearer ${env().OPENROUTER_API_KEY}`,
     "Content-Type": "application/json",
     "HTTP-Referer": env().NEXT_PUBLIC_APP_URL,
-    "X-Title": "GrowthOS",
+    "X-Title": "Braventa",
   };
 }
 
@@ -41,6 +44,7 @@ export async function chat(opts: {
       response_format: opts.json ? { type: "json_object" } : undefined,
       usage: { include: true },
     }),
+    signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
   if (!res.ok) {
     throw new Error(`OpenRouter ${res.status}: ${await res.text()}`);
@@ -57,7 +61,7 @@ export async function chat(opts: {
 
 // Key status: remaining credit, limits, free-tier flag.
 export async function keyInfo() {
-  const res = await fetch(`${BASE}/key`, { headers: headers() });
+  const res = await fetch(`${BASE}/key`, { headers: headers(), signal: AbortSignal.timeout(KEY_TIMEOUT_MS) });
   if (!res.ok) throw new Error(`OpenRouter ${res.status}`);
   return (await res.json()).data as {
     limit: number | null;

@@ -4,3 +4,4 @@ node_modules/
 .DS_Store
 supabase/.temp/
 supabase/.branches/
+.claude/settings.local.json
