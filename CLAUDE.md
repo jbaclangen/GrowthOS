@@ -29,7 +29,7 @@ decision. Never describe the product as doing something the code doesn't do, wha
 
 ## Working rules
 - Treat approved specs as the source of truth; keep naming, positioning, voice, tokens, and UI conventions consistent.
-- Never invent capabilities or present planned features as live. Live today: website analysis → business
+- Never invent capabilities or present planned features as live. Live today: website analysis + pain-point discovery → business
   profile → growth score + 5 opportunities → 30-day plan → 5 drafted posts with approve/reject. No CRM, publishing,
   email sending, automation, analytics, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
@@ -72,8 +72,10 @@ decision. Never describe the product as doing something the code doesn't do, wha
 - `npm run tokens` — compile `design-system/tokens.json` → `src/styles/tokens.css` (fails on WCAG contrast); `npm run tokens:check` verifies it's current.
 
 ## MVP demo flow
-login → `/onboarding` (website URL + optional goal, service area, tools — BI-12) → `startAnalysis` queues an `ai_jobs` row and runs
-`web/src/lib/pipeline/website-intel.ts` via `after()` → `/analysis/[id]` polls until done.
-Pipeline: crawl + PageSpeed → business profile → growth score + 5 opportunities → 30-day plan → 5 drafted posts
-(status `needs_approval`). `AI_MODE=free` uses OpenRouter free models (~3–4 min per run, ~50 free requests/day).
+login → `/onboarding` (website URL + optional goal, service area, tools — BI-12) → `startAnalysis` creates an
+`onboarding_sessions` row and queues a `website_evidence` job (crawl + PageSpeed → business profile) via `after()` →
+`/onboarding/[sessionId]` discovery (pain points + free text, D-028) → `/review` (confirm, top three) → `startPlanIfReady`
+queues one `website_plan` job once discovery is done and evidence succeeded → `/analysis/[id]` polls until done.
+Plan: growth score + 5 priority-led opportunities → 30-day plan → 5 drafted posts (status `needs_approval`).
+Re-run queues `website_intel`, which does both halves with the latest finished discovery. `AI_MODE=free` uses OpenRouter free models (~3–4 min per run, ~50 free requests/day).
 Pages read cookies, so with Cache Components their content must sit inside `<Suspense>`.

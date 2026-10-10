@@ -85,25 +85,47 @@ export async function runWorker(opts: {
     throw new BudgetExceededError("Monthly AI budget reached for this organization");
   }
 
-  const result = await chat({
-    models: modelsFor(taskClass),
-    messages: [{ role: "system", content: systemPrompt(opts.worker) }, ...opts.messages],
-    json: opts.json,
-    maxTokens: opts.maxTokens,
-  });
+  const models = modelsFor(taskClass);
+  const started = Date.now();
+  const log = async (row: Record<string, unknown>) => {
+    const { error } = await db.from("ai_usage").insert({
+      organization_id: opts.organizationId,
+      job_id: opts.jobId ?? null,
+      worker: opts.worker,
+      latency_ms: Date.now() - started,
+      ...row,
+    });
+    if (error) console.error("ai_usage insert failed", error);
+  };
 
-  const { error } = await db.from("ai_usage").insert({
-    organization_id: opts.organizationId,
-    job_id: opts.jobId ?? null,
-    worker: opts.worker,
+  let result;
+  try {
+    result = await chat({
+      models,
+      messages: [{ role: "system", content: systemPrompt(opts.worker) }, ...opts.messages],
+      json: opts.json,
+      maxTokens: opts.maxTokens,
+    });
+  } catch (e) {
+    // Failed calls are logged too (cost 0), so failure rates and latency are visible per worker and model.
+    await log({ model: models[0], status: "error", error: summarizeError(e) });
+    throw e;
+  }
+
+  await log({
     model: result.model,
     input_tokens: result.inputTokens,
     output_tokens: result.outputTokens,
     cost_usd: result.costUsd,
+    status: "ok",
   });
-  if (error) console.error("ai_usage insert failed", error);
-
   return result;
+}
+
+// One line, at most 200 characters: enough to group failures, never prompts or customer content.
+export function summarizeError(e: unknown) {
+  const message = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+  return message.split("\n")[0].replace(/\s+/g, " ").slice(0, 200);
 }
 
 // Models sometimes wrap JSON in prose or code fences; pull out the object.

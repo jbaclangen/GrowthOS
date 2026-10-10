@@ -19,8 +19,11 @@ of record (see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)); security impli
 | `20261010061126_advisor_fixes.sql` | Revokes `is_member` / `is_org_admin` from `anon`; splits the memberships admin policy by action; adds FK indexes |
 | `20261010121043_content_approval_guard.sql` | Trigger `guard_content_item_write` on `content_items`: limits client status changes and sets `approved_by` / `approved_at` (D-018) |
 | `20261010150627_business_profile_owner_inputs.sql` | Adds `business_profiles.service_area` (text) and `current_tools` (text[]), length checks on `goals`/`service_area` and at most 15 tools, and column comments marking all three as Customer-provided (BI-12) |
+| `20261010155623_ai_usage_latency_and_failures.sql` | Adds `ai_usage.latency_ms`, `status` (`ok`/`error`, default `ok`) and `error` (≤ 500 chars) so failed calls and latency are recorded per call |
+| `20261010155911_onboarding_discovery.sql` | Unique (`id`, `organization_id`) on `business_profiles`; tables `onboarding_sessions` and `onboarding_responses` with RLS "members all", same-organization composite FKs, one row per pain point per session and one per priority rank (ON-1–ON-4, D-028) |
+| `20261010155931_onboarding_sessions_column_grants.sql` | Users may insert only `organization_id`, `business_profile_id`, `created_by`, `status`, `catalog_version` and update only `status`, `completed_at` on `onboarding_sessions`; the job links are written by server code with the admin client |
 
-All three are applied to the Supabase project. Local file names match the versions recorded there
+All are applied to the Supabase project. Local file names match the versions recorded there
 (`list_migrations`); name new files with the version the project records, or apply them with the
 Supabase CLI so the two stay in step.
 
@@ -60,8 +63,10 @@ RLS legend: **M-all** = policy "members all": `for all to authenticated using/wi
 | `content_items` | One planned or drafted piece | `calendar_id`, `campaign_id`, `channel`, `content_type`, `scheduled_for`, `title`, `brief`, `body`, `qa_notes` (jsonb; currently holds `image_prompt`), `status`, `approved_by`, `approved_at` | M-all | Yes: pipeline, analysis page, `setContentStatus` |
 | `integrations` | Connected external accounts per org | `provider` (unique per org), `status`, `external_account_id`, `scopes[]`, `metadata`, `vault_secret_id`, `connected_at`, `last_synced_at` | M-read | **Not used** |
 | `ai_jobs` | Background job record and progress | `worker`, `task_class`, `status`, `input` (jsonb), `output` (jsonb; `step`, then `report_id`, `calendar_id`, `growth_score`), `error`, `n8n_execution_id` (unused), `created_by`, timestamps | M-all | Yes: actions (insert as user), pipeline (admin), pages (read) |
-| `ai_usage` | Per-call AI ledger | `job_id`, `worker`, `model`, `input_tokens`, `output_tokens`, `cost_usd` | M-read | Yes: written by `runWorker` via admin client; read through `ai_spend_mtd` |
+| `ai_usage` | Per-call AI ledger | `job_id`, `worker`, `model`, `input_tokens`, `output_tokens`, `cost_usd`, `latency_ms`, `status` (`ok`/`error`), `error` (one-line summary; failed calls cost 0) | M-read | Yes: written by `runWorker` via admin client; read through `ai_spend_mtd` |
 | `reports` | Generated reports | `report_type` (`growth_plan` today; also intended `website_audit`, `crm_summary`), `title`, `summary`, `data` (jsonb: scores, PageSpeed, signals, opportunities, pages, `business_profile_id`) | M-all | Yes: pipeline writes; analysis page reads by `data->>business_profile_id` |
+| `onboarding_sessions` | One discovery run per analysis start | `business_profile_id` (composite FK, same org), `status` (`discovering`/`reviewing`/`completed`/`skipped`), `catalog_version`, `evidence_job_id`, `plan_job_id` (claimed once, so only one plan job starts), `created_by`, `completed_at` | M-all, with column grants (see migrations) | Yes: `startAnalysis`, onboarding actions, `startPlanIfReady`, analysis page, dashboard |
+| `onboarding_responses` | The owner's answers (Customer-provided) | `session_id`, `kind` (`pain_point`/`statement`), `pain_point_id` (catalog ID), `source` (`owner_selected`/`ai_suggested`), `confirmed`, `original_text` (≤ 1000; the owner's words or the matched quote), `ai_confidence`, `customer_priority` (1–3, unique per session) | M-all | Yes: onboarding actions, `loadDiscovery` in the pipeline, analysis page |
 | `subscriptions` | Billing state per org | `stripe_customer_id`, `stripe_subscription_id`, `plan`, `status` (default `trialing`), `current_period_end` | M-read | **Not used** (billing not implemented) |
 
 Triggers: `touch_updated_at()` maintains `updated_at` on `business_profiles`, `brand_profiles`,

@@ -186,16 +186,16 @@ See [INTEGRATIONS.md](../architecture/INTEGRATIONS.md).
 | AN-6 | CRM and lead insights over time | Future vision | Not started |
 | AN-7 | Data-based recommendations from outcomes | Future vision | Not started |
 
-### Onboarding and discovery — MVP (D-028) · Not started
+### Onboarding and discovery — MVP (D-028) · Stage 1 live
 
 From the [AI-assisted onboarding spec](Braventa_AI_Assisted_Onboarding_Pain_Point_Spec.md). Builds on BI-12.
 
 | ID | Requirement | Class | Stage | Status |
 |---|---|---|---|---|
-| ON-1 | Pain-point and solution catalog as versioned, typed data: 10 categories, stable IDs, examples, follow-up keys, solution availability (available · planned · manual · integration-dependent · unsupported) | MVP | 1 | Not started |
-| ON-2 | Discovery step: multi-select categories/pain points plus free text; economical model maps free text to catalog IDs, keeps the original wording, asks the owner to confirm when unsure | MVP | 1 | Not started |
-| ON-3 | Owner selects or reorders a top three; stored separately from AI-recommended and calculated priority | MVP | 1 | Not started |
-| ON-4 | Website analysis starts at the URL step and runs while the owner answers discovery questions | MVP | 1 | Not started |
+| ON-1 | Pain-point and solution catalog as versioned, typed data: 10 categories, stable IDs, examples, follow-up keys, solution availability (available · planned · manual · integration-dependent · unsupported) | MVP | 1 | Live |
+| ON-2 | Discovery step: multi-select categories/pain points plus free text; economical model maps free text to catalog IDs, keeps the original wording, asks the owner to confirm when unsure | MVP | 1 | Live |
+| ON-3 | Owner selects or reorders a top three; stored separately from AI-recommended and calculated priority | MVP | 1 | Live |
+| ON-4 | Website analysis starts at the URL step and runs while the owner answers discovery questions | MVP | 1 | Live |
 | ON-5 | Adaptive follow-ups: 1–3 questions per round (about 4 in total) chosen from a per-pain-point question bank by what is missing and most valuable; never repeats answered questions; skip and "not applicable" always available | MVP | 2 | Not started |
 | ON-6 | Onboarding progress is saved per organization and user (`onboarding_sessions`, `onboarding_responses`), so the owner can leave and resume | MVP | 2 | Not started |
 | ON-7 | Diagnosis synthesis with evidence type (provenance class) and confidence per finding; the owner reviews and corrects it before the plan is final | MVP | 3 | Not started |

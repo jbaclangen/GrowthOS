@@ -9,10 +9,20 @@ import { AutoRefresh } from "./auto-refresh";
 import { ContentActions, RerunButton } from "./controls";
 import { OwnerPanel } from "./owner-panel";
 import { fromProfileRow } from "@/lib/owner-inputs";
+import { getPainPoint } from "@/lib/onboarding/catalog";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Growth assessment" };
 
-type Opportunity = { title: string; area: string; why: string; action: string; impact: string; effort: string };
+type Opportunity = {
+  title: string;
+  area: string;
+  why: string;
+  action: string;
+  impact: string;
+  effort: string;
+  pain_point_ids?: string[];
+};
 type DraftNotes = { image_prompt?: string; compliance_note?: string; regulated_area?: string | null };
 type ReportData = {
   growth_score: number;
@@ -80,7 +90,40 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
         .order("scheduled_for")
     : { data: [] };
 
-  const running = job?.status === "queued" || job?.status === "running";
+  // Onboarding discovery (D-028): the latest session decides whether we're waiting for the owner's answers.
+  const { data: session } = await supabase
+    .from("onboarding_sessions")
+    .select("id, status, plan_job_id")
+    .eq("business_profile_id", id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const { data: answers } = session
+    ? await supabase
+        .from("onboarding_responses")
+        .select("kind, pain_point_id, confirmed, original_text, customer_priority")
+        .eq("session_id", session.id)
+    : { data: [] };
+
+  const discoveryOpen = session?.status === "discovering" || session?.status === "reviewing";
+  const jobStep = (job?.output as { step?: StepKey } | null)?.step;
+  // Evidence is in and discovery is done, but the plan job hasn't been created yet: show it as starting.
+  const planPending =
+    !!session &&
+    (session.status === "completed" || session.status === "skipped") &&
+    !session.plan_job_id &&
+    job?.status === "succeeded" &&
+    jobStep === "evidence_done";
+  const running = job?.status === "queued" || job?.status === "running" || planPending;
+  const progressStep: StepKey = planPending || jobStep === "evidence_done" ? "scoring" : (jobStep ?? "crawling");
+
+  const confirmedIssues = (answers ?? [])
+    .filter((a) => a.kind === "pain_point" && a.confirmed && a.pain_point_id && getPainPoint(a.pain_point_id))
+    .sort((a, b) => (a.customer_priority ?? 99) - (b.customer_priority ?? 99))
+    .map((a) => ({ id: a.pain_point_id as string, priority: a.customer_priority as number | null }));
+  const ownStatement = (answers ?? []).find((a) => a.kind === "statement")?.original_text ?? null;
+  const priorityOf = new Map(confirmedIssues.map((c) => [c.id, c.priority]));
+
   const intel = profile.intelligence as Partial<BusinessIntel>;
   const data = report?.data as ReportData | undefined;
   const strategy = calendar?.strategy as Strategy | undefined;
@@ -96,20 +139,60 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
           </a>
           {profile.industry && <p className="mt-1 text-sm text-muted">{profile.industry}</p>}
         </div>
-        {!running && <RerunButton businessProfileId={id} />}
+        {!running && !discoveryOpen && <RerunButton businessProfileId={id} />}
       </header>
 
-      {running && <Progress step={(job?.output as { step?: StepKey } | null)?.step ?? "crawling"} />}
+      {discoveryOpen && session && (
+        <section className="card border-accent" aria-labelledby="discovery-open-title">
+          <h2 id="discovery-open-title" className="font-semibold">
+            Tell us what&apos;s holding the business back
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Your plan is built from your answers and your website. Finish the questions to start it; the website
+            analysis keeps running in the meantime.
+          </p>
+          <Link
+            href={session.status === "reviewing" ? `/onboarding/${session.id}/review` : `/onboarding/${session.id}`}
+            className="btn-primary mt-3"
+          >
+            {session.status === "reviewing" ? "Confirm your priorities" : "Answer the questions"}
+          </Link>
+        </section>
+      )}
+
+      {running && <Progress step={progressStep} />}
 
       <OwnerPanel businessProfileId={id} inputs={fromProfileRow(profile)} />
+
+      {(confirmedIssues.length > 0 || ownStatement) && (
+        <section className="card" aria-labelledby="told-us-title">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 id="told-us-title" className="font-semibold">
+              What you told us
+            </h2>
+            <span className="chip bg-accent-soft text-accent-soft-foreground">From you</span>
+          </div>
+          {confirmedIssues.length > 0 && (
+            <ul className="mt-3 space-y-1 text-sm">
+              {confirmedIssues.map((c) => (
+                <li key={c.id} className="flex gap-2">
+                  <span className="w-24 shrink-0 text-xs text-muted">
+                    {c.priority ? `Priority ${c.priority}` : "Also noted"}
+                  </span>
+                  {getPainPoint(c.id)?.label}
+                </li>
+              ))}
+            </ul>
+          )}
+          {ownStatement && <p className="mt-3 text-sm text-muted">In your words: “{ownStatement}”</p>}
+        </section>
+      )}
 
       {job?.status === "failed" && (
         <div className="card border-danger/40">
           <p className="font-medium text-danger">The last analysis didn&apos;t finish</p>
           <p className="mt-1 text-sm text-muted">{job.error}</p>
-          <p className="mt-2 text-sm text-muted">
-            Free AI models are sometimes busy or rate-limited. Try again in a minute.
-          </p>
+          <p className="mt-2 text-sm text-muted">The AI service may have been busy. Try again in a minute.</p>
         </div>
       )}
 
@@ -167,6 +250,18 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
                     <Tag tone={o.impact === "high" ? "accent" : undefined}>{o.impact} impact</Tag>
                     <Tag>{o.effort} effort</Tag>
                   </div>
+                  {(o.pain_point_ids?.length ?? 0) > 0 && (
+                    <p className="mt-2 text-xs text-accent-soft-foreground">
+                      Addresses{" "}
+                      {o.pain_point_ids!
+                        .map((pid) => {
+                          const rank = priorityOf.get(pid);
+                          const label = getPainPoint(pid)?.label ?? pid;
+                          return rank ? `your priority ${rank}: ${label.toLowerCase()}` : label.toLowerCase();
+                        })
+                        .join("; ")}
+                    </p>
+                  )}
                   <p className="mt-2 text-sm text-muted">{o.why}</p>
                   <p className="mt-2 text-sm">
                     <span className="font-medium">First step: </span>

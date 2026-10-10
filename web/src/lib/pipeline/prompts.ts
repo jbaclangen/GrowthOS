@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import type { CrawlResult } from "@/lib/integrations/crawler";
 import { hasOwnerInputs, type OwnerInputs } from "@/lib/owner-inputs";
+import { SOLUTIONS, getPainPoint } from "@/lib/onboarding/catalog";
 
 // Prompts and output schemas for the website-intel pipeline. Shared by the pipeline and the
 // model-comparison script so both send exactly the same instructions.
@@ -43,6 +44,8 @@ export const opportunitiesSchema = z.object({
         action: z.string(),
         impact: level,
         effort: level,
+        // Catalog IDs of the owner's confirmed pain points this opportunity addresses (ON-2/ON-3).
+        pain_point_ids: z.array(z.string()).default([]),
       }),
     )
     .min(3),
@@ -131,6 +134,37 @@ ${lines.join("\n")}
 `;
 }
 
+// What the owner confirmed in onboarding discovery (ON-2/ON-3). Customer-provided.
+export type DiscoveryContext = {
+  painPoints: { id: string; priority: number | null; ownerWords: string | null }[];
+  statements: string[];
+};
+
+export function hasDiscovery(d?: DiscoveryContext | null): d is DiscoveryContext {
+  return Boolean(d && (d.painPoints.length || d.statements.length));
+}
+
+function discoveryContext(d?: DiscoveryContext | null) {
+  if (!hasDiscovery(d)) return "";
+  const ordered = [...d.painPoints].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
+  const lines = ordered.flatMap((pp) => {
+    const entry = getPainPoint(pp.id);
+    if (!entry) return [];
+    const solutions = entry.solutionIds
+      .map((s) => `${SOLUTIONS[s].label} (${SOLUTIONS[s].availability})`)
+      .join(", ");
+    const rank = pp.priority ? `PRIORITY ${pp.priority}` : "also mentioned";
+    const words = pp.ownerWords ? ` — in their words: "${pp.ownerWords}"` : "";
+    return [`- [${rank}] ${entry.id}: ${entry.label}${words}. Braventa solutions: ${solutions}`];
+  });
+  const statements = d.statements.map((s) => `- "${s}"`).join("\n");
+  return `
+WHAT THE OWNER SAYS IS HOLDING THE BUSINESS BACK (confirmed by the owner in onboarding):
+${lines.join("\n")}${statements ? `\nIn their own words:\n${statements}` : ""}
+Solution availability: "available" = Braventa does this today; "planned" = not available yet; "manual" = Braventa only recommends, the owner does it with their own tools.
+`;
+}
+
 export function profilePrompt(digest: string, owner?: OwnerInputs | null) {
   return `Analyze this business from its website content and return a Business Intelligence Profile as JSON with exactly these keys:
 {"company_name": string, "industry": string, "summary": string (2-3 sentences), "services": string[], "target_customers": string, "locations": string[], "offers": string, "unique_value": string, "brand_voice": {"tone": string, "traits": string[]}, "likely_competitors": string[] (types of competitors if names unknown), "strengths": string[], "gaps": string[] (marketing/website weaknesses), "regulated": {"is_regulated": boolean (true if the business's marketing is legally regulated, e.g. insurance, Medicare, healthcare, financial, legal, real estate, alcohol, cannabis), "area": string (e.g. "Medicare insurance", or ""), "considerations": string[] (marketing rules that commonly apply in that area, phrased as things to check; [] if not regulated)}}
@@ -148,7 +182,12 @@ export function opportunitiesPrompt(input: {
   psi: PageSpeedScores | null;
   pageUrls: string[];
   owner?: OwnerInputs | null;
+  discovery?: DiscoveryContext | null;
 }) {
+  const discovery = hasDiscovery(input.discovery)
+    ? `
+Address the owner's confirmed problems first: the first opportunities must tackle PRIORITY 1, 2 and 3 in that order where the evidence supports a concrete step, then add the most valuable website-evidence opportunities. Set "pain_point_ids" to the IDs from the list above that each opportunity addresses ([] if it comes only from website evidence). When the fix depends on a solution that is "planned" or "manual", the first step must be something the owner can do now with their own tools or a specialist; never imply Braventa will do it.`
+    : "";
   return `You are assessing growth opportunities for this business.
 
 BUSINESS PROFILE: ${JSON.stringify(input.intel)}
@@ -158,13 +197,18 @@ PAGES FOUND: ${input.pageUrls.join(", ")}
 
 Return JSON:
 {"scores": {"content_clarity": 0-100, "conversion_readiness": 0-100, "online_presence": 0-100},
- "opportunities": [exactly 5 items, highest value first: {"title": string, "area": one of "website"|"seo"|"content"|"conversion"|"social"|"crm"|"ads" (a single string), "why": string (the evidence, naming where it comes from: the website, the website signals, or PageSpeed), "action": string (concrete first step), "impact": "high"|"medium"|"low", "effort": "high"|"medium"|"low"}]}
-Be specific to this business; no generic advice.${input.owner?.goal ? " Rank opportunities by how directly they serve the owner's main goal, and say how each one serves it in \"why\"." : ""}${input.owner?.tools.length ? " Build on the tools the owner already uses; don't recommend adopting a tool they already have." : ""}
-${ownerContext(input.owner)}
+ "opportunities": [exactly 5 items, highest value first: {"title": string, "area": one of "website"|"seo"|"content"|"conversion"|"social"|"crm"|"ads" (a single string), "why": string (the evidence, naming where it comes from: the website, the website signals, or PageSpeed), "action": string (concrete first step), "impact": "high"|"medium"|"low", "effort": "high"|"medium"|"low", "pain_point_ids": string[]}]}
+Be specific to this business; no generic advice.${input.owner?.goal ? " Rank opportunities by how directly they serve the owner's main goal, and say how each one serves it in \"why\"." : ""}${input.owner?.tools.length ? " Build on the tools the owner already uses; don't recommend adopting a tool they already have." : ""}${discovery}
+${ownerContext(input.owner)}${discoveryContext(input.discovery)}
 ${GROUNDING}${input.intel.regulated.is_regulated ? `\nThis business is in a regulated area (${input.intel.regulated.area}). Don't recommend tactics that are commonly restricted there without noting that compliance review is needed.` : ""}`;
 }
 
-export function planPrompt(input: { intel: BusinessIntel; opportunityTitles: string[]; owner?: OwnerInputs | null }) {
+export function planPrompt(input: {
+  intel: BusinessIntel;
+  opportunityTitles: string[];
+  owner?: OwnerInputs | null;
+  discovery?: DiscoveryContext | null;
+}) {
   return `Create a 30-day marketing content plan for this business, starting tomorrow.
 
 BUSINESS PROFILE: ${JSON.stringify(input.intel)}
@@ -173,8 +217,8 @@ TOP OPPORTUNITIES: ${JSON.stringify(input.opportunityTitles)}
 Return JSON:
 {"strategy": {"primary_goal": string, "audience": string, "pillars": [{"name": string, "purpose": string}] (3-4), "channels": string[]},
  "days": [30 items: {"day": 1-30, "channel": "facebook"|"instagram"|"linkedin"|"blog"|"email"|"google_business"|"video", "pillar": string, "format": string, "topic": string (specific), "objective": string}]}
-Use channels that fit this business. Not every day needs a post, but include at least 20 days. Keep "topic" and "objective" under 15 words each. Make topics timely for the next 30 days from today's date (seasons, deadlines, enrollment periods), using the correct year.${input.owner?.goal ? " \"primary_goal\" must serve the owner's main goal." : ""}${input.owner?.tools.length ? " Prefer channels the owner already uses." : ""}${input.owner?.serviceArea ? " Keep local topics within the owner's service area." : ""}
-${ownerContext(input.owner)}
+Use channels that fit this business. Not every day needs a post, but include at least 20 days. Keep "topic" and "objective" under 15 words each. Make topics timely for the next 30 days from today's date (seasons, deadlines, enrollment periods), using the correct year.${input.owner?.goal ? " \"primary_goal\" must serve the owner's main goal." : ""}${input.owner?.tools.length ? " Prefer channels the owner already uses." : ""}${input.owner?.serviceArea ? " Keep local topics within the owner's service area." : ""}${hasDiscovery(input.discovery) ? " Where content can help with the owner's confirmed problems (for example inconsistent posting or few leads), make the plan address their top priorities." : ""}
+${ownerContext(input.owner)}${discoveryContext(input.discovery)}
 ${GROUNDING}`;
 }
 

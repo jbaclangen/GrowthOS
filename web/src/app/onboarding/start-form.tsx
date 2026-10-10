@@ -42,7 +42,10 @@ export function StartForm() {
       <button type="submit" disabled={pending} className="btn-primary w-full">
         {pending ? "Starting…" : "Analyze website"}
       </button>
-      <p className="text-xs text-muted">Takes about 3–5 minutes. You can leave the page and come back.</p>
+      <p className="text-xs text-muted">
+        Next: a few questions about what&apos;s holding the business back, while Braventa reads your website. You can
+        leave and come back.
+      </p>
     </form>
   );
 }
