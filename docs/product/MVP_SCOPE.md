@@ -36,7 +36,7 @@ All paths relative to the repository root.
 |---|---|---|
 | Sign-up, email confirmation, sign-in, sign-out | Email and password; confirmation link exchanges a code for a session | `web/src/app/login/actions.ts`, `web/src/app/login/auth-form.tsx`, `web/src/app/auth/callback/route.ts`, `web/src/app/page.tsx` |
 | Route protection | Signed-out users are redirected to `/login` | `web/src/proxy.ts` |
-| Organization creation | First analysis creates an organization with the user as owner | `create_organization` in `supabase/migrations/20261010000000_foundation.sql`; called from `web/src/app/analysis/actions.ts` |
+| Organization creation | First analysis creates an organization with the user as owner | `create_organization` in `supabase/migrations/20261010061028_foundation.sql`; called from `web/src/app/analysis/actions.ts` |
 | Start an analysis | Website URL plus optional business name; queues an `ai_jobs` row and runs the pipeline after the response | `web/src/app/onboarding/page.tsx`, `web/src/app/onboarding/start-form.tsx`, `startAnalysis` in `web/src/app/analysis/actions.ts` |
 | Website reading | Home page plus up to 5 priority pages; homepage technical signals | `web/src/lib/integrations/crawler.ts` |
 | PageSpeed | Google PageSpeed mobile scores; failure is tolerated | `web/src/lib/integrations/google.ts` |

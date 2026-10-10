@@ -27,7 +27,6 @@ validation; **P3** can wait.
 | Q-015 | P2 | Sign-off on the validation metric targets in [`MVP_SCOPE.md`](../product/MVP_SCOPE.md) §5. | They define what "the MVP works" means. | Use as assumptions until signed off. |
 | Q-016 | P2 | Early-access offer and a booking link (for "Book a call"). | Pricing page and primary marketing CTAs depend on them. | "Join early access" + a booking link, once chosen. |
 | Q-017 | P3 | Community platform. | Community guidelines assume one exists. | None until there are customers to gather. |
-| Q-018 | P2 | Has `supabase/migrations/20261010000001_advisor_fixes.sql` been applied to the remote project? It is uncommitted. | Schema docs describe it as part of the model. | Verify with the Supabase migration list before relying on it. |
 | Q-019 | P1 | Vercel Hobby is for non-commercial use. Upgrade to Pro before charging customers? | Terms-of-service compliance. | Upgrade when the first paying customer signs. |
 | Q-020 | P3 | Should the internal n8n callback header `X-GrowthOS-Secret` be renamed? | Internal only; renaming needs a matching n8n change. | Leave until n8n workflows are built. |
 | Q-024 | P3 | Should model IDs be configurable without a code change (env or database)? Vision §10. | Swapping a failing or retired model currently needs a deploy. | Not before paid mode; revisit when switching to `AI_MODE=paid`. |
@@ -40,3 +39,4 @@ validation; **P3** can wait.
 | Q-021 | AI assistant is not in the MVP; committed for the Next phase | D-020 |
 | Q-022 | Yes — optional guided onboarding questions are in the MVP (BI-12) | D-021 |
 | Q-023 | Yes — opportunity tracking (MS-5) and "do this first" (UX-1) are in the MVP | D-022 |
+| Q-018 | Yes — `advisor_fixes` is applied (remote version 20261010061126); local migration files renamed to match the recorded versions | — |
