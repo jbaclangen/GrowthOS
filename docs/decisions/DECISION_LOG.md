@@ -15,25 +15,28 @@ Do not rewrite history.
 | D-002 | 2026-10-10 | Braventa is never written "Braventa AI" by default | Founder |
 | D-003 | 2026-10-10 | Rename user-facing "GrowthOS" strings in the app to Braventa | Provisional |
 | D-004 | 2026-10-10 | Methodology is called **the Braventa Growth Loop** (Understand · Act · Improve) | Provisional |
-| D-005 | 2026-10-10 | Core messaging lines (tagline, one-liner, positioning) | Provisional |
-| D-006 | 2026-10-10 | Visual identity: Ink / Paper / Cobalt / Volt palette | Provisional |
+| D-005 | 2026-10-10 | Core messaging lines (tagline, one-liner, positioning) | Founder (D-025) |
+| D-006 | 2026-10-10 | Visual identity: Ink / Paper / Cobalt / Volt palette | Founder (D-025) |
 | D-007 | 2026-10-10 | Typography: Archivo (display), Geist (UI/body), Geist Mono (labels/data) | Superseded by D-015 |
-| D-008 | 2026-10-10 | Symbol: the **Waypoint** mark; wordmark in Archivo Expanded SemiBold | Symbol approved as provisional; wordmark superseded by D-017 |
+| D-008 | 2026-10-10 | Symbol: the **Waypoint** mark; wordmark in Archivo Expanded SemiBold | Superseded by D-026 |
 | D-009 | 2026-10-10 | `design-system/tokens.json` is the single token source, compiled into the app's CSS | Provisional |
 | D-010 | 2026-10-10 | Product module names stay descriptive (no invented sub-brands) | Provisional |
 | D-011 | 2026-10-10 | Hosting: app on Vercel at app.braventa.io; marketing site at braventa.io (Hostinger) | Founder |
 | D-012 | 2026-10-10 | Pricing not decided; docs carry a configurable framework only | Founder |
 | D-013 | 2026-10-10 | Human approval before anything is published for a client | Founder |
 | D-014 | 2026-10-10 | Marketing email requires explicit opt-in, separate from account email | Approved |
-| D-015 | 2026-10-10 | Typography: **Quicksand** for headings and logo, **Comfortaa** for all other text | Founder |
-| D-016 | 2026-10-10 | US English spelling in product and marketing copy | Provisional |
-| D-017 | 2026-10-10 | Wordmark is lowercase `braventa` in Quicksand Bold | Provisional |
+| D-015 | 2026-10-10 | Typography: **Quicksand** for headings and logo, **Comfortaa** for all other text | Founder (logo font amended by D-026) |
+| D-016 | 2026-10-10 | US English spelling in product and marketing copy | Founder (D-025) |
+| D-017 | 2026-10-10 | Wordmark is lowercase `braventa` in Quicksand Bold | Superseded by D-026 |
 | D-018 | 2026-10-10 | Crawler reaches public sites only; clients can only approve/reject/undo content, approver set by the database | Provisional |
 | D-019 | 2026-10-10 | Product vision document adopted as strategic planning context (not a spec); existing approved decisions stand | Founder |
 | D-020 | 2026-10-10 | AI assistant is not in the MVP but is committed for the Next phase (resolves Q-021) | Founder |
 | D-021 | 2026-10-10 | Guided onboarding questions (BI-12) are in the MVP (resolves Q-022) | Founder |
 | D-022 | 2026-10-10 | Opportunity tracking (MS-5) and the "do this first" summary (UX-1) are in the MVP (resolves Q-023) | Founder |
 | D-024 | 2026-10-10 | Paid AI lineup: Sonnet for profile, plan and drafts; Opus for opportunities and for drafts in regulated industries; analyses grounded in source data | Provisional |
+| D-025 | 2026-10-10 | Founder approval of the brand system (messaging, palette, US English) | Founder |
+| D-026 | 2026-10-10 | New logo: **Monolith** symbol + **Syncopate Bold** uppercase wordmark | Superseded by D-027 |
+| D-027 | 2026-10-10 | Logo from the founder's reference: heavy **B** on a rounded tile with a **Violet dot**; **BRAVENTA.IO** in Quicksand Medium | Founder |
 
 ---
 
@@ -224,3 +227,44 @@ and added USD 15 of OpenRouter credit; the specific lineup awaits the founder's 
   Free mode remains available (`AI_MODE=free`) and still allows free endpoints that may train on inputs.
 Revisit after testing with real customers, or if cost per analysis must fall (Haiku was close in quality
 on two of three sites).
+
+## D-025 — Founder approval of the brand system
+**Status:** Founder (2026-10-10). After the handover the founder replied "Approved": the core messaging lines (D-005),
+the Ink / Paper / Cobalt / Volt palette (D-006) and US English (D-016) move from Provisional to Founder. The logo
+approved at that moment (Waypoint + lowercase Quicksand) was replaced the same day by D-026. Still provisional:
+D-003, D-004, D-009, D-010. Approval is a brand decision, not trademark clearance (Q-014 stays open).
+(An earlier copy of this entry was numbered D-018 and was lost when a concurrent session rewrote this file; D-018
+now belongs to the crawler entry.)
+
+## D-026 — Monolith symbol and Syncopate wordmark
+**Status:** Founder (2026-10-10). The founder asked for "a better professional, sharp and modern logo — advanced,
+shows high tech but business imposing". Five symbol directions and five wordmark faces were rendered side by side
+(Monolith, Vector, Prism, Hex Badge, Sharp Waypoint × Michroma, Archivo Expanded, Sora, Syncopate, Quicksand). The
+founder chose **S1 Monolith** and **Syncopate Bold**.
+- **Symbol — Monolith:** a solid, angular "B". Every bowl edge runs at 45°; two forward-pointing counters (aligned
+  to the bowl vertices) are cut out; the lower corner is notched by a diamond, and a smaller diamond node sits in
+  the notch with a 2.5-unit gap. It keeps the "next action" idea of the Waypoint, rebuilt sharp and heavy.
+  Supersedes the Waypoint (D-008).
+- **Wordmark:** BRAVENTA in Syncopate Bold, uppercase, +60 units tracking, outlined. Supersedes D-017 and amends
+  D-015 for the logo only: headings stay Quicksand, other text stays Comfortaa.
+- Social artwork's graph nodes became diamonds to match. App icon, favicon, Open Graph image and the in-app
+  `<Logo>` were regenerated from the same geometry.
+
+## D-027 — B-dot logo from the founder's reference
+**Status:** Founder (2026-10-10). Supersedes D-026. The founder supplied a reference image ("I want something like
+this"): a heavy white B on a black rounded square, a violet dot overlapping the lower-right of the B, and
+"BRAVENTA.IO" in thin uppercase type below. It was rebuilt as clean vector geometry:
+- **Mark:** the B is Montserrat ExtraBold (800), outlined — the closest match to the reference among Montserrat,
+  Poppins and Urbanist — at 70 % of a 48-unit tile with corner radius 3.5. A dot (radius 9 % of the tile) overlaps
+  the lower-right of the lower bowl. The tile is part of the mark.
+- **Dot colour:** **Violet `#5B1AE6`**, as in the reference. It is a logo-only colour (`color.brand.violet`,
+  `logo-node` role in both themes); Cobalt stays the UI action colour and Volt the signal colour.
+- **Wordmark:** **BRAVENTA.IO** in Quicksand Medium (500), uppercase, +70 units tracking, outlined — as in the
+  reference, and consistent with D-015 (Quicksand). Syncopate is no longer used.
+- **Theme behaviour:** on light grounds the tile is Ink with a white B; on dark grounds the tile is Paper with an
+  Ink B (`logo-tile`, `logo-letter` roles), so the mark keeps its edge. The dot stays Violet.
+- The founder declined a follow-up multiple-choice question, so the reference was followed as closely as possible
+  (Violet dot, ".IO" in the wordmark). Switching the dot to Cobalt, or dropping ".IO", is a one-line change in
+  `tokens.json` / `build-brand-assets.mjs`. The founder confirmed both by replying "proceed" (Q-025, resolved).
+- Accessibility note: the Violet dot on Ink is about 2.5:1. Logos are exempt from WCAG contrast rules, and the dot
+  is not the only identifying element; it is never used to convey state.

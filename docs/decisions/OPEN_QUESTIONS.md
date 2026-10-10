@@ -23,7 +23,7 @@ validation; **P3** can wait.
 | Q-011 | P2 | Is a read-only HubSpot summary part of the MVP or the first Next-phase item? | Depends on how many early customers use HubSpot. | First Next-phase item ([`MVP_SCOPE.md`](../product/MVP_SCOPE.md)). |
 | Q-012 | P2 | Comfortaa for all body/UI text (D-015): confirm after testing dense screens (calendar table, long drafts) with real users. | Comfortaa is a rounded display-leaning face with a small x-height; at small sizes and in long passages it reads slower than a neutral UI face. | Keep D-015 with the guardrails in D-015 (≥14px, weight 600 labels). If testing shows strain, consider Quicksand for UI text too. |
 | Q-013 | P2 | Support and security email addresses, and social handles. | Email, community, and support templates reference them; handles must not add "AI" (D-002). | `support@braventa.io`, `security@braventa.io`; handles unverified. |
-| Q-014 | P1 | Trademark clearance for "Braventa" and the Waypoint mark. | No search has been performed; brand documents are not legal clearance. | Commission a search before significant spend on brand assets or launch. |
+| Q-014 | P1 | Trademark clearance for "Braventa" and the B-dot mark (D-027). | No search has been performed; brand documents are not legal clearance. | Commission a search before significant spend on brand assets or launch. |
 | Q-015 | P2 | Sign-off on the validation metric targets in [`MVP_SCOPE.md`](../product/MVP_SCOPE.md) §5. | They define what "the MVP works" means. | Use as assumptions until signed off. |
 | Q-016 | P2 | Early-access offer and a booking link (for "Book a call"). | Pricing page and primary marketing CTAs depend on them. | "Join early access" + a booking link, once chosen. |
 | Q-017 | P3 | Community platform. | Community guidelines assume one exists. | None until there are customers to gather. |
@@ -36,6 +36,7 @@ validation; **P3** can wait.
 
 | ID | Answer | Decision |
 |---|---|---|
+| Q-025 | Keep BRAVENTA.IO and the Violet dot, as in the founder's reference (founder: "proceed", 2026-10-10) | D-027 |
 | — | Typography: Quicksand (headings, logo) + Comfortaa (other text) | D-015 |
 | Q-021 | AI assistant is not in the MVP; committed for the Next phase | D-020 |
 | Q-022 | Yes — optional guided onboarding questions are in the MVP (BI-12) | D-021 |

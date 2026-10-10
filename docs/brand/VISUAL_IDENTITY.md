@@ -5,8 +5,8 @@ imagery, data visualisation, motion, and accessibility. Values here are *descrip
 values live in [`design-system/tokens.json`](../../design-system/tokens.json) and are compiled into the app
 (D-009). If this document and `tokens.json` ever disagree, `tokens.json` wins and this document is fixed.
 
-Status / last reviewed: 2026-10-10. Decisions: D-006 (colour), D-008 (symbol), D-015 (typography, founder),
-D-017 (wordmark). Component rules: [`design-system/component-guidelines.md`](../../design-system/component-guidelines.md).
+Status / last reviewed: 2026-10-10. Decisions: D-006 (colour), D-015 (typography), D-027 (logo: B-dot mark +
+BRAVENTA.IO wordmark). Component rules: [`design-system/component-guidelines.md`](../../design-system/component-guidelines.md).
 
 ---
 
@@ -30,8 +30,8 @@ should feel like a calm, capable operator — never like "AI magic".
    dark hero. If two things are Volt, neither is.
 4. **Surfaces, not shadows.** Hierarchy comes from layered surfaces and borders; shadows only for things that
    float (menus, dialogs).
-5. **Rounded, friendly geometry.** Quicksand, Comfortaa, and the round-capped symbol share one language:
-   approachable, precise, not childish. Keep corners consistent (§7).
+5. **Bold mark, friendly interface.** The logo is a heavy, solid letterform on a tile; the product UI around it
+   stays softly rounded (Quicksand, Comfortaa, 8–12 px corners) and calm.
 
 ### Avoid
 Generic AI imagery (robots, glowing brains, neural-network spaghetti, sparkles as a logo), purple-to-pink
@@ -42,62 +42,58 @@ charts, and template SaaS illustration packs.
 
 ## 2. Logo
 
-### 2.1 The Waypoint symbol
-A "B" drawn as a vertical stem and two forward chevrons. The upper chevron closes back to the stem; the lower
-path stops short of a detached **node** — the path leads to the next action. It reads as the letter B, as
-forward motion (two chevrons), and as a connected system (paths + node).
+### 2.1 The mark (D-027)
+A heavy **B** set on a rounded square tile, with a **Violet dot** overlapping the lower-right of the lower bowl —
+taken from the founder's reference. It is bold and immediately legible: a confident letterform, a solid container,
+and one point of colour that says "next".
 
 | Property | Spec |
 |---|---|
-| Grid | 48 × 48 units |
-| Paths | `M12 8 V40 M12 8 L31 16 L12 24 M12 24 L29 30.5` and `M12 40 L29 33.5` |
-| Stroke | 5.5 units, round caps, round joins |
-| Node | circle, centre (35, 32), radius 5.5 |
-| Tight bounds | x 9.25 → 40.5, y 5.25 → 42.75 (31.25 × 37.5) |
-| App-icon tile | 48 × 48, corner radius 11 (22.9 %) |
+| Tile | 48 × 48 units, corner radius 3.5 |
+| B | Montserrat ExtraBold (800), outlined; ink height 33.6 units (70 % of the tile); centred with the dot |
+| Dot | circle, radius 4.3 units (9 % of the tile), overlapping the lower-right of the lower bowl |
+| Colours on light grounds | Ink tile, white B, Violet `#5B1AE6` dot |
+| Colours on dark grounds | Paper tile, Ink B, Violet dot |
 
-The geometry is defined once in [`design-system/scripts/build-brand-assets.mjs`](../../design-system/scripts/build-brand-assets.mjs)
-(`SYMBOL`) and generated into every file. Never redraw it by hand.
+The geometry is generated in [`design-system/scripts/build-brand-assets.mjs`](../../design-system/scripts/build-brand-assets.mjs)
+(`SYMBOL`) from the font outline, and shared with the in-app `<Logo>`. Never redraw or retype it.
 
 ### 2.2 The wordmark
-Lowercase **braventa** in **Quicksand Bold (700)**, default spacing, converted to outlines (the SVGs need no
-installed font). Quicksand's round terminals echo the symbol's round caps (D-017). In running text the name
-is always written **Braventa** — capital B, never "BRAVENTA" in sentences, never "Braventa AI" (D-002).
+**BRAVENTA.IO** in **Quicksand Medium (500)**, uppercase, +70 units tracking, converted to outlines. The thin,
+open wordmark balances the heavy mark. In running text the name is always written **Braventa** — capital B, never
+"BRAVENTA" in sentences, never "Braventa AI" (D-002). Whether to keep ".IO" in the wordmark is Q-024.
 
 ### 2.3 Lockups
 
 | Lockup | Use | Construction (cap height of wordmark = *x*) |
 |---|---|---|
-| **Horizontal** (primary) | App header, website nav, email header, documents | Symbol height 1.3*x*; gap 0.45*x*; wordmark baseline aligned so its ascender height is centred on the symbol |
-| **Stacked** | Square-ish spaces: event badges, splash, social posts | Symbol height 2.2*x*, centred; gap 0.6*x*; wordmark below |
-| **Symbol** | App icon, favicon, avatars, tight spaces, watermarks | Symbol alone, or on the Ink tile for icons |
-| **Wordmark** | Rare: when the symbol is already present nearby | Wordmark alone |
+| **Stacked** (the reference) | Social posts, splash, badges, square spaces | Tile ≈ 1.1 × the wordmark's width; gap 0.6*x*; wordmark centred below |
+| **Horizontal** | App header, website nav, email header, documents | Tile height 2.6*x*; gap 0.7*x*; wordmark cap height centred on the tile |
+| **Mark** | App icon, favicon, avatars, tight spaces | The tile alone |
+| **Wordmark** | Rare: when the mark is already present nearby | Wordmark alone |
 
 ### 2.4 Colour variants
 
-| Variant | Glyph + wordmark | Node | Use on |
-|---|---|---|---|
-| Primary | Ink `#0B0C10` | Cobalt `#2340F5` | Paper, white, light photos |
-| Reversed | Paper `#F4F4F1` | Volt `#D4F53C` | Ink, dark surfaces, dark photos |
-| Mono black | Ink | Ink | One-colour print, fax-grade, embossing, partner co-branding |
-| Mono white | White | White | One-colour on any dark or coloured background |
-| App icon | Paper on an Ink tile | Volt | App icon, favicon, social avatar |
+| Variant | Tile | B | Dot | Wordmark | Use on |
+|---|---|---|---|---|---|
+| Primary | Ink | White | Violet | Ink | Paper, white, light photos |
+| Reversed | Paper | Ink | Violet | Paper | Ink, dark surfaces, dark photos |
+| Mono black | Ink | White | White | Ink | One-colour print, embossing, partner co-branding |
+| Mono white | White | Ink | Ink | White | One-colour on dark or coloured grounds |
+| App icon | Ink | White | Violet | — | App icon, favicon, social avatar |
 
-Volt is never used for the node on light backgrounds — it disappears on Paper. The in-app `<Logo>` handles this
-automatically through the `logo-node` token role.
+The in-app `<Logo>` switches tile and B with the theme through the `logo-tile` and `logo-letter` roles; the dot
+uses `logo-node` (Violet in both themes). Violet is a logo-only colour — never a button, link, or status.
 
 ### 2.5 Clear space and minimum size
-- **Clear space:** keep a margin of **two node diameters** (= 0.75 × the wordmark's cap height in the
-  horizontal lockup) on every side of any lockup. Nothing — text, edges, other logos — enters that zone.
-- **Minimum size:** horizontal lockup 20 px tall on screen / 6 mm in print; symbol 16 px / 4 mm. Below 16 px
-  use the app-icon tile (the favicon), never the bare symbol.
+- **Clear space:** at least the dot's diameter (18 % of the tile) on every side of any lockup.
+- **Minimum size:** horizontal lockup 20 px tall on screen / 6 mm in print (28 px in the app header); mark 16 px / 4 mm.
 
 ### 2.6 Incorrect use
-Do not: recolour the glyph in Cobalt or Volt; put the Volt node on a light background; stretch, skew, rotate,
-or outline the logo; add shadows, glows, gradients, or bevels; rebuild the wordmark in another font or in
-uppercase; change the gap or relative size in a lockup; place the primary (dark) logo on a busy or dark photo;
-crop or move the node; enclose the horizontal lockup in a shape; append "AI" or a tagline into the lockup;
-use the symbol as a bullet or decorative pattern in running text.
+Do not: recolour the dot (other than in the mono variants) or the B; move, resize, or detach the dot; remove the
+tile or change its corner radius; retype the B or the wordmark in another font; stretch, skew, rotate, outline, or
+add shadows, glows, or gradients; put the primary (Ink) tile on a dark ground or the reversed tile on a light one;
+change the gap or relative size in a lockup; append "AI" or a tagline into the lockup.
 
 ---
 
@@ -154,13 +150,14 @@ Ink hero regardless of OS theme.
 
 ## 4. Typography
 
-Founder decision **D-015**: **Quicksand** for headings and the logo; **Comfortaa** for all other text. Both are
+Founder decision **D-015**: **Quicksand** for headings; **Comfortaa** for all other text. The logo's B is outlined
+**Montserrat ExtraBold** and its wordmark outlined Quicksand Medium (D-027). All are
 SIL Open Font License, variable (300–700), loaded through `next/font/google` (self-hosted at build time, no
 runtime request to Google, no licence cost).
 
 | Role | Face | Weight | Case | Token / class |
 |---|---|---|---|---|
-| Wordmark | Quicksand | 700 | lowercase | outlined SVG |
+| Wordmark | Quicksand | 500 | UPPERCASE | outlined SVG (D-027) |
 | Marketing display | Quicksand | 700 | Sentence case; short uppercase section heads allowed | `.display`, `text-display` |
 | App headings (h1–h4) | Quicksand | 600–700 | Sentence case | automatic on `h1`–`h4`; `.heading` |
 | Body, UI, buttons, forms | Comfortaa | 400 body / 600 UI | Sentence case | `font-sans` (default) |
@@ -222,13 +219,13 @@ Borders are 1 px `border`; hover uses `border-strong` or `accent`. Shadows (`sha
 menus, popovers, toasts, and dialogs.
 
 ## 8. Iconography
-Outline icons, **1.5–2 px stroke, round caps and joins** (to match the symbol and the rounded type), 24 px grid,
+Outline icons, **1.5–2 px stroke, round caps and joins** (to match the rounded UI type), 24 px grid,
 used at 16 / 20 / 24 px. Recommended set: [Lucide](https://lucide.dev) (ISC licence) — not yet installed; add
 it when the first icon is needed rather than drawing one-offs. Icons inherit `currentColor`; status icons take
 the status colour. Never use an icon as the only label for an unfamiliar action.
 
 ## 9. Illustration and photography
-- **Illustration:** the **graph motif** — nodes joined by thin lines on a faint dot grid, one Volt node marking
+- **Illustration:** the **graph motif** — round nodes (echoing the logo's dot) joined by thin lines on a faint dot grid, one Volt node marking
   the next action (see the social banners). Use it for heroes, empty states, and section dividers. Keep it
   abstract and sparse; no characters, no robots.
 - **Product imagery:** real product screenshots in a neutral frame, cropped to the part that matters, never

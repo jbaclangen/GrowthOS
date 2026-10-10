@@ -55,6 +55,7 @@
   --color-brand-paper: #F4F4F1;
   --color-brand-cobalt: #2340F5;
   --color-brand-volt: #D4F53C;
+  --color-brand-violet: #5B1AE6;
   --font-display: var(--font-quicksand), 'Varela Round', ui-rounded, system-ui, sans-serif;
   --font-sans: var(--font-comfortaa), ui-rounded, system-ui, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
@@ -110,7 +111,7 @@
   --signal: #D4F53C;
   --signal-foreground: #0B0C10;
   --focus: #3D57FF;
-  --logo-node: #2340F5;
+  --logo-node: #5B1AE6;
   --success: #067647;
   --success-soft: #ECFDF3;
   --warning: #B54708;
@@ -119,6 +120,8 @@
   --danger-soft: #FEF3F2;
   --info: #1A2FCC;
   --info-soft: #EEF1FF;
+  --logo-tile: #0B0C10;
+  --logo-letter: #FFFFFF;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -138,7 +141,7 @@
     --signal: #D4F53C;
     --signal-foreground: #0B0C10;
     --focus: #6178FF;
-    --logo-node: #D4F53C;
+    --logo-node: #5B1AE6;
     --success: #47CD89;
     --success-soft: #0E2F21;
     --warning: #FDB022;
@@ -147,6 +150,8 @@
     --danger-soft: #3B1513;
     --info: #8E9EFF;
     --info-soft: #161C45;
+    --logo-tile: #F4F4F1;
+    --logo-letter: #0B0C10;
   }
 }
 :root[data-theme="dark"] {
@@ -166,7 +171,7 @@
   --signal: #D4F53C;
   --signal-foreground: #0B0C10;
   --focus: #6178FF;
-  --logo-node: #D4F53C;
+  --logo-node: #5B1AE6;
   --success: #47CD89;
   --success-soft: #0E2F21;
   --warning: #FDB022;
@@ -175,6 +180,8 @@
   --danger-soft: #3B1513;
   --info: #8E9EFF;
   --info-soft: #161C45;
+  --logo-tile: #F4F4F1;
+  --logo-letter: #0B0C10;
 }
 
 /* Semantic roles as Tailwind colours (bg-surface, text-muted, border-border, ...). */
@@ -203,4 +210,6 @@
   --color-danger-soft: var(--danger-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
+  --color-logo-tile: var(--logo-tile);
+  --color-logo-letter: var(--logo-letter);
 }
