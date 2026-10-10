@@ -91,7 +91,7 @@ Builds and maintains the structured business profile used by every other module.
 | MS-2 | Show component scores and label which are measured (Google) and which are assessed (AI) | MVP | Partial (measured bars labelled; assessed bars not labelled as AI) |
 | MS-3 | Five ranked opportunities with area, evidence ("why"), first step, impact, effort | MVP | **Live** |
 | MS-4 | 30-day content strategy: goal, audience, pillars, channels | MVP | **Live** |
-| MS-5 | User can mark an opportunity as accepted, dismissed, or done | MVP (D-022) | Not started |
+| MS-5 | User can mark an opportunity as accepted, dismissed, or done | MVP (D-022) | Live |
 | MS-6 | User-set objectives and priorities that feed the plan | Next phase | Not started |
 | MS-7 | Campaign planning (`campaigns` table) | Next phase | Not started |
 | MS-8 | Action plan covering non-content work (website fixes, CRM follow-up) as tasks | Next phase | Not started |
@@ -186,7 +186,7 @@ See [INTEGRATIONS.md](../architecture/INTEGRATIONS.md).
 | AN-6 | CRM and lead insights over time | Future vision | Not started |
 | AN-7 | Data-based recommendations from outcomes | Future vision | Not started |
 
-### Onboarding and discovery — MVP (D-028) · Stages 1–2 live
+### Onboarding and discovery — MVP (D-028) · Live
 
 From the [AI-assisted onboarding spec](Braventa_AI_Assisted_Onboarding_Pain_Point_Spec.md). Builds on BI-12.
 
@@ -198,8 +198,8 @@ From the [AI-assisted onboarding spec](Braventa_AI_Assisted_Onboarding_Pain_Poin
 | ON-4 | Website analysis starts at the URL step and runs while the owner answers discovery questions | MVP | 1 | Live |
 | ON-5 | Adaptive follow-ups: 1–3 questions per round (about 4 in total) chosen from a per-pain-point question bank by what is missing and most valuable; never repeats answered questions; skip and "not applicable" always available | MVP | 2 | Live |
 | ON-6 | Onboarding progress is saved per organization and user (`onboarding_sessions`, `onboarding_responses`), so the owner can leave and resume | MVP | 2 | Live |
-| ON-7 | Diagnosis synthesis with evidence type (provenance class) and confidence per finding; the owner reviews and corrects it before the plan is final | MVP | 3 | Not started |
-| ON-8 | One plan (`growth_plan_items`) replacing the 5 opportunities: per item the pain point(s), why, evidence, first action, effort, dependencies, success metric, capability status, and customer / AI-recommended / calculated / final priority; calculated priority = (Impact × Urgency × Confidence) / Effort computed in code. Delivers MS-5 and UX-1 | MVP | 3 | Not started |
+| ON-7 | Diagnosis synthesis with evidence type (provenance class) and confidence per finding; the owner reviews and corrects it before the plan is final | MVP | 3 | Live |
+| ON-8 | One plan (`growth_plan_items`) replacing the 5 opportunities: per item the pain point(s), why, evidence, first action, effort, dependencies, success metric, capability status, and customer / AI-recommended / calculated / final priority; calculated priority = (Impact × Urgency × Confidence) / Effort computed in code. Delivers MS-5 and UX-1 | MVP | 3 | Live |
 
 ### Guidance UX (cross-cutting)
 
@@ -208,7 +208,7 @@ should be easy to understand.
 
 | ID | Requirement | Class | Status |
 |---|---|---|---|
-| UX-1 | "Do this first" summary at the top of the results page: the top open opportunity, drafts awaiting approval, and the next step | MVP (D-022) | Not started |
+| UX-1 | "Do this first" summary at the top of the results page: the top open opportunity, drafts awaiting approval, and the next step | MVP (D-022) | Live |
 | UX-2 | Show where the business is in the Growth Loop (Understand · Act · Improve) | Exploratory | Not started |
 
 ### Platform (cross-cutting)
