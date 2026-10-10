@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <header className="border-b border-border bg-surface">
           <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
             <Link href="/dashboard" aria-label="Braventa home" className="text-foreground">
-              <Logo height={22} />
+              <Logo height={28} />
             </Link>
             <Suspense fallback={null}>
               <UserMenu />

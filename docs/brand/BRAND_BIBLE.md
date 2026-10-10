@@ -34,9 +34,9 @@ been performed (Q-014).
 | **One-liner** | Braventa connects your website, marketing, CRM, and content into one growth system that shows you what to do next — and helps you get it done. |
 | **Positioning concept** (internal) | Turn disconnected business activities into one intelligent growth system. |
 | **Business model** | Subscription software plus optional implementation, onboarding, and managed services. Pricing not decided (D-012). |
-| **Symbol** | The Waypoint — a "B" of two forward chevrons whose path leads to a detached node: the next action. |
-| **Colours** | Ink `#0B0C10` · Paper `#F4F4F1` · Cobalt `#2340F5` (action) · Volt `#D4F53C` (signal) |
-| **Type** | Quicksand (headings, logo) · Comfortaa (everything else) — D-015 |
+| **Symbol** | A heavy white **B** on a rounded Ink tile with a **Violet dot** at its lower right (D-027). |
+| **Colours** | Ink `#0B0C10` · Paper `#F4F4F1` · Cobalt `#2340F5` (action) · Volt `#D4F53C` (signal) · Violet `#5B1AE6` (logo dot only) |
+| **Type** | Quicksand (headings; wordmark in Quicksand Medium) · Comfortaa (everything else) — D-015, D-027 |
 
 ## 2. Why Braventa exists
 
@@ -109,14 +109,14 @@ opportunities with a first step each → 30-day content plan → five drafted po
 Always check [`MVP_SCOPE.md`](../product/MVP_SCOPE.md) before writing product claims.
 
 ## 9. Visual identity summary
-- **Logo:** Waypoint symbol + lowercase Quicksand Bold wordmark. Primary (Ink + Cobalt node) on light;
-  reversed (Paper + Volt node) on dark; mono black/white; app icon = Paper glyph on an Ink tile with a Volt node.
-  Clear space two node diameters; minimum 20 px (lockup) / 16 px (symbol).
+- **Logo:** the B-dot mark + BRAVENTA.IO wordmark (D-027). On light grounds: Ink tile, white B; on dark grounds:
+  Paper tile, Ink B; the dot is always Violet. Mono black/white for one-colour use. Clear space = the dot's
+  diameter on every side; minimum 20 px (lockup) / 16 px (mark).
 - **Colour:** Cobalt is the only action colour; Volt marks the single most important "next" thing and is never
   text on light; semantic green/amber/red/cobalt for status. Every text pair passes WCAG AA, enforced by the
   token build.
-- **Type:** Quicksand headings, Comfortaa body (≥ 14 px; 16 px for reading).
-- **Shape:** rounded geometry — 8 px controls, 12 px cards, round-capped strokes.
+- **Type:** Quicksand headings and wordmark; Comfortaa body (≥ 14 px; 16 px for reading).
+- **Shape:** a bold, solid logo on a softly rounded tile; UI corners 8 px (controls) and 12 px (cards).
 - **Imagery:** the graph motif (nodes, lines, dot grid, one Volt node), real product screenshots, real service
   businesses. No robots, brains, sparkle logos, or purple gradients.
 

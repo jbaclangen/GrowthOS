@@ -6,8 +6,8 @@ is for, its key columns, how Row Level Security protects it, and whether current
 of record (see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)); security implications are expanded in
 [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md).
 
-**Status / last reviewed: 2026-10-10** (migrations `20261010000000_foundation.sql`,
-`20261010000001_advisor_fixes.sql`).
+**Status / last reviewed: 2026-10-10** (migrations `20261010061028_foundation.sql`,
+`20261010061126_advisor_fixes.sql`, `20261010121043_content_approval_guard.sql`).
 
 ---
 
@@ -15,11 +15,13 @@ of record (see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)); security impli
 
 | File | Contents |
 |---|---|
-| `20261010000000_foundation.sql` | `vector` extension, all tables, enums, helper functions, RLS policies, `updated_at` triggers, `ai_spend_mtd` view |
-| `20261010000001_advisor_fixes.sql` | Revokes `is_member` / `is_org_admin` from `anon`; splits the memberships admin policy by action; adds FK indexes |
+| `20261010061028_foundation.sql` | `vector` extension, all tables, enums, helper functions, RLS policies, `updated_at` triggers, `ai_spend_mtd` view |
+| `20261010061126_advisor_fixes.sql` | Revokes `is_member` / `is_org_admin` from `anon`; splits the memberships admin policy by action; adds FK indexes |
+| `20261010121043_content_approval_guard.sql` | Trigger `guard_content_item_write` on `content_items`: limits client status changes and sets `approved_by` / `approved_at` (D-018) |
 
-The second migration is not yet committed to git (see repository status). Confirm it has been applied to the
-Supabase project (`list_migrations`) before relying on its policies.
+All three are applied to the Supabase project. Local file names match the versions recorded there
+(`list_migrations`); name new files with the version the project records, or apply them with the
+Supabase CLI so the two stay in step.
 
 ## 2. Tenancy model
 
@@ -129,7 +131,7 @@ user (no `on delete` clause, so user deletion fails while such references exist 
 - **Write breadth of M-all.** Any member can insert, update and delete every M-all table directly through
   the Supabase Data API using the publishable key, not only through the app's server actions. In particular
   a member can edit `ai_jobs.status`/`output` and `reports`. `content_items` status and approver are
-  guarded by a trigger (migration `20261010000002`, D-018 — not yet applied remotely): clients can only
+  guarded by a trigger (migration `20261010121043`, D-018): clients can only
   move between `needs_approval`/`approved`/`rejected`, and `approved_by` is always `auth.uid()`. Acceptable
   while one user = one org; revisit before multi-user orgs (role-based write policies).
 - **Unbounded org creation.** `create_organization` can be called repeatedly by any authenticated user;
@@ -159,5 +161,5 @@ user (no `on delete` clause, so user deletion fails while such references exist 
 10. **Migration naming**: `supabase/migrations/YYYYMMDDHHMMSS_short_snake_description.sql`, timestamps
     increasing, one concern per file. Never edit an applied migration; add a new one. After applying, run
     the Supabase security and performance advisors and fix findings in a follow-up migration (as
-    `20261010000001_advisor_fixes.sql` did).
+    `20261010061126_advisor_fixes.sql` did).
 11. Update this document (tables, usage column, ER diagram) in the same change.

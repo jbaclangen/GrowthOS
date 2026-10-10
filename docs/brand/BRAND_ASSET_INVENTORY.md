@@ -9,31 +9,34 @@ Status / last reviewed: 2026-10-10. **Status legend:** *Ready* = generated, chec
 *Draft* = usable but awaiting founder review · *Conceptual* = specified, not produced · *Needs designer* = beyond
 code generation. Nothing here is trademark-cleared (Q-014).
 
+## Online brand kit
+
+A browsable copy of the brand book, tokens, component previews, logos and social files lives at <https://claude.ai/artifact/ALsnwK4z27YFHFnKTv5eNV> (private to the founder until shared). It is a snapshot: the repo stays the source of truth, so republish it after brand changes.
+
 ## Logo files — `web/public/brand/` (served at `/brand/…`)
 
 | File | Description | Status |
 |---|---|---|
-| `braventa-logo-horizontal.svg` | Primary lockup, Ink + Cobalt node, for light backgrounds | Draft |
-| `braventa-logo-horizontal-reversed.svg` | Paper + Volt node, for dark backgrounds | Draft |
-| `braventa-logo-horizontal-mono-black.svg` / `-mono-white.svg` | One-colour versions | Draft |
-| `braventa-logo-stacked.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Stacked lockup | Draft |
-| `braventa-symbol.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Waypoint symbol alone, tight bounds | Draft |
-| `braventa-wordmark.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Lowercase Quicksand Bold wordmark, outlined | Draft |
-| `braventa-app-icon.svg` | Ink tile, Paper glyph, Volt node (48 grid, r = 11) | Draft |
-| `png/braventa-logo-horizontal-1200.png`, `-reversed-1200.png`, `png/braventa-logo-stacked-800.png` | Raster lockups for tools that don't take SVG (Canva, slides, email clients) | Draft |
-| `png/braventa-app-icon-{192,512,1024}.png` | App icon rasters (PWA, stores, Canva) | Draft |
+| `braventa-logo-horizontal.svg` | Primary lockup, Ink + Cobalt node, for light backgrounds | Ready |
+| `braventa-logo-horizontal-reversed.svg` | Paper + Volt node, for dark backgrounds | Ready |
+| `braventa-logo-horizontal-mono-black.svg` / `-mono-white.svg` | One-colour versions | Ready |
+| `braventa-logo-stacked.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Stacked lockup | Ready |
+| `braventa-symbol.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | B-dot mark alone (tile included) | Ready |
+| `braventa-wordmark.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | BRAVENTA.IO wordmark in Quicksand Medium, outlined | Ready |
+| `braventa-app-icon.svg` | Ink tile, Paper glyph, Volt node (48 grid, r = 11) | Ready |
+| `png/braventa-logo-horizontal-1200.png`, `-reversed-1200.png`, `png/braventa-logo-stacked-800.png` | Raster lockups for tools that don't take SVG (Canva, slides, email clients) | Ready |
+| `png/braventa-app-icon-{192,512,1024}.png` | App icon rasters (PWA, stores, Canva) | Ready |
 
-"Draft" means: produced and visually checked, awaiting the founder's sign-off on the Waypoint symbol (D-008) and
-lowercase wordmark (D-017).
+Logo files follow the founder's reference: the B-dot mark and BRAVENTA.IO wordmark (D-027).
 
 ## Social — `web/public/brand/social/`
 
 | File | Size | Use | Status |
 |---|---|---|---|
-| `braventa-og-1200x630.svg/.png` | 1200 × 630 | Link previews (also wired as the app's Open Graph image) | Draft |
-| `braventa-linkedin-cover-1584x396.svg/.png` | 1584 × 396 | LinkedIn company page cover | Draft |
-| `braventa-x-header-1500x500.svg/.png` | 1500 × 500 | X / Twitter header | Draft |
-| `braventa-avatar-400.png` | 400 × 400 | Profile picture (glyph inset for circular crops) | Draft |
+| `braventa-og-1200x630.svg/.png` | 1200 × 630 | Link previews (also wired as the app's Open Graph image) | Ready |
+| `braventa-linkedin-cover-1584x396.svg/.png` | 1584 × 396 | LinkedIn company page cover | Ready |
+| `braventa-x-header-1500x500.svg/.png` | 1500 × 500 | X / Twitter header | Ready |
+| `braventa-avatar-400.png` | 400 × 400 | Profile picture (glyph inset for circular crops) | Ready |
 
 Check the banners on each platform before publishing: profile-photo overlays sit bottom-left on LinkedIn, and
 mobile crops differ.
@@ -60,11 +63,11 @@ mobile crops differ.
 |---|---|
 | Symbol geometry, lockup construction, social layouts | `design-system/scripts/build-brand-assets.mjs` |
 | Colours | `design-system/tokens.json` |
-| Fonts | Quicksand, Comfortaa — SIL OFL, via `@fontsource-variable/*` (build) and `next/font/google` (app) |
+| Fonts | Montserrat ExtraBold (the mark's B), Quicksand (wordmark, headings), Comfortaa — SIL OFL, via `@fontsource-variable/*` (build) and `next/font/google` (app) |
 
 Regenerate (tools stay out of the app's dependencies):
 ```bash
-mkdir -p /tmp/brand-tools && cd /tmp/brand-tools && npm init -y && npm i fontkit wawoff2 sharp png-to-ico @fontsource-variable/quicksand @fontsource-variable/comfortaa
+mkdir -p /tmp/brand-tools && cd /tmp/brand-tools && npm init -y && npm i fontkit wawoff2 sharp png-to-ico @fontsource-variable/montserrat @fontsource-variable/quicksand @fontsource-variable/comfortaa
 ```
 ```bash
 BRAND_TOOLS_DIR=/tmp/brand-tools node design-system/scripts/build-brand-assets.mjs
@@ -80,5 +83,5 @@ BRAND_TOOLS_DIR=/tmp/brand-tools node design-system/scripts/build-brand-assets.m
 | Business card, letterhead, print | Conceptual | Use mono or primary lockups; CMYK values not defined yet. |
 | Icon set | Conceptual | Lucide recommended (`VISUAL_IDENTITY.md` §8); not installed. |
 | Marketing website | Not started | braventa.io, Hostinger (D-011). |
-| Brand motion / animated logo | Conceptual | Possible: path draws toward the node, node lights up. |
-| Professional refinement of the symbol | Needs designer (optional) | Optical tweaks at 16 px and kerning against the wordmark if desired. |
+| Brand motion / animated logo | Conceptual | Possible: the dot drops into place against the B. |
+| Professional refinement of the mark | Needs designer (optional) | A custom-drawn B instead of the Montserrat glyph, if the brand needs a fully ownable mark. |

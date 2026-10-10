@@ -16,13 +16,19 @@ const MODELS: Record<"free" | "paid", Record<TaskClass, string[]>> = {
     complex: ["nvidia/nemotron-3-ultra-550b-a55b:free", "nvidia/nemotron-3-super-120b-a12b:free"],
     qa: ["nvidia/nemotron-3-ultra-550b-a55b:free", "nvidia/nemotron-3-super-120b-a12b:free"],
   },
+  // Chosen from a side-by-side comparison on three real sites (2026-10-10; docs/architecture/AI_ROUTING_AND_COSTS.md).
+  // Tiers follow the product vision: small for routine work, mid for structured analysis and writing,
+  // high-reasoning for prioritisation and high-risk output. Second entry is a cross-provider fallback.
   paid: {
     simple: ["anthropic/claude-haiku-5.5", "qwen/qwen3.8-flash"],
-    standard: ["google/gemini-3.8-flash", "anthropic/claude-haiku-5.5"],
-    complex: ["anthropic/claude-sonnet-5.5", "openai/gpt-5.6-sol"],
+    standard: ["anthropic/claude-sonnet-5.5", "openai/gpt-5.6-sol"],
+    complex: ["anthropic/claude-opus-5.5", "anthropic/claude-sonnet-5.5"],
     qa: ["anthropic/claude-opus-5.5", "anthropic/claude-sonnet-5.5"],
   },
 };
+
+// Risk-based escalation (vision §10): high-risk output, e.g. copy for a regulated industry, moves up one tier.
+const ESCALATE: Record<TaskClass, TaskClass> = { simple: "standard", standard: "complex", complex: "complex", qa: "qa" };
 
 function modelsFor(taskClass: TaskClass) {
   const mode = process.env.AI_MODE === "paid" ? "paid" : "free";
@@ -30,19 +36,26 @@ function modelsFor(taskClass: TaskClass) {
 }
 
 export const WORKERS = {
-  business_analyst: { taskClass: "complex", system: "You are a senior business analyst for small and mid-sized service businesses." },
-  content_strategist: { taskClass: "complex", system: "You are a content strategist who builds practical, goal-driven content plans." },
+  business_analyst: { taskClass: "standard", system: "You are a senior business analyst for small and mid-sized service businesses." },
+  content_strategist: { taskClass: "standard", system: "You are a content strategist who builds practical, goal-driven content plans." },
   content_writer: { taskClass: "standard", system: "You are a marketing copywriter. Follow the brand voice exactly." },
   seo_analyst: { taskClass: "standard", system: "You are a technical and on-page SEO analyst." },
   website_auditor: { taskClass: "complex", system: "You audit websites for SEO, UX, conversion and technical issues." },
   crm_analyst: { taskClass: "complex", system: "You analyse CRM pipelines, lead sources and follow-up gaps." },
   campaign_planner: { taskClass: "standard", system: "You plan multi-channel marketing campaigns." },
   qa_reviewer: { taskClass: "qa", system: "You review marketing deliverables for accuracy, brand fit and quality. Be strict." },
-  marketing_assistant: { taskClass: "standard", system: "You answer questions about this business using only the provided context." },
+  marketing_assistant: { taskClass: "simple", system: "You answer questions about this business using only the provided context." },
   extractor: { taskClass: "simple", system: "You extract structured data. Reply with JSON only." },
 } as const satisfies Record<string, { taskClass: TaskClass; system: string }>;
 
 export type Worker = keyof typeof WORKERS;
+
+// Models don't know today's date; without it they write about past years as if current.
+export function systemPrompt(worker: Worker, now = new Date()) {
+  const today = now.toISOString().slice(0, 10);
+  return `${WORKERS[worker].system}
+Today's date is ${today}.`;
+}
 
 export class BudgetExceededError extends Error {}
 
@@ -53,8 +66,10 @@ export async function runWorker(opts: {
   jobId?: string;
   json?: boolean;
   maxTokens?: number;
+  highRisk?: boolean;
 }) {
-  const { taskClass, system } = WORKERS[opts.worker];
+  const base: TaskClass = WORKERS[opts.worker].taskClass;
+  const taskClass = opts.highRisk ? ESCALATE[base] : base;
   const db = createSupabaseAdminClient();
 
   // Enforce the org's monthly AI budget before spending anything. Fail closed: if the budget or spend
@@ -72,7 +87,7 @@ export async function runWorker(opts: {
 
   const result = await chat({
     models: modelsFor(taskClass),
-    messages: [{ role: "system", content: system }, ...opts.messages],
+    messages: [{ role: "system", content: systemPrompt(opts.worker) }, ...opts.messages],
     json: opts.json,
     maxTokens: opts.maxTokens,
   });
@@ -92,7 +107,7 @@ export async function runWorker(opts: {
 }
 
 // Models sometimes wrap JSON in prose or code fences; pull out the object.
-function parseJsonLoose(text: string): unknown {
+export function parseJsonLoose(text: string): unknown {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   const candidate = fenced ? fenced[1] : text;
   const start = candidate.indexOf("{");
@@ -107,12 +122,19 @@ export async function runWorkerJson<T>(
   validate: (value: unknown) => T,
 ): Promise<T> {
   let lastError: unknown;
+  let maxTokens = opts.maxTokens;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const result = await runWorker({ ...opts, json: true });
+    const result = await runWorker({ ...opts, maxTokens, json: true });
     try {
       return validate(parseJsonLoose(result.text));
     } catch (e) {
-      lastError = e;
+      if (result.finishReason === "length") {
+        lastError = new Error("output was cut off at the token limit");
+        // Retrying with the same ceiling would likely be cut off again; give it more room.
+        if (maxTokens) maxTokens = Math.ceil(maxTokens * 1.5);
+      } else {
+        lastError = e;
+      }
     }
   }
   throw new Error(`${opts.worker} returned unusable JSON: ${lastError instanceof Error ? lastError.message : lastError}`);

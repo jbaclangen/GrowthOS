@@ -25,7 +25,7 @@ Status / last reviewed: 2026-10-10. "Implemented" = exists in code today; "Conve
 | `.heading` | Explicit Quicksand heading style | `h1`–`h4` get Quicksand automatically. |
 | `.display` | Marketing headline | Quicksand 700 at `text-display`. Not in the app. |
 | `.chip` | Status and metadata chips | Comfortaa 600, 11 px uppercase, 4 px radius. Pair with a tone (below). |
-| `<Logo />` | Brand mark | `variant="lockup"|"symbol"`, `height` ≥ 20 / 16. Inherits text colour; node via `logo-node`. |
+| `<Logo />` | Brand mark (B-dot tile + BRAVENTA.IO wordmark) | `variant="lockup"|"symbol"`, `height` ≥ 20 / 16. Inherits text colour; node via `logo-node`. |
 | `<ScoreBadge />`, `<ScoreBar />` | 0–100 scores | `scoreTone()`: ≥ 70 success, 45–69 warning, < 45 danger. Number always shown. |
 
 ## Buttons (convention)
