@@ -15,10 +15,10 @@ Do not rewrite history.
 | D-002 | 2026-10-10 | Braventa is never written "Braventa AI" by default | Founder |
 | D-003 | 2026-10-10 | Rename user-facing "GrowthOS" strings in the app to Braventa | Provisional |
 | D-004 | 2026-10-10 | Methodology is called **the Braventa Growth Loop** (Understand · Act · Improve) | Provisional |
-| D-005 | 2026-10-10 | Core messaging lines (tagline, one-liner, positioning) | Provisional |
-| D-006 | 2026-10-10 | Visual identity: Ink / Paper / Cobalt / Volt palette | Provisional |
+| D-005 | 2026-10-10 | Core messaging lines (tagline, one-liner, positioning) | Founder (approved 2026-10-10) |
+| D-006 | 2026-10-10 | Visual identity: Ink / Paper / Cobalt / Volt palette | Founder (approved 2026-10-10) |
 | D-007 | 2026-10-10 | Typography: Archivo (display), Geist (UI/body), Geist Mono (labels/data) | Superseded by D-015 |
-| D-008 | 2026-10-10 | Symbol: the **Waypoint** mark; wordmark in Archivo Expanded SemiBold | Symbol approved as provisional; wordmark superseded by D-017 |
+| D-008 | 2026-10-10 | Symbol: the **Waypoint** mark; wordmark in Archivo Expanded SemiBold | Symbol: Founder (approved 2026-10-10); wordmark superseded by D-017 |
 | D-009 | 2026-10-10 | `design-system/tokens.json` is the single token source, compiled into the app's CSS | Provisional |
 | D-010 | 2026-10-10 | Product module names stay descriptive (no invented sub-brands) | Provisional |
 | D-011 | 2026-10-10 | Hosting: app on Vercel at app.braventa.io; marketing site at braventa.io (Hostinger) | Founder |
@@ -26,13 +26,14 @@ Do not rewrite history.
 | D-013 | 2026-10-10 | Human approval before anything is published for a client | Founder |
 | D-014 | 2026-10-10 | Marketing email requires explicit opt-in, separate from account email | Approved |
 | D-015 | 2026-10-10 | Typography: **Quicksand** for headings and logo, **Comfortaa** for all other text | Founder |
-| D-016 | 2026-10-10 | US English spelling in product and marketing copy | Provisional |
-| D-017 | 2026-10-10 | Wordmark is lowercase `braventa` in Quicksand Bold | Provisional |
-| D-018 | 2026-10-10 | Crawler reaches public sites only; clients can only approve/reject/undo content, approver set by the database | Provisional |
+| D-016 | 2026-10-10 | US English spelling in product and marketing copy | Founder (approved 2026-10-10) |
+| D-017 | 2026-10-10 | Wordmark is lowercase `braventa` in Quicksand Bold | Founder (approved 2026-10-10) |
+| D-018 | 2026-10-10 | Founder approves the brand system (logo, palette, tagline, core messaging, US English) | Founder |
 | D-019 | 2026-10-10 | Product vision document adopted as strategic planning context (not a spec); existing approved decisions stand | Founder |
 | D-020 | 2026-10-10 | AI assistant is not in the MVP but is committed for the Next phase (resolves Q-021) | Founder |
 | D-021 | 2026-10-10 | Guided onboarding questions (BI-12) are in the MVP (resolves Q-022) | Founder |
 | D-022 | 2026-10-10 | Opportunity tracking (MS-5) and the "do this first" summary (UX-1) are in the MVP (resolves Q-023) | Founder |
+| D-023 | 2026-10-10 | Crawler reaches public sites only; clients can only approve/reject/undo content, approver set by the database (originally logged as a duplicate D-018) | Provisional |
 
 ---
 
@@ -162,20 +163,6 @@ caps, lowercase stays legible at 20px nav-bar heights, and it reads approachable
 The brand name in running text is still written "Braventa" (capital B). Uppercase Quicksand remains
 available for short marketing section heads.
 
-## D-018 — Crawler reach and client-side approval rules
-**Status:** Provisional (P1 security fixes, 2026-10-10). Two policy choices made while closing the findings in
-[`SECURITY_AND_PRIVACY.md`](../architecture/SECURITY_AND_PRIVACY.md):
-- **Crawler reach.** Braventa only analyzes public websites: `http`/`https`, ports 80 and 443, no
-  credentials in the URL, and hostnames that resolve only to public addresses (checked on every redirect
-  hop, at most 5 hops). Pages are capped at 2 MB of decoded HTML and 15 s per page. Sites on non-standard
-  ports or private networks get an error instead of an analysis.
-- **Approval from clients.** Signed-in users (the `authenticated` role, including direct Data API calls)
-  may only move `content_items` between `needs_approval`, `approved` and `rejected`, and may only insert
-  items as `brief` or `draft`. `approved_by` / `approved_at` are set by the database (`auth.uid()`,
-  `now()`), never by the client. Every other status — including `scheduled` and `published` — can only be
-  set by server code using the secret key. Migration `20261010000002_content_approval_guard.sql`.
-Revisit when multi-user organizations add roles (who may approve) or when publishing ships (D-013).
-
 ## D-019 — Product vision adopted as planning context
 **Status:** Founder (2026-10-10: founder supplied the document, instructed that the existing baseline stays
 and approved the documentation updates from the assessment). The founder's
@@ -204,3 +191,25 @@ to the pipeline prompts. Answers are optional so the two-field start stays fast.
 **Status:** Founder (2026-10-10, answer to Q-023). MS-5 (accept / dismiss / done per opportunity) and UX-1 (a
 "do this first" summary at the top of the results page: top open opportunity, drafts awaiting approval, next
 step) become MVP. Serves the vision's success criterion that recommendations lead to actions.
+
+## D-018 — Founder approval of the brand system
+**Status:** Founder (2026-10-10). After reviewing the handover, the founder approved the logo (Waypoint symbol +
+lowercase Quicksand wordmark), the palette, the tagline and core messaging lines, and US English. D-005, D-006,
+D-008 (symbol), D-016 and D-017 move from Provisional to Founder. Still provisional: D-004 (Growth Loop name),
+D-009, D-010, D-003. Approval is a brand decision, not trademark clearance (Q-014 stays open).
+
+## D-023 — Crawler reach and client-side approval rules
+**Status:** Provisional (P1 security fixes, 2026-10-10). First logged as D-018, which collided with the brand
+approval entry; renumbered. The applied migration's header comment still says D-018 (applied migrations are
+not edited). Two policy choices made while closing the findings in
+[`SECURITY_AND_PRIVACY.md`](../architecture/SECURITY_AND_PRIVACY.md):
+- **Crawler reach.** Braventa only analyzes public websites: `http`/`https`, ports 80 and 443, no
+  credentials in the URL, and hostnames that resolve only to public addresses (checked on every redirect
+  hop, at most 5 hops). Pages are capped at 2 MB of decoded HTML and 15 s per page. Sites on non-standard
+  ports or private networks get an error instead of an analysis.
+- **Approval from clients.** Signed-in users (the `authenticated` role, including direct Data API calls)
+  may only move `content_items` between `needs_approval`, `approved` and `rejected`, and may only insert
+  items as `brief` or `draft`. `approved_by` / `approved_at` are set by the database (`auth.uid()`,
+  `now()`), never by the client. Every other status — including `scheduled` and `published` — can only be
+  set by server code using the secret key. Migration `20261010121043_content_approval_guard.sql`.
+Revisit when multi-user organizations add roles (who may approve) or when publishing ships (D-013).

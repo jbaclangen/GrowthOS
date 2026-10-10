@@ -13,27 +13,26 @@ code generation. Nothing here is trademark-cleared (Q-014).
 
 | File | Description | Status |
 |---|---|---|
-| `braventa-logo-horizontal.svg` | Primary lockup, Ink + Cobalt node, for light backgrounds | Draft |
-| `braventa-logo-horizontal-reversed.svg` | Paper + Volt node, for dark backgrounds | Draft |
-| `braventa-logo-horizontal-mono-black.svg` / `-mono-white.svg` | One-colour versions | Draft |
-| `braventa-logo-stacked.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Stacked lockup | Draft |
-| `braventa-symbol.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Waypoint symbol alone, tight bounds | Draft |
-| `braventa-wordmark.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Lowercase Quicksand Bold wordmark, outlined | Draft |
-| `braventa-app-icon.svg` | Ink tile, Paper glyph, Volt node (48 grid, r = 11) | Draft |
-| `png/braventa-logo-horizontal-1200.png`, `-reversed-1200.png`, `png/braventa-logo-stacked-800.png` | Raster lockups for tools that don't take SVG (Canva, slides, email clients) | Draft |
-| `png/braventa-app-icon-{192,512,1024}.png` | App icon rasters (PWA, stores, Canva) | Draft |
+| `braventa-logo-horizontal.svg` | Primary lockup, Ink + Cobalt node, for light backgrounds | Ready |
+| `braventa-logo-horizontal-reversed.svg` | Paper + Volt node, for dark backgrounds | Ready |
+| `braventa-logo-horizontal-mono-black.svg` / `-mono-white.svg` | One-colour versions | Ready |
+| `braventa-logo-stacked.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Stacked lockup | Ready |
+| `braventa-symbol.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Waypoint symbol alone, tight bounds | Ready |
+| `braventa-wordmark.svg` (+ `-reversed`, `-mono-black`, `-mono-white`) | Lowercase Quicksand Bold wordmark, outlined | Ready |
+| `braventa-app-icon.svg` | Ink tile, Paper glyph, Volt node (48 grid, r = 11) | Ready |
+| `png/braventa-logo-horizontal-1200.png`, `-reversed-1200.png`, `png/braventa-logo-stacked-800.png` | Raster lockups for tools that don't take SVG (Canva, slides, email clients) | Ready |
+| `png/braventa-app-icon-{192,512,1024}.png` | App icon rasters (PWA, stores, Canva) | Ready |
 
-"Draft" means: produced and visually checked, awaiting the founder's sign-off on the Waypoint symbol (D-008) and
-lowercase wordmark (D-017).
+Logo and social files were approved by the founder on 2026-10-10 (D-018).
 
 ## Social — `web/public/brand/social/`
 
 | File | Size | Use | Status |
 |---|---|---|---|
-| `braventa-og-1200x630.svg/.png` | 1200 × 630 | Link previews (also wired as the app's Open Graph image) | Draft |
-| `braventa-linkedin-cover-1584x396.svg/.png` | 1584 × 396 | LinkedIn company page cover | Draft |
-| `braventa-x-header-1500x500.svg/.png` | 1500 × 500 | X / Twitter header | Draft |
-| `braventa-avatar-400.png` | 400 × 400 | Profile picture (glyph inset for circular crops) | Draft |
+| `braventa-og-1200x630.svg/.png` | 1200 × 630 | Link previews (also wired as the app's Open Graph image) | Ready |
+| `braventa-linkedin-cover-1584x396.svg/.png` | 1584 × 396 | LinkedIn company page cover | Ready |
+| `braventa-x-header-1500x500.svg/.png` | 1500 × 500 | X / Twitter header | Ready |
+| `braventa-avatar-400.png` | 400 × 400 | Profile picture (glyph inset for circular crops) | Ready |
 
 Check the banners on each platform before publishing: profile-photo overlays sit bottom-left on LinkedIn, and
 mobile crops differ.

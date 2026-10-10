@@ -29,7 +29,7 @@ state has a text label (WCAG 2.2 AA, 1.4.1).
 
 ### 1.1 Content and deliverable states
 
-Backed by the `content_status` enum in `supabase/migrations/20261010000000_foundation.sql`.
+Backed by the `content_status` enum in `supabase/migrations/20261010061028_foundation.sql`.
 
 | State | Label | Meaning | Allowed next states | Implemented |
 |---|---|---|---|---|

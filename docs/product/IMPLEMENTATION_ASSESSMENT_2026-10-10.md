@@ -18,7 +18,7 @@ asks for. The gaps are trust and take-away, not missing modules. No rewrite is w
 - Sign-up with email confirmation, organization creation, RLS tenant isolation on every table.
 - Website-intel pipeline: SSRF-hardened crawl → PageSpeed → AI profile → deterministic growth score + 5
   opportunities → 30-day plan → 5 drafts.
-- Approve / reject / undo, with a database guard on content status and approver (D-018).
+- Approve / reject / undo, with a database guard on content status and approver (D-023).
 - AI router: logical workers, free/paid mode, monthly budget check, per-call usage log.
 - Braventa UI naming, token pipeline, Quicksand/Comfortaa typography.
 
