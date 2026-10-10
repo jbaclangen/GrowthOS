@@ -65,7 +65,7 @@ failure. Both attempts are logged to `ai_usage`. After two failures it throws
 | `campaign_planner` | standard | No |
 | `qa_reviewer` | qa | **No** — there is no automated QA pass on drafts |
 | `marketing_assistant` | standard | No (retrieval not built) |
-| `extractor` | simple | No |
+| `extractor` | simple | Yes — classifies the owner's free-text discovery answer into catalog pain points (`web/src/lib/onboarding/classify.ts`) |
 
 Each worker contributes only a one-line system prompt; task instructions live in the feature's user message
 (see `web/src/lib/pipeline/website-intel.ts`).

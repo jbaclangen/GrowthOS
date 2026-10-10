@@ -22,18 +22,31 @@ async function Dashboard() {
   const org = await getCurrentOrg();
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: profiles }, { data: jobs }] = await Promise.all([
+  const [{ data: profiles }, { data: jobs }, { data: sessions }] = await Promise.all([
     supabase
       .from("business_profiles")
       .select("id, company_name, website_url, industry, growth_score, analyzed_at, created_at")
       .order("created_at", { ascending: false }),
     supabase.from("ai_jobs").select("input, status, created_at").order("created_at", { ascending: false }).limit(100),
+    supabase
+      .from("onboarding_sessions")
+      .select("business_profile_id, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100),
   ]);
 
   const latestStatus = new Map<string, string>();
   for (const j of jobs ?? []) {
     const id = (j.input as { businessProfileId?: string }).businessProfileId;
     if (id && !latestStatus.has(id)) latestStatus.set(id, j.status);
+  }
+  // Discovery not finished yet (D-028): the plan waits for the owner's answers.
+  const latestSession = new Map<string, string>();
+  for (const s of sessions ?? []) {
+    if (!latestSession.has(s.business_profile_id)) latestSession.set(s.business_profile_id, s.status);
+  }
+  for (const [id, status] of latestSession) {
+    if (status === "discovering" || status === "reviewing") latestStatus.set(id, "awaiting_answers");
   }
 
   return (
@@ -68,7 +81,9 @@ async function Dashboard() {
                     <p className="truncate font-medium">{p.company_name}</p>
                     <p className="truncate text-sm text-muted">{p.website_url}</p>
                     <p className="mt-1 text-xs text-muted">
-                      {status === "running" || status === "queued"
+                      {status === "awaiting_answers"
+                        ? "Waiting for your answers"
+                        : status === "running" || status === "queued"
                         ? "Analyzing…"
                         : status === "failed"
                           ? "Last analysis failed"
