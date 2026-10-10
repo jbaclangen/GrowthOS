@@ -72,7 +72,7 @@ Builds and maintains the structured business profile used by every other module.
 | BI-9 | Upload documents and notes as sources | Next phase | Not started |
 | BI-10 | Brand voice and messaging profile the user can edit (`brand_profiles`) | Next phase | Partial (row written per run; not shown separately or editable; a new row is inserted on every re-run) |
 | BI-11 | Q&A assistant grounded in the knowledge base (`marketing_assistant` worker) | Next phase, committed (D-020) | Not started |
-| BI-12 | Optional guided onboarding questions — primary goal, service area, current tools — stored on the profile (Customer-provided) and used in prompts (vision §7 step 2) | MVP (D-021) | Not started |
+| BI-12 | Optional guided onboarding questions — primary goal, service area, current tools — stored on the profile (Customer-provided) and used in prompts (vision §7 step 2) | MVP (D-021) | **Live** (`web/src/components/owner-questions.tsx`, `web/src/lib/owner-inputs.ts`; stored in `business_profiles.goals`, `service_area`, `current_tools`; fed to all four pipeline prompts; editable in the "From you" panel on `/analysis/[id]`) |
 
 **MVP acceptance criteria**
 - Given a reachable website, the profile is generated and shown within one analysis run; fields the
@@ -185,6 +185,21 @@ See [INTEGRATIONS.md](../architecture/INTEGRATIONS.md).
 | AN-5 | Workflow performance reporting | Future vision | Not started |
 | AN-6 | CRM and lead insights over time | Future vision | Not started |
 | AN-7 | Data-based recommendations from outcomes | Future vision | Not started |
+
+### Onboarding and discovery — MVP (D-028) · Not started
+
+From the [AI-assisted onboarding spec](Braventa_AI_Assisted_Onboarding_Pain_Point_Spec.md). Builds on BI-12.
+
+| ID | Requirement | Class | Stage | Status |
+|---|---|---|---|---|
+| ON-1 | Pain-point and solution catalog as versioned, typed data: 10 categories, stable IDs, examples, follow-up keys, solution availability (available · planned · manual · integration-dependent · unsupported) | MVP | 1 | Not started |
+| ON-2 | Discovery step: multi-select categories/pain points plus free text; economical model maps free text to catalog IDs, keeps the original wording, asks the owner to confirm when unsure | MVP | 1 | Not started |
+| ON-3 | Owner selects or reorders a top three; stored separately from AI-recommended and calculated priority | MVP | 1 | Not started |
+| ON-4 | Website analysis starts at the URL step and runs while the owner answers discovery questions | MVP | 1 | Not started |
+| ON-5 | Adaptive follow-ups: 1–3 questions per round (about 4 in total) chosen from a per-pain-point question bank by what is missing and most valuable; never repeats answered questions; skip and "not applicable" always available | MVP | 2 | Not started |
+| ON-6 | Onboarding progress is saved per organization and user (`onboarding_sessions`, `onboarding_responses`), so the owner can leave and resume | MVP | 2 | Not started |
+| ON-7 | Diagnosis synthesis with evidence type (provenance class) and confidence per finding; the owner reviews and corrects it before the plan is final | MVP | 3 | Not started |
+| ON-8 | One plan (`growth_plan_items`) replacing the 5 opportunities: per item the pain point(s), why, evidence, first action, effort, dependencies, success metric, capability status, and customer / AI-recommended / calculated / final priority; calculated priority = (Impact × Urgency × Confidence) / Effort computed in code. Delivers MS-5 and UX-1 | MVP | 3 | Not started |
 
 ### Guidance UX (cross-cutting)
 

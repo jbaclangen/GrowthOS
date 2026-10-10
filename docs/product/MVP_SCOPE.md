@@ -14,9 +14,10 @@ record confirmation in [DECISION_LOG.md](../decisions/DECISION_LOG.md).
 
 ## 1. MVP goal
 
-> A service-business owner enters their website and, in one sitting, gets an assessment they believe,
-> a short list of what to fix first, and a month of on-brand content they can approve, adjust, and use
-> the same day — and they come back for the next batch.
+> A service-business owner enters their website, tells Braventa what is holding the business back, and in one
+> sitting confirms a diagnosis they believe and a prioritised plan for what to do next — including a month of
+> on-brand content they can approve, adjust, and use the same day — and they come back to work the plan.
+> (Updated by founder decision D-028.)
 
 That is the smallest thing a real paying service business would value: it replaces hours of "what
 should I post and what should I fix?" with a prioritised plan and usable drafts. It covers the
@@ -24,9 +25,10 @@ should I post and what should I fix?" with a prioritised plan and usable drafts.
 ([BUSINESS_METHODOLOGY.md](BUSINESS_METHODOLOGY.md)). Execution through connected tools and the
 **Improve** stage come after the MVP is validated.
 
-**Value test:** the customer leaves with something they use outside Braventa (posts copied or
-exported and published, a website fix handed to their web person). If they cannot take the output
-away, the MVP has not delivered value.
+**Value test (D-028):** the owner (1) confirms the diagnosis and plan — they recognise their problems in it and
+agree with the top priorities — and (2) leaves with something they use outside Braventa (posts copied or exported
+and published, a website fix handed to their web person, a first plan action started). If the owner rejects the
+diagnosis or cannot take anything away, the MVP has not delivered value.
 
 ## 2. What is live today
 
@@ -38,6 +40,7 @@ All paths relative to the repository root.
 | Route protection | Signed-out users are redirected to `/login` | `web/src/proxy.ts` |
 | Organization creation | First analysis creates an organization with the user as owner | `create_organization` in `supabase/migrations/20261010061028_foundation.sql`; called from `web/src/app/analysis/actions.ts` |
 | Start an analysis | Website URL plus optional business name; queues an `ai_jobs` row and runs the pipeline after the response | `web/src/app/onboarding/page.tsx`, `web/src/app/onboarding/start-form.tsx`, `startAnalysis` in `web/src/app/analysis/actions.ts` |
+| Guided onboarding questions | Optional main goal, service area and current tools at onboarding; stored as Customer-provided, used by every pipeline step, shown and editable in a "From you" panel on the results page (BI-12, D-021) | `web/src/components/owner-questions.tsx`, `web/src/lib/owner-inputs.ts`, `saveOwnerInputs` in `web/src/app/analysis/actions.ts`, `web/src/app/analysis/[id]/owner-panel.tsx` |
 | Website reading | Home page plus up to 5 priority pages; homepage technical signals | `web/src/lib/integrations/crawler.ts` |
 | PageSpeed | Google PageSpeed mobile scores; failure is tolerated | `web/src/lib/integrations/google.ts` |
 | Business profile | AI-generated structured profile and brand voice | `runWebsiteIntel` in `web/src/lib/pipeline/website-intel.ts` |
@@ -86,7 +89,7 @@ sequence.
 
 | # | Item | Requirement | Why | Size |
 |---|---|---|---|---|
-| 10 | **Guided onboarding questions** (optional: primary goal, service area, current tools) | BI-12 (D-021) | Better context for every output; answers are Customer-provided provenance | Small |
+| 10 | **Guided onboarding questions** (optional: primary goal, service area, current tools) | BI-12 (D-021) | Better context for every output; answers are Customer-provided provenance | Small — **Live** |
 | 11 | **Opportunity tracking** — accept, dismiss, done | MS-5 (D-022) | Recommendations lead to actions, not just text | Small |
 | 12 | **"Do this first" summary** at the top of the results page | UX-1 (D-022) | The next best action is obvious without reading the whole page | Small |
 
