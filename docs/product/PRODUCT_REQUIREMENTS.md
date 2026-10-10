@@ -71,8 +71,8 @@ Builds and maintains the structured business profile used by every other module.
 | BI-8 | Knowledge base: store source documents, chunk, embed, and retrieve for grounding | Next phase | Partial (crawled pages stored in `knowledge_documents`; no chunking, embedding, or retrieval) |
 | BI-9 | Upload documents and notes as sources | Next phase | Not started |
 | BI-10 | Brand voice and messaging profile the user can edit (`brand_profiles`) | Next phase | Partial (row written per run; not shown separately or editable; a new row is inserted on every re-run) |
-| BI-11 | Q&A assistant grounded in the knowledge base (`marketing_assistant` worker) | Future vision (vision §11 lists it as an MVP candidate — Q-021) | Not started |
-| BI-12 | Optional guided onboarding questions — primary goal, service area, current tools — stored on the profile and used in prompts (vision §7 step 2) | Next phase (MVP candidate — Q-022) | Not started |
+| BI-11 | Q&A assistant grounded in the knowledge base (`marketing_assistant` worker) | Next phase, committed (D-020) | Not started |
+| BI-12 | Optional guided onboarding questions — primary goal, service area, current tools — stored on the profile (Customer-provided) and used in prompts (vision §7 step 2) | MVP (D-021) | Not started |
 
 **MVP acceptance criteria**
 - Given a reachable website, the profile is generated and shown within one analysis run; fields the
@@ -91,7 +91,7 @@ Builds and maintains the structured business profile used by every other module.
 | MS-2 | Show component scores and label which are measured (Google) and which are assessed (AI) | MVP | Partial (measured bars labelled; assessed bars not labelled as AI) |
 | MS-3 | Five ranked opportunities with area, evidence ("why"), first step, impact, effort | MVP | **Live** |
 | MS-4 | 30-day content strategy: goal, audience, pillars, channels | MVP | **Live** |
-| MS-5 | User can mark an opportunity as accepted, dismissed, or done | Next phase (MVP candidate — Q-023) | Not started |
+| MS-5 | User can mark an opportunity as accepted, dismissed, or done | MVP (D-022) | Not started |
 | MS-6 | User-set objectives and priorities that feed the plan | Next phase | Not started |
 | MS-7 | Campaign planning (`campaigns` table) | Next phase | Not started |
 | MS-8 | Action plan covering non-content work (website fixes, CRM follow-up) as tasks | Next phase | Not started |
@@ -193,7 +193,7 @@ should be easy to understand.
 
 | ID | Requirement | Class | Status |
 |---|---|---|---|
-| UX-1 | "Do this first" summary at the top of the results page: the top opportunity, drafts awaiting approval, and the next step | Next phase (MVP candidate — Q-023) | Not started |
+| UX-1 | "Do this first" summary at the top of the results page: the top open opportunity, drafts awaiting approval, and the next step | MVP (D-022) | Not started |
 | UX-2 | Show where the business is in the Growth Loop (Understand · Act · Improve) | Exploratory | Not started |
 
 ### Platform (cross-cutting)

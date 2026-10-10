@@ -37,6 +37,8 @@ one sitting. Growth Loop coverage: Understand, plus plan, create, approve.
 | Draft the next batch | CS-8 | Not started |
 | Password reset | PL-5 | Not started |
 | Paid AI mode for real customers | NFR performance | Configuration ready, not switched |
+| Guided onboarding questions | BI-12 (D-021) | Not started |
+| Opportunity tracking; "do this first" summary | MS-5, UX-1 (D-022) | Not started |
 
 **Exit criteria:** the MVP items above are live, and the first design partners can complete the
 first-run journey ([USER_JOURNEYS.md](USER_JOURNEYS.md)) without help.
@@ -54,7 +56,8 @@ Ordered by recommended priority.
    enforced from the pricing framework once decided.
 3. **HubSpot read-only CRM summary:** connect, pipeline summary, data quality, follow-up
    recommendations (CRM-1 – CRM-4). Built first with HubSpot-using design partners.
-4. **Opportunity tracking:** accept, dismiss, done (MS-5); goals and objectives (BI-7, MS-6).
+4. **AI assistant (committed, D-020):** knowledge-base retrieval (BI-8) then the grounded assistant
+   (BI-11); goals and objectives (BI-7, MS-6). Opportunity tracking moved into Now (D-022).
 5. **Quality gate:** automated QA review before approval (CS-9).
 6. **Website checklist and improvement plan** (WI-4, WI-5).
 7. **Customer-facing usage view** and weekly summary (AN-3, AN-4).
@@ -63,7 +66,7 @@ Ordered by recommended priority.
 9. **First n8n workflows** with callbacks to `/api/n8n/*`, execution log, retries (AU-3 – AU-6);
    scheduled weekly re-assessment (AU-4).
 10. **Long-form drafts:** blog and email (CS-10).
-11. **Knowledge base retrieval and document upload** (BI-8, BI-9).
+11. **Document upload** (BI-9). (Knowledge-base retrieval moved up with the assistant, item 4.)
 
 **Exit criteria:** validation metrics in [MVP_SCOPE.md](MVP_SCOPE.md#5-success-metrics-for-validation-with-paying-customers)
 met or consciously revised; pricing decided.
@@ -76,7 +79,7 @@ met or consciously revised; pricing decided.
 - Analytics integrations (GA4, Search Console) and the full Improve stage: planned vs actual, outcome
   learning, next-best-action recommendations (AN-5 – AN-7).
 - Campaign planning, repurposing, video scripts and creative briefs (MS-7, CS-11).
-- Grounded Q&A assistant (BI-11).
+- (Grounded Q&A assistant moved to Next — D-020.)
 - Agency features: client approval views, multi-client reporting (CS-13).
 - Marketing site at braventa.io (D-011), community, and partner programme.
 
@@ -88,8 +91,8 @@ met or consciously revised; pricing decided.
 - Reusable workflow template library for customers (vision §8.6).
 - Making the Growth Loop visible as a navigation or progress element in the app (vision §6) — see UX-2.
 
-**Pending founder decisions that could move items into the MVP:** Q-021 (assistant), Q-022 (guided
-onboarding questions, BI-12), Q-023 (opportunity tracking MS-5 and "do this first" summary UX-1).
+**Resolved 2026-10-10:** guided onboarding (BI-12) and opportunity tracking + "do this first" (MS-5, UX-1) moved into
+the MVP (D-021, D-022); the assistant is committed for Next (D-020).
 
 ## 4. Business model and pricing framework
 

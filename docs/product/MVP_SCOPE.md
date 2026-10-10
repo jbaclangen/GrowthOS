@@ -82,6 +82,17 @@ sequence.
 | 8 | **Paid AI mode for paying customers** | NFR performance | Free models take about 3–4 minutes and are rate-limited (~50 requests/day). A paying customer needs reliable runs; switching is a configuration change (`AI_MODE=paid`) plus a per-run cost estimate. | Config |
 | 9 | **User-facing brand rename completion** | D-003 | Done 2026-10-10 for page titles, header logo, metadata, login/onboarding copy, crawler User-Agent, and OpenRouter title. Remaining: transactional email templates in Supabase Auth settings (configured in the Supabase dashboard, not in code). | Small |
 
+**Added by founder decision (2026-10-10):**
+
+| # | Item | Requirement | Why | Size |
+|---|---|---|---|---|
+| 10 | **Guided onboarding questions** (optional: primary goal, service area, current tools) | BI-12 (D-021) | Better context for every output; answers are Customer-provided provenance | Small |
+| 11 | **Opportunity tracking** — accept, dismiss, done | MS-5 (D-022) | Recommendations lead to actions, not just text | Small |
+| 12 | **"Do this first" summary** at the top of the results page | UX-1 (D-022) | The next best action is obvious without reading the whole page | Small |
+
+**Deferred but committed: AI assistant (BI-11, D-020)** — Next phase, after knowledge-base retrieval (BI-8)
+and paid AI mode.
+
 **Considered and deferred: HubSpot read-only summary (CRM-1, CRM-2).** It is the strongest
 differentiator and the founder's area of experience, but it needs a HubSpot public app, OAuth, token
 storage in Vault, and data-handling decisions, and it only helps customers who use HubSpot. Recommended
@@ -101,7 +112,7 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
 - Team invitations, roles UI, organization switching, client portals for agencies.
 - Long-form content (blogs, email campaigns, video scripts), repurposing, image generation.
 - Automated QA reviewer step (manual approval is the MVP quality gate).
-- Knowledge-base embeddings, document upload, and a chat assistant.
+- Knowledge-base embeddings, document upload, and a chat assistant (assistant is committed for Next — D-020).
 - Campaign objects and campaign planning.
 - Dedicated website audit report beyond the assessment.
 - Admin console, white-labelling, public API, mobile apps.

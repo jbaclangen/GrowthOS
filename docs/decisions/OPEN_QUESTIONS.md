@@ -30,9 +30,6 @@ validation; **P3** can wait.
 | Q-018 | P2 | Has `supabase/migrations/20261010000001_advisor_fixes.sql` been applied to the remote project? It is uncommitted. | Schema docs describe it as part of the model. | Verify with the Supabase migration list before relying on it. |
 | Q-019 | P1 | Vercel Hobby is for non-commercial use. Upgrade to Pro before charging customers? | Terms-of-service compliance. | Upgrade when the first paying customer signs. |
 | Q-020 | P3 | Should the internal n8n callback header `X-GrowthOS-Secret` be renamed? | Internal only; renaming needs a matching n8n change. | Leave until n8n workflows are built. |
-| Q-021 | P2 | Is a contextual AI assistant part of the MVP? The [product vision](../product/GrowthOS_Product_Vision_and_Planning_Context.md) (§11) lists it as an MVP candidate; `MVP_SCOPE.md` §4 excludes it. | Needs knowledge-base retrieval (BI-8) and paid models to be reliable; adds AI cost per user. | Keep out of the MVP; first Next-phase item after HubSpot read-only. |
-| Q-022 | P2 | Add two or three optional guided onboarding questions (primary goal, service area, current tools) to the MVP? Vision §7 step 2. | Improves every downstream output; small build (BI-12). | Yes: optional fields on `/onboarding`, stored in `business_profiles.goals`, fed to prompts — awaiting founder decision. |
-| Q-023 | P2 | Promote opportunity tracking (accept / dismiss / done, MS-5) and a "do this first" summary (UX-1) into the MVP? | Vision success criterion: recommendations lead to actions, not just AI text. | Yes for both (small) — awaiting founder decision. |
 | Q-024 | P3 | Should model IDs be configurable without a code change (env or database)? Vision §10. | Swapping a failing or retired model currently needs a deploy. | Not before paid mode; revisit when switching to `AI_MODE=paid`. |
 
 ## Resolved
@@ -40,3 +37,6 @@ validation; **P3** can wait.
 | ID | Answer | Decision |
 |---|---|---|
 | — | Typography: Quicksand (headings, logo) + Comfortaa (other text) | D-015 |
+| Q-021 | AI assistant is not in the MVP; committed for the Next phase | D-020 |
+| Q-022 | Yes — optional guided onboarding questions are in the MVP (BI-12) | D-021 |
+| Q-023 | Yes — opportunity tracking (MS-5) and "do this first" (UX-1) are in the MVP | D-022 |

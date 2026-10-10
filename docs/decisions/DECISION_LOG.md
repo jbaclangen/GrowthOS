@@ -30,6 +30,9 @@ Do not rewrite history.
 | D-017 | 2026-10-10 | Wordmark is lowercase `braventa` in Quicksand Bold | Provisional |
 | D-018 | 2026-10-10 | Crawler reaches public sites only; clients can only approve/reject/undo content, approver set by the database | Provisional |
 | D-019 | 2026-10-10 | Product vision document adopted as strategic planning context (not a spec); existing approved decisions stand | Founder |
+| D-020 | 2026-10-10 | AI assistant is not in the MVP but is committed for the Next phase (resolves Q-021) | Founder |
+| D-021 | 2026-10-10 | Guided onboarding questions (BI-12) are in the MVP (resolves Q-022) | Founder |
+| D-022 | 2026-10-10 | Opportunity tracking (MS-5) and the "do this first" summary (UX-1) are in the MVP (resolves Q-023) | Founder |
 
 ---
 
@@ -185,3 +188,19 @@ need a founder call are Q-021 – Q-024 in [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md
 vision's Current / MVP / Next / Later / Exploratory labels to the existing classes. D-003 (UI rename)
 remains Provisional pending explicit confirmation — the vision (§13) advises against automatic renames,
 but D-003 follows from D-001 and is already applied.
+
+## D-020 — AI assistant: Next phase, committed
+**Status:** Founder (2026-10-10, answer to Q-021: "no, but we will get this done"). The grounded AI assistant
+(BI-11) stays out of the MVP and moves from Future vision to **Next phase** as a committed item. It depends on
+knowledge-base retrieval (BI-8) and paid models. The founder asked for a cost estimate for testing it with one
+company and a model recommendation aligned with the vision's routing principles before it is built.
+
+## D-021 — Guided onboarding questions in the MVP
+**Status:** Founder (2026-10-10, answer to Q-022). BI-12 becomes MVP: optional questions on `/onboarding` for
+primary goal, service area, and current tools, stored on the business profile, marked Customer-provided, and fed
+to the pipeline prompts. Answers are optional so the two-field start stays fast.
+
+## D-022 — Opportunity tracking and "do this first" in the MVP
+**Status:** Founder (2026-10-10, answer to Q-023). MS-5 (accept / dismiss / done per opportunity) and UX-1 (a
+"do this first" summary at the top of the results page: top open opportunity, drafts awaiting approval, next
+step) become MVP. Serves the vision's success criterion that recommendations lead to actions.
