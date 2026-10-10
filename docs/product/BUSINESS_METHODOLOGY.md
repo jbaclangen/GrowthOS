@@ -94,7 +94,7 @@ they told it, what it guessed, and what it suggests.
 | **Inferred** | Derived by AI from verified or customer-provided sources | Industry, summary, services, target customers, brand voice, likely competitors, the three assessed scores | "Inferred from your website" (or other source) | Editable; editing converts it to Customer-provided; "unknown" is shown as missing, not as a value |
 | **AI-recommended** | A suggestion about what to do | Opportunities, first steps, the 30-day plan, drafted posts | "Recommendation" or "Draft" plus the reason ("why") | Always requires human review; approval is recorded |
 
-**Current implementation:** only partial. The analysis page marks PageSpeed bars with a "Google"
+**Current implementation:** only partial. The guided onboarding answers (main goal, service area, tools; BI-12) are stored in their own columns and labelled "From you" on the results page; the pipeline never overwrites them and tells the AI they outrank the website. The analysis page marks PageSpeed bars with a "Google"
 note and explains the growth score as a "blend of measured site quality and assessed marketing
 readiness"; drafts are labelled with approval status. Profile fields are not labelled as inferred,
 and provenance is not stored per field. The growth score is a mixed value (deterministic weighting of

@@ -8,6 +8,7 @@ import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { normalizeUrl } from "@/lib/integrations/crawler";
 import { runWebsiteIntel } from "@/lib/pipeline/website-intel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { parseOwnerInputs, toProfileColumns } from "@/lib/owner-inputs";
 
 export type StartState = { error?: string } | undefined;
 
@@ -42,6 +43,8 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
     businessName: formData.get("businessName") || undefined,
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const owner = parseOwnerInputs(formData);
+  if ("error" in owner) return { error: owner.error };
 
   let websiteUrl: string;
   try {
@@ -65,6 +68,7 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
       organization_id: org.id,
       company_name: parsed.data.businessName || new URL(websiteUrl).hostname.replace(/^www\./, ""),
       website_url: websiteUrl,
+      ...toProfileColumns(owner.data),
     })
     .select("id")
     .single();
@@ -100,4 +104,28 @@ export async function setContentStatus(itemId: string, status: "approved" | "rej
     .eq("id", itemId);
   if (error) throw new Error(error.message);
   refresh();
+}
+
+export type OwnerInputsState = { error?: string; saved?: boolean } | undefined;
+
+// Saves the guided onboarding answers (Customer-provided). RLS limits the update to the user's own org.
+export async function saveOwnerInputs(
+  businessProfileId: string,
+  _: OwnerInputsState,
+  formData: FormData,
+): Promise<OwnerInputsState> {
+  await requireUser();
+  const owner = parseOwnerInputs(formData);
+  if ("error" in owner) return { error: owner.error };
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("business_profiles")
+    .update(toProfileColumns(owner.data))
+    .eq("id", businessProfileId)
+    .select("id");
+  if (error) return { error: "Your answers weren't saved. Try again." };
+  if (!data?.length) return { error: "This business wasn't found." };
+  refresh();
+  return { saved: true };
 }

@@ -38,6 +38,7 @@ Do not rewrite history.
 | D-025 | 2026-10-10 | Founder approval of the brand system (messaging, palette, US English) | Founder |
 | D-026 | 2026-10-10 | New logo: **Monolith** symbol + **Syncopate Bold** uppercase wordmark | Superseded by D-027 |
 | D-027 | 2026-10-10 | Logo from the founder's reference: heavy **B** on a rounded tile with a **Violet dot**; **BRAVENTA.IO** in Quicksand Medium | Founder |
+| D-028 | 2026-10-10 | AI-assisted onboarding: discovery runs alongside the website analysis; one diagnosis plan replaces the "5 opportunities"; MVP value test is a confirmed diagnosis and plan plus take-away content | Founder |
 
 ---
 
@@ -273,3 +274,21 @@ this"): a heavy white B on a black rounded square, a violet dot overlapping the 
   `tokens.json` / `build-brand-assets.mjs`. The founder confirmed both by replying "proceed" (Q-025, resolved).
 - Accessibility note: the Violet dot on Ink is about 2.5:1. Logos are exempt from WCAG contrast rules, and the dot
   is not the only identifying element; it is never used to convey state.
+
+## D-028 — AI-assisted onboarding and a single diagnosis plan
+**Status:** Founder (2026-10-10, answers to the assessment of the
+[AI-assisted onboarding spec](../product/Braventa_AI_Assisted_Onboarding_Pain_Point_Spec.md)).
+1. **Discovery runs alongside the website analysis.** The crawl and PageSpeed start as soon as the owner enters
+   the website; the owner answers discovery and follow-up questions while it runs, and the synthesis uses both.
+2. **One plan.** The diagnosis plan replaces the separate "5 opportunities". Each plan item comes from the
+   owner's confirmed pain points and/or website evidence; content planning and drafts become one solution within
+   the plan, not the whole product.
+3. **New MVP value test:** the owner confirms a diagnosis and plan they believe, and takes away usable content.
+   [MVP_SCOPE.md](../product/MVP_SCOPE.md) §1 updated.
+**Provisional implementation choices** (from the same assessment, not founder decisions): the pain-point and
+solution catalog lives in versioned, typed code with only stable IDs stored in the database; the spec's evidence
+types map onto the existing provenance classes (customer_reported → Customer-provided; public_website /
+connected_system observation → Verified; ai_hypothesis → Inferred; manually_verified → Customer-provided once
+confirmed); adaptive follow-ups are a bounded question flow (about 4 questions, economical model), not the
+assistant (D-020); a `growth_plan_items` table backs the plan and also delivers MS-5 and UX-1 (D-022). Staging:
+ON-1 – ON-8 in [PRODUCT_REQUIREMENTS.md](../product/PRODUCT_REQUIREMENTS.md).

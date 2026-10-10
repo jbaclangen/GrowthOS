@@ -18,6 +18,7 @@ of record (see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)); security impli
 | `20261010061028_foundation.sql` | `vector` extension, all tables, enums, helper functions, RLS policies, `updated_at` triggers, `ai_spend_mtd` view |
 | `20261010061126_advisor_fixes.sql` | Revokes `is_member` / `is_org_admin` from `anon`; splits the memberships admin policy by action; adds FK indexes |
 | `20261010121043_content_approval_guard.sql` | Trigger `guard_content_item_write` on `content_items`: limits client status changes and sets `approved_by` / `approved_at` (D-018) |
+| `20261010150627_business_profile_owner_inputs.sql` | Adds `business_profiles.service_area` (text) and `current_tools` (text[]), length checks on `goals`/`service_area` and at most 15 tools, and column comments marking all three as Customer-provided (BI-12) |
 
 All three are applied to the Supabase project. Local file names match the versions recorded there
 (`list_migrations`); name new files with the version the project records, or apply them with the
@@ -50,7 +51,7 @@ RLS legend: **M-all** = policy "members all": `for all to authenticated using/wi
 | `organizations` | Tenant | `id`, `name`, `slug` (unique, unused), `plan` (default `trial`), `monthly_ai_budget_usd` (default 5.00) | Select: `is_member(id)`. Update: `is_org_admin(id)`. No insert/delete policy (insert only via `create_organization`) | Yes: `lib/auth.ts`, `lib/ai/router.ts` (budget), health route |
 | `memberships` | User-org link with role | PK (`organization_id`, `user_id`), `role` | Select: `is_member`. Insert/update/delete: `is_org_admin` | Yes: `getCurrentOrg()` |
 | `platform_admins` | Staff with cross-tenant access | `user_id` | Select own row only. No write policies | Only indirectly via `is_member()` |
-| `business_profiles` | The analysed business; holds the Business Intelligence Profile | `organization_id`, `company_name`, `website_url`, `industry`, `services[]`, `target_customers`, `locations[]`, `competitors[]`, `offers`, `goals`, `intelligence` (jsonb, full AI profile), `growth_score` (0–100), `analyzed_at` | M-all | Yes: actions, pipeline, dashboard, analysis page |
+| `business_profiles` | The analysed business; holds the Business Intelligence Profile | `organization_id`, `company_name`, `website_url`, `industry`, `services[]`, `target_customers`, `locations[]`, `competitors[]`, `offers`, `goals` / `service_area` / `current_tools` (Customer-provided guided-onboarding answers; never written by the pipeline), `intelligence` (jsonb, full AI profile), `growth_score` (0–100), `analyzed_at` | M-all | Yes: actions, pipeline, dashboard, analysis page |
 | `brand_profiles` | Brand voice per business | `business_profile_id`, `voice`, `tone_rules[]`, `messaging_pillars[]`, `visual_guidelines` | M-all | Written by pipeline (one new row per run; never read) |
 | `knowledge_documents` | Source material (crawled pages; later uploads, notes, CRM) | `source_type` (`website_page` today), `source_url`, `title`, `content`, `content_hash`; unique (`organization_id`, `content_hash`) | M-all | Written by pipeline (upsert, ignore duplicates); never read |
 | `knowledge_chunks` | Embedded chunks for retrieval | `document_id`, `chunk_index`, `content`, `embedding vector(1536)` (HNSW cosine index) | M-all | **Not used** |

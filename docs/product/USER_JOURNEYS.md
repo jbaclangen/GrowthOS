@@ -24,7 +24,7 @@ no marketing staff. **Goal:** find out what to focus on and get content they can
 | 1 | Arrive at the app | `/` redirects to `/login` (or `/dashboard` if signed in) | Live | No public landing or explanation; the marketing site does not exist yet (D-011) |
 | 2 | Sign up | Email and password (8+ characters) | Live | Sign-up and sign-in share one form with a mode toggle; easy to submit the wrong mode |
 | 3 | Confirm email | "Check your email for a confirmation link" | Live | Leaves the app before any value is shown; confirmation emails can land in spam; the link lands on `/onboarding` only if the redirect URL is configured correctly |
-| 4 | Enter website | `/onboarding`: website URL plus optional business name | Live | Good: two fields only. Page copy renamed to Braventa (D-003, 2026-10-10) |
+| 4 | Enter website | `/onboarding`: website URL, optional business name, and three optional questions (main goal, service area, tools already used) | Live | Two required-feel fields stay at the top; the guided questions are optional and skippable (BI-12). Answers can be changed later on the results page |
 | 5 | Wait for analysis | Progress page lists five steps, "about 3–4 minutes", refreshes every 4 s | Live | **3–4 minutes on free models** is long for a first impression; free models are rate-limited (about 50 requests a day across all users), so a run can fail when several people try at once |
 | 6 | Read results | Growth score, component scores, business profile, strengths, gaps, competitors, five opportunities, 30-day plan, five drafts, full calendar | Live | Long single page with no summary of "do this first"; profile fields are not marked as inferred (BI-6); sites that render content with JavaScript yield thin crawls and weaker results |
 | 7 | Correct the profile | — | Planned (BI-5) | Wrong inferences cannot be fixed; re-running repeats them |
@@ -103,7 +103,7 @@ Nothing in this journey exists today. HubSpot is the first CRM because of the fo
 |---|---|---|---|
 | 1 | Customer discovers Braventa | Planned | No marketing site, listings, or acquisition channel yet; access is by direct link |
 | 2 | Signs up and creates a business profile | Live | Sign-up with email confirmation; profile created from a website URL |
-| 3 | Connects supported tools or supplies business information | Partial | Supplies a website URL and name only; no tool connections, uploads, or questionnaire |
+| 3 | Connects supported tools or supplies business information | Partial | Supplies a website URL, name, and optionally a main goal, service area and tools in use (BI-12); no tool connections or uploads yet |
 | 4 | Braventa develops an initial business intelligence profile | Live | Website-derived profile; not editable yet |
 | 5 | Customer receives actionable recommendations | Live | Growth score, five opportunities with first steps, 30-day plan |
 | 6 | Uses available modules and AI-assisted workflows | Partial | One pipeline; no separately usable modules |

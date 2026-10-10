@@ -72,7 +72,7 @@ decision. Never describe the product as doing something the code doesn't do, wha
 - `npm run tokens` — compile `design-system/tokens.json` → `src/styles/tokens.css` (fails on WCAG contrast); `npm run tokens:check` verifies it's current.
 
 ## MVP demo flow
-login → `/onboarding` (website URL) → `startAnalysis` queues an `ai_jobs` row and runs
+login → `/onboarding` (website URL + optional goal, service area, tools — BI-12) → `startAnalysis` queues an `ai_jobs` row and runs
 `web/src/lib/pipeline/website-intel.ts` via `after()` → `/analysis/[id]` polls until done.
 Pipeline: crawl + PageSpeed → business profile → growth score + 5 opportunities → 30-day plan → 5 drafted posts
 (status `needs_approval`). `AI_MODE=free` uses OpenRouter free models (~3–4 min per run, ~50 free requests/day).

@@ -7,6 +7,8 @@ import { STEPS, type BusinessIntel, type StepKey } from "@/lib/pipeline/website-
 import { ScoreBadge, ScoreBar } from "@/components/score-badge";
 import { AutoRefresh } from "./auto-refresh";
 import { ContentActions, RerunButton } from "./controls";
+import { OwnerPanel } from "./owner-panel";
+import { fromProfileRow } from "@/lib/owner-inputs";
 
 export const metadata: Metadata = { title: "Growth assessment" };
 
@@ -98,6 +100,8 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
       </header>
 
       {running && <Progress step={(job?.output as { step?: StepKey } | null)?.step ?? "crawling"} />}
+
+      <OwnerPanel businessProfileId={id} inputs={fromProfileRow(profile)} />
 
       {job?.status === "failed" && (
         <div className="card border-danger/40">
