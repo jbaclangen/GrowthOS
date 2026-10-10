@@ -11,6 +11,7 @@ import { ContentActions, RerunButton } from "./controls";
 export const metadata: Metadata = { title: "Growth assessment" };
 
 type Opportunity = { title: string; area: string; why: string; action: string; impact: string; effort: string };
+type DraftNotes = { image_prompt?: string; compliance_note?: string; regulated_area?: string | null };
 type ReportData = {
   growth_score: number;
   scores: { content_clarity: number; conversion_readiness: number; online_presence: number };
@@ -213,6 +214,17 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
                 </div>
                 <h3 className="mt-2 font-medium">{d.title}</h3>
                 <p className="mt-2 whitespace-pre-line text-sm">{d.body}</p>
+                {(d.qa_notes as DraftNotes | null)?.compliance_note && (
+                  <div className="mt-3 rounded-md bg-warning-soft p-3 text-sm">
+                    <span className="chip bg-warning-soft text-warning">Check before approving</span>
+                    <p className="mt-1">
+                      {(d.qa_notes as DraftNotes).regulated_area && (
+                        <span className="font-medium">{(d.qa_notes as DraftNotes).regulated_area} is regulated. </span>
+                      )}
+                      {(d.qa_notes as DraftNotes).compliance_note}
+                    </p>
+                  </div>
+                )}
                 {(d.qa_notes as { image_prompt?: string } | null)?.image_prompt && (
                   <p className="mt-3 rounded-md bg-background p-3 text-xs text-muted">
                     <span className="font-medium text-foreground">Image idea: </span>

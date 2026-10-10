@@ -33,6 +33,7 @@ Do not rewrite history.
 | D-020 | 2026-10-10 | AI assistant is not in the MVP but is committed for the Next phase (resolves Q-021) | Founder |
 | D-021 | 2026-10-10 | Guided onboarding questions (BI-12) are in the MVP (resolves Q-022) | Founder |
 | D-022 | 2026-10-10 | Opportunity tracking (MS-5) and the "do this first" summary (UX-1) are in the MVP (resolves Q-023) | Founder |
+| D-024 | 2026-10-10 | Paid AI lineup: Sonnet for profile, plan and drafts; Opus for opportunities and for drafts in regulated industries; analyses grounded in source data | Provisional |
 
 ---
 
@@ -204,3 +205,21 @@ to the pipeline prompts. Answers are optional so the two-field start stays fast.
 **Status:** Founder (2026-10-10, answer to Q-023). MS-5 (accept / dismiss / done per opportunity) and UX-1 (a
 "do this first" summary at the top of the results page: top open opportunity, drafts awaiting approval, next
 step) become MVP. Serves the vision's success criterion that recommendations lead to actions.
+
+## D-024 — Paid AI lineup and grounded analysis
+**Status:** Provisional (2026-10-10). The founder approved switching to paid models after a model comparison
+and added USD 15 of OpenRouter credit; the specific lineup awaits the founder's review of real results.
+- **Lineup** (`web/src/lib/ai/router.ts`): profile and 30-day plan on Claude Sonnet; growth score and
+  opportunities on Claude Opus; drafts on Sonnet, escalated to Opus when the business is in a regulated
+  industry (risk-based routing, vision §10). About USD 0.23 per analysis, USD 0.29 for regulated businesses.
+  Evidence: [AI_ROUTING_AND_COSTS.md §4.1](../architecture/AI_ROUTING_AND_COSTS.md).
+- **Grounding rules** (`web/src/lib/pipeline/prompts.ts`): every call is told today's date; models may only
+  state figures, ratings and claims present in the crawled site, website signals or PageSpeed data; crawled
+  text is fenced as untrusted; regulated industries are detected in the profile and every draft carries a
+  "check before approving" note. Prompted by the first real test (The Benefit Link, a Medicare broker), where
+  free models invented statistics and review scores, used a past year, and presented a government
+  publication as the business's own.
+- **Privacy:** paid calls run under the founder's OpenRouter zero-data-retention and no-training settings.
+  Free mode remains available (`AI_MODE=free`) and still allows free endpoints that may train on inputs.
+Revisit after testing with real customers, or if cost per analysis must fall (Haiku was close in quality
+on two of three sites).

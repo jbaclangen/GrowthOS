@@ -14,6 +14,7 @@ export type ChatResult = {
   inputTokens: number;
   outputTokens: number;
   costUsd: number;
+  finishReason: string | null; // "length" means the output hit maxTokens and was cut off
 };
 
 function headers() {
@@ -25,6 +26,17 @@ function headers() {
   };
 }
 
+// Dropped connections ("fetch failed", "terminated") and provider hiccups are worth one more try;
+// bad requests and our own timeout are not.
+const RETRYABLE_STATUS = new Set([408, 429, 500, 502, 503, 504]);
+const RETRY_DELAY_MS = 3000;
+
+class RetryableError extends Error {}
+
+function isDroppedConnection(e: unknown) {
+  return e instanceof TypeError && /fetch failed|terminated|socket|ECONNRESET/i.test(`${e.message} ${String(e.cause ?? "")}`);
+}
+
 // One chat completion. `models` is tried in order; OpenRouter handles fallback.
 export async function chat(opts: {
   models: string[];
@@ -33,6 +45,18 @@ export async function chat(opts: {
   temperature?: number;
   json?: boolean;
 }): Promise<ChatResult> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await chatOnce(opts);
+    } catch (e) {
+      const retryable = e instanceof RetryableError || isDroppedConnection(e);
+      if (!retryable || attempt >= 2) throw e;
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+    }
+  }
+}
+
+async function chatOnce(opts: Parameters<typeof chat>[0]): Promise<ChatResult> {
   const res = await fetch(`${BASE}/chat/completions`, {
     method: "POST",
     headers: headers(),
@@ -47,15 +71,23 @@ export async function chat(opts: {
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
   if (!res.ok) {
-    throw new Error(`OpenRouter ${res.status}: ${await res.text()}`);
+    const message = `OpenRouter ${res.status}: ${await res.text()}`;
+    throw RETRYABLE_STATUS.has(res.status) ? new RetryableError(message) : new Error(message);
   }
   const data = await res.json();
+  // OpenRouter can answer 200 and report a provider failure in the body.
+  if (data.error) {
+    const code = Number(data.error.code);
+    const message = `OpenRouter error ${data.error.code}: ${data.error.message}`;
+    throw RETRYABLE_STATUS.has(code) ? new RetryableError(message) : new Error(message);
+  }
   return {
     text: data.choices?.[0]?.message?.content ?? "",
     model: data.model,
     inputTokens: data.usage?.prompt_tokens ?? 0,
     outputTokens: data.usage?.completion_tokens ?? 0,
     costUsd: data.usage?.cost ?? 0,
+    finishReason: data.choices?.[0]?.finish_reason ?? null,
   };
 }
 

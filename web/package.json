@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "tokens": "node scripts/build-tokens.mjs",
-    "tokens:check": "node scripts/build-tokens.mjs --check"
+    "tokens:check": "node scripts/build-tokens.mjs --check",
+    "eval:models": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/compare-models.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -28,6 +29,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

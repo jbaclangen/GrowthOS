@@ -77,20 +77,52 @@ Each worker contributes only a one-line system prompt; task instructions live in
 the fallback** (tries the next model if the first errors or is unavailable). The response's `model` field
 records which model actually answered, and that is what `ai_usage.model` stores.
 
-Current configuration (illustrative; check `router.ts` for the live values):
+Current configuration (check `router.ts` for the live values). Paid lineup chosen 2026-10-10 from a
+side-by-side comparison (D-024, §4.1):
 
-| Class | `free` chain | `paid` chain |
-|---|---|---|
-| simple | nemotron-3-super (free) -> nemotron-3-ultra (free) | claude-haiku-5.5 -> qwen3.8-flash |
-| standard | nemotron-3-super (free) -> nemotron-3-ultra (free) | gemini-3.8-flash -> claude-haiku-5.5 |
-| complex | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-sonnet-5.5 -> gpt-5.6-sol |
-| qa | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-opus-5.5 -> claude-sonnet-5.5 |
+| Class | `free` chain | `paid` chain | Workers |
+|---|---|---|---|
+| simple | nemotron-3-super (free) -> nemotron-3-ultra (free) | claude-haiku-5.5 -> qwen3.8-flash | extractor, marketing_assistant |
+| standard | nemotron-3-super (free) -> nemotron-3-ultra (free) | claude-sonnet-5.5 -> gpt-5.6-sol | business_analyst, content_strategist, content_writer, seo_analyst, campaign_planner |
+| complex | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-opus-5.5 -> claude-sonnet-5.5 | website_auditor, crm_analyst |
+| qa | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-opus-5.5 -> claude-sonnet-5.5 | qa_reviewer |
 
-Free mode: ~3–4 minutes per pipeline run (4 model calls, up to 8 with JSON retries); OpenRouter free models are limited to roughly 50 requests/day
-**per API key**, i.e. shared across all tenants. Free-model output quality and availability vary; the
-analysis page tells users free models may be busy. There is no app-level retry on HTTP errors beyond
-OpenRouter's model fallback. The OpenRouter `fetch` times out after 120 s (`CHAT_TIMEOUT_MS` in
-`openrouter.ts`); the timeout surfaces as a failed job.
+**Risk-based escalation.** `runWorker({ highRisk: true })` moves a call up one tier (simple -> standard ->
+complex). The pipeline sets it for `content_writer` when the profile marks the business as regulated
+(insurance, Medicare, health, finance, legal…), so those drafts are written by Opus.
+
+**Reliability.** `chat()` retries once (after 3 s) on dropped connections (`fetch failed`, `terminated`) and
+on HTTP 408/429/5xx, including provider errors OpenRouter reports inside a 200 response. A response cut off at
+`maxTokens` (`finish_reason: "length"`) is reported as "output was cut off at the token limit". Per-step
+output ceilings are `MAX_TOKENS` in `web/src/lib/pipeline/prompts.ts` (profile 6000, opportunities 4000,
+plan 8000, writer 8000). The OpenRouter `fetch` times out after 120 s (`CHAT_TIMEOUT_MS`).
+
+Free mode: ~3–5½ minutes per run; OpenRouter free models are limited per API key (shared across all tenants).
+Paid mode: ~2–2½ minutes per run.
+
+### 4.1 Model comparison (2026-10-10)
+
+Run with `npm run eval:models -- <url>...` (`web/scripts/compare-models.mts`; outputs in `web/.eval/`,
+gitignored). Same crawl, PageSpeed data and production prompts for every model; automatic checks for figures
+not present in the source data, past years, regulated-industry detection and compliance notes.
+
+| Site | Model (all four steps) | Time | Cost | Notes |
+|---|---|---|---|---|
+| thebenefitlink.com (Medicare broker, regulated) | Haiku 5.5 | 89 s | $0.011 | Correct facts and disclaimers; more generic opportunities; detected Medicare only |
+| thebenefitlink.com | Sonnet 5.5 | 116 s | $0.186 | Detected Medicare + life, annuity, long-term care; specific compliance notes (disclaimer, TCPA) |
+| thebenefitlink.com | Opus 5.5 | 164 s | $0.400 | Ranked compliance gaps as the #1 opportunity; most precise notes (TPMO disclaimer) |
+| benguetlinemenelectrical.com (contractor) | Haiku 5.5 | 89 s | $0.010 | Specific, grounded; flagged unconfirmed certifications |
+| benguetlinemenelectrical.com | Opus 5.5 | 198 s | $0.438 | Deepest analysis (outdated "28+ years" claim) |
+
+Per-step cost (thebenefitlink.com): profile Sonnet $0.035 / Opus $0.086; opportunities Sonnet $0.022 / Opus
+$0.067; plan Sonnet $0.076 / Opus $0.132; drafts Sonnet $0.054 / Opus $0.115. Haiku is under $0.005 per step.
+After the prompt fixes (date, evidence rules, regulated-industry handling) no model invented statistics,
+ratings or past years. Findings that shaped the code: the old 2,500-token profile ceiling cut off every
+paid model; long drafts needed per-channel length limits; Sonnet sometimes returns `area` as a list.
+
+**Chosen lineup and expected cost:** profile Sonnet, opportunities Opus, plan Sonnet, drafts Sonnet (Opus when
+regulated) — about **$0.23 per analysis, $0.29 for regulated businesses**. Revisit when Haiku-class quality is
+re-tested on more sites, or when cost per customer matters more than depth.
 
 ## 5. Budget enforcement and usage logging
 

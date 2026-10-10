@@ -1,10 +1,23 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { z } from "zod";
 import { runWorkerJson } from "@/lib/ai/router";
-import { crawlSite, type CrawlResult } from "@/lib/integrations/crawler";
+import { crawlSite } from "@/lib/integrations/crawler";
 import { pageSpeed } from "@/lib/integrations/google";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import {
+  MAX_TOKENS,
+  contentSchema,
+  opportunitiesPrompt,
+  opportunitiesSchema,
+  planPrompt,
+  planSchema,
+  profilePrompt,
+  profileSchema,
+  siteDigest,
+  writerPrompt,
+} from "./prompts";
+
+export type { BusinessIntel } from "./prompts";
 
 // The MVP demo flow:
 // website → business profile → growth score + 5 opportunities → 30-day plan → first content batch.
@@ -21,79 +34,6 @@ export const STEPS = [
 
 export type StepKey = (typeof STEPS)[number]["key"];
 
-const list = z.array(z.string()).default([]);
-
-const profileSchema = z.object({
-  company_name: z.string(),
-  industry: z.string(),
-  summary: z.string(),
-  services: list,
-  target_customers: z.string(),
-  locations: list,
-  offers: z.string().default(""),
-  unique_value: z.string().default(""),
-  brand_voice: z.object({ tone: z.string(), traits: list }),
-  likely_competitors: list,
-  strengths: list,
-  gaps: list,
-});
-export type BusinessIntel = z.infer<typeof profileSchema>;
-
-const level = z.preprocess((v) => String(v).toLowerCase(), z.enum(["high", "medium", "low"]));
-const score = z.coerce.number().min(0).max(100);
-
-const opportunitiesSchema = z.object({
-  scores: z.object({ content_clarity: score, conversion_readiness: score, online_presence: score }),
-  opportunities: z
-    .array(
-      z.object({
-        title: z.string(),
-        area: z.string(),
-        why: z.string(),
-        action: z.string(),
-        impact: level,
-        effort: level,
-      }),
-    )
-    .min(3),
-});
-
-const planSchema = z.object({
-  strategy: z.object({
-    primary_goal: z.string(),
-    audience: z.string(),
-    pillars: z.array(z.object({ name: z.string(), purpose: z.string() })).min(2),
-    channels: list,
-  }),
-  days: z
-    .array(
-      z.object({
-        day: z.coerce.number().int().min(1).max(31),
-        channel: z.string(),
-        pillar: z.string(),
-        format: z.string(),
-        topic: z.string(),
-        objective: z.string(),
-      }),
-    )
-    .min(20),
-});
-
-const contentSchema = z.object({
-  items: z
-    .array(
-      z.object({
-        day: z.coerce.number().int(),
-        title: z.string(),
-        body: z.string(),
-        cta: z.string().default(""),
-        image_prompt: z.string().default(""),
-        hashtags: list,
-      }),
-    )
-    .min(1),
-});
-
 // Growth score: deterministic blend of measured (PageSpeed) and assessed (AI) dimensions.
 export function computeGrowthScore(
   psi: { performance: number; seo: number; accessibility: number; bestPractices: number } | null,
@@ -109,19 +49,6 @@ export function computeGrowthScore(
   }
   const weight = parts.reduce((s, [, w]) => s + w, 0);
   return Math.round(parts.reduce((s, [v, w]) => s + v * w, 0) / weight);
-}
-
-function siteDigest(crawl: CrawlResult, maxChars = 20000) {
-  let out = "";
-  for (const p of crawl.pages) {
-    const block = `\n### ${p.title || p.url}\nURL: ${p.url}\n${p.description ? `Meta: ${p.description}\n` : ""}${p.text}\n`;
-    if (out.length + block.length > maxChars) {
-      out += block.slice(0, Math.max(0, maxChars - out.length));
-      break;
-    }
-    out += block;
-  }
-  return out;
 }
 
 export async function runWebsiteIntel(jobId: string) {
@@ -167,15 +94,11 @@ export async function runWebsiteIntel(jobId: string) {
         organizationId: org,
         jobId,
         worker: "business_analyst",
-        maxTokens: 2500,
+        maxTokens: MAX_TOKENS.profile,
         messages: [
           {
             role: "user",
-            content: `Analyse this business from its website content and return a Business Intelligence Profile as JSON with exactly these keys:
-{"company_name": string, "industry": string, "summary": string (2-3 sentences), "services": string[], "target_customers": string, "locations": string[], "offers": string, "unique_value": string, "brand_voice": {"tone": string, "traits": string[]}, "likely_competitors": string[] (types of competitors if names unknown), "strengths": string[], "gaps": string[] (marketing/website weaknesses)}
-Only use what the content supports; write "unknown" where it doesn't.
-
-WEBSITE CONTENT:${digest}`,
+            content: profilePrompt(digest),
           },
         ],
       },
@@ -189,21 +112,16 @@ WEBSITE CONTENT:${digest}`,
         organizationId: org,
         jobId,
         worker: "website_auditor",
-        maxTokens: 2500,
+        maxTokens: MAX_TOKENS.opportunities,
         messages: [
           {
             role: "user",
-            content: `You are assessing growth opportunities for this business.
-
-BUSINESS PROFILE: ${JSON.stringify(intel)}
-WEBSITE SIGNALS: ${JSON.stringify(crawl.signals)}
-PAGESPEED (mobile, 0-100): ${psi ? JSON.stringify(psi) : "unavailable"}
-PAGES FOUND: ${crawl.pages.map((p) => p.url).join(", ")}
-
-Return JSON:
-{"scores": {"content_clarity": 0-100, "conversion_readiness": 0-100, "online_presence": 0-100},
- "opportunities": [exactly 5 items, highest value first: {"title": string, "area": "website"|"seo"|"content"|"conversion"|"social"|"crm"|"ads", "why": string (evidence from the data), "action": string (concrete first step), "impact": "high"|"medium"|"low", "effort": "high"|"medium"|"low"}]}
-Be specific to this business; no generic advice.`,
+            content: opportunitiesPrompt({
+              intel,
+              signals: crawl.signals,
+              psi,
+              pageUrls: crawl.pages.map((p) => p.url),
+            }),
           },
         ],
       },
@@ -263,19 +181,14 @@ Be specific to this business; no generic advice.`,
         organizationId: org,
         jobId,
         worker: "content_strategist",
-        maxTokens: 6000,
+        maxTokens: MAX_TOKENS.plan,
         messages: [
           {
             role: "user",
-            content: `Create a 30-day marketing content plan for this business.
-
-BUSINESS PROFILE: ${JSON.stringify(intel)}
-TOP OPPORTUNITIES: ${JSON.stringify(opp.opportunities.slice(0, 5).map((o) => o.title))}
-
-Return JSON:
-{"strategy": {"primary_goal": string, "audience": string, "pillars": [{"name": string, "purpose": string}] (3-4), "channels": string[]},
- "days": [30 items: {"day": 1-30, "channel": "facebook"|"instagram"|"linkedin"|"blog"|"email"|"google_business"|"video", "pillar": string, "format": string, "topic": string (specific), "objective": string}]}
-Use channels that fit this business. Not every day needs a post, but include at least 20 days.`,
+            content: planPrompt({
+              intel,
+              opportunityTitles: opp.opportunities.slice(0, 5).map((o) => o.title),
+            }),
           },
         ],
       },
@@ -331,17 +244,12 @@ Use channels that fit this business. Not every day needs a post, but include at 
         organizationId: org,
         jobId,
         worker: "content_writer",
-        maxTokens: 5000,
+        maxTokens: MAX_TOKENS.writer,
+        highRisk: intel.regulated.is_regulated,
         messages: [
           {
             role: "user",
-            content: `Write these posts for ${intel.company_name}.
-Brand voice: ${intel.brand_voice.tone}; traits: ${intel.brand_voice.traits.join(", ")}.
-Services: ${intel.services.join(", ")}. Audience: ${intel.target_customers}. Location: ${intel.locations.join(", ")}.
-
-POSTS TO WRITE: ${JSON.stringify(firstBatch)}
-
-Return JSON: {"items": [{"day": number (same as input), "title": string, "body": string (ready to publish, channel-appropriate length), "cta": string, "image_prompt": string (for a designer/AI image tool), "hashtags": string[]}]}`,
+            content: writerPrompt({ intel, posts: firstBatch }),
           },
         ],
       },
@@ -359,7 +267,11 @@ Return JSON: {"items": [{"day": number (same as input), "title": string, "body":
         .update({
           title: w.title,
           body: `${w.body}${w.cta ? `\n\n${w.cta}` : ""}${hashtags}`,
-          qa_notes: { image_prompt: w.image_prompt },
+          qa_notes: {
+            image_prompt: w.image_prompt,
+            compliance_note: w.compliance_note,
+            regulated_area: intel.regulated.is_regulated ? intel.regulated.area : null,
+          },
           status: "needs_approval",
         })
         .eq("id", target.id)
