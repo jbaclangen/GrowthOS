@@ -211,7 +211,8 @@ step) become MVP. Serves the vision's success criterion that recommendations lea
 and added USD 15 of OpenRouter credit; the specific lineup awaits the founder's review of real results.
 - **Lineup** (`web/src/lib/ai/router.ts`): profile and 30-day plan on Claude Sonnet; growth score and
   opportunities on Claude Opus; drafts on Sonnet, escalated to Opus when the business is in a regulated
-  industry (risk-based routing, vision §10). About USD 0.23 per analysis, USD 0.29 for regulated businesses.
+  industry (risk-based routing, vision §10). About USD 0.23 per analysis, about USD 0.32 for regulated businesses
+  (measured end to end on The Benefit Link; about 5 minutes, since Opus is slow).
   Evidence: [AI_ROUTING_AND_COSTS.md §4.1](../architecture/AI_ROUTING_AND_COSTS.md).
 - **Grounding rules** (`web/src/lib/pipeline/prompts.ts`): every call is told today's date; models may only
   state figures, ratings and claims present in the crawled site, website signals or PageSpeed data; crawled

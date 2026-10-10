@@ -95,10 +95,12 @@ complex). The pipeline sets it for `content_writer` when the profile marks the b
 on HTTP 408/429/5xx, including provider errors OpenRouter reports inside a 200 response. A response cut off at
 `maxTokens` (`finish_reason: "length"`) is reported as "output was cut off at the token limit". Per-step
 output ceilings are `MAX_TOKENS` in `web/src/lib/pipeline/prompts.ts` (profile 6000, opportunities 4000,
-plan 8000, writer 8000). The OpenRouter `fetch` times out after 120 s (`CHAT_TIMEOUT_MS`).
+plan 10000, writer 12000); reasoning models count their thinking as output. If an answer is still cut off,
+`runWorkerJson` retries once with a 50% higher ceiling. The OpenRouter `fetch` times out after 120 s (`CHAT_TIMEOUT_MS`).
 
 Free mode: ~3–5½ minutes per run; OpenRouter free models are limited per API key (shared across all tenants).
-Paid mode: ~2–2½ minutes per run.
+Paid mode: about 2 minutes per step-chain on Sonnet; about 5 minutes for a regulated business, where Opus
+writes the drafts (measured 330 s on thebenefitlink.com, including one cut-off retry since fixed).
 
 ### 4.1 Model comparison (2026-10-10)
 
@@ -121,7 +123,9 @@ ratings or past years. Findings that shaped the code: the old 2,500-token profil
 paid model; long drafts needed per-channel length limits; Sonnet sometimes returns `area` as a list.
 
 **Chosen lineup and expected cost:** profile Sonnet, opportunities Opus, plan Sonnet, drafts Sonnet (Opus when
-regulated) — about **$0.23 per analysis, $0.29 for regulated businesses**. Revisit when Haiku-class quality is
+regulated) — about **$0.23 per analysis, about $0.32 for regulated businesses** (end-to-end run on
+thebenefitlink.com 2026-10-10: profile $0.041, opportunities $0.070, plan $0.071, drafts $0.142 — plus $0.167 for
+a cut-off first draft attempt, which the higher ceiling now prevents). Revisit when Haiku-class quality is
 re-tested on more sites, or when cost per customer matters more than depth.
 
 ## 5. Budget enforcement and usage logging

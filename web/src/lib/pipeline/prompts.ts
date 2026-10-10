@@ -89,8 +89,9 @@ export const contentSchema = z.object({
 export type Signals = CrawlResult["signals"];
 export type PageSpeedScores = { performance: number; seo: number; accessibility: number; bestPractices: number };
 
-// Output token ceilings per step. Stronger models write fuller answers; a cut-off answer is invalid JSON.
-export const MAX_TOKENS = { profile: 6000, opportunities: 4000, plan: 8000, writer: 8000 } as const;
+// Output token ceilings per step. Stronger models write fuller answers, and reasoning models count their
+// thinking as output; a cut-off answer is invalid JSON. Unused headroom costs nothing.
+export const MAX_TOKENS = { profile: 6000, opportunities: 4000, plan: 10000, writer: 12000 } as const;
 
 // Crawled text is untrusted input: fence it and tell the model it is data, not instructions.
 export function siteDigest(crawl: CrawlResult, maxChars = 20000) {

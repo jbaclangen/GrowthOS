@@ -122,12 +122,19 @@ export async function runWorkerJson<T>(
   validate: (value: unknown) => T,
 ): Promise<T> {
   let lastError: unknown;
+  let maxTokens = opts.maxTokens;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const result = await runWorker({ ...opts, json: true });
+    const result = await runWorker({ ...opts, maxTokens, json: true });
     try {
       return validate(parseJsonLoose(result.text));
     } catch (e) {
-      lastError = result.finishReason === "length" ? new Error("output was cut off at the token limit") : e;
+      if (result.finishReason === "length") {
+        lastError = new Error("output was cut off at the token limit");
+        // Retrying with the same ceiling would likely be cut off again; give it more room.
+        if (maxTokens) maxTokens = Math.ceil(maxTokens * 1.5);
+      } else {
+        lastError = e;
+      }
     }
   }
   throw new Error(`${opts.worker} returned unusable JSON: ${lastError instanceof Error ? lastError.message : lastError}`);
