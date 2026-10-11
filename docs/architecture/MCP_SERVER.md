@@ -67,6 +67,12 @@ build. Input limits keep prompts the same size as the web forms'.
 
 ## 6. Setup snippets (shown in Settings after creating a key)
 
+Settings walks the owner through five steps: choose Claude Desktop or Claude Code, create a key, paste the
+ready-made setup, check the connection (`keyLastUsed` reads the key's `last_used_at`), and ask Claude to set up the
+business. An account without an organization can create a key: Settings asks for the business name and calls
+`create_organization`, which also starts the trial. The dashboard and onboarding page link to it. Owner guide:
+[CONNECT_YOUR_AI_ASSISTANT.md](../product/CONNECT_YOUR_AI_ASSISTANT.md).
+
 Claude Code:
 
 ```bash

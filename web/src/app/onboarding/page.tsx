@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { StartForm } from "./start-form";
 
 export const metadata: Metadata = { title: "Analyze your business" };
@@ -15,6 +16,12 @@ export default function OnboardingPage() {
         highest-value opportunities, plans 30 days of content and drafts the first posts for your approval.
       </p>
       <StartForm />
+      <p className="mt-6 text-sm text-muted">
+        Already worked on your business with Claude?{" "}
+        <Link href="/settings#ai-assistant" className="text-accent hover:underline">
+          Connect Claude and let it answer these questions
+        </Link>
+      </p>
     </main>
   );
 }

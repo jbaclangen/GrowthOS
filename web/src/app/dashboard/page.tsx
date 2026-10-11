@@ -85,10 +85,16 @@ async function Dashboard() {
       {!profiles?.length ? (
         <div className="card mt-8 text-center">
           <p className="font-medium">No businesses yet</p>
-          <p className="mt-1 text-sm text-muted">Add a website to get a growth score, five opportunities, and a 30-day plan.</p>
+          <p className="mt-1 text-sm text-muted">Add a website to get a growth score, a diagnosis, a growth plan and a 30-day content plan.</p>
           <Link href="/onboarding" className="btn-primary mt-4">
             Analyze your first website
           </Link>
+          <p className="mt-4 text-sm text-muted">
+            Already worked on your business with Claude?{" "}
+            <Link href="/settings#ai-assistant" className="text-accent hover:underline">
+              Let Claude fill in the setup
+            </Link>
+          </p>
         </div>
       ) : (
         <>

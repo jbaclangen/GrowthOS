@@ -44,7 +44,7 @@ async function Settings() {
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
 
-      <section className="card mt-6" aria-labelledby="ai-access">
+      <section id="ai-assistant" className="card mt-6 scroll-mt-20" aria-labelledby="ai-access">
         <p className="eyebrow">AI assistant access</p>
         <h2 id="ai-access" className="mt-1 text-lg font-semibold">
           Connect Claude to Braventa
@@ -56,14 +56,7 @@ async function Settings() {
           claude.ai and ChatGPT are coming soon.
         </p>
 
-        {!org ? (
-          <p className="mt-4 text-sm">
-            <Link href="/onboarding" className="underline">
-              Analyze a website first
-            </Link>{" "}
-            so we know which business a key is for.
-          </p>
-        ) : access && !access.allowed ? (
+        {access && !access.allowed ? (
           <p className="mt-4 rounded-md bg-surface-muted px-3 py-2 text-sm" role="status">
             Your free trial has ended, so the AI assistant connection is paused. It works again once you&apos;re on a
             plan.{" "}
@@ -72,7 +65,7 @@ async function Settings() {
             </Link>
           </p>
         ) : (
-          <KeyForm serverUrl={serverUrl} />
+          <KeyForm serverUrl={serverUrl} needsBusiness={!org} />
         )}
 
         {(keys ?? []).length > 0 && (
