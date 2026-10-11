@@ -18,7 +18,7 @@ export const TIERS: Record<Tier, { label: string; summary: string }> = {
   },
   pro: {
     label: "Pro",
-    summary: "Everything in Basic, plus a full marketing audit, connected tools and AI agents that carry out approved changes for you (coming soon).",
+    summary: "Everything in Basic, plus your Google Search Console data in Braventa. Coming soon: a full marketing audit, more connected tools and AI agents that carry out approved changes for you.",
   },
   premium: {
     label: "Premium",

@@ -3,6 +3,11 @@
 **Date:** 2026-10-11 · **Phase 0** of [Braventa_Website_Intelligence_SEO_Audit_Blueprint.md](Braventa_Website_Intelligence_SEO_Audit_Blueprint.md)
 · **Status:** proposal; nothing beyond the copy fixes in §4.1 is built or approved.
 
+**Update 2026-10-12:** Phase 1 is built and live (D-038, PR #24): robots.txt respected, sitemap + links up to 25
+pages, deterministic checks, PageSpeed mobile + desktop with field data, cited evidence, analysis rate limit. The
+Search Console connection (Phase 2) is built for Pro (PR #23); its data isn't used in the diagnosis yet. §2 and §5
+describe the state before those changes.
+
 Compared against the code on `main` plus the open PRs (#19 copy, #20 MCP connection, #21 model routing). Paths are
 relative to the repo root.
 
