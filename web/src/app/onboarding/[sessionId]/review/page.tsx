@@ -9,6 +9,8 @@ import { EvidenceStatus } from "../evidence-status";
 import { ReviewForm, type Candidate } from "./review-form";
 
 export const metadata: Metadata = { title: "Confirm your priorities" };
+// Analysis jobs run in after() for up to ~4 minutes; 300 s is the Vercel Hobby maximum.
+export const maxDuration = 300;
 
 export default function ReviewPage(props: PageProps<"/onboarding/[sessionId]/review">) {
   return (

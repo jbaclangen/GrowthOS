@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 
 // Refreshes the Supabase session cookie on every request and sends
 // signed-out visitors to /login. Authorization itself is enforced by RLS.
-const PUBLIC_PATHS = ["/", "/login", "/auth", "/api/health"];
+const PUBLIC_PATHS = ["/", "/login", "/auth", "/api/health", "/robots.txt"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

@@ -10,6 +10,8 @@ import { EvidenceStatus } from "../evidence-status";
 import { FollowUpForm, type AskedQuestion } from "./follow-up-form";
 
 export const metadata: Metadata = { title: "A few more questions" };
+// Analysis jobs run in after() for up to ~4 minutes; 300 s is the Vercel Hobby maximum.
+export const maxDuration = 300;
 
 export default function QuestionsPage(props: PageProps<"/onboarding/[sessionId]/questions">) {
   return (
