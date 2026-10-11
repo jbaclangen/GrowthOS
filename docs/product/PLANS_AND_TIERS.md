@@ -35,14 +35,18 @@ public page (CLAUDE.md: never present planned features as live).
 | AI assistant | Basic | Coming soon (D-020) |
 | Connect your AI assistant (MCP): Claude fills in onboarding (D-036) | Basic | Live — every plan during the trial; paused after it until the business is on a plan |
 | Full marketing audit (SEO, search ads, social, email, video) | Pro | Coming soon |
-| Analytics connections: GA4, Search Console, Tag Manager | Pro | Coming soon |
+| Google Search Console connection: read-only clicks, impressions, top queries and pages, shown on `/search` | Pro | Live in code (founder decision 2026-10-11) — the first live Pro feature; usable once the OAuth client and migration are set up ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)). Paused after the trial on Basic: data kept, nothing new fetched, resumes on Pro/Premium. Use in the diagnosis: coming soon |
+| Analytics connections: GA4, Tag Manager | Pro | Coming soon |
 | Creative tool connections: Canva, HeyGen, Higgsfield | Pro | Coming soon |
 | Website and social connections: WordPress, social accounts | Pro | Coming soon |
 | AI agents that carry out approved fixes (n8n workflows and/or Opus-assisted execution) | Pro | Coming soon |
 | Custom integrations: e-commerce, QuickBooks, Xero | Premium | Coming soon |
 
-**Consequence today:** Pro adds nothing usable yet, so a trial and Basic have the same tools. The plans page
-says so plainly (`proHasLiveFeatures()`), and the trial clock is real so it works unchanged when Pro features ship.
+**Consequence today:** the Google Search Console connection is the first Pro feature marked Live, so
+`proHasLiveFeatures()` is true and the plans page and braventa.io pricing no longer show the "every plan has the same
+tools" note. A trial has it; Basic after the trial has it paused (`lib/integrations/search-console-access.ts`).
+Until the founder finishes [SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md), Settings says the
+connection isn't set up yet — keep the OAuth client and migration in place before promoting it publicly.
 
 ## 4. Rules for adding a Pro or Premium feature
 
@@ -56,7 +60,7 @@ says so plainly (`proHasLiveFeatures()`), and the trial clock is real so it work
 ## 5. Proposed build order for Pro (not yet approved)
 
 1. **Billing** (Stripe is the working assumption, Q-010) so a trial can convert.
-2. **Google connections** (Search Console, GA4) — read-only, the audit gets real traffic and search data.
+2. **Google connections** (Search Console built 2026-10-11; GA4 next) — read-only, the audit gets real traffic and search data.
 3. **WordPress connection + first agent**: approved website fixes (meta descriptions, alt text) applied as
    drafts the owner publishes; audit log per action.
 4. **Social accounts** — publish approved drafts (CS-7 / publishing).

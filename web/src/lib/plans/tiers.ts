@@ -35,6 +35,7 @@ export type FeatureId =
   | "ai_assistant"
   | "assistant_connection"
   | "full_audit"
+  | "search_console"
   | "analytics_integrations"
   | "creative_integrations"
   | "channel_integrations"
@@ -54,7 +55,10 @@ export const FEATURES: Feature[] = [
   // Every plan during the trial; paused after it until the business is on a plan (D-036, lib/mcp/access.ts).
   { id: "assistant_connection", label: "Connect your AI assistant", detail: "Let Claude answer the setup questions from what it already knows about your business (Claude Code and Claude Desktop). Paused after the trial until you choose a plan.", minTier: "basic", status: "live" },
   { id: "full_audit", label: "Full marketing audit", detail: "SEO, search ads, social media, email and video.", minTier: "pro", status: "coming_soon" },
-  { id: "analytics_integrations", label: "Analytics connections", detail: "Google Analytics 4, Search Console and Tag Manager.", minTier: "pro", status: "coming_soon" },
+  // Read-only; paused after the trial on Basic, data kept (founder decision 2026-10-11, lib/integrations/search-console-access.ts).
+  // When the diagnosis prompt uses this data (searchConsoleSummaryForPrompt), drop "coming soon" from the detail.
+  { id: "search_console", label: "Google Search Console connection", detail: "Read-only clicks, impressions, top search queries and pages for your website, shown in Braventa. Using them in your diagnosis is coming soon.", minTier: "pro", status: "live" },
+  { id: "analytics_integrations", label: "Analytics connections", detail: "Google Analytics 4 and Tag Manager.", minTier: "pro", status: "coming_soon" },
   { id: "creative_integrations", label: "Creative tool connections", detail: "Canva, HeyGen and Higgsfield.", minTier: "pro", status: "coming_soon" },
   { id: "channel_integrations", label: "Website and social connections", detail: "WordPress and your social media accounts.", minTier: "pro", status: "coming_soon" },
   { id: "ai_agents", label: "AI agents that carry out fixes", detail: "Agents apply recommended changes in your connected tools, each one only after you approve it.", minTier: "pro", status: "coming_soon" },

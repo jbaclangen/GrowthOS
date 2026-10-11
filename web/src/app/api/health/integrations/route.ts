@@ -3,6 +3,7 @@ import { keyInfo } from "@/lib/integrations/openrouter";
 import { listWorkflows } from "@/lib/integrations/n8n";
 import { pageSpeed } from "@/lib/integrations/google";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { envConfigured } from "@/lib/env";
 
 type Check = { ok: boolean; detail: string };
 
@@ -49,7 +50,18 @@ export async function GET() {
     openrouter,
     n8n,
     google_pagespeed: google,
+    // OAuth needs a signed-in owner, so this only checks the configuration (docs/architecture/SEARCH_CONSOLE_SETUP.md).
+    google_search_console: searchConsoleCheck(),
     hubspot: { ok: false, detail: "Sprint 5: needs a HubSpot public app (OAuth)" },
     stripe: { ok: false, detail: "Sprint 6: needs Stripe test-mode keys" },
   });
+}
+
+function searchConsoleCheck(): Check {
+  const missing = (["GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET", "INTEGRATIONS_ENCRYPTION_KEY"] as const).filter(
+    (k) => !envConfigured(k),
+  );
+  return missing.length
+    ? { ok: false, detail: `not set up: missing or invalid ${missing.join(", ")}` }
+    : { ok: true, detail: "configured (OAuth client and encryption key set; the OAuth flow itself isn't exercised here)" };
 }

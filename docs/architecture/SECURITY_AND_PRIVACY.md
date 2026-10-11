@@ -9,7 +9,7 @@ new feature. It describes current behaviour; anything not built is marked **Not 
 [INTEGRATIONS.md](INTEGRATIONS.md), [../decisions/DECISION_LOG.md](../decisions/DECISION_LOG.md),
 [../decisions/OPEN_QUESTIONS.md](../decisions/OPEN_QUESTIONS.md).
 
-**Status / last reviewed: 2026-10-10.** No external security review or penetration test has been done.
+**Status / last reviewed: 2026-10-11.** No external security review or penetration test has been done.
 
 ---
 
@@ -107,14 +107,32 @@ RLS. Rules:
 
 ## 6. Connected-account credentials
 
-- Today: **no customer credentials are stored.** The `integrations` table exists with a `vault_secret_id`
-  column and a comment that tokens live in Supabase Vault, but no code writes to it and Vault is not
-  configured.
-- Planned (required before HubSpot or any OAuth integration): store access/refresh tokens in Supabase Vault;
-  keep only the secret id in `integrations`; read tokens only in server code via the admin client or a
-  definer function restricted to the service role; never return tokens to the browser or send them to a
-  model; revoke and delete on disconnect; log connect/disconnect events. OAuth `state` must bind to user and
-  org. See [INTEGRATIONS.md](INTEGRATIONS.md#hubspot-first-plan-planned).
+- **Google Search Console (Pro)** is the first stored customer credential (once its migration is applied):
+  a Google OAuth **refresh token** per organization in `integration_connections.refresh_token_ciphertext`.
+  - Encrypted by the app with AES-256-GCM (`web/src/lib/integrations/secret-box.ts`, `node:crypto`), random
+    96-bit IV per value, format `v1:iv:tag:ciphertext`. Key: `INTEGRATIONS_ENCRYPTION_KEY` (32 bytes, base64,
+    server-only, in `env.ts`). Tampered values or a wrong key fail to decrypt; the connection then asks the owner
+    to reconnect. Rotating the key makes stored tokens unreadable (owners reconnect); there is no re-encryption
+    tool yet.
+  - Clients can't read the column: the migration revokes table privileges from `authenticated`/`anon` and grants
+    `select` on the non-secret columns only (same pattern as `mcp_access_keys`). All writes use the service
+    client, scoped to an organization id already authorised through the user's RLS-checked membership.
+  - **Access tokens are never stored**: each sync mints one from the refresh token and drops it. Tokens are never
+    logged (only Google's error code is), never returned to the browser, and never put in a model prompt;
+    `searchConsoleSummaryForPrompt` returns Search Console metrics only, without tokens or the account email.
+  - OAuth: authorization code + PKCE S256; `state` is random and lives, with the verifier, user id and
+    organization id, in an encrypted, httpOnly, SameSite=Lax, 10-minute cookie scoped to
+    `/api/integrations/google`. The callback compares the state in constant time and requires the same signed-in
+    user and organization (owner role, Pro access). Redirect URIs are limited to registered origins.
+  - Least privilege: `webmasters.readonly` + `openid email`; no write scope. Search queries returned by Google are
+    third-party data: treat them as untrusted input when they reach a prompt.
+  - **Disconnect** revokes the token at Google, nulls the ciphertext (`status = 'revoked'`; a check constraint
+    forbids a revoked row with a token), clears the account email and properties, and deletes the organization's
+    `search_console_snapshots`. Reconnecting with a different Google account deletes the old snapshots.
+  - After the Pro trial, on Basic, the connection is paused: the token and snapshots are kept, nothing is fetched.
+- The foundation's `integrations` table (`vault_secret_id`, Supabase Vault) is still unused. Search Console chose
+  app-level encryption to avoid a Vault dependency; HubSpot should follow the same pattern or this doc should
+  record a different decision. Still missing for any integration: an audit log of connect/disconnect events.
 
 ## 7. Prompt-injection posture
 
@@ -214,7 +232,8 @@ What is undecided / not implemented:
 - No user-facing account or organization deletion, no data export.
 - No retention period for crawled pages (`knowledge_documents` accumulate per content hash), re-run
   artefacts, AI job inputs/outputs, or `ai_usage`.
-- No retention rule for future CRM data or OAuth tokens.
+- No retention rule for future CRM data. Search Console: 12 newest snapshots per organization; the token and all
+  snapshots are deleted on disconnect; a paused (Basic) connection keeps both until disconnected.
 - Supabase backups (point-in-time recovery) mean deleted data persists in backups for the plan's backup
   window.
 
@@ -277,7 +296,8 @@ Answer each before merging a feature that touches data, AI, or external services
 - [ ] Anything published or sent for a client requires recorded human approval (D-013), enforced server-side.
 - [ ] New routes: decide whether they belong in `proxy.ts` `PUBLIC_PATHS`; public routes authenticate callers
       (shared secret with constant-time compare, or signature).
-- [ ] OAuth tokens go to Vault; only the secret id is stored; disconnect revokes and deletes.
+- [ ] OAuth tokens are stored encrypted (AES-256-GCM via `secret-box.ts`, or Vault), never selectable by clients;
+      access tokens aren't stored; disconnect revokes and deletes.
 - [ ] Personal or non-public data sent to model providers is minimised and only to providers allowed by the
       data-handling decision.
 - [ ] Sensitive operations write an audit record (once the audit table exists).

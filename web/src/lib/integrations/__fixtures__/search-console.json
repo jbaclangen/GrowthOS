@@ -1,0 +1,58 @@
+{
+  "sites": {
+    "siteEntry": [
+      { "siteUrl": "https://www.example.com/", "permissionLevel": "siteOwner" },
+      { "siteUrl": "sc-domain:example.com", "permissionLevel": "siteFullUser" },
+      { "siteUrl": "https://other.org/", "permissionLevel": "siteRestrictedUser" },
+      { "siteUrl": "https://unverified.example.net/", "permissionLevel": "siteUnverifiedUser" }
+    ]
+  },
+  "totals": {
+    "rows": [{ "clicks": 120, "impressions": 4800, "ctr": 0.025, "position": 14.2666 }],
+    "responseAggregationType": "byProperty"
+  },
+  "previousTotals": {
+    "rows": [{ "clicks": 100, "impressions": 5000, "ctr": 0.02, "position": 16.01 }],
+    "responseAggregationType": "byProperty"
+  },
+  "queries": {
+    "rows": [
+      { "keys": ["plumber near me"], "clicks": 40, "impressions": 900, "ctr": 0.0444, "position": 6.3 },
+      { "keys": ["emergency plumbing denver"], "clicks": 22, "impressions": 310, "ctr": 0.071, "position": 3.95 },
+      { "keys": [""], "clicks": 1, "impressions": 1, "ctr": 1, "position": 1 }
+    ],
+    "responseAggregationType": "byProperty"
+  },
+  "empty": { "responseAggregationType": "byProperty" },
+  "sitemaps": {
+    "sitemap": [
+      {
+        "path": "https://www.example.com/sitemap.xml",
+        "lastSubmitted": "2026-09-01T10:00:00.000Z",
+        "isPending": false,
+        "isSitemapsIndex": true,
+        "lastDownloaded": "2026-10-09T03:12:00.000Z",
+        "warnings": "1",
+        "errors": "0",
+        "contents": [
+          { "type": "web", "submitted": "42", "indexed": "0" },
+          { "type": "image", "submitted": "8", "indexed": "0" }
+        ]
+      }
+    ]
+  },
+  "inspection": {
+    "inspectionResult": {
+      "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=sc-domain:example.com&id=abc",
+      "indexStatusResult": {
+        "verdict": "PASS",
+        "coverageState": "Submitted and indexed",
+        "robotsTxtState": "ALLOWED",
+        "indexingState": "INDEXING_ALLOWED",
+        "lastCrawlTime": "2026-10-05T08:00:00Z",
+        "pageFetchState": "SUCCESSFUL",
+        "googleCanonical": "https://www.example.com/"
+      }
+    }
+  }
+}

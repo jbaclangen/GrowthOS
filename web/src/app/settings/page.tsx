@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { mcpAccess } from "@/lib/mcp/access";
 import { revokeAccessKey } from "./actions";
 import { KeyForm } from "./key-form";
+import { ConnectionsSection } from "./connections-section";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -103,6 +104,8 @@ async function Settings() {
           </div>
         )}
       </section>
+
+      <ConnectionsSection />
     </>
   );
 }

@@ -1,0 +1,90 @@
+import { NextResponse, connection, type NextRequest } from "next/server";
+import { getCurrentOrg, getUser } from "@/lib/auth";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import {
+  GoogleOAuthError,
+  SEARCH_CONSOLE_SCOPE,
+  STATE_COOKIE,
+  emailFromIdToken,
+  exchangeCode,
+  grantedScopes,
+  openState,
+  revokeToken,
+  searchConsoleConfigured,
+  stateMatches,
+} from "@/lib/integrations/google-oauth";
+import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
+import { saveConnection, syncSearchConsole } from "@/lib/integrations/search-console";
+
+// Google redirects here after the consent screen. Needs the same signed-in session that started the flow
+// (proxy.ts redirects signed-out requests to /login). Verifies the encrypted state cookie (random value + user +
+// organization), exchanges the code with the PKCE verifier, stores the refresh token encrypted, and fetches the
+// first snapshot. Every outcome ends on /settings with a short reason code the page explains.
+
+// The first fetch runs before the redirect so the owner lands on data.
+export const maxDuration = 60;
+
+function toSettings(request: NextRequest, gsc: string) {
+  const response = NextResponse.redirect(new URL(`/settings?gsc=${gsc}#connections`, request.url), 303);
+  response.cookies.set(STATE_COOKIE, "", { path: "/api/integrations/google", maxAge: 0 });
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
+export async function GET(request: NextRequest) {
+  await connection();
+  if (!searchConsoleConfigured()) return toSettings(request, "not-configured");
+
+  const params = request.nextUrl.searchParams;
+  const saved = openState(request.cookies.get(STATE_COOKIE)?.value);
+  const user = await getUser();
+  if (!user) return NextResponse.redirect(new URL("/login?next=/settings", request.url), 303);
+  const org = await getCurrentOrg();
+  if (!org || org.role !== "owner") return toSettings(request, "owner-only");
+  if (!stateMatches(saved, params.get("state"), user.id, org.id) || !saved) return toSettings(request, "expired");
+
+  const error = params.get("error");
+  if (error) return toSettings(request, error === "access_denied" ? "denied" : "error");
+  const code = params.get("code");
+  if (!code) return toSettings(request, "error");
+
+  // The organization is authorised above (membership read through RLS); the service client is scoped to it.
+  const db = createSupabaseAdminClient();
+  const { data: orgRow } = await db.from("organizations").select("plan, trial_ends_at").eq("id", org.id).maybeSingle();
+  if (!orgRow || !searchConsoleAccess(orgRow).allowed) return toSettings(request, "paused");
+
+  let tokens;
+  try {
+    tokens = await exchangeCode(code, saved.verifier, saved.redirectUri);
+  } catch (e) {
+    console.error("Search Console token exchange failed:", e instanceof GoogleOAuthError ? e.code : "network");
+    return toSettings(request, "error");
+  }
+
+  const scopes = grantedScopes(tokens.scope);
+  // Google lets people untick individual scopes on the consent screen.
+  if (!scopes.includes(SEARCH_CONSOLE_SCOPE)) {
+    await revokeToken(tokens.refresh_token ?? tokens.access_token);
+    return toSettings(request, "scope-missing");
+  }
+  if (!tokens.refresh_token) {
+    await revokeToken(tokens.access_token);
+    return toSettings(request, "error");
+  }
+
+  try {
+    await saveConnection(db, {
+      organizationId: org.id,
+      userId: user.id,
+      email: emailFromIdToken(tokens.id_token),
+      scopes,
+      refreshToken: tokens.refresh_token,
+    });
+  } catch {
+    await revokeToken(tokens.refresh_token);
+    return toSettings(request, "error");
+  }
+
+  const sync = await syncSearchConsole(db, org.id, { skipGuard: true });
+  return toSettings(request, sync.ok ? "connected" : sync.reason === "needs-property" ? "choose-property" : "connected-sync-failed");
+}
