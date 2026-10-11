@@ -87,5 +87,6 @@ queues one `website_plan` job once discovery is done and evidence succeeded → 
 Plan: growth score + diagnosis + growth plan (`diagnoses`, `diagnosis_findings`, `growth_plan_items`) → 30-day plan → 5
 drafted posts (status `needs_approval`). Owner corrections queue a `diagnosis_update` job (diagnosis step only).
 Re-run queues `website_intel`, which does both halves with the latest finished discovery (max 10 analyses/re-runs per org
-per 24 h; no re-run while a job is active). `AI_MODE=free` uses OpenRouter free models (~3–4 min per run, ~50 free requests/day).
+per 24 h; no re-run while a job is active). Production runs `AI_MODE=paid`. The OpenRouter account enforces zero data
+retention, which blocks every free model, so `AI_MODE=free` fails until that changes (D-037).
 Pages read cookies, so with Cache Components their content must sit inside `<Suspense>`.

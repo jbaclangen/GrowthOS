@@ -410,6 +410,16 @@ Basic; Basic after the trial is a paid subscription.
   own assistant under their own account with that provider. Legal pages disclose it.
 - Spec: [MCP_SERVER.md](../architecture/MCP_SERVER.md). Website copy for it: PR #19, second commit.
 
+## D-037 — Paid models stay primary; every model must have a zero-retention endpoint
+**Status:** Founder rule (2026-10-11, in chat): "compare accuracy and performance; if it's at par with paid then paid
+would be just a fallback." Applied by Claude from the 2026-10-11 comparison; free can't qualify while ZDR is on.
+- The OpenRouter account enforces zero data retention (ZDR). Free models (NVIDIA Nemotron) and Qwen 3.8 Flash have no
+  ZDR endpoint, so OpenRouter refuses them. In the re-run, both free models failed on all three sites.
+- Paid stays primary (`AI_MODE=paid`); the simple-class fallback moves from Qwen 3.8 Flash to GPT-5.6 Sol (Azure, ZDR).
+- Any model added to a chain must have a ZDR endpoint. Re-testing free models would mean turning ZDR off, which sends
+  owners' setup answers to providers that may keep or train on them; that is a founder decision (Q-040).
+- Results: [AI_ROUTING_AND_COSTS.md §4.1](../architecture/AI_ROUTING_AND_COSTS.md#41-model-comparison-2026-10-10-re-run-2026-10-11).
+
 ## D-038 — Website audit Phase 1: robots.txt respected, deterministic checks, cited evidence
 **Status:** Founder (2026-10-11, in chat): build Phase 1 of the Website Intelligence blueprint; respect robots.txt and
 tell the owner about it.

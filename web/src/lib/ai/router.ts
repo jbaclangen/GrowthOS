@@ -18,9 +18,10 @@ const MODELS: Record<"free" | "paid", Record<TaskClass, string[]>> = {
   },
   // Chosen from a side-by-side comparison on three real sites (2026-10-10; docs/architecture/AI_ROUTING_AND_COSTS.md).
   // Tiers follow the product vision: small for routine work, mid for structured analysis and writing,
-  // high-reasoning for prioritisation and high-risk output. Second entry is a cross-provider fallback.
+  // high-reasoning for prioritisation and high-risk output. Second entry is the fallback. Every model here must
+  // have a zero-data-retention endpoint: the OpenRouter account enforces ZDR and drops the rest (2026-10-11).
   paid: {
-    simple: ["anthropic/claude-haiku-5.5", "qwen/qwen3.8-flash"],
+    simple: ["anthropic/claude-haiku-5.5", "openai/gpt-5.6-sol"],
     standard: ["anthropic/claude-sonnet-5.5", "openai/gpt-5.6-sol"],
     complex: ["anthropic/claude-opus-5.5", "anthropic/claude-sonnet-5.5"],
     qa: ["anthropic/claude-opus-5.5", "anthropic/claude-sonnet-5.5"],

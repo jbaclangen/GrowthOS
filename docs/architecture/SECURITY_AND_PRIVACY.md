@@ -214,8 +214,9 @@ human approval, unless the client has explicitly configured an authorised automa
   are free endpoints; free-tier providers may log or use prompts for training. Website content is public,
   so this is low sensitivity today.
 - Not acceptable without a decision: sending CRM data, uploads, or other non-public customer data to free-tier
-  or training-enabled endpoints. Paid mode should use providers with no-training / zero-retention terms
-  (OpenRouter provider routing preferences can enforce this) — **not configured**.
+  or training-enabled endpoints. **Configured 2026-10-11:** the OpenRouter account enforces zero data retention,
+  so only endpoints that don't keep prompts are used. That excludes all free models, so production runs
+  `AI_MODE=paid` (D-037, Q-040).
 - Customers are not yet told which providers process their data; a privacy policy and subprocessor list are
   needed before onboarding paying customers.
 
