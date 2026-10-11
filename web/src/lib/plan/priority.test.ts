@@ -66,15 +66,32 @@ describe("toFindings", () => {
     const out = toFindings(
       [
         finding(),
-        finding({ source: "pagespeed", pain_point_ids: ["made.up", "website.search_visibility"] }),
+        finding({ source: "pagespeed", pain_point_ids: ["made.up", "website.search_visibility"], evidence_refs: ["P1"] }),
         finding({ source: "inference" }),
-        finding({ source: "website" }),
+        finding({ source: "website", evidence_refs: ["t3"] }),
       ],
       facts,
+      new Set(["P1", "T3"]),
     );
     expect(out.map((f) => f.provenance)).toEqual(["customer_provided", "verified", "inferred", "verified"]);
     expect(out[1].pain_point_ids).toEqual(["website.search_visibility"]);
+    expect(out[3].audit_refs).toEqual(["T3"]);
     expect(out.map((f) => f.position)).toEqual([1, 2, 3, 4]);
+  });
+
+  it("downgrades website and pagespeed findings without a real citation to inferred", () => {
+    const out = toFindings(
+      [
+        finding({ source: "website", evidence_refs: [] }),
+        finding({ source: "website", evidence_refs: ["T99"] }),
+        finding({ source: "pagespeed", evidence_refs: ["T1", "T42"] }),
+        finding({ source: "owner", evidence_refs: ["T1"] }),
+      ],
+      facts,
+      new Set(["T1", "S1"]),
+    );
+    expect(out.map((f) => f.provenance)).toEqual(["inferred", "inferred", "verified", "customer_provided"]);
+    expect(out.map((f) => f.audit_refs)).toEqual([[], [], ["T1"], []]);
   });
 
   it("caps the number of findings", () => {

@@ -4,6 +4,7 @@ import { ScoreBadge, ScoreBar } from "@/components/score-badge";
 import { ContentActions } from "./controls";
 import { OwnerPanel } from "./owner-panel";
 import { DiagnosisSection, PlanSection } from "./plan-section";
+import { TechnicalSection } from "./technical-section";
 import type { ViewKey } from "./infographic";
 import type { Report } from "./report-data";
 
@@ -30,6 +31,8 @@ export function ReportSection({ view, report }: { view: ViewKey; report: Report 
       return report.diagnosis ? (
         <PlanSection items={report.planItems} confirmed={report.diagnosis.status === "confirmed"} />
       ) : null;
+    case "technical":
+      return <TechnicalSection audit={report.audit} />;
     case "answers":
       return <Answers report={report} />;
     case "profile":

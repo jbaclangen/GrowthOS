@@ -48,6 +48,8 @@ export type RawFinding = {
   source: Source;
   confidence: Level;
   pain_point_ids: string[];
+  // Refs of the stored measurements the model says it rests on (T1, S1, P1, …).
+  evidence_refs?: string[];
 };
 export type RawItem = {
   title: string;
@@ -73,6 +75,7 @@ export type Finding = {
   provenance: Provenance;
   confidence: Level;
   pain_point_ids: string[];
+  audit_refs: string[];
 };
 
 export type PlanItem = Omit<RawItem, "finding_refs" | "solution_ids"> & {
@@ -95,15 +98,24 @@ export type DiscoveryFacts = {
 const cut = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
 // Keep only what the model may claim: confirmed pain points, catalog solutions, real finding references.
-export function toFindings(raw: RawFinding[], facts: DiscoveryFacts): Finding[] {
-  return raw.slice(0, MAX_FINDINGS).map((f, i) => ({
-    position: i + 1,
-    statement: cut(f.statement.trim(), 600),
-    evidence: cut(f.evidence.trim(), 800),
-    provenance: PROVENANCE[f.source],
-    confidence: f.confidence,
-    pain_point_ids: [...new Set(f.pain_point_ids)].filter((id) => facts.priorityOf.has(id)),
-  }));
+// "Verified" means matched to a stored observation: a "website" or "pagespeed" finding keeps that provenance only
+// when it cites at least one ref that exists in this run (`citable`); otherwise it is stored as inferred.
+export function toFindings(raw: RawFinding[], facts: DiscoveryFacts, citable: Set<string> = new Set()): Finding[] {
+  return raw.slice(0, MAX_FINDINGS).map((f, i) => {
+    const audit_refs = [...new Set((f.evidence_refs ?? []).map((r) => r.trim().toUpperCase()))]
+      .filter((r) => citable.has(r))
+      .slice(0, 20);
+    const provenance = PROVENANCE[f.source] === "verified" && audit_refs.length === 0 ? "inferred" : PROVENANCE[f.source];
+    return {
+      position: i + 1,
+      statement: cut(f.statement.trim(), 600),
+      evidence: cut(f.evidence.trim(), 800),
+      provenance,
+      confidence: f.confidence,
+      pain_point_ids: [...new Set(f.pain_point_ids)].filter((id) => facts.priorityOf.has(id)),
+      audit_refs: provenance === "verified" ? audit_refs : [],
+    };
+  });
 }
 
 export function toPlanItems(raw: RawItem[], findings: Finding[], facts: DiscoveryFacts): PlanItem[] {

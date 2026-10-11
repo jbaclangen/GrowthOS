@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeGrowthScore } from "./website-intel";
-import { diagnosisPrompt, profilePrompt, profileSchema, siteDigest } from "./prompts";
+import { citableRefs, diagnosisPrompt, profilePrompt, profileSchema, siteDigest } from "./prompts";
 import { parseJsonLoose } from "@/lib/ai/router";
 
 const intel = profileSchema.parse({
@@ -61,6 +61,39 @@ describe("prompts", () => {
       signals: {} as never,
     };
     expect(siteDigest(crawl, 1000).length).toBeLessThanOrEqual(1000);
+  });
+});
+
+describe("technical checks in the diagnosis", () => {
+  const signals = {
+    hasHttps: true, hasMetaDescription: true, h1Count: 1, hasContactForm: true,
+    hasPhoneNumber: true, hasSchemaMarkup: false, imagesMissingAlt: 0, socialLinks: [],
+  };
+  const audit = {
+    coverage: "12 of 31 pages scanned; 3 excluded by robots.txt",
+    homeBlocked: false,
+    findings:
+      "T1 [Fix first; high severity; high confidence; crawler_observation] /services: noindex\nT2 [Monitor; low severity; high confidence; crawler_observation] site-wide: no sitemap",
+    desktop: { performance: 90, seo: 92, accessibility: 80, bestPractices: 90 },
+  };
+
+  it("fences the findings and asks for evidence refs", () => {
+    const p = diagnosisPrompt({ intel, signals, psi: null, pageUrls: [], audit });
+    expect(p).toContain("<technical_checks>\nT1 [Fix first");
+    expect(p).toContain("C1 Coverage: 12 of 31 pages scanned");
+    expect(p).toContain("P2 PAGESPEED (Google lab test, desktop");
+    expect(p).toContain('"evidence_refs"');
+  });
+
+  it("lists only refs that exist in the input", () => {
+    expect([...citableRefs({ signals, psi: null, audit })].sort()).toEqual(["C1", "P2", "S1", "T1", "T2"]);
+    expect([...citableRefs({ signals: null, psi: { performance: 1, seo: 1, accessibility: 1, bestPractices: 1 } })]).toEqual(["P1"]);
+  });
+
+  it("says when robots.txt blocked the site", () => {
+    const p = diagnosisPrompt({ intel, signals: null, psi: null, pageUrls: [], audit: { ...audit, homeBlocked: true, findings: "" } });
+    expect(p).toContain("unavailable (the website's robots.txt doesn't allow Braventa to read it)");
+    expect(siteDigest({ pages: [], audit: { homeBlocked: true } })).toContain("robots.txt doesn't allow Braventa");
   });
 });
 

@@ -29,8 +29,8 @@ decision. Never describe the product as doing something the code doesn't do, wha
 
 ## Working rules
 - Treat approved specs as the source of truth; keep naming, positioning, voice, tokens, and UI conventions consistent.
-- Never invent capabilities or present planned features as live. Live today: website analysis + pain-point discovery → business
-  profile → growth score + diagnosis the owner confirms or corrects → one prioritized growth plan (accept / dismiss /
+- Never invent capabilities or present planned features as live. Live today: website analysis (technical checks of up to 25 pages,
+  robots.txt respected, PageSpeed mobile + desktop) + pain-point discovery → business profile → growth score + diagnosis the owner confirms or corrects → one prioritized growth plan (accept / dismiss /
   done) → 30-day plan → 5 drafted posts with approve/reject, shown as an infographic with detail dialogs; an MCP server (`/api/mcp`, D-036)
   lets Claude Code/Desktop fill in onboarding with a personal access key; 14-day Pro
   trial then Basic (D-030; Pro features are Coming soon). No CRM, publishing,
@@ -79,11 +79,13 @@ decision. Never describe the product as doing something the code doesn't do, wha
 
 ## MVP demo flow
 login → `/onboarding` (website URL + optional goal, service area, tools — BI-12) → `startAnalysis` creates an
-`onboarding_sessions` row and queues a `website_evidence` job (crawl + PageSpeed → business profile) via `after()` →
+`onboarding_sessions` row and queues a `website_evidence` job (robots.txt-respecting crawl of up to 25 pages + PageSpeed
+mobile/desktop + deterministic checks → `audit_runs`/`audit_findings` → business profile) via `after()` →
 `/onboarding/[sessionId]` discovery (pain points + free text, D-028) → `/review` (confirm, top three) → `/questions` (up to 4
 adaptive follow-ups, ON-5) → `startPlanIfReady`
 queues one `website_plan` job once discovery is done and evidence succeeded → `/analysis/[id]` polls until done.
 Plan: growth score + diagnosis + growth plan (`diagnoses`, `diagnosis_findings`, `growth_plan_items`) → 30-day plan → 5
 drafted posts (status `needs_approval`). Owner corrections queue a `diagnosis_update` job (diagnosis step only).
-Re-run queues `website_intel`, which does both halves with the latest finished discovery. `AI_MODE=free` uses OpenRouter free models (~3–4 min per run, ~50 free requests/day).
+Re-run queues `website_intel`, which does both halves with the latest finished discovery (max 10 analyses/re-runs per org
+per 24 h; no re-run while a job is active). `AI_MODE=free` uses OpenRouter free models (~3–4 min per run, ~50 free requests/day).
 Pages read cookies, so with Cache Components their content must sit inside `<Suspense>`.

@@ -2,8 +2,17 @@ import "server-only";
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { runWorkerJson } from "@/lib/ai/router";
-import { crawlSite, type CrawlResult } from "@/lib/integrations/crawler";
-import { pageSpeed } from "@/lib/integrations/google";
+import { crawlSite, type SiteAudit } from "@/lib/integrations/crawler";
+import { pageSpeedReport, type PageSpeedReport } from "@/lib/integrations/google";
+import {
+  AUDIT_VERSION,
+  coverageLine,
+  promptFindings,
+  runChecks,
+  summarizeCoverage,
+  type AuditFinding,
+  type CoverageSummary,
+} from "@/lib/audit/checks";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { fromProfileRow, type OwnerInputs } from "@/lib/owner-inputs";
 import { startPlanIfReady } from "@/lib/onboarding/orchestrate";
@@ -11,6 +20,7 @@ import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
 import { orderPlan, toFindings, toPlanItems, type DiscoveryFacts } from "@/lib/plan/priority";
 import {
   MAX_TOKENS,
+  citableRefs,
   contentSchema,
   diagnosisPrompt,
   diagnosisSchema,
@@ -20,11 +30,13 @@ import {
   profileSchema,
   siteDigest,
   writerPrompt,
+  type AuditContext,
   type BusinessIntel,
   type Corrections,
   type Diagnosis,
   type DiscoveryContext,
   type PageSpeedScores,
+  type Signals,
 } from "./prompts";
 
 export type { BusinessIntel } from "./prompts";
@@ -67,11 +79,148 @@ export function computeGrowthScore(
 
 // What the plan phase needs from the evidence phase; stored in the evidence job's output.
 type Evidence = {
-  signals: CrawlResult["signals"];
+  // Home page signals; null when robots.txt doesn't let Braventa read the site.
+  signals: Signals | null;
+  // Mobile Lighthouse scores: the growth score uses these, as before, so scores stay comparable.
   psi: PageSpeedScores | null;
   psiError: string | null;
   pages: { url: string; title: string }[];
+  // The deterministic audit (Website Intelligence Phase 1). Missing on evidence from before it existed.
+  audit?: AuditContext & { runId: string | null };
 };
+
+// Findings passed to the diagnosis, highest priority first (keeps the prompt about the same size as before).
+const MAX_PROMPT_FINDINGS = 40;
+
+// Strips what only the checks need (every internal link of every page) before the coverage is stored.
+function storableCoverage(audit: SiteAudit, summary: CoverageSummary) {
+  return { ...audit, summary, pages: audit.pages.map(({ internalLinks, ...p }) => ({ ...p, internalLinkCount: internalLinks.length })) };
+}
+
+function compactPageSpeed(report: PageSpeedReport) {
+  return { mobile: report.mobile, desktop: report.desktop, errors: report.errors };
+}
+
+// Runs the crawl, PageSpeed (mobile + desktop) and the deterministic checks, and stores them as one audit run.
+// Storage of the audit is best effort: a failed write is logged and the analysis continues without it.
+async function runAudit(ctx: Ctx) {
+  const { db, org } = ctx;
+  const { data: run, error: runError } = await db
+    .from("audit_runs")
+    .insert({
+      organization_id: org,
+      business_profile_id: ctx.businessProfileId,
+      job_id: ctx.jobId,
+      website_url: ctx.websiteUrl.slice(0, 2048),
+      status: "running",
+      audit_version: AUDIT_VERSION,
+      started_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+  if (runError) console.error(`audit run insert failed for job ${ctx.jobId}`, runError);
+  const runId: string | null = run?.id ?? null;
+
+  const [crawlResult, psi] = await Promise.all([
+    crawlSite(ctx.websiteUrl).catch((e: Error) => ({ error: e })),
+    pageSpeedReport(ctx.websiteUrl),
+  ]);
+  if ("error" in crawlResult) {
+    if (runId) {
+      await db
+        .from("audit_runs")
+        .update({
+          status: "failed",
+          error_summary: crawlResult.error.message.slice(0, 2000),
+          pagespeed: compactPageSpeed(psi),
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", runId)
+        .eq("organization_id", org);
+    }
+    throw crawlResult.error;
+  }
+
+  const crawl = crawlResult;
+  const findings = runChecks({ audit: crawl.audit, psi });
+  const summary = summarizeCoverage(crawl.audit);
+  const partial =
+    crawl.audit.homeBlocked ||
+    !psi.mobile ||
+    !psi.desktop ||
+    summary.failed > 0 ||
+    Boolean(summary.excludedByReason["time limit"]);
+
+  if (runId) {
+    const errors = [psi.errors.mobile && `PageSpeed mobile: ${psi.errors.mobile}`, psi.errors.desktop && `PageSpeed desktop: ${psi.errors.desktop}`]
+      .filter(Boolean)
+      .join("; ");
+    const [{ error: upErr }, { error: fErr }] = await Promise.all([
+      db
+        .from("audit_runs")
+        .update({
+          status: partial ? "partial" : "completed",
+          pages_discovered: summary.discovered,
+          pages_scanned: summary.scanned,
+          coverage: storableCoverage(crawl.audit, summary),
+          pagespeed: compactPageSpeed(psi),
+          error_summary: errors ? errors.slice(0, 2000) : null,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", runId)
+        .eq("organization_id", org),
+      findings.length
+        ? db.from("audit_findings").insert(findings.map((f) => toFindingRow(f, org, runId)))
+        : Promise.resolve({ error: null }),
+    ]);
+    if (upErr || fErr) console.error(`saving audit run ${runId} failed`, upErr ?? fErr);
+  }
+
+  return { crawl, psi, findings, summary, runId };
+}
+
+function toFindingRow(f: AuditFinding, org: string, runId: string) {
+  return {
+    organization_id: org,
+    audit_run_id: runId,
+    ref: f.ref,
+    page_url: f.page_url?.slice(0, 2048) ?? null,
+    rule_id: f.rule_id,
+    category: f.category,
+    severity: f.severity,
+    confidence: f.confidence,
+    priority_label: f.priority_label,
+    summary: f.summary.slice(0, 1000),
+    observed: f.observed,
+    recommendation: f.recommendation.slice(0, 1000),
+    source_type: f.source_type,
+    observed_at: f.observed_at,
+  };
+}
+
+// Rebuilds the diagnosis context from a stored audit run (owner corrections re-run only the diagnosis).
+async function loadAuditContext(db: SupabaseClient, org: string, runId: string | undefined): Promise<Evidence["audit"]> {
+  if (!runId) return undefined;
+  const [{ data: run }, { data: rows }] = await Promise.all([
+    db.from("audit_runs").select("id, coverage, pagespeed").eq("id", runId).eq("organization_id", org).maybeSingle(),
+    db
+      .from("audit_findings")
+      .select("ref, rule_id, category, severity, confidence, priority_label, page_url, summary, observed, recommendation, source_type, observed_at")
+      .eq("audit_run_id", runId)
+      .eq("organization_id", org),
+  ]);
+  if (!run) return undefined;
+  const coverage = run.coverage as { summary?: CoverageSummary; homeBlocked?: boolean };
+  const findings = ((rows ?? []) as AuditFinding[]).sort((a, b) => Number(a.ref.slice(1)) - Number(b.ref.slice(1)));
+  const pagespeed = run.pagespeed as Partial<PageSpeedReport> | null;
+  return {
+    runId: run.id,
+    coverage: coverage.summary ? coverageLine(coverage.summary) : "unknown",
+    homeBlocked: Boolean(coverage.homeBlocked),
+    findings: promptFindings(findings, MAX_PROMPT_FINDINGS),
+    desktop: pagespeed?.desktop?.scores ?? null,
+  };
+}
 
 type Ctx = {
   db: SupabaseClient;
@@ -86,24 +235,23 @@ type Ctx = {
 async function gatherEvidence(ctx: Ctx): Promise<{ evidence: Evidence; intel: BusinessIntel }> {
   const { db, org } = ctx;
   await ctx.setStep("crawling");
-  const [crawl, psiResult] = await Promise.all([
-    crawlSite(ctx.websiteUrl),
-    pageSpeed(ctx.websiteUrl, "mobile").catch((e: Error) => ({ error: e.message })),
-  ]);
-  const psi = "scores" in psiResult ? psiResult.scores : null;
+  const { crawl, psi: psiReport, findings, summary, runId } = await runAudit(ctx);
+  const psi = psiReport.mobile?.scores ?? null;
 
   // Keep the crawled pages as the business's knowledge base.
-  await db.from("knowledge_documents").upsert(
-    crawl.pages.map((p) => ({
-      organization_id: org,
-      source_type: "website_page",
-      source_url: p.url,
-      title: p.title,
-      content: p.text,
-      content_hash: createHash("sha256").update(p.text).digest("hex"),
-    })),
-    { onConflict: "organization_id,content_hash", ignoreDuplicates: true },
-  );
+  if (crawl.pages.length) {
+    await db.from("knowledge_documents").upsert(
+      crawl.pages.map((p) => ({
+        organization_id: org,
+        source_type: "website_page",
+        source_url: p.url,
+        title: p.title,
+        content: p.text,
+        content_hash: createHash("sha256").update(p.text).digest("hex"),
+      })),
+      { onConflict: "organization_id,content_hash", ignoreDuplicates: true },
+    );
+  }
 
   await ctx.setStep("profiling");
   const intel = await runWorkerJson(
@@ -144,8 +292,15 @@ async function gatherEvidence(ctx: Ctx): Promise<{ evidence: Evidence; intel: Bu
     evidence: {
       signals: crawl.signals,
       psi,
-      psiError: "error" in psiResult ? psiResult.error : null,
+      psiError: psiReport.errors.mobile,
       pages: crawl.pages.map((p) => ({ url: p.url, title: p.title })),
+      audit: {
+        runId,
+        coverage: coverageLine(summary),
+        homeBlocked: crawl.audit.homeBlocked,
+        findings: promptFindings(findings, MAX_PROMPT_FINDINGS),
+        desktop: psiReport.desktop?.scores ?? null,
+      },
     },
   };
 }
@@ -231,6 +386,7 @@ function diagnose(
             owner: ctx.owner,
             discovery,
             corrections,
+            audit: evidence.audit ?? null,
           }),
         },
       ],
@@ -253,11 +409,12 @@ async function storeDiagnosis(
   ctx: Ctx,
   raw: Diagnosis,
   discovery: DiscoveryContext | null,
-  opts: { reportId: string | null; revises?: { id: string; version: number } },
+  opts: { reportId: string | null; evidence: Evidence; revises?: { id: string; version: number } },
 ) {
   const { db, org } = ctx;
   const facts = discoveryFacts(discovery);
-  const findings = toFindings(raw.findings, facts);
+  // Only refs that exist in this run count as citations; uncited website/PageSpeed findings become inferred.
+  const findings = toFindings(raw.findings, facts, citableRefs({ ...opts.evidence, audit: opts.evidence.audit ?? null }));
   const items = orderPlan(toPlanItems(raw.plan, findings, facts));
 
   const { data: diagnosis, error } = await db
@@ -314,14 +471,18 @@ async function reviseDiagnosis(ctx: Ctx, diagnosisId: string) {
       .eq("organization_id", org)
       .order("position"),
   ]);
-  const data = report?.data as (Evidence & { pagespeed?: PageSpeedScores | null; pagespeed_error?: string | null }) | undefined;
+  const data = report?.data as
+    | (Evidence & { pagespeed?: PageSpeedScores | null; pagespeed_error?: string | null; audit_run_id?: string })
+    | undefined;
   const intel = profileSchema.safeParse(profile?.intelligence);
-  if (!data?.signals || !intel.success) throw new Error("The website analysis is missing. Re-run the analysis.");
+  // signals is null (not missing) when robots.txt blocked the site.
+  if (!data || !("signals" in data) || !intel.success) throw new Error("The website analysis is missing. Re-run the analysis.");
   const evidence: Evidence = {
-    signals: data.signals,
+    signals: data.signals ?? null,
     psi: data.pagespeed ?? null,
     psiError: data.pagespeed_error ?? null,
     pages: data.pages ?? [],
+    audit: await loadAuditContext(db, org, data.audit_run_id),
   };
 
   const corrections: Corrections = {
@@ -336,6 +497,7 @@ async function reviseDiagnosis(ctx: Ctx, diagnosisId: string) {
   const raw = await diagnose(ctx, evidence, intel.data, discovery, corrections);
   const { diagnosisId: revisedId } = await storeDiagnosis(ctx, raw, discovery, {
     reportId: previous.report_id,
+    evidence,
     revises: { id: previous.id, version: previous.version },
   });
   await db.from("diagnoses").update({ status: "superseded" }).eq("id", previous.id).eq("organization_id", org);
@@ -370,6 +532,7 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
         pagespeed_error: evidence.psiError,
         signals: evidence.signals,
         pages: evidence.pages,
+        audit_run_id: evidence.audit?.runId ?? null,
         discovery_priorities: [...(discovery?.painPoints ?? [])]
           .filter((p) => p.priority)
           .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0))
@@ -379,7 +542,7 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
     .select("id")
     .single();
 
-  const { items: planItems } = await storeDiagnosis(ctx, raw, discovery, { reportId: report?.id ?? null });
+  const { items: planItems } = await storeDiagnosis(ctx, raw, discovery, { reportId: report?.id ?? null, evidence });
 
   await ctx.setStep("planning");
   const plan = await runWorkerJson(

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { normalizeUrl } from "@/lib/integrations/crawler";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createOnboarding, queueJob } from "@/lib/onboarding/start";
+import { analysesInLastDay, createOnboarding, MAX_ANALYSES_PER_DAY, queueJob, RATE_LIMIT_MESSAGE } from "@/lib/onboarding/start";
 import { parseOwnerInputs, toProfileColumns } from "@/lib/owner-inputs";
 
 export type StartState = { error?: string } | undefined;
@@ -55,15 +55,29 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
   redirect(`/onboarding/${started.sessionId}`);
 }
 
-export async function rerunAnalysis(businessProfileId: string) {
+export type RerunState = { error?: string };
+
+export async function rerunAnalysis(businessProfileId: string): Promise<RerunState> {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("business_profiles")
     .select("id, organization_id, website_url")
     .eq("id", businessProfileId)
-    .single();
-  if (!profile?.website_url) throw new Error("Business not found");
+    .maybeSingle();
+  if (!profile?.website_url) return { error: "This business wasn't found." };
+
+  // One analysis at a time per business: a queued or running job (any phase) blocks a re-run.
+  const { data: active } = await supabase
+    .from("ai_jobs")
+    .select("id")
+    .eq("organization_id", profile.organization_id)
+    .eq("input->>businessProfileId", profile.id)
+    .in("status", ["queued", "running"])
+    .limit(1);
+  if (active?.length) return { error: "An analysis is already running for this business. Wait for it to finish, then try again." };
+  if ((await analysesInLastDay(supabase, profile.organization_id)) >= MAX_ANALYSES_PER_DAY) return { error: RATE_LIMIT_MESSAGE };
+
   await queueJob(
     supabase,
     profile.organization_id,
@@ -72,6 +86,7 @@ export async function rerunAnalysis(businessProfileId: string) {
     user.id,
   );
   refresh();
+  return {};
 }
 
 export async function setContentStatus(itemId: string, status: "approved" | "rejected" | "needs_approval") {

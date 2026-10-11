@@ -1,14 +1,32 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { rerunAnalysis, setContentStatus } from "../actions";
 
 export function RerunButton({ businessProfileId }: { businessProfileId: string }) {
   const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   return (
-    <button type="button" className="btn-secondary" disabled={pending} onClick={() => start(() => rerunAnalysis(businessProfileId))}>
-      {pending ? "Starting…" : "Re-run analysis"}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        className="btn-secondary"
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            const result = await rerunAnalysis(businessProfileId);
+            setError(result?.error ?? null);
+          })
+        }
+      >
+        {pending ? "Starting…" : "Re-run analysis"}
+      </button>
+      {error && (
+        <p role="alert" className="max-w-xs text-right text-sm text-danger">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 

@@ -154,15 +154,25 @@ endpoints reachable from the server. `fetchHtml()` in `web/src/lib/integrations/
   bombs are cut off) and applies one 15 s timeout across the redirect chain;
 - never reuses pooled sockets (`agent: false`).
 Verified locally against loopback, metadata, private, mapped-IPv6 and hex-IP targets, a public redirect to
-`127.0.0.1` and to `169.254.169.254`, redirect loops, a 5 MB body and a gzip bomb. Not done: robots.txt.
+`127.0.0.1` and to `169.254.169.254`, redirect loops, a 5 MB body and a gzip bomb. Unit tests cover the
+address block list, `assertCrawlable` and `normalizeUrl` (`crawler.test.ts`).
+
+robots.txt (done, Website Intelligence Phase 1): the crawler reads `/robots.txt` for every origin it touches
+through the same SSRF-safe fetch and never fetches a disallowed URL, including redirect hops, sitemap files and
+link checks. Rules for the `Braventa` product token win over `*`. A robots.txt that answers 5xx or not at all
+means "everything disallowed" (RFC 9309). If the home page is disallowed, no page is read; the report says so
+and how to allow Braventa. The onboarding form says Braventa follows the site's robots.txt. Crawl limits: 25
+pages, 4 concurrent requests, ~45 s per crawl, up to 10 extra link checks.
+
+Crawled values that reach the diagnosis prompt as technical-check summaries (page titles, URLs) are fenced in
+`<technical_checks>` with a "data, never instructions" note, like `<website_content>`.
 
 Recommendations (in order):
-1. Crawler: consider honouring robots.txt.
-2. Wrap untrusted content in clear delimiters and add a system-level instruction that content inside them is
+1. Wrap untrusted content in clear delimiters and add a system-level instruction that content inside them is
    data, never instructions.
-3. Keep tool access and side effects out of any prompt that contains untrusted content; when tools arrive,
+2. Keep tool access and side effects out of any prompt that contains untrusted content; when tools arrive,
    require human approval for consequential actions (D-013).
-4. Add a `qa_reviewer` pass (or a cheap classifier) on publishable drafts that flags off-brand or anomalous
+3. Add a `qa_reviewer` pass (or a cheap classifier) on publishable drafts that flags off-brand or anomalous
    content before `needs_approval`.
 
 ## 8. Approval default
@@ -179,7 +189,8 @@ human approval, unless the client has explicitly configured an authorised automa
 
 ## 9. Data sent to model providers
 
-- What is sent: customer website text (up to ~20k chars), crawler signals, PageSpeed scores, the generated
+- What is sent: customer website text (up to ~20k chars), crawler signals, PageSpeed scores, up to 40
+  technical-check summaries with their observed values (page URLs, titles, status codes), the generated
   profile, plan and briefs. No account emails, passwords or tokens are sent.
 - Where: OpenRouter, which forwards to the underlying provider of the selected model. In `AI_MODE=free` these
   are free endpoints; free-tier providers may log or use prompts for training. Website content is public,
@@ -238,8 +249,12 @@ is not marketing consent.
   can't be read, `runWorker` throws and no model is called. See [AI_ROUTING_AND_COSTS.md](AI_ROUTING_AND_COSTS.md#5-budget-enforcement-and-usage-logging).
 - OpenRouter requests time out after 120 s (chat) / 15 s (key info) via `AbortSignal.timeout`, so a hung
   provider can't hold a job open indefinitely.
-- No rate limit on `startAnalysis` / `rerunAnalysis`, and no guard against starting a second run while one is
-  in progress for the same profile.
+- Analysis rate limit: at most 10 analyses or re-runs per organization in 24 hours (counted from `ai_jobs`
+  rows with worker `website_evidence` or `website_intel`), checked in `startAnalysis` and `rerunAnalysis` with a
+  clear error. `rerunAnalysis` refuses while any job for the same business is queued or running. A new
+  organization can still be created to get a fresh allowance (same gap as the AI budget).
+- Each analysis makes up to ~40 requests to the customer's site (robots.txt, sitemaps, 25 pages, 10 link checks,
+  2 variants) and 2 PageSpeed calls (25,000/day default quota).
 - `/api/health/integrations` returns 404 when `NODE_ENV=production`; in development it is public and reports
   service status.
 

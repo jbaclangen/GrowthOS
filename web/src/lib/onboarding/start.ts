@@ -12,6 +12,24 @@ import { toProfileColumns, type OwnerInputs } from "@/lib/owner-inputs";
 
 export type AnalysisWorker = "website_intel" | "website_evidence";
 
+// Abuse guard (blueprint §9): each analysis crawls a site and calls PageSpeed twice, so cap analyses and re-runs
+// per organization. Counts the jobs that start a crawl (website_evidence for new analyses, website_intel for
+// re-runs) in the last 24 hours. Applies to the web form and the AI assistant connection alike.
+export const MAX_ANALYSES_PER_DAY = 10;
+export const RATE_LIMIT_MESSAGE = `You've started ${MAX_ANALYSES_PER_DAY} analyses in the last 24 hours, the most for now. Try again tomorrow, or contact support if you need more.`;
+
+export async function analysesInLastDay(db: SupabaseClient, organizationId: string) {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count, error } = await db
+    .from("ai_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", organizationId)
+    .in("worker", ["website_evidence", "website_intel"])
+    .gte("created_at", since);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
 // Queues an analysis job, then runs it after the response so the caller can show progress.
 export async function queueJob(
   db: SupabaseClient,
@@ -41,6 +59,7 @@ export type NewOnboarding = {
 // Saves the business, opens a discovery session and starts the website evidence job (discovery runs alongside it).
 export async function createOnboarding(db: SupabaseClient, input: NewOnboarding): Promise<{ error: string } | { sessionId: string; businessProfileId: string }> {
   const { organizationId, userId, websiteUrl } = input;
+  if ((await analysesInLastDay(db, organizationId)) >= MAX_ANALYSES_PER_DAY) return { error: RATE_LIMIT_MESSAGE };
   const { data: profile, error } = await db
     .from("business_profiles")
     .insert({

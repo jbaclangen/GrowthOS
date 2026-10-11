@@ -26,6 +26,9 @@ export function StartForm() {
         </span>
         <input name="businessName" placeholder="We'll detect it from your website" className="input mt-1" />
       </label>
+      <p className="text-xs text-muted">
+        Braventa reads up to 25 public pages and follows your site&apos;s robots.txt. It never logs in.
+      </p>
 
       <div className="border-t border-border pt-4">
         <h2 className="text-base font-semibold">Tailor your plan</h2>
