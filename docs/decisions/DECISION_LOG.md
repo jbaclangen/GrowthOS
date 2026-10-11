@@ -361,6 +361,9 @@ Benefit Link's. The bullet below about a separate account is superseded by this 
 - braventa.io contact requests go to HubSpot for notifications, CRM and branded email, using a **new Braventa HubSpot
   account** (not the Pixel Marketing Design agency portal, and never a client portal such as The Benefit Link's).
 - Emails are branded: braventa.io is connected as HubSpot's email sending domain (DKIM/SPF records in Hostinger).
+  **Amended 2026-10-11 (Founder):** HubSpot's sending domain needs Marketing Hub Professional, which we're not buying.
+  Instead, mailboxes are on Hostinger Email (admin@, hello@, support@) and hello@braventa.io is connected to HubSpot
+  over IMAP/SMTP, so replies go out through Hostinger, signed for braventa.io. No automatic receipt email for now.
 - Spam protection: honeypot, signed render-time token (< 3 s rejected), and a database rate limit (3 per visitor per hour
   by salted IP hash, 5 per email per day). No CAPTCHA or third-party script.
 - Supabase stays the system of record; HubSpot is fed through the Forms API (portal ID + form GUID, no secret) after the
