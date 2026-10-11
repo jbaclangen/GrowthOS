@@ -13,6 +13,14 @@ const schema = {
   N8N_API_KEY: z.string().min(1),
   N8N_WEBHOOK_SECRET: z.string().min(32),
   GOOGLE_API_KEY: z.string().min(1),
+  // Google Search Console connection (Pro). OAuth "Web application" client from the GCP project; see
+  // docs/architecture/SEARCH_CONSOLE_SETUP.md. Optional: Settings says the connection isn't set up yet when unset.
+  GOOGLE_OAUTH_CLIENT_ID: z.string().min(1),
+  GOOGLE_OAUTH_CLIENT_SECRET: z.string().min(1),
+  // 32 random bytes, base64. Encrypts stored OAuth refresh tokens (AES-256-GCM, lib/integrations/secret-box.ts).
+  INTEGRATIONS_ENCRYPTION_KEY: z
+    .string()
+    .refine((v) => Buffer.from(v, "base64").length === 32, "must be 32 bytes, base64-encoded"),
   NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000"),
 };
 
@@ -28,4 +36,9 @@ export function env(): ServerEnv {
       return parsed.data;
     },
   });
+}
+
+// True when every listed variable is present and valid. For optional integrations that degrade gracefully.
+export function envConfigured(...keys: (keyof typeof schema)[]): boolean {
+  return keys.every((key) => schema[key].safeParse(process.env[key] || undefined).success);
 }

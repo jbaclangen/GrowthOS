@@ -44,7 +44,10 @@ describe("features", () => {
     expect(canUse("basic", "ai_assistant")).toBe(false);
   });
 
-  it("reports that Pro adds nothing live yet", () => {
-    expect(proHasLiveFeatures()).toBe(false);
+  it("reports that Pro adds a live feature: the Search Console connection", () => {
+    expect(proHasLiveFeatures()).toBe(true);
+    expect(canUse("pro", "search_console")).toBe(true);
+    expect(canUse("premium", "search_console")).toBe(true);
+    expect(canUse("basic", "search_console")).toBe(false);
   });
 });
