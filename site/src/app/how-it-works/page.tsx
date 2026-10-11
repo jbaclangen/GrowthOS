@@ -44,6 +44,7 @@ const SCORE_LIMITS = [
   "If Google PageSpeed doesn't respond, the report says so and the score is based on Braventa's assessment alone.",
   "It reflects your website (the home page and up to five more public pages) and what you tell Braventa. It doesn't measure your whole business, your finances or your reputation.",
   "It isn't a prediction of revenue, leads or rankings. Use it to see where you stand and what to fix first.",
+  "Google's SEO basics score is Lighthouse's automated check of one page's technical basics. It isn't a Google ranking score and doesn't include Search Console data.",
   "Braventa's part is an AI assessment and can be wrong. Findings show their evidence so you can check them.",
 ];
 
@@ -166,7 +167,7 @@ export default function HowItWorks() {
             </h3>
             <p className="mt-2 text-sm text-muted">
               Braventa&apos;s AI assessment of your pages and site signals — such as a contact form, a phone number, meta
-              descriptions, headings, structured data, image alt text and social links — with your answers as context.
+              descriptions, headings, whether structured data is present, image alt text and social links — with your answers as context.
             </p>
             <ul className="mt-4 flex flex-wrap gap-2">
               {ASSESSED.map((a) => (

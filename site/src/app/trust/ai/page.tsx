@@ -29,6 +29,10 @@ export default function AiUse() {
             each finding shows its evidence and confidence, and why nothing is used for your business until you confirm or
             approve it.
           </p>
+          <p>
+            Braventa and its AI have no influence over how Google or any other search engine ranks your website. Their
+            recommendations are suggestions to review, not guarantees of rankings, traffic or leads.
+          </p>
           <h2>Which models we use</h2>
           <p>
             Requests go through OpenRouter to models chosen for each task. We may change models as better or more

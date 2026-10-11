@@ -18,11 +18,11 @@ export const TIERS: Record<Tier, { label: string; summary: string }> = {
   },
   pro: {
     label: "Pro",
-    summary: "Everything in Basic, plus a full marketing audit, connected tools and AI agents that carry out approved changes for you.",
+    summary: "Everything in Basic, plus your Google Search Console data in Braventa. Coming soon: a full marketing audit, more connected tools and AI agents that carry out approved changes for you.",
   },
   premium: {
     label: "Premium",
-    summary: "Everything in Pro, plus custom integrations with the systems your business runs on.",
+    summary: "Everything in Pro, plus custom integrations with the systems your business runs on (coming soon).",
   },
 };
 
@@ -51,7 +51,7 @@ export const FEATURES: Feature[] = [
   { id: "diagnosis", label: "Growth score and diagnosis", detail: "Findings marked by evidence, which you confirm or correct.", minTier: "basic", status: "live" },
   { id: "growth_plan", label: "Prioritized growth plan", detail: "Recommended actions with first steps; accept, dismiss or mark done.", minTier: "basic", status: "live" },
   { id: "content_plan", label: "30-day content plan and drafted posts", detail: "Drafts in your brand voice for you to approve or reject. Braventa doesn't publish them.", minTier: "basic", status: "live" },
-  { id: "ai_assistant", label: "AI assistant", detail: "Ask questions about your business and plan.", minTier: "basic", status: "coming_soon" },
+  { id: "ai_assistant", label: "In-app AI assistant", detail: "Ask questions about your business and plan inside Braventa.", minTier: "basic", status: "coming_soon" },
   // Every plan during the trial; paused after it until the business is on a plan (D-036, lib/mcp/access.ts).
   { id: "assistant_connection", label: "Connect your AI assistant", detail: "Let Claude answer the setup questions from what it already knows about your business (Claude Code and Claude Desktop). Paused after the trial until you choose a plan.", minTier: "basic", status: "live" },
   { id: "full_audit", label: "Full marketing audit", detail: "SEO, search ads, social media, email and video.", minTier: "pro", status: "coming_soon" },

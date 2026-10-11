@@ -32,7 +32,7 @@ public page (CLAUDE.md: never present planned features as live).
 | Growth score and diagnosis (confirm or correct) | Basic | Live |
 | Prioritized growth plan (accept / dismiss / done) | Basic | Live |
 | 30-day content plan and drafted posts with approval | Basic | Live |
-| AI assistant | Basic | Coming soon (D-020) |
+| In-app AI assistant | Basic | Coming soon (D-020) |
 | Connect your AI assistant (MCP): Claude fills in onboarding (D-036) | Basic | Live — every plan during the trial; paused after it until the business is on a plan |
 | Full marketing audit (SEO, search ads, social, email, video) | Pro | Coming soon |
 | Google Search Console connection: read-only clicks, impressions, top queries and pages, shown on `/search` | Pro | Live in code (founder decision 2026-10-11) — the first live Pro feature; usable once the OAuth client and migration are set up ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)). Paused after the trial on Basic: data kept, nothing new fetched, resumes on Pro/Premium. Use in the diagnosis: coming soon |
