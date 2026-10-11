@@ -51,6 +51,8 @@ first-run journey ([USER_JOURNEYS.md](USER_JOURNEYS.md)) without help.
 **Goal:** prove that service businesses pay for and keep using Braventa; add the first connected tool.
 Ordered by recommended priority.
 
+> **Tiers (D-030):** the items below that connect tools or act for the owner are **Pro** features; their proposed build order is in [PLANS_AND_TIERS.md](PLANS_AND_TIERS.md) §5 (billing, Google read-only, WordPress + first approval-gated agent, social publishing, full audit, creative tools). The public sites follow [SITEMAP.md](../marketing/SITEMAP.md) and [SUPPORT_SITE.md](SUPPORT_SITE.md) (D-031).
+
 1. **Production readiness:** deploy to `app.braventa.io` on Vercel (D-011); confirm the analysis run fits
    the hosting function-duration limits or move long runs to n8n (see
    [SYSTEM_ARCHITECTURE.md](../architecture/SYSTEM_ARCHITECTURE.md)); plain-language error messages;

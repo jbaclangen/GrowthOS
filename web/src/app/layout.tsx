@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import Link from "next/link";
 import { Comfortaa, Quicksand } from "next/font/google";
 import { Logo } from "@/components/brand/logo";
 import { getUser } from "@/lib/auth";
+import { getOrgAccess } from "@/lib/plans/access";
 import { signOut } from "./login/actions";
 import "./globals.css";
 
@@ -39,10 +41,28 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 }
 
 async function UserMenu() {
+  // Per-request: the session check and the trial countdown both depend on the current time (Cache Components).
+  await connection();
   const user = await getUser();
   if (!user) return null;
+  const access = await getOrgAccess();
+  // D-030: the current tier, with the days left in a Pro trial.
+  const planLabel = !access
+    ? null
+    : access.trial?.active
+      ? `Pro trial · ${access.trial.daysLeft} day${access.trial.daysLeft === 1 ? "" : "s"} left`
+      : access.tier === "basic"
+        ? "Basic"
+        : access.tier === "pro"
+          ? "Pro"
+          : "Premium";
   return (
     <div className="flex items-center gap-3 text-sm">
+      {planLabel && (
+        <Link href="/plans" className="chip bg-accent-soft text-accent-soft-foreground hover:underline">
+          {planLabel}
+        </Link>
+      )}
       <span className="hidden text-muted sm:inline">{user.email}</span>
       <form action={signOut}>
         <button type="submit" className="btn-secondary">

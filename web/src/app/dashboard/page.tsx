@@ -5,6 +5,8 @@ import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ScoreBadge } from "@/components/score-badge";
 import { isOpen } from "@/lib/onboarding/steps";
+import { ReportInfographic } from "../analysis/[id]/infographic";
+import { loadReport } from "../analysis/[id]/report-data";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -50,6 +52,10 @@ async function Dashboard() {
     if (isOpen(status)) latestStatus.set(id, "awaiting_answers");
   }
 
+  // The most recently analyzed business opens as an infographic; each tile opens its full report.
+  const latest = profiles?.filter((p) => p.analyzed_at).sort((a, b) => +new Date(b.analyzed_at!) - +new Date(a.analyzed_at!))[0];
+  const latestReport = latest ? await loadReport(supabase, latest.id) : null;
+
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -62,6 +68,20 @@ async function Dashboard() {
         </Link>
       </div>
 
+      {latest && latestReport?.data && (
+        <section className="mt-8" aria-labelledby="latest-title">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="latest-title" className="text-lg font-semibold">
+              Latest report: {latest.company_name}
+            </h2>
+            <Link href={`/analysis/${latest.id}`} className="text-sm text-accent hover:underline">
+              Open full report
+            </Link>
+          </div>
+          <ReportInfographic report={latestReport} href={`/analysis/${latest.id}`} />
+        </section>
+      )}
+
       {!profiles?.length ? (
         <div className="card mt-8 text-center">
           <p className="font-medium">No businesses yet</p>
@@ -71,7 +91,9 @@ async function Dashboard() {
           </Link>
         </div>
       ) : (
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+        <>
+        <h2 className="mt-10 text-lg font-semibold">All businesses</h2>
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2">
           {profiles.map((p) => {
             const status = latestStatus.get(p.id);
             return (
@@ -98,6 +120,7 @@ async function Dashboard() {
             );
           })}
         </ul>
+        </>
       )}
     </>
   );

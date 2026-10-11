@@ -189,7 +189,9 @@ so AI routing, budgets and RLS-scoped writes stay in one place.
 |---|---|---|---|
 | Local development | `http://localhost:3000` (`npm run dev` in `web/`, `.claude/launch.json`) | Developer machine | Live |
 | Production app | `https://app.braventa.io` | Vercel, Hobby tier during the proof of concept (D-011) | **Planned** — not yet deployed |
-| Marketing site | `https://braventa.io` | Hostinger (also registrar and DNS) | **Planned** — built later (D-011) |
+| Marketing site | `https://braventa.io` | Next.js in this repo on Vercel; Hostinger is registrar and DNS (D-031) | **Planned** |
+| Support and docs | `https://support.braventa.io` | Next.js + Fumadocs in this repo on Vercel (D-031) | **Planned** |
+| Community | `https://community.braventa.io` | Hosted forum (Q-017) | Future |
 | Database / auth | Supabase project `mlztvhvmsullvwawwamc` | Supabase cloud | Live; one project serves all environments today |
 | Workflow engine | `n8nautomations.pixelmarketingdesign.com` | Self-hosted (host provider not recorded in repo) | Reachable via API key; no workflows |
 | Google APIs | GCP project `growth-os-511206` | Google Cloud | PageSpeed key in use |

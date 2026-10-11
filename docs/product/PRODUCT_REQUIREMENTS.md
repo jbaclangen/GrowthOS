@@ -221,7 +221,9 @@ should be easy to understand.
 | PL-4 | Dashboard listing analysed businesses with score and latest job status | MVP | **Live** (`/dashboard`) |
 | PL-5 | Password reset | MVP | Not started |
 | PL-6 | Invite team members; switch between organizations | Next phase | Not started (memberships and roles exist; `getCurrentOrg` uses the first membership only) |
-| PL-7 | Billing and plan limits (Stripe; `subscriptions` table) | Next phase | Not started |
+| PL-7 | Billing (Stripe; `subscriptions` table) | Next phase | Not started (Q-029, Q-010) |
+| PL-10 | Tiers Basic / Pro / Premium with a 14-day Pro trial that drops to Basic; `/plans` with Coming soon labels and "Talk to us" (D-030) | MVP | **Live** (`web/src/lib/plans/`, `web/src/app/plans/`) |
+| PL-11 | Infographic report and dashboard with detail dialogs (D-032) | MVP | **Live** (`web/src/app/analysis/[id]/infographic.tsx`) |
 | PL-8 | Delete a business and its data; delete account | Next phase | Not started |
 | PL-9 | Platform admin view across tenants (`platform_admins`) | Next phase | Not started (RLS bypass exists; no UI) |
 

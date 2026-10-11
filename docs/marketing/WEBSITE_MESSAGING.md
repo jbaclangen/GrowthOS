@@ -17,6 +17,8 @@ This document proposes the sitemap for the marketing site at braventa.io (D-011:
 
 ## 2. Sitemap
 
+> **Superseded 2026-10-11:** the full page list, domains (D-031) and priorities are in [SITEMAP.md](SITEMAP.md). Pricing now shows Basic / Pro / Premium and the 14-day trial (D-030) with Coming soon labels. The home and How it works copy below still describes "five opportunities"; rewrite it to the diagnosis and growth plan (ON-7/ON-8) before publishing.
+
 | Page | Path | Purpose | Priority |
 |---|---|---|---|
 | Home | `/` | Explain the category, the problem, the Growth Loop, and start an assessment | Launch |
@@ -28,7 +30,7 @@ This document proposes the sitemap for the marketing site at braventa.io (D-011:
 | Contact / Book a call | `/contact` | Booking link and contact form | Launch |
 | Trust and data | `/trust` | Approval-by-default, data handling, AI use | Launch (recommended) |
 | Privacy policy, Terms | `/privacy`, `/terms` | Legal pages (require legal review) | Before collecting any data |
-| Docs | `/docs` or docs.braventa.io | Product documentation | Later |
+| Docs | support.braventa.io (D-031) | Help center, capabilities, developer docs, legal | Launch (minimal) |
 | Changelog | `/changelog` | Release notes | Later |
 
 Navigation: How it works · Product · For service businesses · Pricing · About — right side: `Sign in` (text link) and `Get your growth assessment` (primary button).

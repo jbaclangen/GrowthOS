@@ -51,7 +51,9 @@ All paths relative to the repository root.
 | Progress and results page | Live step list while running; failure message; full results when done | `web/src/app/analysis/[id]/page.tsx`, `auto-refresh.tsx` |
 | Approve / reject / undo | Per draft; records approver and time | `setContentStatus` in `web/src/app/analysis/actions.ts`; `web/src/app/analysis/[id]/controls.tsx` |
 | Re-run analysis | Runs the whole pipeline again; page shows the latest results | `rerunAnalysis` in `web/src/app/analysis/actions.ts` |
-| Dashboard | All businesses in the organization with score and latest status | `web/src/app/dashboard/page.tsx` |
+| Dashboard | Latest analyzed business as an infographic, then all businesses with score and latest status (D-032) | `web/src/app/dashboard/page.tsx` |
+| Infographic report | One-screen summary tiles (score ring, score bars, findings by evidence type, plan progress, answers, profile, content plan, drafts); each opens the full section in a dialog via `?view=` (D-032) | `web/src/app/analysis/[id]/infographic.tsx`, `report-dialog.tsx`, `report-sections.tsx`, `report-data.ts` |
+| Tiers and trial | 14-day Pro trial from organization creation, then Basic; plan chip in the header; `/plans` compares Basic, Pro and Premium with Live / Coming soon labels and a "Talk to us" request; owners can't change plan, trial or AI budget (D-030) | `web/src/lib/plans/`, `web/src/app/plans/`, `upgrade_requests` |
 | AI routing, budget, usage log | Logical workers mapped to models; free/paid modes; monthly budget check; per-call usage log | `web/src/lib/ai/router.ts`, `ai_usage`, `ai_spend_mtd` |
 | Tenant isolation | RLS on every tenant table via `is_member()` | both files in `supabase/migrations/` |
 | Integration health check (developer tool) | Checks Supabase, OpenRouter, n8n, PageSpeed; disabled in production | `web/src/app/api/health/integrations/route.ts` |
@@ -112,7 +114,7 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
 - Any n8n workflow triggered by the app; trigger-based or scheduled automations.
 - CRM connections of any kind (HubSpot is Next phase).
 - Analytics integrations (GA4, Search Console) and performance reporting.
-- Billing, Stripe, plan enforcement in the UI (pricing is undecided, D-012).
+- Billing and Stripe (prices undecided, Q-029). The trial clock and tier checks are in (D-030); paying is not.
 - Team invitations, roles UI, organization switching, client portals for agencies.
 - Long-form content (blogs, email campaigns, video scripts), repurposing, image generation.
 - Automated QA reviewer step (manual approval is the MVP quality gate).
@@ -120,7 +122,7 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
 - Campaign objects and campaign planning.
 - Dedicated website audit report beyond the assessment.
 - Admin console, white-labelling, public API, mobile apps.
-- Marketing site (braventa.io) — separate project (D-011).
+- Marketing site (braventa.io) and support site (support.braventa.io) — planned in this repo (D-031), not built yet.
 
 ## 5. Success metrics for validation with paying customers
 

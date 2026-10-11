@@ -1,47 +1,20 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { STEPS, type BusinessIntel, type StepKey } from "@/lib/pipeline/website-intel";
-import { ScoreBadge, ScoreBar } from "@/components/score-badge";
+import { STEPS, type StepKey } from "@/lib/pipeline/website-intel";
+import { continueLabel, onboardingPath } from "@/lib/onboarding/steps";
 import { AutoRefresh } from "./auto-refresh";
-import { ContentActions, RerunButton } from "./controls";
-import { OwnerPanel } from "./owner-panel";
-import { fromProfileRow } from "@/lib/owner-inputs";
-import { DiagnosisSection, DoThisFirst, PlanSection, type DiagnosisRow, type FindingRow, type PlanItemRow } from "./plan-section";
-import { getPainPoint } from "@/lib/onboarding/catalog";
-import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
-import { continueLabel, isOpen, onboardingPath } from "@/lib/onboarding/steps";
-import Link from "next/link";
+import { RerunButton } from "./controls";
+import { ReportInfographic, VIEWS, isView } from "./infographic";
+import { DoThisFirst } from "./plan-section";
+import { ReportDialog } from "./report-dialog";
+import { loadReport } from "./report-data";
+import { ReportSection } from "./report-sections";
 
 export const metadata: Metadata = { title: "Growth assessment" };
-
-type Opportunity = {
-  title: string;
-  area: string;
-  why: string;
-  action: string;
-  impact: string;
-  effort: string;
-  pain_point_ids?: string[];
-};
-type DraftNotes = { image_prompt?: string; compliance_note?: string; regulated_area?: string | null };
-type ReportData = {
-  growth_score: number;
-  scores: { content_clarity: number; conversion_readiness: number; online_presence: number };
-  pagespeed: { performance: number; seo: number; accessibility: number; bestPractices: number } | null;
-  pagespeed_error: string | null;
-  // Reports from before the single plan (ON-8) list five opportunities instead.
-  opportunities?: Opportunity[];
-  pages: { url: string; title: string }[];
-};
-type Strategy = {
-  primary_goal: string;
-  audience: string;
-  pillars: { name: string; purpose: string }[];
-  channels: string[];
-};
 
 export default function AnalysisPage(props: PageProps<"/analysis/[id]">) {
   return (
@@ -53,131 +26,15 @@ export default function AnalysisPage(props: PageProps<"/analysis/[id]">) {
   );
 }
 
-async function Analysis({ params }: PageProps<"/analysis/[id]">) {
-  const { id } = await params;
+async function Analysis({ params, searchParams }: PageProps<"/analysis/[id]">) {
+  const [{ id }, { view }] = await Promise.all([params, searchParams]);
   await requireUser();
   const supabase = await createSupabaseServerClient();
-
-  // All reads go through RLS: a business from another organization simply isn't found.
-  const { data: profile } = await supabase.from("business_profiles").select("*").eq("id", id).maybeSingle();
-  if (!profile) notFound();
-
-  const [{ data: job }, { data: report }, { data: calendar }] = await Promise.all([
-    supabase
-      .from("ai_jobs")
-      .select("worker, status, error, output, created_at")
-      .eq("input->>businessProfileId", id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from("reports")
-      .select("data, created_at")
-      .eq("data->>business_profile_id", id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from("content_calendars")
-      .select("id, strategy, starts_on")
-      .eq("strategy->>business_profile_id", id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
-
-  const { data: items } = calendar
-    ? await supabase
-        .from("content_items")
-        .select("id, channel, content_type, scheduled_for, title, brief, body, qa_notes, status")
-        .eq("calendar_id", calendar.id)
-        .order("scheduled_for")
-    : { data: [] };
-
-  // Onboarding discovery (D-028): the latest session decides whether we're waiting for the owner's answers.
-  const { data: session } = await supabase
-    .from("onboarding_sessions")
-    .select("id, status, plan_job_id")
-    .eq("business_profile_id", id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const [{ data: answers }, { data: followUps }] = session
-    ? await Promise.all([
-        supabase
-          .from("onboarding_responses")
-          .select("kind, pain_point_id, confirmed, original_text, customer_priority")
-          .eq("session_id", session.id),
-        supabase
-          .from("onboarding_follow_ups")
-          .select("pain_point_id, question_key, answer, created_at")
-          .eq("session_id", session.id)
-          .eq("status", "answered")
-          .order("created_at"),
-      ])
-    : [{ data: [] }, { data: [] }];
-
-  // Diagnosis and growth plan (ON-7, ON-8): the newest one that isn't replaced, plus any earlier confirmed plan.
-  const { data: diagnoses } = await supabase
-    .from("diagnoses")
-    .select("id, status, summary, missing_info, version, confirmed_at, created_at")
-    .eq("business_profile_id", id)
-    .in("status", ["proposed", "confirmed"])
-    .order("created_at", { ascending: false })
-    .limit(2);
-  const diagnosis = (diagnoses?.[0] ?? null) as DiagnosisRow | null;
-  const earlierConfirmed = diagnoses?.[1]?.status === "confirmed" ? diagnoses[1] : null;
-  const [{ data: findingRows }, { data: planRows }] = diagnosis
-    ? await Promise.all([
-        supabase
-          .from("diagnosis_findings")
-          .select("id, position, statement, evidence, provenance, confidence, owner_verdict, owner_note")
-          .eq("diagnosis_id", diagnosis.id)
-          .order("position"),
-        supabase
-          .from("growth_plan_items")
-          .select(
-            "id, title, area, pain_point_ids, finding_positions, why, first_action, dependencies, success_metric, solution_ids, manual_alternative, impact, urgency, urgency_from_owner, effort, confidence, customer_priority, ai_priority, calculated_priority, final_priority, status",
-          )
-          .eq("diagnosis_id", diagnosis.id),
-      ])
-    : [{ data: [] }, { data: [] }];
-  const findings = (findingRows ?? []) as FindingRow[];
-  const planItems = (planRows ?? []).map((r) => ({ ...r, calculated_priority: Number(r.calculated_priority) })) as PlanItemRow[];
-
-  const discoveryOpen = isOpen(session?.status);
-  const jobStep = (job?.output as { step?: StepKey } | null)?.step;
-  const jobActive = job?.status === "queued" || job?.status === "running";
-  // Corrections being applied (ON-7): only the diagnosis is rebuilt, so the rest of the page stays as it is.
-  const updatingDiagnosis = jobActive && job?.worker === "diagnosis_update";
-  // Evidence is in and discovery is done, but the plan job hasn't been created yet: show it as starting.
-  const planPending =
-    !!session &&
-    (session.status === "completed" || session.status === "skipped") &&
-    !session.plan_job_id &&
-    job?.status === "succeeded" &&
-    jobStep === "evidence_done";
-  const running = (jobActive && !updatingDiagnosis) || planPending;
-  const progressStep: StepKey = planPending || jobStep === "evidence_done" ? "scoring" : (jobStep ?? "crawling");
-
-  const confirmedIssues = (answers ?? [])
-    .filter((a) => a.kind === "pain_point" && a.confirmed && a.pain_point_id && getPainPoint(a.pain_point_id))
-    .sort((a, b) => (a.customer_priority ?? 99) - (b.customer_priority ?? 99))
-    .map((a) => ({ id: a.pain_point_id as string, priority: a.customer_priority as number | null }));
-  const ownStatement = (answers ?? []).find((a) => a.kind === "statement")?.original_text ?? null;
-  const priorityOf = new Map(confirmedIssues.map((c) => [c.id, c.priority]));
-  const detailsOf = (painPointId: string) =>
-    (followUps ?? [])
-      .filter((f) => f.pain_point_id === painPointId && f.answer && getQuestion(f.pain_point_id, f.question_key))
-      .map((f) => ({
-        question: getQuestion(f.pain_point_id, f.question_key)!.text,
-        answer: answerLabel(f.pain_point_id, f.question_key, f.answer as string),
-      }));
-
-  const intel = profile.intelligence as Partial<BusinessIntel>;
-  const data = report?.data as ReportData | undefined;
-  const strategy = calendar?.strategy as Strategy | undefined;
-  const drafts = (items ?? []).filter((i) => i.body);
+  // RLS: a business from another organization simply isn't found.
+  const report = await loadReport(supabase, id);
+  if (!report) notFound();
+  const { profile, session, job, diagnosis, running, updatingDiagnosis, discoveryOpen } = report;
+  const openView = isView(view) ? view : null;
 
   return (
     <div className="space-y-8">
@@ -201,57 +58,13 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
             Your plan is built from your answers and your website. Finish the questions to start it; the website
             analysis keeps running in the meantime.
           </p>
-          <Link
-            href={onboardingPath({ ...session, business_profile_id: id })}
-            className="btn-primary mt-3"
-          >
+          <Link href={onboardingPath({ ...session, business_profile_id: id })} className="btn-primary mt-3">
             {continueLabel(session.status)}
           </Link>
         </section>
       )}
 
-      {running && <Progress step={progressStep} />}
-
-      {diagnosis && !running && (
-        <DoThisFirst
-          diagnosis={diagnosis}
-          items={planItems}
-          draftsWaiting={drafts.filter((d) => d.status === "needs_approval").length}
-        />
-      )}
-
-      <OwnerPanel businessProfileId={id} inputs={fromProfileRow(profile)} />
-
-      {(confirmedIssues.length > 0 || ownStatement) && (
-        <section className="card" aria-labelledby="told-us-title">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 id="told-us-title" className="font-semibold">
-              What you told us
-            </h2>
-            <span className="chip bg-accent-soft text-accent-soft-foreground">From you</span>
-          </div>
-          {confirmedIssues.length > 0 && (
-            <ul className="mt-3 space-y-1 text-sm">
-              {confirmedIssues.map((c) => (
-                <li key={c.id} className="flex gap-2">
-                  <span className="w-24 shrink-0 text-xs text-muted">
-                    {c.priority ? `Priority ${c.priority}` : "Also noted"}
-                  </span>
-                  <span>
-                    {getPainPoint(c.id)?.label}
-                    {detailsOf(c.id).map((d) => (
-                      <span key={d.question} className="mt-0.5 block text-xs text-muted">
-                        {d.question} <span className="text-foreground">{d.answer}</span>
-                      </span>
-                    ))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {ownStatement && <p className="mt-3 text-sm text-muted">In your words: “{ownStatement}”</p>}
-        </section>
-      )}
+      {running && <Progress step={report.progressStep} />}
 
       {job?.status === "failed" && (
         <div className="card border-danger/40">
@@ -261,187 +74,27 @@ async function Analysis({ params }: PageProps<"/analysis/[id]">) {
         </div>
       )}
 
-      {data && (
-        <>
-          <section className="card flex flex-col gap-6 md:flex-row md:items-center">
-            <div className="flex items-center gap-4 md:w-1/3">
-              <ScoreBadge score={data.growth_score} />
-              <div>
-                <p className="font-medium">Growth score</p>
-                <p className="text-xs text-muted">Blend of measured site quality and assessed marketing readiness</p>
-              </div>
-            </div>
-            <div className="grid flex-1 gap-3 sm:grid-cols-2">
-              <ScoreBar label="Content clarity" value={data.scores.content_clarity} />
-              <ScoreBar label="Conversion readiness" value={data.scores.conversion_readiness} />
-              <ScoreBar label="Online presence" value={data.scores.online_presence} />
-              {data.pagespeed && (
-                <>
-                  <ScoreBar label="Mobile speed" value={data.pagespeed.performance} note="Google" />
-                  <ScoreBar label="SEO basics" value={data.pagespeed.seo} note="Google" />
-                  <ScoreBar label="Accessibility" value={data.pagespeed.accessibility} note="Google" />
-                </>
-              )}
-            </div>
-          </section>
-
-          {intel.summary && (
-            <section className="grid gap-4 md:grid-cols-3">
-              <div className="card md:col-span-3">
-                <h2 className="font-semibold">Business profile</h2>
-                <p className="mt-2 text-sm">{intel.summary}</p>
-                <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                  <Field label="Services" value={intel.services?.join(", ")} />
-                  <Field label="Customers" value={intel.target_customers} />
-                  <Field label="Locations" value={intel.locations?.join(", ")} />
-                  <Field label="Brand voice" value={intel.brand_voice?.tone} />
-                </dl>
-              </div>
-              <ListCard title="Strengths" items={intel.strengths} />
-              <ListCard title="Gaps" items={intel.gaps} />
-              <ListCard title="Likely competitors" items={intel.likely_competitors} />
-            </section>
-          )}
-
-          {diagnosis ? (
-            <>
-              <DiagnosisSection
-                diagnosis={diagnosis}
-                findings={findings}
-                updating={updatingDiagnosis}
-                replacesConfirmedOn={earlierConfirmed?.confirmed_at ? new Date(earlierConfirmed.confirmed_at).toLocaleDateString() : null}
-              />
-              <PlanSection items={planItems} confirmed={diagnosis.status === "confirmed"} />
-            </>
-          ) : data.opportunities?.length ? (
-          <section>
-            <h2 className="text-lg font-semibold">Top 5 opportunities</h2>
-            <ol className="mt-3 space-y-3">
-              {data.opportunities.map((o, i) => (
-                <li key={i} className="card">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-semibold text-muted tabular-nums">{i + 1}</span>
-                    <h3 className="font-medium">{o.title}</h3>
-                    <Tag>{o.area}</Tag>
-                    <Tag tone={o.impact === "high" ? "accent" : undefined}>{o.impact} impact</Tag>
-                    <Tag>{o.effort} effort</Tag>
-                  </div>
-                  {(o.pain_point_ids?.length ?? 0) > 0 && (
-                    <p className="mt-2 text-xs text-accent-soft-foreground">
-                      Addresses{" "}
-                      {o.pain_point_ids!
-                        .map((pid) => {
-                          const rank = priorityOf.get(pid);
-                          const label = getPainPoint(pid)?.label ?? pid;
-                          return rank ? `your priority ${rank}: ${label.toLowerCase()}` : label.toLowerCase();
-                        })
-                        .join("; ")}
-                    </p>
-                  )}
-                  <p className="mt-2 text-sm text-muted">{o.why}</p>
-                  <p className="mt-2 text-sm">
-                    <span className="font-medium">First step: </span>
-                    {o.action}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </section>
-          ) : null}
-        </>
+      {updatingDiagnosis && (
+        <p className="card text-sm" role="status">
+          Updating the diagnosis and plan with your corrections. This takes about a minute.
+        </p>
       )}
 
-      {strategy && (
-        <section className="card">
-          <h2 className="text-lg font-semibold">30-day plan</h2>
-          <p className="mt-2 text-sm">
-            <span className="font-medium">Goal: </span>
-            {strategy.primary_goal}
-          </p>
-          <p className="mt-1 text-sm">
-            <span className="font-medium">Audience: </span>
-            {strategy.audience}
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {strategy.pillars.map((p) => (
-              <div key={p.name} className="rounded-md bg-background p-3">
-                <p className="text-sm font-medium">{p.name}</p>
-                <p className="text-xs text-muted">{p.purpose}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+      {diagnosis && !running && (
+        <DoThisFirst
+          diagnosis={diagnosis}
+          items={report.planItems}
+          draftsWaiting={report.drafts.filter((d) => d.status === "needs_approval").length}
+          href={`/analysis/${id}`}
+        />
       )}
 
-      {drafts.length > 0 && (
-        <section id="drafts" className="scroll-mt-6">
-          <h2 className="text-lg font-semibold">First content batch</h2>
-          <p className="text-sm text-muted">Nothing is published until you approve it.</p>
-          <div className="mt-3 space-y-3">
-            {drafts.map((d) => (
-              <article key={d.id} className="card">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Tag>{d.channel}</Tag>
-                    <span className="text-xs text-muted">{formatDay(d.scheduled_for)}</span>
-                    <StatusTag status={d.status} />
-                  </div>
-                  <ContentActions itemId={d.id} status={d.status} />
-                </div>
-                <h3 className="mt-2 font-medium">{d.title}</h3>
-                <p className="mt-2 whitespace-pre-line text-sm">{d.body}</p>
-                {(d.qa_notes as DraftNotes | null)?.compliance_note && (
-                  <div className="mt-3 rounded-md bg-warning-soft p-3 text-sm">
-                    <span className="chip bg-warning-soft text-warning">Check before approving</span>
-                    <p className="mt-1">
-                      {(d.qa_notes as DraftNotes).regulated_area && (
-                        <span className="font-medium">{(d.qa_notes as DraftNotes).regulated_area} is regulated. </span>
-                      )}
-                      {(d.qa_notes as DraftNotes).compliance_note}
-                    </p>
-                  </div>
-                )}
-                {(d.qa_notes as { image_prompt?: string } | null)?.image_prompt && (
-                  <p className="mt-3 rounded-md bg-background p-3 text-xs text-muted">
-                    <span className="font-medium text-foreground">Image idea: </span>
-                    {(d.qa_notes as { image_prompt: string }).image_prompt}
-                  </p>
-                )}
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
+      <ReportInfographic report={report} href={`/analysis/${id}`} />
 
-      {items && items.length > 0 && (
-        <section className="card overflow-x-auto">
-          <h2 className="text-lg font-semibold">Content calendar</h2>
-          <table className="mt-3 w-full min-w-[560px] text-left text-sm">
-            <thead className="text-xs text-muted">
-              <tr>
-                <th className="py-2 pr-3 font-medium">Date</th>
-                <th className="py-2 pr-3 font-medium">Channel</th>
-                <th className="py-2 pr-3 font-medium">Topic</th>
-                <th className="py-2 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((i) => (
-                <tr key={i.id} className="border-t border-border align-top">
-                  <td className="py-2 pr-3 whitespace-nowrap text-muted">{formatDay(i.scheduled_for)}</td>
-                  <td className="py-2 pr-3">{i.channel}</td>
-                  <td className="py-2 pr-3">
-                    {i.title}
-                    <span className="block text-xs text-muted">{i.brief}</span>
-                  </td>
-                  <td className="py-2">
-                    <StatusTag status={i.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+      {openView && (
+        <ReportDialog key={openView} title={VIEWS[openView]}>
+          <ReportSection view={openView} report={report} />
+        </ReportDialog>
       )}
 
       {(running || updatingDiagnosis) && <AutoRefresh />}
@@ -472,59 +125,4 @@ function Progress({ step }: { step: StepKey }) {
       </ol>
     </section>
   );
-}
-
-function Field({ label, value }: { label: string; value?: string }) {
-  if (!value) return null;
-  return (
-    <div>
-      <dt className="text-xs text-muted">{label}</dt>
-      <dd>{value}</dd>
-    </div>
-  );
-}
-
-function ListCard({ title, items }: { title: string; items?: string[] }) {
-  if (!items?.length) return null;
-  return (
-    <div className="card">
-      <h3 className="text-sm font-semibold">{title}</h3>
-      <ul className="mt-2 list-disc space-y-1 pl-4 text-sm">
-        {items.map((s) => (
-          <li key={s}>{s}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function Tag({ children, tone }: { children: React.ReactNode; tone?: "accent" }) {
-  return (
-    <span className={`chip ${tone === "accent" ? "bg-accent-soft text-accent-soft-foreground" : "bg-surface-muted text-muted"}`}>
-      {children}
-    </span>
-  );
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  brief: "Planned",
-  needs_approval: "Needs approval",
-  approved: "Approved",
-  rejected: "Rejected",
-};
-
-// Status chip tones: design-system/component-guidelines.md#status-chips
-const STATUS_TONE: Record<string, string> = {
-  approved: "bg-success-soft text-success",
-  rejected: "bg-danger-soft text-danger",
-  needs_approval: "bg-warning-soft text-warning",
-};
-
-function StatusTag({ status }: { status: string }) {
-  return <span className={`chip ${STATUS_TONE[status] ?? "bg-surface-muted text-muted"}`}>{STATUS_LABEL[status] ?? status}</span>;
-}
-
-function formatDay(iso: string | null) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString("en", { weekday: "short", month: "short", day: "numeric" });
 }
