@@ -354,8 +354,10 @@ business this way.
   form), not sign-up. Implementation: `site/` in this repo, shared tokens and brand assets via the generators, tier list
   imported from the app so pricing can't drift.
 
-## D-034 — Contact notifications and CRM through a separate Braventa HubSpot account
-**Status:** Founder (2026-10-11, in chat).
+## D-034 — Contact notifications and CRM through HubSpot
+**Status:** Founder (2026-10-11, in chat). **Amended the same day:** use the existing, otherwise unused
+**Pixelmarketingdesign** portal (Hub ID 247150427) instead of a new account; never a client portal such as The
+Benefit Link's. The bullet below about a separate account is superseded by this amendment.
 - braventa.io contact requests go to HubSpot for notifications, CRM and branded email, using a **new Braventa HubSpot
   account** (not the Pixel Marketing Design agency portal, and never a client portal such as The Benefit Link's).
 - Emails are branded: braventa.io is connected as HubSpot's email sending domain (DKIM/SPF records in Hostinger).
