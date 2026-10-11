@@ -1,7 +1,7 @@
 # braventa.io contact pipeline
 
 **Status / last reviewed: 2026-10-11.** Founder decisions: contact form stored in Supabase (D-033); notifications,
-CRM and branded email through the **Pixelmarketingdesign HubSpot portal** (Hub ID 247150427, D-034 amended); spam
+CRM through the **Pixelmarketingdesign HubSpot portal** (Hub ID 247150427, D-034 amended), replies from hello@braventa.io; spam
 protection by rate limit and
 timing check (Q-033).
 
@@ -16,7 +16,8 @@ Visitor submits /contact
       4. insert into Supabase contact_requests with ip_hash
          (DB trigger: ≤ 3 per visitor per hour, ≤ 5 per email per day → "Try again in an hour")
       5. after the response: submit to HubSpot Forms API (portal + form GUID, no secret)
-  → HubSpot creates/updates the contact, emails the submission notification, sends the branded follow-up
+  → HubSpot creates/updates the contact and emails the submission notification; the team replies from
+    hello@braventa.io through the HubSpot CRM (sent via Hostinger SMTP)
 ```
 
 Supabase is the system of record; a HubSpot failure is logged in Vercel and never loses a request.
@@ -40,11 +41,13 @@ Supabase is the system of record; a HubSpot failure is logged in Vercel and neve
 | `HUBSPOT_PORTAL_ID`, `HUBSPOT_FORM_GUID` on Vercel `braventa-site` (Config, Production) | Done |
 | `braventa.io` added to Settings → Tracking code → Advanced tracking → Additional site domains | Done |
 | Server submissions accepted (not blocked as spam) | Fixed 2026-10-11 by sending no `pageUri` (see §5) |
-| Branded sending domain: Settings → Content → Domains & URLs → Connect a domain → Email sending → `braventa.io`; add HubSpot's DKIM CNAMEs + SPF in Hostinger without touching existing records | To do — needs a braventa.io mailbox first (no MX records exist) to verify the from-address |
-| Follow-up email from a braventa.io address confirming receipt | To do (after the sending domain) |
-| Email footer and company details show Braventa | To do |
+| Mailboxes `admin@`, `hello@`, `support@braventa.io` on Hostinger Email; Hostinger added MX, SPF (`include:_spf.mail.hostinger.com`), 3 DKIM CNAMEs (`hostingermail-a/b/c._domainkey`) and DMARC `p=none` | Done 2026-10-11 |
+| `hello@braventa.io` connected as a personal email in HubSpot (Settings → Email → IMAP+SMTP, `imap.hostinger.com:993` / `smtp.hostinger.com:465`, inbox automation off). One-to-one replies from the CRM are sent by Hostinger, so they pass SPF/DKIM for braventa.io | Done 2026-10-11 |
+| HubSpot subscription | **Starter Customer Platform** (Marketing Hub Starter: marketing email, customizable forms) bought by the founder 2026-10-11, monthly |
+| Branded HubSpot sending domain `braventa.io` (from `hello@braventa.io`): DKIM CNAMEs `hs1-247150427._domainkey` → `braventa-io.hs06a.dkim.hubspotemail.net`, `hs2-247150427._domainkey` → `braventa-io.hs06b.dkim.hubspotemail.net`; SPF merged to `v=spf1 include:_spf.mail.hostinger.com include:247150427.spf05.hubspotemail.net ~all` (one SPF record only); existing DMARC kept | DNS added in Hostinger 2026-10-11; HubSpot verification pending DNS propagation |
+| Automatic "we got your message" email | To do: possible now with Marketing Hub Starter (form follow-up email from hello@braventa.io) once the sending domain verifies |
 
-**No custom properties:** the free portal has used its 10 custom-property slots, so the request type and the
+**No custom properties (yet):** the portal used its free tier's 10 custom-property slots, so the request type and the
 visitor's marketing choice are written at the top of the HubSpot *Message*. The consent record for D-014 is
 `contact_requests.marketing_opt_in` in Supabase; marketing email only goes to contacts whose request says
 "Product updates: yes".
