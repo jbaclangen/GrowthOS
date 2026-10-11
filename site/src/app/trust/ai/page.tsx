@@ -35,9 +35,14 @@ export default function AiUse() {
             economical ones become available; this page will be updated when we do.
           </p>
           <p>
-            If the first-choice model is unavailable, a request falls back to a backup model through OpenRouter: Qwen for
-            matching your words and choosing questions, OpenAI GPT for the profile, content plan and drafts, and Claude
-            Sonnet for the diagnosis.
+            We only allow providers that don&apos;t keep your data after answering: our OpenRouter account requires
+            zero data retention, so requests never go to a model that stores prompts or trains on them. Claude models
+            may be served by Anthropic, Google Cloud or Amazon Web Services, depending on availability.
+          </p>
+          <p>
+            If the first-choice model is unavailable, a request falls back to a backup model through OpenRouter: OpenAI GPT
+            for matching your words, choosing questions, the profile, content plan and drafts, and Claude Sonnet for the
+            diagnosis.
           </p>
         </div>
         <div className="mt-6 overflow-x-auto">

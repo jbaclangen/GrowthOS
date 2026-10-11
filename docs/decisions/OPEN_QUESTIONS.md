@@ -38,12 +38,12 @@ validation; **P3** can wait.
 | Q-032 | P1 | Legal documents (Terms, Privacy, Cookies, Sub-processors, AI disclosure, Acceptable use). | Needed before sign-up is public; must be drafted or reviewed by a lawyer. | Commission before launch. |
 | Q-033 | P2 | Contact form spam protection beyond the honeypot (rate limit, CAPTCHA alternative such as Cloudflare Turnstile) and a notification when a request arrives. | The form is public once braventa.io is live; requests are only visible in Supabase. | **Partly resolved 2026-10-11 (D-034):** rate limit + timing check built; HubSpot notification live since the 2026-10-11 `pageUri` fix; replies sent from hello@braventa.io via Hostinger; HubSpot Marketing Hub Starter bought, braventa.io sending domain authenticated, email footer uses the Pixel Marketing Design address until the US LLC is registered; automatic reply live from hello@braventa.io ([CONTACT_PIPELINE.md](../marketing/CONTACT_PIPELINE.md)). |
 | Q-024 | P3 | Should model IDs be configurable without a code change (env or database)? Vision §10. | Swapping a failing or retired model currently needs a deploy. | Not before paid mode; revisit when switching to `AI_MODE=paid`. |
-| Q-035 | P2 | The site's AI page and Sub-processors describe the paid model lineup (Anthropic, with OpenAI and Qwen as backups). Which `AI_MODE` will braventa.io describe at launch? | Under `AI_MODE=free` requests go to free NVIDIA models through OpenRouter, which the site doesn't list (see Q-005, Q-007). | Switch to paid before the site is indexed, or list the free models and their data terms. |
 
 ## Resolved
 
 | ID | Answer | Decision |
 |---|---|---|
+| Q-035 | The site describes the paid lineup, which is what runs: the OpenRouter account enforces zero data retention, which blocks every free model, so production uses `AI_MODE=paid` (2026-10-11). Qwen (no ZDR endpoint) was replaced by GPT-5.6 Sol and removed from the site | D-037 |
 | Q-034 | Basic after the trial is a **paid** subscription (founder, 2026-10-11). Billing isn't built yet, so continuing is arranged through "Talk to us" | D-035 |
 | Q-036 | Keep the shorter module names (Automation, Analytics) (founder, 2026-10-11) | D-035 |
 | Q-037 | Keep "a marketing audit" in Basic as the promise (founder, 2026-10-11) | D-035 |
