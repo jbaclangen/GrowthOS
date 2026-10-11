@@ -189,7 +189,7 @@ so AI routing, budgets and RLS-scoped writes stay in one place.
 |---|---|---|---|
 | Local development | `http://localhost:3000` (`npm run dev` in `web/`, `.claude/launch.json`) | Developer machine | Live |
 | Production app | `https://app.braventa.io` | Vercel project `braventa-app` (Hobby tier during the proof of concept, D-011); root directory `web`, production branch `main`; env vars set for Production only (`AI_MODE`, Supabase URL/publishable key/secret key, OpenRouter, Google, `NEXT_PUBLIC_APP_URL`) | **Deploying** (2026-10-11); private: robots.txt disallow, `X-Robots-Tag` noindex/nofollow, invite-only sign-up |
-| Marketing site | `https://braventa.io` | Next.js in this repo on Vercel; Hostinger is registrar and DNS (D-031) | **Planned** |
+| Marketing site | `https://braventa.io` (`www` redirects to it) | Vercel project `braventa-site` (root `site`, production branch `main`; Config env vars `NEXT_PUBLIC_SUPABASE_URL`/`_PUBLISHABLE_KEY` for the contact form only, no secrets); Hostinger is registrar and DNS: A `@` → Vercel, CNAME `www` → Vercel (D-031, D-033) | **Deploying** (2026-10-11); hidden from search engines until `SITE_INDEXABLE=true` |
 | Support and docs | `https://support.braventa.io` | Next.js + Fumadocs in this repo on Vercel (D-031) | **Planned** |
 | Community | `https://community.braventa.io` | Hosted forum (Q-017) | Future |
 | Database / auth | Supabase project `mlztvhvmsullvwawwamc` | Supabase cloud | Live; one project serves all environments today |
