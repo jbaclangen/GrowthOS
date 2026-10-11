@@ -1,6 +1,6 @@
 # Connect ChatGPT to Braventa (MCP)
 
-**Status (2026-10-12): not possible yet.** ChatGPT's custom connectors (Developer mode) sign in with **OAuth** or use
+**Status (2026-10-12): parked by the founder; not possible yet.** ChatGPT's custom connectors (Developer mode) sign in with **OAuth** or use
 **no authentication**; they can't send the `Authorization: Bearer brv_…` access key that Braventa's MCP server
 requires today. Braventa needs an OAuth sign-in for its MCP server first (MCP phase 2, see §3). Until then, use
 Claude Desktop or Claude Code ([CONNECT_YOUR_AI_ASSISTANT.md](CONNECT_YOUR_AI_ASSISTANT.md)).
