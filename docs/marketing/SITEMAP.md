@@ -3,7 +3,7 @@
 **Status / last reviewed: 2026-10-11.** Domain plan is a founder decision (D-031). The page list is a
 recommendation from a review of nine comparable SaaS sites (Semrush, HubSpot, Jasper, Mailchimp, Databox,
 Owner.com, Localo, Copy.ai, HighLevel); page copy lives in [WEBSITE_MESSAGING.md](WEBSITE_MESSAGING.md).
-Nothing here is built yet.
+**Built 2026-10-11 in `site/`** (Launch pages: Home, How it works, Product, For service businesses, Pricing, Trust, AI use, About, Contact, and draft legal pages: Terms, Privacy, Cookies, Sub-processors). Not deployed to braventa.io yet. Hidden from search engines until launch (`SITE_INDEXABLE=true` flips it; D-033). Copy on the built pages supersedes WEBSITE_MESSAGING where they differ (diagnosis and one plan instead of five opportunities; early-access CTA because sign-up is invite-only).
 
 ## 1. Domains
 
@@ -23,7 +23,7 @@ Priority: **Launch** = before the first paying customers; **Soon** = shortly aft
 
 | Page | URL | Purpose | Priority | Honesty notes |
 |---|---|---|---|---|
-| Home | `/` | Category, problem, Growth Loop, start an assessment | Launch | Copy in WEBSITE_MESSAGING still says "five opportunities"; rewrite to diagnosis + growth plan (ON-7/ON-8) before publishing |
+| Home | `/` | Category, problem, Growth Loop, start an assessment | Launch — **built** | Rewritten to discovery, diagnosis and one growth plan (ON-1–ON-8) |
 | How it works | `/how-it-works` | Walkthrough of an analysis; "what we don't do yet" | Launch | Same rewrite |
 | Product | `/product`, later `/product/{module}` | Modules with Live / Coming soon badges | Launch (overview) | Integrations, agents, CRM stay Coming soon |
 | For service businesses | `/service-businesses` | Audience page | Launch | No vertical-specific feature claims |

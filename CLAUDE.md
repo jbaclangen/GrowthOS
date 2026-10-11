@@ -51,6 +51,9 @@ decision. Never describe the product as doing something the code doesn't do, wha
 ## Layout
 - `web/` — Next.js 16 app (App Router, `src/`, Tailwind 4). Next 16 renamed middleware to `src/proxy.ts`;
   read `web/node_modules/next/dist/docs/` before using unfamiliar Next APIs.
+- `site/` — braventa.io marketing site (Next.js 16, D-031/D-033); `npm run dev` serves port 3001. Shares tokens.css,
+  `logo-geometry.ts` and icons via the generators, and imports the tier list from `web/src/lib/plans/tiers.ts`. Hidden
+  from search engines until `SITE_INDEXABLE=true`. Copy follows the same claim rules as the app (live vs coming soon).
 - `supabase/migrations/` — schema. Supabase project ref `mlztvhvmsullvwawwamc`.
 - `n8n/` — exported n8n workflow JSON (instance: n8nautomations.pixelmarketingdesign.com; none exported yet; host is Q-006).
 - `design-system/` — `tokens.json` (single token source), docs, brand asset generator.

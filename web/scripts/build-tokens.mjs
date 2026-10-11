@@ -1,4 +1,5 @@
-// Compiles design-system/tokens.json (the single token source, D-009) into src/styles/tokens.css.
+// Compiles design-system/tokens.json (the single token source, D-009) into src/styles/tokens.css for both the app
+// (web/) and the marketing site (site/, D-031), so they never drift.
 // Also checks WCAG contrast for every text/background role pair and fails if any drops below AA.
 // Run: npm run tokens          (write)
 //      npm run tokens -- --check (verify the committed CSS is current; exit 1 if stale)
@@ -9,7 +10,7 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SRC = resolve(here, "../../design-system/tokens.json");
-const OUT = resolve(here, "../src/styles/tokens.css");
+const OUTS = [resolve(here, "../src/styles/tokens.css"), resolve(here, "../../site/src/styles/tokens.css")];
 
 const tokens = JSON.parse(readFileSync(SRC, "utf8"));
 
@@ -129,16 +130,18 @@ push();
 const css = lines.join("\n");
 
 if (process.argv.includes("--check")) {
-  let current = "";
-  try {
-    current = readFileSync(OUT, "utf8");
-  } catch {}
-  if (current.replace(/\r\n/g, "\n") !== css) {
-    console.error("src/styles/tokens.css is stale. Run `npm run tokens`.");
-    process.exit(1);
+  for (const out of OUTS) {
+    let current = "";
+    try {
+      current = readFileSync(out, "utf8");
+    } catch {}
+    if (current.replace(/\r\n/g, "\n") !== css) {
+      console.error(`${out} is stale. Run \`npm run tokens\` in web/.`);
+      process.exit(1);
+    }
   }
-  console.log("tokens.css is up to date; contrast checks pass.");
+  console.log("tokens.css is up to date in web/ and site/; contrast checks pass.");
 } else {
-  writeFileSync(OUT, css);
-  console.log(`Wrote ${OUT}\nContrast (all pass):\n  ${report.join("\n  ")}`);
+  for (const out of OUTS) writeFileSync(out, css);
+  console.log(`Wrote ${OUTS.join(", ")}\nContrast (all pass):\n  ${report.join("\n  ")}`);
 }
