@@ -3,7 +3,8 @@ import { z } from "zod";
 
 // Server-side environment. Importing this from a client component fails the build.
 // Each variable is validated when first used, so one missing integration
-// doesn't take down the others.
+// doesn't take down the others. Values are trimmed: a stray space or line break pasted into the hosting
+// dashboard otherwise breaks keys silently (seen in production 2026-10-12).
 const schema = {
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
@@ -31,7 +32,7 @@ export function env(): ServerEnv {
     get(_, key: string) {
       const field = schema[key as keyof typeof schema];
       if (!field) return undefined;
-      const parsed = field.safeParse(process.env[key] || undefined);
+      const parsed = field.safeParse(process.env[key]?.trim() || undefined);
       if (!parsed.success) throw new Error(`Missing or invalid environment variable: ${key}`);
       return parsed.data;
     },
@@ -40,5 +41,5 @@ export function env(): ServerEnv {
 
 // True when every listed variable is present and valid. For optional integrations that degrade gracefully.
 export function envConfigured(...keys: (keyof typeof schema)[]): boolean {
-  return keys.every((key) => schema[key].safeParse(process.env[key] || undefined).success);
+  return keys.every((key) => schema[key].safeParse(process.env[key]?.trim() || undefined).success);
 }
