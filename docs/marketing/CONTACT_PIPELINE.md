@@ -45,12 +45,13 @@ Supabase is the system of record; a HubSpot failure is logged in Vercel and neve
 | `hello@braventa.io` connected as a personal email in HubSpot (Settings → Email → IMAP+SMTP, `imap.hostinger.com:993` / `smtp.hostinger.com:465`, inbox automation off). One-to-one replies from the CRM are sent by Hostinger, so they pass SPF/DKIM for braventa.io | Done 2026-10-11 |
 | HubSpot subscription | **Starter Customer Platform** (Marketing Hub Starter: marketing email, customizable forms) bought by the founder 2026-10-11, monthly |
 | Branded HubSpot sending domain `braventa.io` (from `hello@braventa.io`): DKIM CNAMEs `hs1-247150427._domainkey` → `braventa-io.hs06a.dkim.hubspotemail.net`, `hs2-247150427._domainkey` → `braventa-io.hs06b.dkim.hubspotemail.net`; SPF merged to `v=spf1 include:_spf.mail.hostinger.com include:247150427.spf05.hubspotemail.net ~all` (one SPF record only); existing DMARC kept | Done 2026-10-11: HubSpot shows braventa.io as **Authenticated** |
-| Automatic "we got your message" email | To do: possible now with Marketing Hub Starter (form follow-up email from hello@braventa.io) |
+| Custom contact properties `braventa_request_type` (Early access / Walkthrough / Question) and `braventa_product_updates` (Yes/No), added to the form as hidden fields and sent by `site/src/lib/hubspot.ts` | Done 2026-10-11 |
+| Email footer (company name + postal address, required by HubSpot and anti-spam law for every marketing email) | **Blocked:** founder will use the US LLC address once registered; footer name for now "Pixel Marketing Design". HubSpot won't save a footer without an address |
+| Automatic "we got your message" email (copy in §6) | Blocked on the footer. Then: form → Automation → send follow-up email from hello@braventa.io |
 
-**No custom properties (yet):** the portal used its free tier's 10 custom-property slots, so the request type and the
-visitor's marketing choice are written at the top of the HubSpot *Message*. The consent record for D-014 is
-`contact_requests.marketing_opt_in` in Supabase; marketing email only goes to contacts whose request says
-"Product updates: yes".
+**Marketing consent:** the consent record for D-014 is `contact_requests.marketing_opt_in` in Supabase, mirrored to
+HubSpot as `braventa_product_updates`. Newsletters and other marketing email go only to contacts where it is Yes; the
+automatic reply to a request is sent to everyone who submits the form.
 
 ## 5. HubSpot spam check (resolved 2026-10-11)
 
@@ -65,3 +66,28 @@ submissions arrive normally. Don't add a `pageUri` back unless the HubSpot track
 
 The raw IP is never stored: `ip_hash` is HMAC-SHA256(IP, `CONTACT_HASH_SALT`). HubSpot is listed on
 `/legal/subprocessors`, and the privacy page says contact-form data is stored in Supabase and HubSpot.
+
+## 6. Automatic reply copy (ready; not live)
+
+Founder chose "factual + what's live" (2026-10-11). Only describe what the app does today (CLAUDE.md "Live today");
+no timelines or guarantees. Use HubSpot personalization tokens for the first name.
+
+- **From:** Braventa <hello@braventa.io> · **Reply-to:** hello@braventa.io
+- **Subject:** We got your message
+- **Preview text:** Thanks for contacting Braventa. We'll reply by email.
+
+> Hi {first name, default "there"},
+>
+> Thanks for contacting Braventa. We got your message and will reply by email from hello@braventa.io.
+>
+> While you wait, here's what Braventa does today:
+>
+> - Reads your website and asks a few questions about your business.
+> - Gives you a growth score and a diagnosis you can confirm or correct.
+> - Builds one prioritized growth plan, a 30-day plan and five drafted posts for you to approve.
+>
+> See how it works: https://braventa.io/how-it-works
+>
+> If you didn't contact us, you can ignore this email.
+>
+> The Braventa team

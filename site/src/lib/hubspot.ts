@@ -19,30 +19,24 @@ export type ContactPayload = {
   marketing_opt_in: boolean;
 };
 
-const INTENT_LABEL = { early_access: "Early access", demo: "Walkthrough", question: "Question" } as const;
-
 export function hubspotConfigured() {
   return Boolean(process.env.HUBSPOT_PORTAL_ID && process.env.HUBSPOT_FORM_GUID);
 }
 
-// HubSpot field names for the form: default contact properties only (the portal has no free custom-property slots).
-// The request type and the visitor's marketing choice lead the message so the team sees them in the notification;
-// the opt-in itself is recorded in Supabase (contact_requests.marketing_opt_in), the consent record for D-014.
+// HubSpot field names for the form. braventa_request_type and braventa_product_updates are custom contact properties
+// (hidden fields on the form) so the team can segment and filter; marketing email only goes to contacts with
+// braventa_product_updates = true. Supabase (contact_requests.marketing_opt_in) stays the consent record for D-014.
 export function toHubspotFields(c: ContactPayload) {
   const [first, ...rest] = c.name.trim().split(/\s+/);
-  const message = [
-    `Request: ${INTENT_LABEL[c.intent]}`,
-    `Product updates: ${c.marketing_opt_in ? "yes, opted in" : "no"}`,
-    "",
-    c.message,
-  ].join("\n");
   const fields = [
     { name: "firstname", value: first },
     { name: "lastname", value: rest.join(" ") },
     { name: "email", value: c.email },
     { name: "company", value: c.business ?? "" },
     { name: "website", value: c.website ?? "" },
-    { name: "message", value: message },
+    { name: "message", value: c.message.trim() },
+    { name: "braventa_request_type", value: c.intent },
+    { name: "braventa_product_updates", value: c.marketing_opt_in ? "true" : "false" },
   ];
   return fields.filter((f) => f.value !== "");
 }
