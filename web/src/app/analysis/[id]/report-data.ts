@@ -1,6 +1,9 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BusinessIntel, StepKey } from "@/lib/pipeline/website-intel";
+import type { CoverageSummary, AuditFinding } from "@/lib/audit/checks";
+import type { CoverageEntry, PageAudit, SiteAudit } from "@/lib/integrations/crawler";
+import type { PageSpeedReport } from "@/lib/integrations/google";
 import { getPainPoint } from "@/lib/onboarding/catalog";
 import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
 import { isOpen } from "@/lib/onboarding/steps";
@@ -26,7 +29,29 @@ export type ReportData = {
   // Reports from before the single plan (ON-8) list five opportunities instead.
   opportunities?: Opportunity[];
   pages: { url: string; title: string }[];
+  // Website Intelligence Phase 1; missing on older reports.
+  audit_run_id?: string | null;
 };
+
+// The stored audit run (audit_runs) as the report reads it. Coverage values come from crawled pages: untrusted
+// text, rendered as plain text only.
+export type StoredCoverage = Partial<Omit<SiteAudit, "pages" | "entries">> & {
+  summary?: CoverageSummary;
+  entries?: CoverageEntry[];
+  pages?: (Omit<PageAudit, "internalLinks"> & { internalLinkCount?: number })[];
+};
+export type AuditRunRow = {
+  id: string;
+  status: "queued" | "running" | "completed" | "partial" | "failed";
+  pages_discovered: number;
+  pages_scanned: number;
+  coverage: StoredCoverage;
+  pagespeed: Partial<PageSpeedReport> | null;
+  error_summary: string | null;
+  completed_at: string | null;
+};
+export type AuditFindingRow = Omit<AuditFinding, "observed_at"> & { id: string };
+export type AuditData = { run: AuditRunRow; findings: AuditFindingRow[] };
 export type Strategy = {
   primary_goal: string;
   audience: string;
@@ -92,7 +117,8 @@ export async function loadReport(supabase: SupabaseClient, id: string) {
   const diagnosis = (diagnoses?.[0] ?? null) as DiagnosisRow | null;
   const earlierConfirmed = diagnoses?.[1]?.status === "confirmed" ? diagnoses[1] : null;
 
-  const [{ data: items }, { data: answers }, { data: followUps }, { data: findingRows }, { data: planRows }] =
+  const auditRunId = (report?.data as ReportData | undefined)?.audit_run_id ?? null;
+  const [{ data: items }, { data: answers }, { data: followUps }, { data: findingRows }, { data: planRows }, { data: auditRun }, { data: auditRows }] =
     await Promise.all([
       calendar
         ? supabase
@@ -118,7 +144,8 @@ export async function loadReport(supabase: SupabaseClient, id: string) {
       diagnosis
         ? supabase
             .from("diagnosis_findings")
-            .select("id, position, statement, evidence, provenance, confidence, owner_verdict, owner_note")
+            // "*" so the page keeps working before the audit_refs column (20261011200000_website_audit) exists.
+            .select("*")
             .eq("diagnosis_id", diagnosis.id)
             .order("position")
         : Promise.resolve({ data: [] }),
@@ -130,9 +157,29 @@ export async function loadReport(supabase: SupabaseClient, id: string) {
             )
             .eq("diagnosis_id", diagnosis.id)
         : Promise.resolve({ data: [] }),
+      // Technical checks (Website Intelligence Phase 1): the audit run behind this report, if it has one.
+      auditRunId
+        ? supabase
+            .from("audit_runs")
+            .select("id, status, pages_discovered, pages_scanned, coverage, pagespeed, error_summary, completed_at")
+            .eq("id", auditRunId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      auditRunId
+        ? supabase
+            .from("audit_findings")
+            .select("id, ref, page_url, rule_id, category, severity, confidence, priority_label, summary, observed, recommendation, source_type")
+            .eq("audit_run_id", auditRunId)
+        : Promise.resolve({ data: [] }),
     ]);
 
   const findings = (findingRows ?? []) as FindingRow[];
+  const audit: AuditData | null = auditRun
+    ? {
+        run: auditRun as AuditRunRow,
+        findings: ((auditRows ?? []) as AuditFindingRow[]).sort((a, b) => Number(a.ref.slice(1)) - Number(b.ref.slice(1))),
+      }
+    : null;
   const planItems = (planRows ?? []).map((r) => ({ ...r, calculated_priority: Number(r.calculated_priority) })) as PlanItemRow[];
   const contentItems = (items ?? []) as ContentItem[];
 
@@ -181,6 +228,7 @@ export async function loadReport(supabase: SupabaseClient, id: string) {
     earlierConfirmed,
     findings,
     planItems,
+    audit,
     discoveryOpen,
     updatingDiagnosis,
     running,

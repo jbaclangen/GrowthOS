@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPainPoint } from "@/lib/onboarding/catalog";
 import { PROVENANCE_LABEL, type Provenance } from "@/lib/plan/priority";
+import { PRIORITY_LABEL_TEXT, type PriorityLabel } from "@/lib/audit/checks";
 import { scoreTone } from "@/components/score-badge";
 import { sortedPlan } from "./plan-section";
 import type { Report } from "./report-data";
@@ -14,6 +15,7 @@ export const VIEWS = {
   scores: "Growth score",
   diagnosis: "What's holding the business back",
   plan: "Growth plan",
+  technical: "Technical checks",
   answers: "What you told us",
   profile: "Business profile",
   content: "30-day content plan",
@@ -143,8 +145,35 @@ function Stat({ value, label }: { value: number | string; label: string }) {
   );
 }
 
+// Technical checks: how much of the site was read, and the findings per priority label.
+function TechnicalTile({ audit, href }: { audit: NonNullable<Report["audit"]>; href: string }) {
+  const summary = audit.run.coverage.summary;
+  const count = (label: PriorityLabel) => audit.findings.filter((f) => f.priority_label === label).length;
+  return (
+    <Tile href={href} view="technical">
+      {summary?.homeBlocked ? (
+        <p className="text-sm">
+          <span className="chip bg-warning-soft text-foreground">Blocked by robots.txt</span>
+          <span className="mt-2 block text-xs text-muted">Your site&apos;s robots.txt doesn&apos;t allow Braventa to read it.</span>
+        </p>
+      ) : (
+        <p className="text-xs text-muted">
+          <span className="font-medium tabular-nums text-foreground">{summary?.scanned ?? audit.run.pages_scanned}</span> of{" "}
+          {summary?.discovered ?? audit.run.pages_discovered} pages scanned
+          {summary?.robotsExcluded.length ? `; ${summary.robotsExcluded.length} excluded by robots.txt` : ""}
+        </p>
+      )}
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <Stat value={count("fix_first")} label={PRIORITY_LABEL_TEXT.fix_first.toLowerCase()} />
+        <Stat value={count("improve_next")} label={PRIORITY_LABEL_TEXT.improve_next.toLowerCase()} />
+        <Stat value={count("monitor")} label={PRIORITY_LABEL_TEXT.monitor.toLowerCase()} />
+      </div>
+    </Tile>
+  );
+}
+
 export function ReportInfographic({ report, href }: { report: Report; href: string }) {
-  const { data, diagnosis, findings, planItems, issues, ownStatement, intel, strategy, contentItems, drafts } = report;
+  const { data, diagnosis, findings, planItems, issues, ownStatement, intel, strategy, contentItems, drafts, audit } = report;
   if (!data) return null;
 
   const scoreRows = [
@@ -237,6 +266,8 @@ export function ReportInfographic({ report, href }: { report: Report; href: stri
           </ol>
         </Tile>
       )}
+
+      {audit && <TechnicalTile audit={audit} href={href} />}
 
       {(issues.length > 0 || ownStatement) && (
         <Tile href={href} view="answers">

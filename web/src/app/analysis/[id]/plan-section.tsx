@@ -27,6 +27,8 @@ export type FindingRow = {
   confidence: Level;
   owner_verdict: "pending" | "confirmed" | "rejected";
   owner_note: string | null;
+  // Measurements it cites (T1, S1, P1, …); empty for owner-provided and AI-inferred findings.
+  audit_refs?: string[];
 };
 export type PlanItemRow = {
   id: string;
@@ -61,6 +63,37 @@ const CONFIDENCE_TEXT: Record<Level, string> = { high: "High confidence", medium
 
 function Chip({ className, children }: { className: string; children: React.ReactNode }) {
   return <span className={`chip ${className}`}>{children}</span>;
+}
+
+// What a finding rests on: the measurements it cites, or a plain label that it is the AI's assessment.
+function FindingBasis({ provenance, refs }: { provenance: Provenance; refs: string[] }) {
+  if (provenance === "inferred") {
+    return <p className="mt-1 text-xs text-muted">Braventa&apos;s AI assessment, not a measured check. Worth confirming.</p>;
+  }
+  if (provenance !== "verified" || !refs.length) return null;
+  const checks = refs.filter((r) => r.startsWith("T"));
+  const parts: React.ReactNode[] = [];
+  if (checks.length) {
+    parts.push(
+      <Link key="t" href="?view=technical" scroll={false} className="text-accent hover:underline">
+        technical {checks.length === 1 ? "check" : "checks"} {checks.join(", ")}
+      </Link>,
+    );
+  }
+  if (refs.some((r) => r.startsWith("P"))) parts.push("Google PageSpeed");
+  if (refs.includes("S1")) parts.push("home page signals");
+  if (refs.includes("C1")) parts.push("crawl coverage");
+  return (
+    <p className="mt-1 text-xs text-muted">
+      Based on measured data:{" "}
+      {parts.map((p, i) => (
+        <span key={i}>
+          {i > 0 && ", "}
+          {p}
+        </span>
+      ))}
+    </p>
+  );
 }
 
 // The plan in the order the owner sees it: confirmed order once confirmed, otherwise the proposed order.
@@ -116,6 +149,7 @@ export function DiagnosisSection({
                   <span>{CONFIDENCE_TEXT[f.confidence]}</span>
                 </p>
                 <p className="mt-1 text-xs text-muted">{f.evidence}</p>
+                <FindingBasis provenance={f.provenance} refs={f.audit_refs ?? []} />
                 {proposed && !updating && (
                   <FindingReview findingId={f.id} verdict={f.owner_verdict} note={f.owner_note} />
                 )}
