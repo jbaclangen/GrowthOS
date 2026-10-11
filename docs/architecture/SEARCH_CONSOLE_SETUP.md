@@ -80,7 +80,7 @@ Use a different encryption key for local development and production. Check local
 
 ## 5. Apply the migration
 
-Apply `supabase/migrations/20261011210000_search_console.sql` to the Supabase project (`mlztvhvmsullvwawwamc`),
+Apply `supabase/migrations/20261011161133_search_console.sql` to the Supabase project (`mlztvhvmsullvwawwamc`),
 with the Supabase CLI (`supabase db push`) or the dashboard SQL editor, then run the security advisor. It creates
 `integration_connections` (the refresh-token column isn't readable by clients) and `search_console_snapshots`.
 
