@@ -20,7 +20,8 @@ export default function Privacy() {
       <h2>What we collect</h2>
       <h3>On this website (braventa.io)</h3>
       <ul>
-        <li>What you send through the contact form: name, email, business name, website and message, and whether you asked for product updates.</li>
+        <li>What you send through the contact form: name, email, business name, website and message, and whether you asked for product updates. It is stored in our database and in our CRM (HubSpot) so we can reply.</li>
+        <li>A one-way, salted code derived from your IP address, used only to limit how often the form can be sent. We don&apos;t store the IP address itself.</li>
         <li>This site sets no cookies and uses no analytics or advertising trackers.</li>
       </ul>
       <h3>In the app (app.braventa.io)</h3>

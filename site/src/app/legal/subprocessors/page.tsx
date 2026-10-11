@@ -12,6 +12,7 @@ const VENDORS = [
   { name: "Vercel", purpose: "Hosting for braventa.io and app.braventa.io", data: "Requests passing through the site and app" },
   { name: "OpenRouter", purpose: "Routes requests to AI models", data: "Website text, setup answers and business profile for each task" },
   { name: "Anthropic (via OpenRouter)", purpose: "AI models that analyze, plan and draft", data: "As above, for the task at hand" },
+  { name: "HubSpot", purpose: "Our CRM: receives contact-form requests, notifies our team and sends our replies", data: "What you send through the contact form" },
   { name: "Google (PageSpeed Insights API)", purpose: "Measures the speed and quality of the website you analyze", data: "The public website address" },
 ];
 
