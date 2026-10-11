@@ -9,7 +9,7 @@ Owner.com, Localo, Copy.ai, HighLevel); page copy lives in [WEBSITE_MESSAGING.md
 
 | Domain | Purpose | Built with | Status |
 |---|---|---|---|
-| `braventa.io` | Public marketing site: who we are, what Braventa does, pricing, trust, legal | Next.js in this repo, Vercel (D-031) | Planned |
+| `braventa.io` | Public marketing site: who we are, what Braventa does, pricing, trust, legal | Next.js in this repo, Vercel (D-031) | Deploying 2026-10-11 (Vercel `braventa-site`, hidden until launch) |
 | `app.braventa.io` | The product: sign-up, sign-in, onboarding, dashboard, plans | `web/` (this app), Vercel (D-011) | Built; not deployed |
 | `support.braventa.io` | Help center, capabilities, integrations and developer docs, legal — see [SUPPORT_SITE.md](../product/SUPPORT_SITE.md) | Next.js + Fumadocs in this repo, Vercel (D-031) | Planned |
 | `community.braventa.io` | User forum | Hosted forum platform (Q-017) | Future |
