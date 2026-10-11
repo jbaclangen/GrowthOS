@@ -42,6 +42,12 @@ connect is described as such in its copy. Badges come from `StatusBadge` in `sit
 | Content Studio (30-day plan, five drafts, approve/reject) | Live, gaps named (rest of plan stays as topics; no editing or publishing) | `website-intel.ts`, `setContentStatus` |
 | Website Intelligence | Limited (up to 6 pages, mobile PageSpeed, crawl signals) | `web/src/lib/integrations/crawler.ts`, `google.ts` |
 | CRM Intelligence, Automation, Analytics | Coming soon | nothing user-facing |
+| Connect your AI assistant (MCP) — Claude Desktop and Claude Code | Live once the MCP PR merges; every plan during the trial, then any subscribed plan | MCP phase 1 (`/api/mcp`); claude.ai and ChatGPT connectors Coming soon |
+
+**AI assistant connection copy rules:** say "connect your AI assistant" (not the Coming soon "AI assistant" feature in
+`tiers.ts`, which is an in-app assistant). It fills in setup and discovery and reports status; the owner still confirms
+the diagnosis and approves posts in the app; it can't publish. Keys are shown once, stored as a hash, show last use, and
+can be revoked. After the trial, access pauses until the business subscribes; don't imply self-serve checkout.
 
 ### Onboarding claims (verified against `web/src/app/onboarding/**`, `web/src/lib/onboarding/**`)
 True today: website URL plus optional goal, service area and tools; pick pain points from nine areas or describe them

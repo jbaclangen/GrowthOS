@@ -69,6 +69,14 @@ export default function AiUse() {
             Text read from websites is fenced off as data, and the models are told never to follow instructions found in
             it. Your password and payment details are never sent to an AI model.
           </p>
+          <h2>Connecting your own AI assistant</h2>
+          <p>
+            You can choose to let an AI assistant you already use (today Claude Desktop or Claude Code) fill in your setup
+            and discovery answers. It uses a personal access key you create in the app, which you can revoke at any time.
+            What it sends is treated like answers you type, and it gets back a short summary: your growth score, top
+            priorities and a link to your report. Your assistant&apos;s provider processes that summary under your own
+            account and terms. The assistant can&apos;t publish anything, confirm the diagnosis or approve posts.
+          </p>
           <h2>What AI does not do</h2>
           <ul>
             <li>It doesn&apos;t publish, send or change anything for your business.</li>

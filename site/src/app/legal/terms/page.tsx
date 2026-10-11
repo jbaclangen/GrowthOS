@@ -17,6 +17,10 @@ export default function Terms() {
         <li>Braventa drafts and recommends. Nothing is published or changed for your business without your approval.</li>
         <li>AI-generated analysis and drafts can be wrong; check them before you act on or approve them.</li>
         <li>We don&apos;t promise specific results such as revenue, leads or rankings.</li>
+        <li>
+          If you connect an AI assistant, keep its access key private and revoke it in the app if it may have been
+          exposed. An assistant can fill in your setup, but it can&apos;t publish anything or approve work for you.
+        </li>
       </ul>
       <p>
         Questions about the terms of your early access? <Link href="/contact">Contact us</Link>.

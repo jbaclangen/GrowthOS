@@ -115,6 +115,11 @@ export default function HowItWorks() {
             </li>
           ))}
         </ol>
+        <p className="mt-8 max-w-3xl text-sm text-muted">
+          Already work on your business in Claude? With Claude Desktop or Claude Code, your assistant can fill in these
+          steps for you using a personal access key from the app. You still confirm the diagnosis and approve posts in
+          Braventa. Connectors for claude.ai and ChatGPT are coming soon.
+        </p>
       </Band>
 
       <Band tone="surface" labelledBy="analysis-title">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DraftNotice } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -42,6 +43,11 @@ export default function Subprocessors() {
           </tbody>
         </table>
       </div>
+      <p>
+        If you connect your own AI assistant to Braventa (for example, Claude Desktop), its provider processes what your
+        assistant receives under your own account and terms. It acts for you and isn&apos;t a Braventa sub-processor. See{" "}
+        <Link href="/legal/privacy">Privacy</Link>.
+      </p>
     </>
   );
 }

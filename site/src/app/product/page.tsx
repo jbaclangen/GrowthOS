@@ -18,6 +18,7 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
       "Reads your home page and up to five key pages",
       "Services, customers, locations, brand voice, strengths, gaps and likely competitors",
       "Guided discovery: pick common problems or describe them in your own words, rank your top three, and answer follow-up questions chosen for your answers",
+      "Optional: let Claude Desktop or Claude Code fill in discovery for you with a personal access key",
     ],
     why: "Everything Braventa recommends or drafts starts from this profile, so it's about your business, not a template.",
   },
