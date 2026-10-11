@@ -46,8 +46,8 @@ Supabase is the system of record; a HubSpot failure is logged in Vercel and neve
 | HubSpot subscription | **Starter Customer Platform** (Marketing Hub Starter: marketing email, customizable forms) bought by the founder 2026-10-11, monthly |
 | Branded HubSpot sending domain `braventa.io` (from `hello@braventa.io`): DKIM CNAMEs `hs1-247150427._domainkey` → `braventa-io.hs06a.dkim.hubspotemail.net`, `hs2-247150427._domainkey` → `braventa-io.hs06b.dkim.hubspotemail.net`; SPF merged to `v=spf1 include:_spf.mail.hostinger.com include:247150427.spf05.hubspotemail.net ~all` (one SPF record only); existing DMARC kept | Done 2026-10-11: HubSpot shows braventa.io as **Authenticated** |
 | Custom contact properties `braventa_request_type` (Early access / Walkthrough / Question) and `braventa_product_updates` (Yes/No), added to the form as hidden fields and sent by `site/src/lib/hubspot.ts` | Done 2026-10-11 |
-| Email footer (company name + postal address, required by HubSpot and anti-spam law for every marketing email) | **Blocked:** founder will use the US LLC address once registered; footer name for now "Pixel Marketing Design". HubSpot won't save a footer without an address |
-| Automatic "we got your message" email (copy in §6) | Blocked on the footer. Then: form → Automation → send follow-up email from hello@braventa.io |
+| Email footer (company name + postal address, required by HubSpot and anti-spam law for every marketing email) | Done 2026-10-11 as a placeholder: "Pixel Marketing Design, Unit B-C 205 Teachers Village Road, Baguio City, Benguet 2600, Philippines" (the address already in HubSpot). Replace with Braventa and the US LLC address once registered |
+| Automatic "we got your message" email (copy in §6) | To do: form → Automation → send follow-up email from hello@braventa.io |
 
 **Marketing consent:** the consent record for D-014 is `contact_requests.marketing_opt_in` in Supabase, mirrored to
 HubSpot as `braventa_product_updates`. Newsletters and other marketing email go only to contacts where it is Yes; the
@@ -67,7 +67,7 @@ submissions arrive normally. Don't add a `pageUri` back unless the HubSpot track
 The raw IP is never stored: `ip_hash` is HMAC-SHA256(IP, `CONTACT_HASH_SALT`). HubSpot is listed on
 `/legal/subprocessors`, and the privacy page says contact-form data is stored in Supabase and HubSpot.
 
-## 6. Automatic reply copy (ready; not live)
+## 6. Automatic reply copy
 
 Founder chose "factual + what's live" (2026-10-11). Only describe what the app does today (CLAUDE.md "Live today");
 no timelines or guarantees. Use HubSpot personalization tokens for the first name.
