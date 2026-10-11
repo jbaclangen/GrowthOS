@@ -386,3 +386,18 @@ Benefit Link's. The bullet below about a separate account is superseded by this 
 - **Privacy:** information the assistant sends is stored like form answers; the status summary returns into the owner's
   own assistant under their own account with that provider. Legal pages disclose it.
 - Spec: [MCP_SERVER.md](../architecture/MCP_SERVER.md). Website copy for it: PR #19, second commit.
+
+## D-038 — Website audit Phase 1: robots.txt respected, deterministic checks, cited evidence
+**Status:** Founder (2026-10-11, in chat): build Phase 1 of the Website Intelligence blueprint; respect robots.txt and
+tell the owner about it.
+- The crawler reads robots.txt (groups for `Braventa` and `*`, RFC 9309) and never fetches a disallowed URL, the home
+  page included. Blocked pages are listed in the report; a blocked home page means the analysis runs on PageSpeed and
+  the owner's answers only, with instructions to allow `User-agent: Braventa`.
+- Up to 25 pages from the sitemap and links; every candidate recorded as scanned, excluded (reason) or failed.
+- Checks are deterministic code with stable rule ids, severity, confidence and a code-computed priority label
+  (Fix first / Improve next / Monitor), stored in `audit_runs` / `audit_findings`. PageSpeed runs mobile and desktop
+  and keeps real-user (field) data apart from lab data.
+- A diagnosis finding counts as Verified only when it cites a stored audit finding; otherwise it is stored as inferred.
+- Abuse guard: at most 10 analyses or re-runs per organization per 24 hours (web and AI assistant), one at a time
+  per business.
+- Spec: [WEBSITE_INTELLIGENCE_GAP_REPORT.md](../product/WEBSITE_INTELLIGENCE_GAP_REPORT.md) §5 (on PR #22).

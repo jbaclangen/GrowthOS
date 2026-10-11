@@ -144,7 +144,7 @@ export async function loadReport(supabase: SupabaseClient, id: string) {
       diagnosis
         ? supabase
             .from("diagnosis_findings")
-            // "*" so the page keeps working before the audit_refs column (20261011200000_website_audit) exists.
+            // "*" so the page keeps working before the audit_refs column (20261011160802_website_audit) exists.
             .select("*")
             .eq("diagnosis_id", diagnosis.id)
             .order("position")

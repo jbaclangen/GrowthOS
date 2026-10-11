@@ -29,11 +29,9 @@ of record (see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)); security impli
 | `20261011140425_mcp_access.sql` | Tables `mcp_access_keys` and `mcp_tool_calls` (D-036); `upgrade_requests.tier` also allows `basic` |
 | `20261010164133_diagnosis_and_plan.sql` | Tables `diagnoses`, `diagnosis_findings`, `growth_plan_items` (ON-7, ON-8, MS-5): RLS read and update for members, no client inserts or deletes, and column grants so owners can change only verdicts, notes, statuses, confirmation and final priority; same-organization composite FKs |
 
-| `20261011200000_website_audit.sql` | **Not yet applied.** Tables `audit_runs` and `audit_findings` (Website Intelligence Phase 1): M-read, no client writes (pipeline writes with the admin client scoped to the job's organization), same-organization composite FKs; adds `diagnosis_findings.audit_refs text[]`. Rename to the version Supabase records when it is applied |
+| `20261011160802_website_audit.sql` | Tables `audit_runs` and `audit_findings` (Website Intelligence Phase 1): M-read, no client writes (pipeline writes with the admin client scoped to the job's organization), same-organization composite FKs; adds `diagnosis_findings.audit_refs text[]` |
 
-All files above except `20261011200000_website_audit.sql` are applied to the Supabase project. Apply that one
-before deploying the code that uses it: the pipeline writes `diagnosis_findings.audit_refs` (audit-run writes
-are best effort and only logged if the tables are missing). Local file names match the versions recorded there
+All files above are applied to the Supabase project. Local file names match the versions recorded there
 (`list_migrations`); name new files with the version the project records, or apply them with the
 Supabase CLI so the two stay in step.
 
