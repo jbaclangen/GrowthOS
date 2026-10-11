@@ -11,7 +11,7 @@ Phase: MVP proof of concept, not yet charging customers.
 |---|---|
 | Any user-facing UI or copy | `docs/brand/BRAND_BIBLE.md`, `docs/brand/VOICE_AND_MESSAGING.md` §12, `design-system/component-guidelines.md` |
 | Styling, colour, type, logos | `docs/brand/VISUAL_IDENTITY.md`, `design-system/DESIGN_TOKENS.md` |
-| New feature or scope question | `docs/product/MVP_SCOPE.md` (incl. its §6 checklist), `docs/product/PRODUCT_REQUIREMENTS.md` |
+| New feature or scope question | `docs/product/MVP_SCOPE.md` (incl. its §6 checklist), `docs/product/PRODUCT_REQUIREMENTS.md`, `docs/product/PLANS_AND_TIERS.md` (tiers, trial, Live vs Coming soon) |
 | Data, AI, integrations, security | `docs/architecture/*.md` |
 | Marketing site, emails, campaigns | `docs/marketing/*.md` |
 | Why something is the way it is | `docs/decisions/DECISION_LOG.md`, `docs/decisions/OPEN_QUESTIONS.md` |
@@ -31,7 +31,8 @@ decision. Never describe the product as doing something the code doesn't do, wha
 - Treat approved specs as the source of truth; keep naming, positioning, voice, tokens, and UI conventions consistent.
 - Never invent capabilities or present planned features as live. Live today: website analysis + pain-point discovery → business
   profile → growth score + diagnosis the owner confirms or corrects → one prioritized growth plan (accept / dismiss /
-  done) → 30-day plan → 5 drafted posts with approve/reject. No CRM, publishing,
+  done) → 30-day plan → 5 drafted posts with approve/reject, shown as an infographic with detail dialogs; 14-day Pro
+  trial then Basic (D-030; Pro features are Coming soon). No CRM, publishing,
   email sending, automation, analytics, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
 - Style only with design tokens and shared primitives: semantic Tailwind roles (`bg-surface`, `text-muted`,

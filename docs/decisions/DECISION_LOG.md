@@ -127,13 +127,13 @@ Content Studio, Website Intelligence, CRM Intelligence, Automation, Analytics). 
 they add learning cost for owner-operators and age badly.
 
 ## D-011 — Hosting split
-**Status:** Founder (2026-10-10 infrastructure session). App: Vercel (Hobby tier during the proof of
+**Status:** Founder (2026-10-10 infrastructure session). Marketing-site hosting superseded by D-031 (2026-10-11): braventa.io is built in this repo on Vercel; Hostinger remains registrar and DNS. App: Vercel (Hobby tier during the proof of
 concept) at `app.braventa.io`. Marketing site: `braventa.io`, Hostinger, built later. The brief's
 "Hostinger" line refers to the marketing site, so there is no conflict. n8n host: see
 [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md) Q-006.
 
 ## D-012 — Pricing not decided
-**Status:** Founder (brief §4). Documentation may describe a pricing *framework* with clearly labelled
+**Status:** Founder (brief §4). Tier structure and entitlements superseded by D-030 (2026-10-11); prices remain undecided. Documentation may describe a pricing *framework* with clearly labelled
 assumptions; it must not publish prices or entitlements.
 
 ## D-013 — Human approval by default
@@ -309,3 +309,34 @@ ON-1 – ON-8 in [PRODUCT_REQUIREMENTS.md](../product/PRODUCT_REQUIREMENTS.md).
   reorder items yet (Q-027).
 - **Tracking.** MS-5 statuses (open, accepted, dismissed, done) live on `growth_plan_items` and can be changed once
   the plan is confirmed. Owners can update only review and status columns (column grants); the pipeline writes the rest.
+
+## D-030 — Subscription tiers and the 14-day Pro trial
+**Status:** Founder (2026-10-11, in chat). Supersedes D-012 for tier structure; prices stay undecided.
+- **Basic:** business intelligence, marketing audit, recommendations, AI assistance and recommendations for actions.
+  Braventa recommends; the owner carries out changes manually.
+- **Pro:** Basic plus a full marketing audit (website, SEO, SEM, social media, email, video), integrations with the
+  owner's tools (GA4, Search Console, Tag Manager, Canva, HeyGen or Higgsfield, social accounts, WordPress), and AI
+  agents (n8n workflows and/or Opus-assisted execution) that carry out recommended fixes inside the app.
+- **Premium (custom):** Pro plus custom integrations such as e-commerce platforms, QuickBooks or Xero.
+- **Trial:** every new organization gets 14 days of Pro, then Basic automatically.
+- **Founder choices on implementation (same day):** build the trial clock and tier checks now without billing; a
+  trial that ends drops to Basic, and upgrading is a "Talk to us" request until billing exists; Pro and Premium
+  features not yet built are shown as "Coming soon".
+- **Constraints kept:** agents never act without the owner's approval (D-013); no feature is marked live before it
+  ships. Details: [PLANS_AND_TIERS.md](../product/PLANS_AND_TIERS.md). Implementation: `organizations.plan`,
+  `organizations.trial_ends_at`, `upgrade_requests`, `web/src/lib/plans/`.
+
+## D-031 — Domains and where the public sites are built
+**Status:** Founder (2026-10-11, in chat). Supersedes D-011's marketing-site hosting.
+- `braventa.io`: public marketing site. `app.braventa.io`: the app, registration and sign-in.
+  `support.braventa.io`: documentation (how to use the app; what it can and can't do; integrations and developer
+  tools; legal). `community.braventa.io`: user forum, future.
+- braventa.io and support.braventa.io are built with Next.js in this repository and deployed on Vercel, sharing the
+  design system. Recommended docs framework: Fumadocs (provisional). Hostinger stays registrar and DNS.
+- Page lists: [SITEMAP.md](../marketing/SITEMAP.md) and [SUPPORT_SITE.md](../product/SUPPORT_SITE.md).
+
+## D-032 — Results as an infographic with detail dialogs
+**Status:** Founder (2026-10-11, in chat). The analysis report opens as a one-screen infographic summary (growth
+score ring, score bars, findings by evidence type, plan progress, what you told us, profile, content plan, drafts);
+each tile opens the full section in a modal dialog addressed by `?view=`. The dashboard shows the latest analyzed
+business this way.

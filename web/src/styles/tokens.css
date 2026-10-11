@@ -99,6 +99,7 @@
   --background: #F4F4F1;
   --surface: #FFFFFF;
   --surface-muted: #EDEDE9;
+  --overlay: rgb(11 12 16 / 0.5);
   --foreground: #0B0C10;
   --muted: #61646E;
   --border: #E2E2DD;
@@ -129,6 +130,7 @@
     --background: #0B0C10;
     --surface: #13151A;
     --surface-muted: #1B1D23;
+    --overlay: rgb(0 0 0 / 0.65);
     --foreground: #F1F1EE;
     --muted: #9A9DA6;
     --border: #262830;
@@ -159,6 +161,7 @@
   --background: #0B0C10;
   --surface: #13151A;
   --surface-muted: #1B1D23;
+  --overlay: rgb(0 0 0 / 0.65);
   --foreground: #F1F1EE;
   --muted: #9A9DA6;
   --border: #262830;
@@ -189,6 +192,7 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
+  --color-overlay: var(--overlay);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);

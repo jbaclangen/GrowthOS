@@ -175,8 +175,8 @@ export function PlanSection({ items, confirmed }: { items: PlanItemRow[]; confir
                   Addresses: {item.pain_point_ids.map((id) => painPointLabel(id)).join("; ")}
                 </p>
               )}
-              <p className="mt-2 text-sm text-muted">{item.why}</p>
-              <p className="mt-2 text-sm">
+              <p className="mt-2 whitespace-pre-line text-sm text-muted">{item.why}</p>
+              <p className="mt-2 whitespace-pre-line text-sm">
                 <span className="font-medium">First step: </span>
                 {item.first_action}
               </p>
@@ -200,7 +200,7 @@ export function PlanSection({ items, confirmed }: { items: PlanItemRow[]; confir
                     </p>
                   )}
                   {notYet.length > 0 && (
-                    <p className={available.length ? "mt-1" : ""}>
+                    <p className={`whitespace-pre-line ${available.length ? "mt-1" : ""}`}>
                       <span className="font-medium">Not in Braventa yet: </span>
                       {notYet.map((s) => s.label).join(", ")}.{" "}
                       {item.manual_alternative || "Use your own tools or a specialist for this part."}
@@ -231,19 +231,22 @@ export function DoThisFirst({
   diagnosis,
   items,
   draftsWaiting,
+  href,
 }: {
   diagnosis: DiagnosisRow;
   items: PlanItemRow[];
   draftsWaiting: number;
+  // The results page; each next step opens its report section (?view=).
+  href: string;
 }) {
   const confirmed = diagnosis.status === "confirmed";
   const top = sortedPlan(items, confirmed).find((i) => i.status === "proposed" || i.status === "accepted");
   const next = !confirmed
-    ? { text: "Check the diagnosis and confirm your plan", href: "#diagnosis" }
+    ? { text: "Check the diagnosis and confirm your plan", href: `${href}?view=diagnosis` }
     : draftsWaiting > 0
-      ? { text: `Review ${draftsWaiting} draft${draftsWaiting === 1 ? "" : "s"} waiting for your approval`, href: "#drafts" }
+      ? { text: `Review ${draftsWaiting} draft${draftsWaiting === 1 ? "" : "s"} waiting for your approval`, href: `${href}?view=drafts` }
       : top
-        ? { text: `Start on: ${top.title}`, href: "#plan" }
+        ? { text: `Start on: ${top.title}`, href: `${href}?view=plan` }
         : null;
 
   return (
@@ -254,7 +257,7 @@ export function DoThisFirst({
           <h2 id="do-first-title" className="mt-1 font-semibold">
             {top.title}
           </h2>
-          <p className="mt-1 text-sm">
+          <p className="mt-1 whitespace-pre-line text-sm">
             <span className="font-medium">First step: </span>
             {top.first_action}
           </p>
@@ -272,7 +275,7 @@ export function DoThisFirst({
         </li>
       </ul>
       {next && (
-        <Link href={next.href} className="btn-primary mt-3">
+        <Link href={next.href} scroll={false} className="btn-primary mt-3">
           {next.text}
         </Link>
       )}
