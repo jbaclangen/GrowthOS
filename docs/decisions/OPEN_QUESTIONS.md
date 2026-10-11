@@ -49,3 +49,4 @@ validation; **P3** can wait.
 | Q-022 | Yes — optional guided onboarding questions are in the MVP (BI-12) | D-021 |
 | Q-023 | Yes — opportunity tracking (MS-5) and "do this first" (UX-1) are in the MVP | D-022 |
 | Q-018 | Yes — `advisor_fixes` is applied (remote version 20261010061126); local migration files renamed to match the recorded versions | — |
+| Q-039 | P2 | When to build MCP phase 2: OAuth sign-in so claude.ai and ChatGPT connectors can connect, and whether to add read-only tools for the plan and drafts | Phase 1 (D-036) needs a pasted key and works only with Claude Code and Claude Desktop | Build after real owners use phase 1; keep keys for developer tools |

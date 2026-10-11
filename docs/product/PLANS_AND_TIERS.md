@@ -33,6 +33,7 @@ public page (CLAUDE.md: never present planned features as live).
 | Prioritized growth plan (accept / dismiss / done) | Basic | Live |
 | 30-day content plan and drafted posts with approval | Basic | Live |
 | AI assistant | Basic | Coming soon (D-020) |
+| Connect your AI assistant (MCP): Claude fills in onboarding (D-036) | Basic | Live — every plan during the trial; paused after it until the business is on a plan |
 | Full marketing audit (SEO, search ads, social, email, video) | Pro | Coming soon |
 | Analytics connections: GA4, Search Console, Tag Manager | Pro | Coming soon |
 | Creative tool connections: Canva, HeyGen, Higgsfield | Pro | Coming soon |

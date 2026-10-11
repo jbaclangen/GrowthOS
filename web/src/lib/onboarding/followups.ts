@@ -217,16 +217,33 @@ export type FollowUpUpdate = { id: string; status: "answered" | "skipped" | "not
 
 // The answers to one round. A blank answer means skipped; nothing is required.
 export function parseFollowUpForm(formData: FormData, pending: Pending[]): { data: FollowUpUpdate[] } | { error: string } {
+  return validateFollowUps(
+    pending.map((p) => ({
+      id: p.id,
+      answer: String(formData.get(`answer:${p.id}`) ?? ""),
+      notApplicable: Boolean(formData.get(`na:${p.id}`)),
+    })),
+    pending,
+  );
+}
+
+export type RawAnswer = { id: string; answer?: string | null; notApplicable?: boolean };
+
+// Shared by the form and the AI assistant connection (MCP). Every pending question gets a status; a question
+// without an answer is skipped. Answers for questions that aren't pending are ignored.
+export function validateFollowUps(answers: RawAnswer[], pending: Pending[]): { data: FollowUpUpdate[] } | { error: string } {
+  const byId = new Map(answers.map((a) => [a.id, a]));
   const out: FollowUpUpdate[] = [];
   for (const p of pending) {
     const q = getQuestion(p.painPointId, p.key);
-    const raw = String(formData.get(`answer:${p.id}`) ?? "").trim();
-    if (raw === NOT_APPLICABLE || formData.get(`na:${p.id}`)) {
+    const given = byId.get(p.id);
+    const raw = String(given?.answer ?? "").trim();
+    if (raw === NOT_APPLICABLE || given?.notApplicable) {
       out.push({ id: p.id, status: "not_applicable", answer: null });
     } else if (!raw || !q) {
       out.push({ id: p.id, status: "skipped", answer: null });
     } else if (q.type === "choice" && !q.choices.some((c) => c.value === raw)) {
-      return { error: "One of the answers isn't a valid option. Reload the page and try again." };
+      return { error: "One of the answers isn't one of the options offered. Choose one of the listed options." };
     } else if (raw.length > MAX_ANSWER) {
       return { error: `Keep each answer under ${MAX_ANSWER} characters.` };
     } else {

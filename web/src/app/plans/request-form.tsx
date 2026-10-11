@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { requestUpgrade, type RequestState } from "./actions";
 
-export function RequestForm({ tier, label }: { tier: "pro" | "premium"; label: string }) {
+export function RequestForm({ tier, label }: { tier: "basic" | "pro" | "premium"; label: string }) {
   const [state, action, pending] = useActionState<RequestState, FormData>(requestUpgrade.bind(null, tier), undefined);
 
   if (state?.sent) {

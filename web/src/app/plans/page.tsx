@@ -84,7 +84,10 @@ async function Plans() {
                 ))}
               </ul>
 
-              {tier !== "basic" && !current && access && <RequestForm tier={tier} label={TIERS[tier].label} />}
+              {access && (tier === "basic" ? access.stored === "trial" && !trial?.active : !current) && (
+                // After the trial, Basic is also a plan to sign up for (D-036): it brings back the AI assistant connection.
+                <RequestForm tier={tier} label={TIERS[tier].label} />
+              )}
             </section>
           );
         })}

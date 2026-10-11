@@ -64,6 +64,10 @@ recorded only the successful run's 4 calls: failed calls and latency are not log
 ([AI_ROUTING_AND_COSTS.md](../architecture/AI_ROUTING_AND_COSTS.md)). Comparison with the product vision:
 [IMPLEMENTATION_ASSESSMENT_2026-10-10.md](IMPLEMENTATION_ASSESSMENT_2026-10-10.md).
 
+**AI assistant connection (D-036, phase 1):** an MCP server at `/api/mcp` lets Claude Code or Claude Desktop fill in
+onboarding with a personal access key from Settings → AI assistant access. See
+[MCP_SERVER.md](../architecture/MCP_SERVER.md). claude.ai and ChatGPT connectors are not built (Q-039).
+
 **Exists in the schema or code, but is not a feature:** `campaigns`, `knowledge_chunks` and
 `match_knowledge` (no embeddings written), `integrations` (no connections), `subscriptions` (no
 billing), `platform_admins` (no admin UI), content states `draft`, `in_qa`, `scheduled`, `published`

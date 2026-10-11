@@ -10,10 +10,15 @@ export const MAX_AI_MATCHES = 5;
 export type Discovery = { painPointIds: string[]; statement: string | null };
 
 export function parseDiscoveryForm(formData: FormData): { data: Discovery } | { error: string } {
-  const painPointIds = [...new Set(formData.getAll("painPoints").map(String))].filter(isActivePainPointId);
+  return validateDiscovery(formData.getAll("painPoints").map(String), String(formData.get("statement") ?? ""));
+}
+
+// Shared by the form and the AI assistant connection (MCP): unknown IDs are dropped, as in the form.
+export function validateDiscovery(ids: string[], rawStatement: string): { data: Discovery } | { error: string } {
+  const painPointIds = [...new Set(ids)].filter(isActivePainPointId);
   if (painPointIds.length > MAX_SELECTED) return { error: `Choose up to ${MAX_SELECTED} issues` };
 
-  const statement = String(formData.get("statement") ?? "").trim();
+  const statement = rawStatement.trim();
   if (statement.length > MAX_STATEMENT) return { error: `Keep your description under ${MAX_STATEMENT} characters` };
 
   if (!painPointIds.length && !statement) {
@@ -55,15 +60,24 @@ export type Review = { confirmedIds: string[]; priorities: string[] };
 
 // The review step: which candidates the owner keeps, and their top three in order.
 export function parseReviewForm(formData: FormData, candidateIds: string[]): { data: Review } | { error: string } {
+  return validateReview(
+    formData.getAll("confirm").map(String),
+    ["priority1", "priority2", "priority3"].map((key) => String(formData.get(key) ?? "")),
+    candidateIds,
+  );
+}
+
+// Shared by the form and the AI assistant connection (MCP). Priorities are in order; blanks are ignored.
+export function validateReview(keep: string[], ranked: string[], candidateIds: string[]): { data: Review } | { error: string } {
   const candidates = new Set(candidateIds);
-  const confirmedIds = [...new Set(formData.getAll("confirm").map(String))].filter((id) => candidates.has(id));
+  const confirmedIds = [...new Set(keep)].filter((id) => candidates.has(id));
   if (!confirmedIds.length) {
     return { error: "Keep at least one issue, or go back and describe what's holding the business back." };
   }
+  if (ranked.filter(Boolean).length > 3) return { error: "Choose up to three priorities." };
 
   const priorities: string[] = [];
-  for (const key of ["priority1", "priority2", "priority3"]) {
-    const id = String(formData.get(key) ?? "");
+  for (const id of ranked) {
     if (!id) continue;
     if (!confirmedIds.includes(id)) return { error: "Choose priorities from the issues you kept." };
     if (priorities.includes(id)) return { error: "Choose a different issue for each priority." };
