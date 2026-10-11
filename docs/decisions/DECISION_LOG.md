@@ -434,3 +434,29 @@ tell the owner about it.
 - Abuse guard: at most 10 analyses or re-runs per organization per 24 hours (web and AI assistant), one at a time
   per business.
 - Spec: [WEBSITE_INTELLIGENCE_GAP_REPORT.md](../product/WEBSITE_INTELLIGENCE_GAP_REPORT.md) §5 (on PR #22).
+
+## D-039 — Prices: 1.5× over the market, every tier
+**Status:** Founder (2026-10-12, in chat). Supersedes the open price question in D-012 and Q-029.
+- Basic **$89**, Pro **$229**, Premium **from $599** a month; yearly = 10 months. Pro launches at $229 (no lower launch
+  price). Prices cover about $1,200 a month of fixed platform and maintenance costs and carry a 1.5× premium over
+  market-comparable tools as the reserve for scaling. AI credits and top-ups follow the same premium.
+- Not built: there is no billing yet. Site copy shows prices only once checkout exists or with "Talk to us".
+- Detail: [PRICING_PROPOSAL.md](../product/PRICING_PROPOSAL.md).
+
+## D-040 — Card-required trial that continues on Basic (public launch)
+**Status:** Founder (2026-10-12, in chat). Applies at the public launch (planned end of October 2026), not to the
+private test with about 3 invited accounts.
+- Sign-up collects a card for the 14-day trial; nothing is charged during it. The account continues on Basic unless
+  the owner opts out before the trial ends; opting out is one click online.
+- Reminder emails 5, 3 and 1 day before the trial ends. The terms are stated at sign-up, with an explicit agreement
+  checkbox; counsel reviews them against auto-renewal laws (Q-032).
+- Needs Stripe and transactional email, neither built yet. Detail: PRICING_PROPOSAL.md §5.
+
+## D-041 — Pro integrations: connect during discovery, act with approval
+**Status:** Founder (2026-10-12, in chat). Planned, build from the weekend of 2026-10-17.
+- Discovery asks Pro owners (and the Pro trial) to connect their tools: Google Search Console (live), GA4, HubSpot
+  (read-only for analysis), Canva, HeyGen, Higgsfield, social accounts and Google Business Profile. Read scopes first;
+  write and publish scopes only when the owner enables an action.
+- Pro then creates, publishes and manages content in those tools from the growth plan, each action approved by the
+  owner (D-013), executed by n8n. Basic sees the connections as Pro and paused.
+- Detail: [INTEGRATIONS_ROADMAP.md](../product/INTEGRATIONS_ROADMAP.md).

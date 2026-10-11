@@ -1,7 +1,8 @@
 # Braventa — plans, tiers and the trial
 
 **Status / last reviewed: 2026-10-11.** Tier structure and trial rules are a founder decision (D-030).
-Prices are not decided (D-012 still applies to prices). The source of truth in code is
+Prices are decided but not built (D-039: Basic $89, Pro $229, Premium from $599 a month; no billing yet, see
+[PRICING_PROPOSAL.md](PRICING_PROPOSAL.md)). Card-required trial at public launch: D-040. The source of truth in code is
 `web/src/lib/plans/tiers.ts`; this document must match it.
 
 ## 1. Tiers

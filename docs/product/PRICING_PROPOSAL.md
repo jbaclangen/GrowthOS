@@ -1,7 +1,8 @@
 # Pricing and AI credit proposal (v2)
 
-**Status:** proposal for the founder (v2, 2026-10-12), answers Q-029 once approved. Nothing here is built or
-published; prices stay open until a decision is logged. Tiers and trial rules are D-030.
+**Status:** prices and the 1.5× premium **decided by the founder (2026-10-12, D-039)**; credits, top-ups and the
+card-required trial are the plan for the public launch (end of October 2026). Nothing here is built yet: no billing,
+no credits, no card collection. Tiers are D-030.
 
 **What changed from v1 (founder, 2026-10-12):** prices now cover fixed platform and maintenance costs, recover the
 cost of free trials at launch, and carry a **1.5× premium** over market-comparable prices, because no direct
@@ -71,7 +72,7 @@ to a standard price point.
 | **Basic** | $59 | **$89/month** | $890/year | 1,500 (about 25 analyses) |
 | **Pro** | $149 | **$229/month** | $2,290/year | 6,000 |
 | **Premium** | from $399 | **from $599/month**, quoted | quoted | 20,000+, set per contract |
-| **Trial** | free | **free, 14 days, no card** | — | 500 (about 8 analyses) |
+| **Trial** | free | **free, 14 days; card required at public launch (§5)** | — | 500 (about 8 analyses) |
 
 Optional: a **one-time Premium setup fee from $1,500** for custom integrations, since each one is built per customer.
 
@@ -86,8 +87,9 @@ the $75 trial cost in month one and covers about 60% of fixed costs; 2–3 more 
 
 **Market fit check:** Basic at $89 sits below the SEO suites ($100–140) while adding the diagnosis, the plan and drafts.
 Pro at $229 is level with Semrush Guru and Ahrefs Standard (~$250). Premium from $599 is well under an agency retainer.
-Pro's price is honest only as Pro features go live; today Pro adds the Search Console connection, so consider
-**launching Pro at $179** until agents and more connections ship, then moving to $229.
+Pro launches at **$229** (founder, 2026-10-12). Pro's live features today are the Search Console connection and the
+full trial experience; the Pro integrations in [INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) are what grow its value,
+so site copy must keep marking the rest Coming soon until each ships.
 
 ## 4. AI credits
 
@@ -111,7 +113,27 @@ a correction about 25. Owners see "credits left (about N analyses)", never model
 
 Always keep an owner-set cap and email a receipt for every automatic charge; uncapped charging leads to disputes.
 
-## 5. What it takes to build
+## 5. Trial with a card (public launch)
+
+Founder decision (2026-10-12, D-040), **for the public launch only**; the private test period stays as it is.
+
+- Sign-up asks for a card, even for the free 14-day trial. Nothing is charged during the trial.
+- When the trial ends, the account **continues on Basic ($89/month) automatically** unless the owner opts out before
+  it ends. Opting out is one click in Plans or the billing portal, with no call or email needed.
+- Reminder emails **5, 3 and 1 day** before the trial ends, each with the date, the price, and a direct opt-out link.
+- The sign-up page states this plainly next to the card field and the button: the trial length, that Basic starts
+  automatically at $89/month, the reminder emails, and how to opt out. The owner ticks a box to agree.
+- This is an automatic-renewal offer: US state auto-renewal laws (for example California's) require clear
+  disclosure before purchase, affirmative consent, an acknowledgment email and easy online cancellation. Counsel
+  reviews the sign-up text, Terms and emails before launch (Q-032).
+- Needs: Stripe (SetupIntent at sign-up, subscription with `trial_end`), transactional email for the reminders and
+  the acknowledgment (none is built today), and the opt-out flow.
+
+**Until the public launch (now to end of October):** about 3 tester accounts from people the founder knows, invited
+directly, no card, the current 14-day Pro trial. The Braventa team can extend a tester's trial or set their plan in
+the database.
+
+## 6. What it takes to build
 1. **Vercel Pro** before the first paid customer (Hobby is non-commercial).
 2. **Billing (Stripe):** Checkout for subscriptions, Customer Portal for card and cancellation, webhooks that set
    `organizations.plan`; off-session payments for auto-recharge.
@@ -122,10 +144,12 @@ Always keep an owner-set cap and email a receipt for every automatic charge; unc
 5. **Legal:** Terms need billing, renewal, cancellation, refund and credit-expiry terms before charging (material
    change, needs counsel, Q-032).
 
-## 6. Decisions for the founder
-1. Prices: Basic $89, Pro $229 (or $179 at launch), Premium from $599?
-2. Is the 1.5× meant across all tiers (as above), or only for Premium (Premium = 1.5× Pro = **$344**, rounded **$349**)?
-3. Maintenance allowance of $1,000 a month in the cost base: right number?
-4. Trial without a card, capped at 500 credits?
-5. Premium setup fee from $1,500?
-6. Top-ups $25 / $50 and auto-recharge with an owner-set cap (default $100)?
+## 7. Decisions
+**Decided (founder, 2026-10-12):** the 1.5× premium applies to every tier; Basic $89, Pro $229 from launch (no lower
+launch price), Premium from $599; card-required trial converting to Basic with 5/3/1-day reminders at public launch.
+
+**Still open:**
+1. Maintenance allowance of $1,000 a month in the cost base: right number?
+2. Premium setup fee from $1,500?
+3. Top-ups $25 / $50 and auto-recharge with an owner-set cap (default $100)?
+4. Trial credit cap of 500 credits?

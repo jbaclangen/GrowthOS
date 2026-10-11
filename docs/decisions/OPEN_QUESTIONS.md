@@ -32,7 +32,6 @@ validation; **P3** can wait.
 | Q-026 | P2 | Re-running the analysis after a plan is confirmed creates a new proposed diagnosis; confirming it replaces the earlier plan, and its accept/dismiss/done statuses are not carried over. Carry statuses over to matching items, or have re-runs refresh only the evidence? | Spec §10: don't silently rewrite user-approved plans. Nothing changes until the owner confirms, but the old statuses are then lost. | Carry over statuses for items that address the same pain points, once owners use re-run. |
 | Q-027 | P3 | Should owners be able to reorder plan items, not only accept, dismiss or complete them? | Spec §7 keeps a separate final priority; today it is computed from the owner's top three and the score. | Add ordering if design partners ask for it. |
 | Q-028 | P3 | Apply the (declined) migration adding covering indexes for the composite (id, organization_id) foreign keys? | Supabase performance advisor, INFO level; no impact at MVP data volumes. | Apply before the first customers, after review. |
-| Q-029 | P1 | Prices for Basic, Pro and Premium, and whether the trial needs a card. | D-030 fixes the tiers; D-012 still leaves prices open. Needed before the pricing page and billing. | Decide before building billing. |
 | Q-030 | P2 | Who answers "Talk to us" upgrade requests, and how are they noticed? | Requests are stored in `upgrade_requests` with no notification (no email sending yet). | Check the table daily until transactional email exists. |
 | Q-031 | P2 | Pro build order and the agent execution model (n8n workflows vs in-app Opus calls) for applying fixes. | D-030 names both; each needs approval UX, audit log and OAuth scopes. | See PLANS_AND_TIERS.md §5. |
 | Q-032 | P1 | Legal documents (Terms, Privacy, Cookies, Sub-processors, AI disclosure, Acceptable use). | Needed before sign-up is public; must be drafted or reviewed by a lawyer. | Commission before launch. |
@@ -44,6 +43,7 @@ validation; **P3** can wait.
 
 | ID | Answer | Decision |
 |---|---|---|
+| Q-029 | Basic $89, Pro $229, Premium from $599 a month (1.5× over market-comparable prices, all tiers); the trial needs a card at public launch and continues on Basic unless the owner opts out (founder, 2026-10-12) | D-039, D-040 |
 | Q-035 | The site describes the paid lineup, which is what runs: the OpenRouter account enforces zero data retention, which blocks every free model, so production uses `AI_MODE=paid` (2026-10-11). Qwen (no ZDR endpoint) was replaced by GPT-5.6 Sol and removed from the site | D-037 |
 | Q-034 | Basic after the trial is a **paid** subscription (founder, 2026-10-11). Billing isn't built yet, so continuing is arranged through "Talk to us" | D-035 |
 | Q-036 | Keep the shorter module names (Automation, Analytics) (founder, 2026-10-11) | D-035 |
