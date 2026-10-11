@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description:
     "Braventa connects your website, marketing, CRM, and content into one growth system that shows you what to do next — and helps you get it done.",
   applicationName: "Braventa",
+  // The app is private: never indexed or followed (also X-Robots-Tag in next.config.ts and robots.ts).
+  robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

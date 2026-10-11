@@ -8,6 +8,8 @@ import { DiscoveryForm } from "./discovery-form";
 import { EvidenceStatus } from "./evidence-status";
 
 export const metadata: Metadata = { title: "What's holding your business back" };
+// Analysis jobs run in after() for up to ~4 minutes; 300 s is the Vercel Hobby maximum.
+export const maxDuration = 300;
 
 export default function DiscoveryPage(props: PageProps<"/onboarding/[sessionId]">) {
   return (
