@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 const PAIRS = [
   { pain: "You're on the tools all day.", answer: "Braventa gives you a short, ranked plan and drafts the posts, so marketing fits around the work." },
-  { pain: "Inquiries come and go.", answer: "The diagnosis shows where leads are lost — on your website, in follow-up, or in what you publish." },
-  { pain: "You've paid for tools nobody uses.", answer: "The plan builds on the tools you already have before recommending anything new." },
+  { pain: "Inquiries come and go.", answer: "The diagnosis points to where inquiries are likely being lost — on your website, in follow-up, or in what you publish — and shows the evidence for each finding." },
+  { pain: "You've paid for tools nobody uses.", answer: "Tell Braventa which tools you use, and the plan builds on them instead of recommending ones you already have." },
   { pain: "You can't hire a marketer, a web person and a strategist.", answer: "One system covers the analysis, the plan and the first drafts, with you approving each step." },
 ];
 

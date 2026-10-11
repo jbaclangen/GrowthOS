@@ -4,11 +4,12 @@ import { Band, CtaRow, PageHero, StatusBadge, type Status } from "@/components/u
 export const metadata: Metadata = {
   title: "Product",
   description:
-    "Business Intelligence, Marketing Strategy, Content Studio, Website Intelligence, and what's coming next: CRM Intelligence, Automation, Analytics.",
+    "Business Intelligence, Marketing Strategy, Content Studio, Website Intelligence, and what's coming soon: CRM Intelligence, Automation, Analytics.",
 };
 
 // Module names: D-010. Status must match docs/product/MVP_SCOPE.md and web/src/lib/plans/tiers.ts.
-const MODULES: { name: string; status: Status; summary: string; today: string[]; why: string }[] = [
+// notYet names the gaps of a Live or Limited module, so a label never claims more than the code does.
+const MODULES: { name: string; status: Status; summary: string; today: string[]; notYet?: string; why: string }[] = [
   {
     name: "Business Intelligence",
     status: "live",
@@ -16,9 +17,9 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
     today: [
       "Reads your home page and up to five key pages",
       "Services, customers, locations, brand voice, strengths, gaps and likely competitors",
-      "Guided discovery: what's holding the business back, your top three, and short follow-up questions",
+      "Guided discovery: pick common problems or describe them in your own words, rank your top three, and answer follow-up questions chosen for your answers",
     ],
-    why: "Everything Braventa recommends or drafts starts from this profile, so nothing is generic.",
+    why: "Everything Braventa recommends or drafts starts from this profile, so it's about your business, not a template.",
   },
   {
     name: "Marketing Strategy",
@@ -37,6 +38,7 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
     status: "live",
     summary: "A 30-day content plan and drafted posts in your brand voice.",
     today: ["Goal, audience, content pillars and channels for the next 30 days", "Five drafted posts with image ideas", "Approve or reject each draft"],
+    notYet: "The rest of the 30-day plan stays as topics, and drafts can't be edited or published from Braventa yet.",
     why: "From plan to usable work in one sitting, without starting from a blank page.",
   },
   {
@@ -44,6 +46,7 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
     status: "partial",
     summary: "Speed, SEO basics, and conversion gaps from your own site.",
     today: ["Google PageSpeed mobile scores", "Signals such as contact forms, phone numbers, meta descriptions and image alt text"],
+    notYet: "Reads the home page and up to five more pages, and tests mobile only. No traffic, search ranking or Search Console data yet.",
     why: "Your website is often your first salesperson. Fix what's costing you inquiries first.",
   },
   {
@@ -56,7 +59,7 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
   {
     name: "Automation",
     status: "next",
-    summary: "Approved workflows that carry the plan into your tools.",
+    summary: "Workflows that carry approved work into your tools.",
     today: [],
     why: "Workflows will include approval steps and logs. You'll decide what runs.",
   },
@@ -73,7 +76,8 @@ export default function Product() {
   return (
     <>
       <PageHero eyebrow="Product" title="Seven modules. One picture of your business.">
-        Each module reads from the same business profile. Live modules work today; the rest are labelled as coming next.
+        Each module reads from the same business profile. Live modules work today, Limited ones work with the gaps we name,
+        and the rest are labelled Coming soon.
       </PageHero>
       <Band>
         <div className="space-y-6">
@@ -101,6 +105,12 @@ export default function Product() {
                   </>
                 ) : (
                   <p className="eyebrow">Planned</p>
+                )}
+                {m.notYet && (
+                  <p className="mt-3 text-sm text-muted">
+                    <span className="font-semibold text-foreground">Not yet: </span>
+                    {m.notYet}
+                  </p>
                 )}
                 <p className="mt-4 text-sm text-muted">
                   <span className="font-semibold text-foreground">Why it matters: </span>

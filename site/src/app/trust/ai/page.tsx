@@ -34,6 +34,11 @@ export default function AiUse() {
             Requests go through OpenRouter to models chosen for each task. We may change models as better or more
             economical ones become available; this page will be updated when we do.
           </p>
+          <p>
+            If the first-choice model is unavailable, a request falls back to a backup model through OpenRouter: Qwen for
+            matching your words and choosing questions, OpenAI GPT for the profile, content plan and drafts, and Claude
+            Sonnet for the diagnosis.
+          </p>
         </div>
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-sm">

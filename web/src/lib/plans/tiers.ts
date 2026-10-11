@@ -50,7 +50,7 @@ export const FEATURES: Feature[] = [
   { id: "discovery", label: "Guided discovery", detail: "Pick what's holding the business back and answer a few follow-up questions.", minTier: "basic", status: "live" },
   { id: "diagnosis", label: "Growth score and diagnosis", detail: "Findings marked by evidence, which you confirm or correct.", minTier: "basic", status: "live" },
   { id: "growth_plan", label: "Prioritized growth plan", detail: "Recommended actions with first steps; accept, dismiss or mark done.", minTier: "basic", status: "live" },
-  { id: "content_plan", label: "30-day content plan and drafted posts", detail: "Drafts in your brand voice, published only when you approve them.", minTier: "basic", status: "live" },
+  { id: "content_plan", label: "30-day content plan and drafted posts", detail: "Drafts in your brand voice for you to approve or reject. Braventa doesn't publish them.", minTier: "basic", status: "live" },
   { id: "ai_assistant", label: "AI assistant", detail: "Ask questions about your business and plan.", minTier: "basic", status: "coming_soon" },
   // Every plan during the trial; paused after it until the business is on a plan (D-036, lib/mcp/access.ts).
   { id: "assistant_connection", label: "Connect your AI assistant", detail: "Let Claude answer the setup questions from what it already knows about your business (Claude Code and Claude Desktop). Paused after the trial until you choose a plan.", minTier: "basic", status: "live" },

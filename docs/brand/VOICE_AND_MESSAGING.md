@@ -82,7 +82,9 @@ Section heads on braventa.io may be short uppercase lines set in Quicksand headi
 10. **Time claims are factual:** an analysis takes about 3–4 minutes today. Do not promise "instant" or "seconds".
 
 ### What is live today (the reference sentence)
-> Today Braventa reads your website and checks it with Google PageSpeed, builds a profile of your business, gives you a growth score with the five opportunities worth your time, plans 30 days of content, and drafts your first five posts for you to approve.
+> Today Braventa reads your website and checks it with Google PageSpeed, asks what's holding your business back and follows up on your answers, builds a profile of your business, and gives you a growth score with a diagnosis you confirm or correct. It turns that into one prioritized growth plan, plans 30 days of content, and drafts your first five posts for you to approve.
+
+(Updated 2026-10-11 for the diagnosis and growth plan, D-028/D-035; the site's copy is `LIVE_TODAY` in `site/src/lib/site.ts`. The short and long descriptions in §7 still describe "five opportunities" — use [`WEBSITE_MESSAGING.md` §0](../marketing/WEBSITE_MESSAGING.md#0-phase-1-messaging-current-d-035) instead until they are rewritten. Status badges: Live · Limited · Coming soon.)
 
 ### What is not live (never imply otherwise)
 HubSpot or any CRM connection · publishing or scheduling to any channel · sending email on the customer's behalf · running automations · analytics and results reporting · team accounts/roles beyond the current organization model · pricing and plans.

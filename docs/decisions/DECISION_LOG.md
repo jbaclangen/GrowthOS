@@ -372,6 +372,27 @@ Benefit Link's. The bullet below about a separate account is superseded by this 
 - Supabase stays the system of record; HubSpot is fed through the Forms API (portal ID + form GUID, no secret) after the
   request is stored. Setup and flow: [CONTACT_PIPELINE.md](../marketing/CONTACT_PIPELINE.md).
 
+## D-035 — Phase 1 website messaging refinement
+**Status:** Founder (2026-10-11, founder brief "Phase 1 website copy & messaging refinement"); wording choices provisional.
+- **Positioning:** Braventa is described as an AI-assisted business growth system that learns how the business works,
+  helps uncover what's holding it back, and turns the owner's priorities into a practical plan. It is not described as
+  a chatbot, a content generator, an audit tool or an autonomous operator.
+- **Reconciling the brief with the brand:** the brief's "AI-assisted growth advisor/platform" is used as "AI-assisted
+  growth system": "AI-assisted" is the voice guide's preferred descriptor, and "business growth system" stays the
+  category label (D-005; VOICE_AND_MESSAGING §3 lists "AI-powered growth platform" as a don't). Tagline and homepage
+  headline (D-005) are unchanged. The D-005 one-liner is no longer used in the homepage hero, because it says Braventa
+  connects your CRM, which isn't live; it stays canonical for use once CRM connections ship.
+- **Methodology:** the nine Growth Loop steps (D-004) are named Understand · Diagnose · Prioritize · Plan · Create ·
+  Execute · Measure · Learn · Optimize, grouped into the three stages, each with its real status.
+- **Status vocabulary:** one set of labels on the site, the pricing page and the app: **Live**, **Limited** (works, with
+  the gaps named), **Coming soon**. Replaces "Live in part" and "Coming next" on the site.
+- **Growth score:** public copy explains the two inputs (Google PageSpeed, about a third; Braventa's AI assessment,
+  about two-thirds), what happens when PageSpeed is missing, and that it isn't a measure of the whole business or a
+  prediction of revenue.
+- **Time claims:** no fixed analysis time on the site ("usually a few minutes"); the 3–4 minute figure comes from
+  `AI_MODE=free` runs only.
+- Copy: [WEBSITE_MESSAGING.md](../marketing/WEBSITE_MESSAGING.md) §0. Open items: Q-034–Q-037.
+
 ## D-036 — AI assistant connection (MCP), phase 1
 **Status:** Founder (2026-10-11, in chat).
 - Owners who already worked on their business in an AI assistant can let it fill in Braventa's onboarding through an

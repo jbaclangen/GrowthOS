@@ -2,15 +2,73 @@
 
 This document proposes the sitemap for the marketing site at braventa.io (D-011: marketing site on Hostinger, app at app.braventa.io) and provides copy foundations for each page, with full copy for the home page plus page titles and meta descriptions. Designers and developers building the site should use it with [`../brand/VISUAL_IDENTITY.md`](../brand/VISUAL_IDENTITY.md) for layout and type, [`../brand/VOICE_AND_MESSAGING.md`](../brand/VOICE_AND_MESSAGING.md) for voice and claim rules, and [`../product/MVP_SCOPE.md`](../product/MVP_SCOPE.md) to confirm every "Live" label before launch. Canonical lines are fixed by D-005 in [`../decisions/DECISION_LOG.md`](../decisions/DECISION_LOG.md).
 
-**Status / last reviewed: 2026-10-10** · Proposal — copy foundations, not final page builds
+**Status / last reviewed: 2026-10-11** · §0 is the current messaging (founder brief, D-035) and matches the built pages in `site/`. §2–§11 are the original 2026-10-10 copy foundations; where they differ from §0 or the built pages, §0 and the built pages win.
 
 ---
+
+## 0. Phase 1 messaging (current, D-035)
+
+### Positioning
+- **Category label (D-005):** Business growth system. **Descriptor:** AI-assisted (never "AI-powered" as the lead claim).
+- **What Braventa is:** an AI-assisted growth system that learns how a business works, helps uncover what's holding it
+  back, and turns the owner's priorities into a practical plan, with drafted work the owner approves.
+- **What it isn't:** a chatbot, a content generator, an audit tool, or an autonomous operator. The brief's "growth
+  advisor" and "platform" wording is expressed as "growth system" to keep the category (VOICE_AND_MESSAGING §3).
+- **Methodology:** the Growth Loop, nine steps in three stages — Understand (Understand · Diagnose · Prioritize), Act
+  (Plan · Create · Execute), Improve (Measure · Learn · Optimize). Always shown with each step's status.
+
+### Fixed lines
+| Use | Line |
+|---|---|
+| Tagline (D-005) | Run your growth as one system. |
+| Homepage headline (D-005) | Know what to do next. Then get it done. |
+| Homepage supporting line | Braventa is an AI-assisted growth system that learns how your business works, helps uncover what's holding it back, and turns your priorities into a practical plan — with drafted work you review and approve. |
+| Onboarding, one line | Braventa asks follow-up questions based on your goals and challenges, so your plan reflects your business — not a generic marketing checklist. |
+| What's live (reference sentence) | `LIVE_TODAY` in `site/src/lib/site.ts` |
+
+The D-005 one-liner ("connects your website, marketing, CRM, and content…") is not used in the hero while CRM
+connections aren't live.
+
+### Status labels
+One vocabulary on the site, the pricing page and the app: **Live** (works today) · **Limited** (works today; the copy
+names the gaps) · **Coming soon** (planned; not usable). A capability that depends on an external tool the owner must
+connect is described as such in its copy. Badges come from `StatusBadge` in `site/src/components/ui.tsx` and
+`FEATURES` in `web/src/lib/plans/tiers.ts`.
+
+| Area | Status | Basis in code |
+|---|---|---|
+| Business Intelligence (profile, guided discovery) | Live | `web/src/lib/pipeline/website-intel.ts`, `web/src/lib/onboarding/*` |
+| Marketing Strategy (growth score, diagnosis, one growth plan) | Live | `computeGrowthScore`, `diagnosisPrompt`, `web/src/lib/plan/priority.ts` |
+| Content Studio (30-day plan, five drafts, approve/reject) | Live, gaps named (rest of plan stays as topics; no editing or publishing) | `website-intel.ts`, `setContentStatus` |
+| Website Intelligence | Limited (up to 6 pages, mobile PageSpeed, crawl signals) | `web/src/lib/integrations/crawler.ts`, `google.ts` |
+| CRM Intelligence, Automation, Analytics | Coming soon | nothing user-facing |
+
+### Onboarding claims (verified against `web/src/app/onboarding/**`, `web/src/lib/onboarding/**`)
+True today: website URL plus optional goal, service area and tools; pick pain points from nine areas or describe them
+in your own words; the AI matches your words to catalog issues and shows the quote each match rests on; keep or drop
+matches; choose first, second and third priority; up to four follow-up questions (two rounds of two) picked by AI from a
+fixed question bank based on goal, priorities and earlier answers, each with a reason, all skippable; mark diagnosis
+findings right or wrong with a note, which rebuilds the diagnosis and plan; confirm the plan; accept, dismiss or mark
+actions done. Not true: a free-form chat, AI-written questions, reordering plan items (Q-027).
+
+### Growth score (verified against `computeGrowthScore` and the report UI)
+- 0–100. Braventa's AI assessment (content clarity 25%, conversion readiness 25%, online presence 15%) and Google
+  PageSpeed mobile scores (performance 15%, SEO 12%, accessibility 4%, best practices 4%). Public copy says "about
+  two-thirds / about a third".
+- Without PageSpeed the score is the assessment alone, and the report says PageSpeed wasn't available.
+- It reflects the website (up to six pages) and the owner's answers. Never say it measures overall business health or
+  predicts revenue, leads or rankings.
+
+### Operational claims
+- Analysis time: say "usually a few minutes". The 3–4 minute figure is from `AI_MODE=free` runs; no paid-mode timing yet.
+- No "real-time", "continuous monitoring" or "auto-updates": analyses run when the owner starts or re-runs them.
+- Models: the AI page names the paid lineup and its backups (Q-035).
 
 ## 1. Conventions used in this document
 
 - `EYEBROW` — short uppercase label above a heading (styling per [`../brand/VISUAL_IDENTITY.md`](../brand/VISUAL_IDENTITY.md)).
 - `DISPLAY` — short uppercase section head in Quicksand headings (rounded geometric; marketing surfaces only).
-- **Live** / **Coming next** — module and feature status badges. Every badge must match [`../product/MVP_SCOPE.md`](../product/MVP_SCOPE.md) on the day the page ships.
+- **Live** / **Limited** / **Coming soon** — module and feature status badges (D-035; this document's older sections say "Coming next" and "Live in part"). Every badge must match [`../product/MVP_SCOPE.md`](../product/MVP_SCOPE.md) on the day the page ships.
 - `[Proof point — add when available]` — placeholder. Never replace with invented testimonials, logos, or statistics.
 - `(use once {{feature}} ships)` — copy that must not be published until that feature is live.
 - All CTAs that start the product link to `https://app.braventa.io/login`.
