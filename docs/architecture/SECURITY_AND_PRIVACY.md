@@ -79,10 +79,15 @@ RLS. Rules:
   path (`next` must start with `/` and not `//`; it is appended to the request origin, so open redirects are
   not possible). `/` forwards a stray `code` to the callback.
 - `src/proxy.ts` refreshes the session cookie on each request (`getClaims()`) and redirects unauthenticated
-  requests to `/login` except for `/`, `/login`, `/auth/*`, `/api/health/*`. Pages and actions additionally
+  requests to `/login` except for `/`, `/login`, `/auth/*`, `/api/health/*`, `/api/mcp`. Pages and actions additionally
   call `requireUser()` (`supabase.auth.getUser()`, which validates with the Auth server).
 - Password policy, leaked-password protection, rate limits, and email confirmation requirement are set in the
   Supabase dashboard and are not verifiable from the repo; confirm them before launch.
+- **MCP access keys (D-036):** `/api/mcp` accepts `Authorization: Bearer brv_…` personal access keys instead of a
+  session. Keys are 256-bit random, shown once, stored as SHA-256 only, revocable, at most 5 active per owner; the key's
+  owner must still be a member of the organization. The route uses the service client and scopes every query to the
+  key's organization; it rejects foreign `Origin` headers and rate-limits tool calls (30/min, 300/hour per key), logging
+  each in `mcp_tool_calls`. Details: [MCP_SERVER.md](MCP_SERVER.md).
 - Not implemented: account deletion, password reset UI, session management UI, invitations to an org.
 
 ## 5. Secrets handling

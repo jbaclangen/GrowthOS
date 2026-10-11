@@ -224,6 +224,7 @@ should be easy to understand.
 | PL-7 | Billing (Stripe; `subscriptions` table) | Next phase | Not started (Q-029, Q-010) |
 | PL-10 | Tiers Basic / Pro / Premium with a 14-day Pro trial that drops to Basic; `/plans` with Coming soon labels and "Talk to us" (D-030) | MVP | **Live** (`web/src/lib/plans/`, `web/src/app/plans/`) |
 | PL-11 | Infographic report and dashboard with detail dialogs (D-032) | MVP | **Live** (`web/src/app/analysis/[id]/infographic.tsx`) |
+| PL-12 | AI assistant connection (MCP): personal access keys in Settings; tools to start onboarding, submit discovery, confirm priorities, answer follow-ups and check status; paused after the trial until on a plan (D-036) | MVP | **Live, phase 1** (`web/src/app/api/mcp/route.ts`, `web/src/lib/mcp/`, `web/src/app/settings/`); claude.ai/ChatGPT OAuth not built (Q-039) |
 | PL-8 | Delete a business and its data; delete account | Next phase | Not started |
 | PL-9 | Platform admin view across tenants (`platform_admins`) | Next phase | Not started (RLS bypass exists; no UI) |
 

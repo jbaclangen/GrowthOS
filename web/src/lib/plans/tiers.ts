@@ -33,6 +33,7 @@ export type FeatureId =
   | "growth_plan"
   | "content_plan"
   | "ai_assistant"
+  | "assistant_connection"
   | "full_audit"
   | "analytics_integrations"
   | "creative_integrations"
@@ -50,6 +51,8 @@ export const FEATURES: Feature[] = [
   { id: "growth_plan", label: "Prioritized growth plan", detail: "Recommended actions with first steps; accept, dismiss or mark done.", minTier: "basic", status: "live" },
   { id: "content_plan", label: "30-day content plan and drafted posts", detail: "Drafts in your brand voice, published only when you approve them.", minTier: "basic", status: "live" },
   { id: "ai_assistant", label: "AI assistant", detail: "Ask questions about your business and plan.", minTier: "basic", status: "coming_soon" },
+  // Every plan during the trial; paused after it until the business is on a plan (D-036, lib/mcp/access.ts).
+  { id: "assistant_connection", label: "Connect your AI assistant", detail: "Let Claude answer the setup questions from what it already knows about your business (Claude Code and Claude Desktop). Paused after the trial until you choose a plan.", minTier: "basic", status: "live" },
   { id: "full_audit", label: "Full marketing audit", detail: "SEO, search ads, social media, email and video.", minTier: "pro", status: "coming_soon" },
   { id: "analytics_integrations", label: "Analytics connections", detail: "Google Analytics 4, Search Console and Tag Manager.", minTier: "pro", status: "coming_soon" },
   { id: "creative_integrations", label: "Creative tool connections", detail: "Canva, HeyGen and Higgsfield.", minTier: "pro", status: "coming_soon" },

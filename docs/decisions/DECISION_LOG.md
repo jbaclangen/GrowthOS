@@ -371,3 +371,18 @@ Benefit Link's. The bullet below about a separate account is superseded by this 
   by salted IP hash, 5 per email per day). No CAPTCHA or third-party script.
 - Supabase stays the system of record; HubSpot is fed through the Forms API (portal ID + form GUID, no secret) after the
   request is stored. Setup and flow: [CONTACT_PIPELINE.md](../marketing/CONTACT_PIPELINE.md).
+
+## D-036 — AI assistant connection (MCP), phase 1
+**Status:** Founder (2026-10-11, in chat).
+- Owners who already worked on their business in an AI assistant can let it fill in Braventa's onboarding through an
+  MCP server (`/api/mcp`): website and goals, discovery, priorities, follow-up questions, and a status summary. The
+  owner still confirms or corrects the diagnosis and approves posts in the app; the server can't publish or approve.
+- **Phase 1 only:** personal access keys (Settings → AI assistant access), for Claude Code and Claude Desktop.
+  claude.ai and ChatGPT connectors need OAuth sign-in and are phase 2 (Q-039).
+- **Who:** every plan during the 14-day trial; access pauses when the trial ends and comes back once the business is on
+  a plan (Basic, Pro or Premium, which the founder also calls Custom). With no billing, "on a plan" means
+  `organizations.plan` was set by the Braventa team; the Plans page now also offers "Talk to us about Basic" after the
+  trial. This is narrower than D-030's "the trial drops to Basic" for this one feature.
+- **Privacy:** information the assistant sends is stored like form answers; the status summary returns into the owner's
+  own assistant under their own account with that provider. Legal pages disclose it.
+- Spec: [MCP_SERVER.md](../architecture/MCP_SERVER.md). Website copy for it: PR #19, second commit.

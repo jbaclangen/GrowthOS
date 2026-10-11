@@ -176,7 +176,7 @@ so AI routing, budgets and RLS-scoped writes stay in one place.
 
 - `src/proxy.ts` (Next 16's replacement for middleware) refreshes the Supabase session cookie on every
   matched request and redirects signed-out visitors to `/login?next=...`. Public paths: `/`, `/login`,
-  `/auth/*`, `/api/health/*`. It is a convenience gate only; authorization is enforced by RLS and
+  `/auth/*`, `/api/health/*`, `/api/mcp` (authenticates with a personal access key itself, D-036). It is a convenience gate only; authorization is enforced by RLS and
   `requireUser()`.
 - Any future `/api/n8n/*` callback route is **not** in `PUBLIC_PATHS`, so n8n calls (which carry no Supabase
   session) would be redirected to `/login`. Adding the route requires adding `/api/n8n` to `PUBLIC_PATHS`

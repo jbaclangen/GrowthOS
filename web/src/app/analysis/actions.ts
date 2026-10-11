@@ -1,38 +1,15 @@
 "use server";
 
-import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { normalizeUrl } from "@/lib/integrations/crawler";
-import { runAnalysisJob } from "@/lib/pipeline/website-intel";
-import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
-import { CATALOG_VERSION } from "@/lib/onboarding/catalog";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createOnboarding, queueJob } from "@/lib/onboarding/start";
 import { parseOwnerInputs, toProfileColumns } from "@/lib/owner-inputs";
 
 export type StartState = { error?: string } | undefined;
-
-type AnalysisWorker = "website_intel" | "website_evidence";
-
-// Queues an analysis job as the signed-in user (RLS checks membership),
-// then runs it after the response so the browser can show progress.
-async function queueJob(
-  organizationId: string,
-  worker: AnalysisWorker,
-  input: { businessProfileId: string; websiteUrl: string; sessionId?: string },
-  userId: string,
-) {
-  const supabase = await createSupabaseServerClient();
-  const { data: job, error } = await supabase
-    .from("ai_jobs")
-    .insert({ organization_id: organizationId, worker, task_class: "complex", input, created_by: userId })
-    .select("id")
-    .single();
-  if (error || !job) throw new Error(error?.message ?? "Could not queue analysis");
-  after(() => runAnalysisJob(job.id));
-  return job.id as string;
-}
 
 const startSchema = z.object({
   website: z.string().trim().min(3, "Enter a website address"),
@@ -65,47 +42,17 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
     org = { id: orgId as string, name, role: "owner" };
   }
 
-  const { data: profile, error } = await supabase
-    .from("business_profiles")
-    .insert({
-      organization_id: org.id,
-      company_name: parsed.data.businessName || new URL(websiteUrl).hostname.replace(/^www\./, ""),
-      website_url: websiteUrl,
-      ...toProfileColumns(owner.data),
-    })
-    .select("id")
-    .single();
-  if (error || !profile) return { error: error?.message ?? "Could not save the business" };
-
   // Discovery runs alongside the website analysis (D-028): open a session, start the evidence job now,
   // and send the owner to the discovery questions while it runs.
-  const { data: session, error: sessionError } = await supabase
-    .from("onboarding_sessions")
-    .insert({
-      organization_id: org.id,
-      business_profile_id: profile.id,
-      created_by: user.id,
-      status: "discovering",
-      catalog_version: CATALOG_VERSION,
-    })
-    .select("id")
-    .single();
-  if (sessionError || !session) return { error: "Your answers couldn't be saved. Try again." };
-
-  const evidenceJobId = await queueJob(
-    org.id,
-    "website_evidence",
-    { businessProfileId: profile.id, websiteUrl, sessionId: session.id },
-    user.id,
-  );
-  // Job links are server-only columns (see migration 20261010155931); org already authorised above.
-  await createSupabaseAdminClient()
-    .from("onboarding_sessions")
-    .update({ evidence_job_id: evidenceJobId })
-    .eq("id", session.id)
-    .eq("organization_id", org.id);
-
-  redirect(`/onboarding/${session.id}`);
+  const started = await createOnboarding(supabase, {
+    organizationId: org.id,
+    userId: user.id,
+    websiteUrl,
+    businessName: parsed.data.businessName,
+    owner: owner.data,
+  });
+  if ("error" in started) return { error: started.error };
+  redirect(`/onboarding/${started.sessionId}`);
 }
 
 export async function rerunAnalysis(businessProfileId: string) {
@@ -118,6 +65,7 @@ export async function rerunAnalysis(businessProfileId: string) {
     .single();
   if (!profile?.website_url) throw new Error("Business not found");
   await queueJob(
+    supabase,
     profile.organization_id,
     "website_intel",
     { businessProfileId: profile.id, websiteUrl: profile.website_url },

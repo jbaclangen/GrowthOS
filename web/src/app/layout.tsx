@@ -66,6 +66,9 @@ async function UserMenu() {
         </Link>
       )}
       <span className="hidden text-muted sm:inline">{user.email}</span>
+      <Link href="/settings" className="text-muted hover:underline">
+        Settings
+      </Link>
       <form action={signOut}>
         <button type="submit" className="btn-secondary">
           Sign out
