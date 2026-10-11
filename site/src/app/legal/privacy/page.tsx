@@ -31,6 +31,33 @@ export default function Privacy() {
         <li>What you tell us during setup: goals, service area, tools, the problems you pick or describe, and your answers to follow-up questions.</li>
         <li>What Braventa produces for you: business profile, diagnosis, growth plan, content plan and drafts, and your approvals.</li>
         <li>A log of AI usage (which task, which model, tokens and cost) so we can enforce usage limits.</li>
+        <li>If you connect an AI assistant: your access keys, stored only as a one-way hash, and when each was last used.</li>
+      </ul>
+      <h3>If you connect an AI assistant (optional)</h3>
+      <ul>
+        <li>
+          You can let an AI assistant you already use fill in your Braventa setup for you. Today this works with Claude
+          Desktop and Claude Code. You create a personal access key in the app (Settings → AI assistant access) and add
+          Braventa&apos;s connection to your assistant.
+        </li>
+        <li>
+          Each key is shown once and stored only as a one-way hash, never the key itself. The app shows when each key was
+          last used, and you can revoke a key at any time.
+        </li>
+        <li>
+          What your assistant sends — your website, goal, service area and tools, the problems you pick or describe, your
+          priorities and your answers to follow-up questions — is stored the same way as answers you type into the app.
+        </li>
+        <li>
+          When your assistant checks progress, Braventa sends back a short summary: your growth score, your top priorities
+          and a link to your report. That summary is then processed by your assistant&apos;s provider (for example,
+          Anthropic) under your own account and that provider&apos;s terms. For this, the provider acts for you; it
+          isn&apos;t one of Braventa&apos;s sub-processors.
+        </li>
+        <li>
+          An assistant can&apos;t publish anything. You still confirm or correct the diagnosis and approve posts in the
+          app.
+        </li>
       </ul>
 
       <h2>Why we use it</h2>
@@ -50,6 +77,7 @@ export default function Privacy() {
       <h2>Your choices</h2>
       <ul>
         <li>You can correct your setup answers in the app at any time.</li>
+        <li>You choose whether to connect an AI assistant, and you can revoke its access key in the app at any time.</li>
         <li>
           To get a copy of your data or have it deleted, <Link href="/contact">contact us</Link>. We&apos;re building a
           self-service option.

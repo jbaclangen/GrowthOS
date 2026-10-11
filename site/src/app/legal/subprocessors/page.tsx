@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DraftNotice } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -11,7 +12,8 @@ const VENDORS = [
   { name: "Supabase", purpose: "Database and sign-in for all customer data", data: "Account, setup answers, analysis results, contact requests" },
   { name: "Vercel", purpose: "Hosting for braventa.io and app.braventa.io", data: "Requests passing through the site and app" },
   { name: "OpenRouter", purpose: "Routes requests to AI models", data: "Website text, setup answers and business profile for each task" },
-  { name: "Anthropic (via OpenRouter)", purpose: "AI models that analyze, plan and draft", data: "As above, for the task at hand" },
+  { name: "Anthropic Claude (via OpenRouter; served by Anthropic, Google Cloud or Amazon Web Services)", purpose: "AI models that analyze, plan and draft, with zero data retention", data: "As above, for the task at hand" },
+  { name: "OpenAI GPT (via OpenRouter; served by Microsoft Azure)", purpose: "Backup AI model, used only when the first-choice model is unavailable, with zero data retention", data: "As above, for the task at hand" },
   { name: "HubSpot", purpose: "Our CRM: receives contact-form requests, notifies our team and sends our replies", data: "What you send through the contact form" },
   { name: "Google (PageSpeed Insights API)", purpose: "Measures the speed and quality of the website you analyze", data: "The public website address" },
 ];
@@ -41,6 +43,11 @@ export default function Subprocessors() {
           </tbody>
         </table>
       </div>
+      <p>
+        If you connect your own AI assistant to Braventa (for example, Claude Desktop), its provider processes what your
+        assistant receives under your own account and terms. It acts for you and isn&apos;t a Braventa sub-processor. See{" "}
+        <Link href="/legal/privacy">Privacy</Link>.
+      </p>
     </>
   );
 }

@@ -14,7 +14,7 @@ const VALUES = [
   { title: "Understand first.", body: "Every recommendation starts from how the business actually works." },
   { title: "One system, not more tools.", body: "Connect what you have before adding anything new." },
   { title: "You stay in control.", body: "Braventa recommends and drafts. You approve." },
-  { title: "Honest about status.", body: "We say what works today and label what's coming next." },
+  { title: "Honest about status.", body: "We say what works today and label what's coming soon." },
   { title: "Measure, then improve.", body: "A plan is only useful if you can tell whether it worked." },
 ];
 
@@ -43,8 +43,8 @@ export default function About() {
             </p>
             <p>
               The approach that worked was always the same: understand the business, build the right system, measure
-              everything, and improve continuously. Braventa puts that approach into one app — so a small team gets the
-              thinking of a strategist, an analyst and a content writer, and stays in control of every change.
+              everything, and improve continuously. Braventa puts that approach into one app. Today it gives a small team a
+              clear diagnosis, a prioritized plan and drafted content, and the team stays in control of every change.
             </p>
           </div>
         </div>

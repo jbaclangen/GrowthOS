@@ -43,6 +43,11 @@ validation; **P3** can wait.
 
 | ID | Answer | Decision |
 |---|---|---|
+| Q-035 | The site describes the paid lineup, which is what runs: the OpenRouter account enforces zero data retention, which blocks every free model, so production uses `AI_MODE=paid` (2026-10-11). Qwen (no ZDR endpoint) was replaced by GPT-5.6 Sol and removed from the site | D-037 |
+| Q-034 | Basic after the trial is a **paid** subscription (founder, 2026-10-11). Billing isn't built yet, so continuing is arranged through "Talk to us" | D-035 |
+| Q-036 | Keep the shorter module names (Automation, Analytics) (founder, 2026-10-11) | D-035 |
+| Q-037 | Keep "a marketing audit" in Basic as the promise (founder, 2026-10-11) | D-035 |
+| Q-038 | "On a plan" means organizations.plan is basic, pro or premium (Premium is the founder's "Custom"); built in the MCP access rule | D-036 |
 | Q-025 | Keep BRAVENTA.IO and the Violet dot, as in the founder's reference (founder: "proceed", 2026-10-10) | D-027 |
 | — | Typography: Quicksand (headings, logo) + Comfortaa (other text) | D-015 |
 | Q-021 | AI assistant is not in the MVP; committed for the Next phase | D-020 |

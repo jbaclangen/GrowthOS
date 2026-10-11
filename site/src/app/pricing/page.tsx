@@ -16,7 +16,7 @@ const PLUS: Record<Tier, string | null> = { basic: null, pro: "Everything in Bas
 const FAQ = [
   {
     q: "How does the trial work?",
-    a: `Every new account starts with ${TRIAL_DAYS} days of Pro. When the trial ends you keep Basic — nothing is deleted.`,
+    a: `Every new account starts with ${TRIAL_DAYS} days of Pro. When the trial ends, you continue on Basic, a paid plan, and nothing is deleted.`,
   },
   {
     q: "What does Basic do?",
@@ -31,8 +31,16 @@ const FAQ = [
     a: "No. On every plan, nothing is published or changed for your business until you approve it.",
   },
   {
+    q: "Can my AI assistant fill in Braventa for me?",
+    a: `Yes, if you use Claude Desktop or Claude Code. Create an access key in the app and your assistant can answer the setup and discovery questions for you; you still confirm the diagnosis and approve posts in the app. It works on every plan during the ${TRIAL_DAYS}-day trial. After the trial, access pauses until your business subscribes to a plan, and comes back as soon as it does. Connectors for claude.ai and ChatGPT are coming soon.`,
+  },
+  {
     q: "Why no prices yet?",
     a: "We're setting pricing with our early-access customers. Request early access and we'll walk you through it.",
+  },
+  {
+    q: "How do I change plans?",
+    a: "There's no online checkout yet. During early access, plan changes are arranged with us directly — use Talk to us in the app or contact us here.",
   },
 ];
 
@@ -85,6 +93,22 @@ export default function Pricing() {
             </section>
           ))}
         </div>
+        {/* The AI assistant connection (MCP) isn't tier-gated like FEATURES: every plan during the trial, then any
+            subscribed plan. Kept out of tiers.ts so the rule is stated exactly as decided. */}
+        <section className="card mt-4" aria-labelledby="assistant-title">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 id="assistant-title" className="text-xl">
+              Connect your AI assistant
+            </h2>
+            <span className="chip bg-success-soft text-foreground">Live</span>
+            <span className="text-sm text-muted">Every plan</span>
+          </div>
+          <p className="mt-2 max-w-3xl text-sm text-muted">
+            Let Claude Desktop or Claude Code fill in Braventa&apos;s discovery for you, using a personal access key you can
+            revoke at any time. Included on every plan during the {TRIAL_DAYS}-day trial; after the trial it pauses until
+            your business subscribes to a plan. Connectors for claude.ai and ChatGPT are coming soon.
+          </p>
+        </section>
       </Band>
 
       <Band tone="surface" labelledBy="faq-title">

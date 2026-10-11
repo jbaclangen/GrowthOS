@@ -5,11 +5,13 @@ import { PRIMARY_CTA } from "@/lib/site";
 
 export type Status = "live" | "partial" | "next";
 
-// "Coming next" must be visually quieter than "Live" (outline vs filled) and never use Volt (WEBSITE_MESSAGING §3.4).
+// One status vocabulary across the site, the pricing page and the app (WEBSITE_MESSAGING §1): Live = works today;
+// Limited = works today with gaps the copy names; Coming soon = planned, not usable yet.
+// "Coming soon" must be visually quieter than "Live" (outline vs filled) and never use Volt (WEBSITE_MESSAGING §3.4).
 export function StatusBadge({ status }: { status: Status }) {
   if (status === "live") return <span className="chip bg-success-soft text-foreground">Live</span>;
-  if (status === "partial") return <span className="chip bg-surface-muted text-foreground">Live in part</span>;
-  return <span className="chip border border-border text-muted">Coming next</span>;
+  if (status === "partial") return <span className="chip bg-surface-muted text-foreground">Limited</span>;
+  return <span className="chip border border-border text-muted">Coming soon</span>;
 }
 
 // A full-width band. "ink" bands are dark regardless of the visitor's theme (VISUAL_IDENTITY §3.5).

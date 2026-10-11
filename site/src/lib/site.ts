@@ -48,4 +48,4 @@ export const FOOTER = [
 
 // The reference sentence for what works today (VOICE_AND_MESSAGING §5), updated for ON-1–ON-8 and D-029.
 export const LIVE_TODAY =
-  "Today Braventa reads your website and checks it with Google PageSpeed, asks what's holding your business back, builds a profile of your business, and gives you a growth score with a diagnosis you confirm or correct. It turns that into one prioritized growth plan, plans 30 days of content, and drafts your first five posts for you to approve.";
+  "Today Braventa reads your website and checks it with Google PageSpeed, asks what's holding your business back and follows up on your answers, builds a profile of your business, and gives you a growth score with a diagnosis you confirm or correct. It turns that into one prioritized growth plan, plans 30 days of content, and drafts your first five posts for you to approve. It doesn't publish, send email, or connect to your CRM or analytics yet.";

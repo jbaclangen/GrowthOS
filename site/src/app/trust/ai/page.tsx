@@ -34,6 +34,16 @@ export default function AiUse() {
             Requests go through OpenRouter to models chosen for each task. We may change models as better or more
             economical ones become available; this page will be updated when we do.
           </p>
+          <p>
+            We only allow providers that don&apos;t keep your data after answering: our OpenRouter account requires
+            zero data retention, so requests never go to a model that stores prompts or trains on them. Claude models
+            may be served by Anthropic, Google Cloud or Amazon Web Services, depending on availability.
+          </p>
+          <p>
+            If the first-choice model is unavailable, a request falls back to a backup model through OpenRouter: OpenAI GPT
+            for matching your words, choosing questions, the profile, content plan and drafts, and Claude Sonnet for the
+            diagnosis.
+          </p>
         </div>
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-sm">
@@ -63,6 +73,14 @@ export default function AiUse() {
           <p>
             Text read from websites is fenced off as data, and the models are told never to follow instructions found in
             it. Your password and payment details are never sent to an AI model.
+          </p>
+          <h2>Connecting your own AI assistant</h2>
+          <p>
+            You can choose to let an AI assistant you already use (today Claude Desktop or Claude Code) fill in your setup
+            and discovery answers. It uses a personal access key you create in the app, which you can revoke at any time.
+            What it sends is treated like answers you type, and it gets back a short summary: your growth score, top
+            priorities and a link to your report. Your assistant&apos;s provider processes that summary under your own
+            account and terms. The assistant can&apos;t publish anything, confirm the diagnosis or approve posts.
           </p>
           <h2>What AI does not do</h2>
           <ul>

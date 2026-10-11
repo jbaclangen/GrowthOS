@@ -82,7 +82,7 @@ side-by-side comparison (D-024, §4.1):
 
 | Class | `free` chain | `paid` chain | Workers |
 |---|---|---|---|
-| simple | nemotron-3-super (free) -> nemotron-3-ultra (free) | claude-haiku-5.5 -> qwen3.8-flash | extractor, marketing_assistant |
+| simple | nemotron-3-super (free) -> nemotron-3-ultra (free) | claude-haiku-5.5 -> gpt-5.6-sol | extractor, marketing_assistant |
 | standard | nemotron-3-super (free) -> nemotron-3-ultra (free) | claude-sonnet-5.5 -> gpt-5.6-sol | business_analyst, content_strategist, content_writer, seo_analyst, campaign_planner |
 | complex | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-opus-5.5 -> claude-sonnet-5.5 | website_auditor, crm_analyst |
 | qa | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-opus-5.5 -> claude-sonnet-5.5 | qa_reviewer |

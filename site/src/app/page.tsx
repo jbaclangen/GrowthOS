@@ -4,12 +4,14 @@ import { Band, CtaRow, SectionIntro, StatusBadge, type Status } from "@/componen
 import { LIVE_TODAY } from "@/lib/site";
 
 // Copy: docs/marketing/WEBSITE_MESSAGING.md §3, updated for the live product (discovery, confirmed diagnosis, one
-// growth plan — ON-1–ON-8). D-005 lines (tagline, headline, one-liner) are used verbatim.
+// growth plan — ON-1–ON-8) and the founder's Phase 1 messaging brief (D-035). D-005 tagline and headline are used
+// verbatim; the hero's supporting line follows D-035 because the D-005 one-liner says Braventa connects your CRM,
+// which isn't live.
 
 export const metadata: Metadata = {
   title: { absolute: "Braventa — Run your growth as one system" },
   description:
-    "Braventa is a business growth system for service businesses. Know what to do next, then get it done — with you approving everything.",
+    "Braventa is an AI-assisted business growth system for service businesses. It learns how your business works and turns your priorities into a plan you approve.",
 };
 
 const PROBLEMS = [
@@ -18,35 +20,43 @@ const PROBLEMS = [
   { title: "Reports that look backwards.", body: "They tell you what happened. They don't tell you what to do next." },
 ];
 
-const LOOP: { stage: string; body: string; status: Status }[] = [
+// The nine Growth Loop steps (D-004), named as in the founder's brief (D-035), grouped into the three stages.
+const LOOP: { stage: string; steps: string; body: string; status: Status }[] = [
   {
     stage: "Understand",
-    body: "Braventa learns your services, customers, locations, and brand voice, asks what's holding the business back, and diagnoses where you stand.",
+    steps: "Understand · Diagnose · Prioritize",
+    body: "Braventa learns your services, customers and brand voice, asks what's holding the business back, diagnoses where you stand, and puts your priorities first.",
     status: "live",
   },
   {
     stage: "Act",
-    body: "One prioritized growth plan, a 30-day content plan, and drafted posts in your voice for you to approve. Carrying approved work into your tools is coming next.",
+    steps: "Plan · Create · Execute",
+    body: "One prioritized growth plan, a 30-day content plan, and drafted posts in your voice for you to approve. Today you carry out the work; connecting your tools is coming soon.",
     status: "partial",
   },
-  { stage: "Improve", body: "Measure what worked, learn from it, and adjust the plan.", status: "next" },
+  {
+    stage: "Improve",
+    steps: "Measure · Learn · Optimize",
+    body: "Measure what worked, learn from it, and adjust the plan.",
+    status: "next",
+  },
 ];
 
 const MODULES: { name: string; body: string; status: Status }[] = [
   { name: "Business Intelligence", body: "A structured profile of your business, built from your website and your answers.", status: "live" },
   { name: "Marketing Strategy", body: "A growth score, a diagnosis you confirm, and one prioritized plan with a first step for each action.", status: "live" },
-  { name: "Content Studio", body: "A 30-day content plan and drafted posts in your brand voice, ready for your approval.", status: "live" },
-  { name: "Website Intelligence", body: "Speed, SEO basics, and conversion gaps from your own site, measured with Google PageSpeed.", status: "partial" },
+  { name: "Content Studio", body: "A 30-day content plan and five drafted posts in your brand voice, ready for your approval.", status: "live" },
+  { name: "Website Intelligence", body: "Speed, SEO basics, and conversion gaps from your own site, with speed and SEO measured by Google PageSpeed.", status: "partial" },
   { name: "CRM Intelligence", body: "Pipeline and follow-up insight, starting with HubSpot.", status: "next" },
-  { name: "Automation", body: "Approved workflows that carry the plan into your tools.", status: "next" },
+  { name: "Automation", body: "Workflows that carry approved work into your tools, with approval steps and logs.", status: "next" },
   { name: "Analytics", body: "What you did, what it achieved, and what to do next.", status: "next" },
 ];
 
 const STEPS = [
-  { title: "Enter your website.", body: "Add your URL. Braventa reads your pages and checks them with Google PageSpeed while you answer a few questions." },
-  { title: "Tell it what's hard.", body: "Pick what's holding the business back, in your own words if you like, and rank your top three." },
-  { title: "Confirm the diagnosis.", body: "See what Braventa found and how sure it is. Mark anything wrong and the plan updates." },
-  { title: "Work the plan.", body: "One prioritized plan, a 30-day content plan, and five drafted posts. Approve each one. Nothing goes out without you." },
+  { title: "Enter your website.", body: "Add your URL. Braventa reads your key pages and checks them with Google PageSpeed while you answer a few questions." },
+  { title: "Tell it what's hard.", body: "Pick common problems or describe them in your own words, rank your top three, and answer a few follow-up questions chosen for your answers." },
+  { title: "Confirm the diagnosis.", body: "See what Braventa found, where each finding comes from, and how sure it is. Mark anything wrong and the plan is rebuilt." },
+  { title: "Work the plan.", body: "Accept, dismiss or mark each action done. Approve or reject five drafted posts. Nothing goes out without you." },
 ];
 
 const TRUST = [
@@ -64,8 +74,8 @@ export default function Home() {
             <p className="section-head text-brand-volt">Business growth system</p>
             <h1 className="display mt-4">Know what to do next. Then get it done.</h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-brand-paper/80">
-              Braventa connects your website, marketing, CRM, and content into one growth system that shows you what to do
-              next — and helps you get it done.
+              Braventa is an AI-assisted growth system that learns how your business works, helps uncover what&apos;s holding
+              it back, and turns your priorities into a practical plan — with drafted work you review and approve.
             </p>
             <div className="mt-8">
               <CtaRow
@@ -96,7 +106,8 @@ export default function Home() {
 
       <Band tone="surface" labelledBy="loop-title">
         <SectionIntro head="Understand. Act. Improve." title="One loop, from insight to action." id="loop-title">
-          Braventa organizes growth into three stages and keeps them connected, so what you learn shapes what you do next.
+          Braventa organizes growth into nine steps in three stages and keeps them connected, so what you learn shapes
+          what you do next. Each stage is labelled with what works today.
         </SectionIntro>
         <ol className="mt-12 grid gap-4 md:grid-cols-3">
           {LOOP.map((s, i) => (
@@ -106,6 +117,7 @@ export default function Home() {
                 <StatusBadge status={s.status} />
               </div>
               <h3 className="mt-3 text-2xl">{s.stage}</h3>
+              <p className="mt-1 text-sm font-semibold">{s.steps}</p>
               <p className="mt-2 text-muted">{s.body}</p>
             </li>
           ))}

@@ -23,6 +23,7 @@ const SECTIONS = [
       "Each organization's data is isolated from every other at the database level, with row-level security on every table that holds customer data.",
       "Secret keys stay on our servers and are never sent to your browser.",
       "Your own account can't change your plan, trial or AI usage limit; only trusted server code can.",
+      "If you connect an AI assistant, its access key is stored only as a one-way hash, shows when it was last used, and can be revoked at any time.",
     ],
   },
   {
