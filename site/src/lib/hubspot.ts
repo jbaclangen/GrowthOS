@@ -47,10 +47,12 @@ export function toHubspotFields(c: ContactPayload) {
   return fields.filter((f) => f.value !== "");
 }
 
-// HubSpot marks unauthenticated server-side submissions from domains it doesn't consider registered as spam
-// ("Unregistered Site Domain"). With HUBSPOT_ACCESS_TOKEN (a private-app token with the `forms` scope, stored as a
-// Vercel Secret) the authenticated endpoint is used, which HubSpot treats as trusted.
-export async function sendToHubspot(c: ContactPayload, context: { pageUri: string }) {
+// HubSpot blocks submissions whose pageUri is on a domain without its tracking code as spam ("Unregistered Site
+// Domain"), even on the authenticated endpoint. braventa.io deliberately has no trackers, so no pageUri is sent; the
+// page name still shows as the conversion page. Verified 2026-10-11: with a pageUri every submission was blocked,
+// without one they arrive as normal submissions. HUBSPOT_ACCESS_TOKEN (private-app token, `forms` scope, Vercel
+// Secret) is optional and switches to the authenticated endpoint.
+export async function sendToHubspot(c: ContactPayload) {
   if (!hubspotConfigured()) return { skipped: true as const };
   const token = process.env.HUBSPOT_ACCESS_TOKEN;
   const path = token ? "secure/submit" : "submit";
@@ -61,7 +63,7 @@ export async function sendToHubspot(c: ContactPayload, context: { pageUri: strin
       headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({
         fields: toHubspotFields(c),
-        context: { pageUri: context.pageUri, pageName: "Contact · Braventa" },
+        context: { pageName: "Contact · Braventa" },
       }),
       signal: AbortSignal.timeout(8_000),
     });

@@ -6,7 +6,6 @@ import { headers } from "next/headers";
 import { after } from "next/server";
 import { z } from "zod";
 import { sendToHubspot } from "@/lib/hubspot";
-import { SITE_URL } from "@/lib/site";
 import { checkFormToken, visitorHash } from "@/lib/spam";
 
 // Contact and early-access requests (D-033). Stored in contact_requests with the publishable key: the table allows
@@ -59,6 +58,6 @@ export async function sendContact(_: ContactState, formData: FormData): Promise<
   if (error) return { error: "Your message wasn't sent. Try again in a minute." };
 
   // Notify and add to the CRM after responding; a HubSpot failure never loses the stored request.
-  after(() => sendToHubspot(parsed.data, { pageUri: `${SITE_URL}/contact` }));
+  after(() => sendToHubspot(parsed.data));
   return { sent: true, name: parsed.data.name.split(" ")[0] };
 }
