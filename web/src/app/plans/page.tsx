@@ -32,9 +32,9 @@ async function Plans() {
         {!access
           ? "Every new account starts with a 14-day Pro trial."
           : trial?.active
-            ? `You're on a Pro trial, with ${trial.daysLeft} day${trial.daysLeft === 1 ? "" : "s"} left. After it ends you keep Basic.`
+            ? `You're on a Pro trial, with ${trial.daysLeft} day${trial.daysLeft === 1 ? "" : "s"} left. After it ends, you continue on Basic, a paid plan.`
             : trial
-              ? "Your Pro trial has ended. You're on Basic: Braventa recommends, and you carry out the changes yourself."
+              ? "Your Pro trial has ended. You're on Basic, a paid plan: Braventa recommends, and you carry out the changes yourself. Talk to us to set up your subscription."
               : `You're on ${TIERS[access.tier].label}.`}
       </p>
       {!proHasLiveFeatures() && (

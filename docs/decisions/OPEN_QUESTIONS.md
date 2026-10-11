@@ -38,16 +38,16 @@ validation; **P3** can wait.
 | Q-032 | P1 | Legal documents (Terms, Privacy, Cookies, Sub-processors, AI disclosure, Acceptable use). | Needed before sign-up is public; must be drafted or reviewed by a lawyer. | Commission before launch. |
 | Q-033 | P2 | Contact form spam protection beyond the honeypot (rate limit, CAPTCHA alternative such as Cloudflare Turnstile) and a notification when a request arrives. | The form is public once braventa.io is live; requests are only visible in Supabase. | **Partly resolved 2026-10-11 (D-034):** rate limit + timing check built; HubSpot notification live since the 2026-10-11 `pageUri` fix; replies sent from hello@braventa.io via Hostinger; HubSpot Marketing Hub Starter bought, braventa.io sending domain authenticated, email footer uses the Pixel Marketing Design address until the US LLC is registered; automatic reply live from hello@braventa.io ([CONTACT_PIPELINE.md](../marketing/CONTACT_PIPELINE.md)). |
 | Q-024 | P3 | Should model IDs be configurable without a code change (env or database)? Vision §10. | Swapping a failing or retired model currently needs a deploy. | Not before paid mode; revisit when switching to `AI_MODE=paid`. |
-| Q-034 | P1 | Is Basic after the trial free, or a paid plan? The code moves an ended trial to Basic automatically (D-030), but nothing says whether that Basic is charged. | The pricing page now says "the account moves to Basic" (it used to say "you keep Basic", which reads as free). Prices, billing copy and any rule that differs between "trial ended" and "subscribed to Basic" depend on it. | Decide with Q-029; then state it plainly on the pricing page. |
 | Q-035 | P2 | The site's AI page and Sub-processors describe the paid model lineup (Anthropic, with OpenAI and Qwen as backups). Which `AI_MODE` will braventa.io describe at launch? | Under `AI_MODE=free` requests go to free NVIDIA models through OpenRouter, which the site doesn't list (see Q-005, Q-007). | Switch to paid before the site is indexed, or list the free models and their data terms. |
-| Q-036 | P3 | Module names: the founder's Phase 1 brief (D-035) calls two areas "Automation & Workflow Intelligence" and "Analytics & Optimization"; D-010 names are "Automation" and "Analytics". Rename? | The brief also says not to rename anything, so the site keeps the D-010 names. | Keep D-010 names unless the founder confirms the longer ones. |
-| Q-037 | P3 | The Basic tier summary in `tiers.ts` promises "a marketing audit". Today that is the website analysis, growth score and diagnosis. Keep the word "audit"? | D-030 uses it; Pro's "full marketing audit" is Coming soon, so "audit" in Basic can read as more than the website review. | Keep (founder wording) unless early customers misread it. |
-| Q-038 | P2 | The AI assistant connection rule names the plans "Basic, Pro or Custom"; the site and `tiers.ts` call the top tier "Premium" (priced "Custom"). Also: an ended trial already becomes Basic automatically, so does "subscribes to Basic" mean a paid Basic (see Q-034)? | The site says "until your business subscribes to a plan" without naming tiers, to avoid both conflicts. | Confirm the tier name and what counts as subscribed once billing exists. |
 
 ## Resolved
 
 | ID | Answer | Decision |
 |---|---|---|
+| Q-034 | Basic after the trial is a **paid** subscription (founder, 2026-10-11). Billing isn't built yet, so continuing is arranged through "Talk to us" | D-035 |
+| Q-036 | Keep the shorter module names (Automation, Analytics) (founder, 2026-10-11) | D-035 |
+| Q-037 | Keep "a marketing audit" in Basic as the promise (founder, 2026-10-11) | D-035 |
+| Q-038 | "On a plan" means organizations.plan is basic, pro or premium (Premium is the founder's "Custom"); built in the MCP access rule | D-036 |
 | Q-025 | Keep BRAVENTA.IO and the Violet dot, as in the founder's reference (founder: "proceed", 2026-10-10) | D-027 |
 | — | Typography: Quicksand (headings, logo) + Comfortaa (other text) | D-015 |
 | Q-021 | AI assistant is not in the MVP; committed for the Next phase | D-020 |

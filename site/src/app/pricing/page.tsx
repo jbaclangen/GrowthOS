@@ -16,7 +16,7 @@ const PLUS: Record<Tier, string | null> = { basic: null, pro: "Everything in Bas
 const FAQ = [
   {
     q: "How does the trial work?",
-    a: `Every new account starts with ${TRIAL_DAYS} days of Pro. When the trial ends, the account moves to Basic and nothing is deleted.`,
+    a: `Every new account starts with ${TRIAL_DAYS} days of Pro. When the trial ends, you continue on Basic, a paid plan, and nothing is deleted.`,
   },
   {
     q: "What does Basic do?",

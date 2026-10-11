@@ -373,7 +373,9 @@ Benefit Link's. The bullet below about a separate account is superseded by this 
   request is stored. Setup and flow: [CONTACT_PIPELINE.md](../marketing/CONTACT_PIPELINE.md).
 
 ## D-035 — Phase 1 website messaging refinement
-**Status:** Founder (2026-10-11, founder brief "Phase 1 website copy & messaging refinement"); wording choices provisional.
+**Status:** Founder (2026-10-11, founder brief "Phase 1 website copy & messaging refinement"). Wording confirmed by the
+founder the same day: "AI-assisted growth system" is OK; keep the shorter module names; keep "a marketing audit" in
+Basic; Basic after the trial is a paid subscription.
 - **Positioning:** Braventa is described as an AI-assisted business growth system that learns how the business works,
   helps uncover what's holding it back, and turns the owner's priorities into a practical plan. It is not described as
   a chatbot, a content generator, an audit tool or an autonomous operator.
