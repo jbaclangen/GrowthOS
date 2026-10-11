@@ -32,7 +32,8 @@ const MODELS: Record<"free" | "paid", Record<TaskClass, string[]>> = {
 const ESCALATE: Record<TaskClass, TaskClass> = { simple: "standard", standard: "complex", complex: "complex", qa: "qa" };
 
 function modelsFor(taskClass: TaskClass) {
-  const mode = process.env.AI_MODE?.trim().toLowerCase() === "paid" ? "paid" : "free";
+  // Paid unless explicitly "free": free models are refused under the account's zero data retention (D-037).
+  const mode = process.env.AI_MODE?.trim().toLowerCase() === "free" ? "free" : "paid";
   return MODELS[mode][taskClass];
 }
 

@@ -72,8 +72,8 @@ Each worker contributes only a one-line system prompt; task instructions live in
 
 ## 4. AI_MODE and fallback chains
 
-`AI_MODE` is read from `process.env` at call time. Anything other than `paid` (including unset) means
-`free`. Each task class maps to an ordered list sent as OpenRouter's `models` array; **OpenRouter performs
+`AI_MODE` is read from `process.env` at call time. Anything other than `free` (including unset) means
+`paid` (changed 2026-10-12: free models fail under zero data retention, D-037). Each task class maps to an ordered list sent as OpenRouter's `models` array; **OpenRouter performs
 the fallback** (tries the next model if the first errors or is unavailable). The response's `model` field
 records which model actually answered, and that is what `ai_usage.model` stores.
 
