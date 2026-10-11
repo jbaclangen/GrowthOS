@@ -353,3 +353,13 @@ business this way.
 - **Calls to action:** sign-up is invite-only (app.braventa.io), so the primary CTA is "Request early access" (contact
   form), not sign-up. Implementation: `site/` in this repo, shared tokens and brand assets via the generators, tier list
   imported from the app so pricing can't drift.
+
+## D-034 — Contact notifications and CRM through a separate Braventa HubSpot account
+**Status:** Founder (2026-10-11, in chat).
+- braventa.io contact requests go to HubSpot for notifications, CRM and branded email, using a **new Braventa HubSpot
+  account** (not the Pixel Marketing Design agency portal, and never a client portal such as The Benefit Link's).
+- Emails are branded: braventa.io is connected as HubSpot's email sending domain (DKIM/SPF records in Hostinger).
+- Spam protection: honeypot, signed render-time token (< 3 s rejected), and a database rate limit (3 per visitor per hour
+  by salted IP hash, 5 per email per day). No CAPTCHA or third-party script.
+- Supabase stays the system of record; HubSpot is fed through the Forms API (portal ID + form GUID, no secret) after the
+  request is stored. Setup and flow: [CONTACT_PIPELINE.md](../marketing/CONTACT_PIPELINE.md).

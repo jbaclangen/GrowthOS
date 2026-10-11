@@ -2,10 +2,17 @@
 
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import { headers } from "next/headers";
+import { after } from "next/server";
 import { z } from "zod";
+import { sendToHubspot } from "@/lib/hubspot";
+import { SITE_URL } from "@/lib/site";
+import { checkFormToken, visitorHash } from "@/lib/spam";
 
-// Contact and early-access requests (founder decision 2026-10-11). Stored in contact_requests with the publishable
-// key: the table allows anonymous inserts of the form fields only and no reads (migration 20261011055323).
+// Contact and early-access requests (D-033). Stored in contact_requests with the publishable key: the table allows
+// anonymous inserts of the form fields only and no reads. Spam protection (Q-033): honeypot field, signed render-time
+// token (too-fast submissions), and a database rate limit per visitor (salted IP hash) and per email address.
+// Each stored request is then sent to Braventa's HubSpot for notification and follow-up (lib/hubspot.ts).
 
 export type ContactState = { error?: string; sent?: boolean; name?: string } | undefined;
 
@@ -19,9 +26,13 @@ const schema = z.object({
   marketing_opt_in: z.boolean(),
 });
 
+// Bots get the same success message as people, so they learn nothing from the response.
+const PRETEND_SENT: ContactState = { sent: true };
+
 export async function sendContact(_: ContactState, formData: FormData): Promise<ContactState> {
-  // Honeypot: real visitors never see or fill this field.
-  if (String(formData.get("company_url") ?? "")) return { sent: true };
+  if (String(formData.get("company_url") ?? "")) return PRETEND_SENT;
+  const token = checkFormToken(String(formData.get("ft") ?? ""));
+  if (token === "too_fast" || token === "invalid") return PRETEND_SENT;
 
   const parsed = schema.safeParse({
     intent: formData.get("intent"),
@@ -39,7 +50,15 @@ export async function sendContact(_: ContactState, formData: FormData): Promise<
   if (!url || !key) return { error: "The form isn't available right now. Try again later." };
 
   const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-  const { error } = await supabase.from("contact_requests").insert(parsed.data);
+  const { error } = await supabase
+    .from("contact_requests")
+    .insert({ ...parsed.data, ip_hash: visitorHash(await headers()) });
+  if (error?.message.includes("rate_limited")) {
+    return { error: "You've sent several messages recently. Try again in an hour." };
+  }
   if (error) return { error: "Your message wasn't sent. Try again in a minute." };
+
+  // Notify and add to the CRM after responding; a HubSpot failure never loses the stored request.
+  after(() => sendToHubspot(parsed.data, { pageUri: `${SITE_URL}/contact` }));
   return { sent: true, name: parsed.data.name.split(" ")[0] };
 }

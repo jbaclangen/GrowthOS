@@ -9,7 +9,7 @@ const INTENTS = [
   { value: "question", label: "Ask a question" },
 ] as const;
 
-export function ContactForm({ intent }: { intent: string }) {
+export function ContactForm({ intent, token }: { intent: string; token: string }) {
   const [state, action, pending] = useActionState<ContactState, FormData>(sendContact, undefined);
 
   if (state?.sent) {
@@ -73,6 +73,7 @@ export function ContactForm({ intent }: { intent: string }) {
         />
       </label>
 
+      <input type="hidden" name="ft" value={token} />
       {/* Honeypot for bots: hidden from people and assistive technology. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
         <label>
