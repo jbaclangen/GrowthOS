@@ -364,6 +364,9 @@ Benefit Link's. The bullet below about a separate account is superseded by this 
   **Amended 2026-10-11 (Founder):** HubSpot's sending domain needs Marketing Hub Professional, which we're not buying.
   Instead, mailboxes are on Hostinger Email (admin@, hello@, support@) and hello@braventa.io is connected to HubSpot
   over IMAP/SMTP, so replies go out through Hostinger, signed for braventa.io. No automatic receipt email for now.
+  **Amended again 2026-10-11 (Founder):** the founder bought HubSpot's Starter Customer Platform (Marketing Hub Starter),
+  which does allow the braventa.io sending domain. It's being connected (DKIM + merged SPF in Hostinger), so HubSpot
+  marketing and follow-up email go out as braventa.io; one-to-one replies still go through Hostinger.
 - Spam protection: honeypot, signed render-time token (< 3 s rejected), and a database rate limit (3 per visitor per hour
   by salted IP hash, 5 per email per day). No CAPTCHA or third-party script.
 - Supabase stays the system of record; HubSpot is fed through the Forms API (portal ID + form GUID, no secret) after the
