@@ -32,7 +32,7 @@ const MODELS: Record<"free" | "paid", Record<TaskClass, string[]>> = {
 const ESCALATE: Record<TaskClass, TaskClass> = { simple: "standard", standard: "complex", complex: "complex", qa: "qa" };
 
 function modelsFor(taskClass: TaskClass) {
-  const mode = process.env.AI_MODE === "paid" ? "paid" : "free";
+  const mode = process.env.AI_MODE?.trim().toLowerCase() === "paid" ? "paid" : "free";
   return MODELS[mode][taskClass];
 }
 
