@@ -87,6 +87,13 @@ side-by-side comparison (D-024, §4.1):
 | complex | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-opus-5.5 -> claude-sonnet-5.5 | website_auditor, crm_analyst |
 | qa | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-opus-5.5 -> claude-sonnet-5.5 | qa_reviewer |
 
+**Zero data retention (2026-10-11).** The OpenRouter account enforces zero data retention (ZDR) in its privacy
+settings, so OpenRouter only routes to endpoints that don't keep prompts. That excludes **every free model**
+(the NVIDIA Nemotron endpoints fail with "ZDR violation (account settings)") and Qwen 3.8 Flash, which was the
+simple-class fallback until it was replaced by GPT-5.6 Sol. Claude models are served through ZDR endpoints
+(Haiku answered via Google Vertex in the check), and GPT-5.6 Sol via Azure. Result: `AI_MODE=free` doesn't work
+while ZDR is on; production runs `AI_MODE=paid`. Any model added to a chain must have a ZDR endpoint.
+
 **Risk-based escalation.** `runWorker({ highRisk: true })` moves a call up one tier (simple -> standard ->
 complex). The pipeline sets it for `content_writer` when the profile marks the business as regulated
 (insurance, Medicare, health, finance, legal…), so those drafts are written by Opus.
@@ -102,7 +109,7 @@ Free mode: ~3–5½ minutes per run; OpenRouter free models are limited per API 
 Paid mode: about 2 minutes per step-chain on Sonnet; about 5 minutes for a regulated business, where Opus
 writes the drafts (measured 330 s on thebenefitlink.com, including one cut-off retry since fixed).
 
-### 4.1 Model comparison (2026-10-10)
+### 4.1 Model comparison (2026-10-10, re-run 2026-10-11)
 
 Run with `npm run eval:models -- <url>...` (`web/scripts/compare-models.mts`; outputs in `web/.eval/`,
 gitignored). Same crawl, PageSpeed data and production prompts for every model; automatic checks for figures
@@ -121,6 +128,20 @@ $0.067; plan Sonnet $0.076 / Opus $0.132; drafts Sonnet $0.054 / Opus $0.115. Ha
 After the prompt fixes (date, evidence rules, regulated-industry handling) no model invented statistics,
 ratings or past years. Findings that shaped the code: the old 2,500-token profile ceiling cut off every
 paid model; long drafts needed per-channel length limits; Sonnet sometimes returns `area` as a list.
+
+**Re-run 2026-10-11, free against paid** (the founder's rule: if free models match paid, paid becomes only the
+fallback). Both free models (Nemotron 3 Ultra and Super) failed on all three sites before producing anything,
+because of the ZDR setting above, so free can't be compared or used without turning ZDR off. Paid results:
+
+| Site | Sonnet 5.5 | Opus 5.5 |
+|---|---|---|
+| thebenefitlink.com (regulated) | 141 s, $0.227, compliance notes 5/5 | 230 s, $0.456, compliance notes 5/5 |
+| benguetlinemenelectrical.com | 118 s, $0.183, compliance notes 4/5 | 207 s, $0.392, compliance notes 5/5 |
+| pixelmarketingdesign.com | 111 s, $0.174, compliance notes 3/5 | 237 s, $0.397, compliance notes 4/5 |
+
+Both models: no unsupported figures in any diagnosis or draft, no retries, and the regulated business detected
+correctly (Medicare plus life, long-term care and annuities). The "stale year" flags were real dates quoted
+from the sites (a 2007 founding date, a 1992–2020 copyright), not invented ones. Decision: paid stays primary.
 
 **Chosen lineup and expected cost:** profile Sonnet, opportunities (now diagnosis and plan) Opus, plan Sonnet, drafts Sonnet (Opus when
 regulated) — about **$0.23 per analysis, about $0.32 for regulated businesses** (end-to-end run on
