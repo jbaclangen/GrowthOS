@@ -1,10 +1,14 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // Data Access Layer: every page and action resolves the user through here.
 
 export async function getUser() {
+  // Signed-in pages render per request. Reading cookies alone doesn't defer rendering under Cache Components,
+  // and the Supabase session check reads the clock, so opt in explicitly.
+  await connection();
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   return data.user;
