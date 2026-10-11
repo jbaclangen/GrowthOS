@@ -18,11 +18,11 @@ export const TIERS: Record<Tier, { label: string; summary: string }> = {
   },
   pro: {
     label: "Pro",
-    summary: "Everything in Basic, plus a full marketing audit, connected tools and AI agents that carry out approved changes for you.",
+    summary: "Everything in Basic, plus a full marketing audit, connected tools and AI agents that carry out approved changes for you (coming soon).",
   },
   premium: {
     label: "Premium",
-    summary: "Everything in Pro, plus custom integrations with the systems your business runs on.",
+    summary: "Everything in Pro, plus custom integrations with the systems your business runs on (coming soon).",
   },
 };
 
