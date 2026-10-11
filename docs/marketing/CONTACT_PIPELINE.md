@@ -16,8 +16,8 @@ Visitor submits /contact
       4. insert into Supabase contact_requests with ip_hash
          (DB trigger: ≤ 3 per visitor per hour, ≤ 5 per email per day → "Try again in an hour")
       5. after the response: submit to HubSpot Forms API (portal + form GUID, no secret)
-  → HubSpot creates/updates the contact and emails the submission notification; the team replies from
-    hello@braventa.io through the HubSpot CRM (sent via Hostinger SMTP)
+  → HubSpot creates/updates the contact, emails the submission notification and sends the automatic reply;
+    the team replies from hello@braventa.io through the HubSpot CRM (sent via Hostinger SMTP)
 ```
 
 Supabase is the system of record; a HubSpot failure is logged in Vercel and never loses a request.
@@ -47,7 +47,7 @@ Supabase is the system of record; a HubSpot failure is logged in Vercel and neve
 | Branded HubSpot sending domain `braventa.io` (from `hello@braventa.io`): DKIM CNAMEs `hs1-247150427._domainkey` → `braventa-io.hs06a.dkim.hubspotemail.net`, `hs2-247150427._domainkey` → `braventa-io.hs06b.dkim.hubspotemail.net`; SPF merged to `v=spf1 include:_spf.mail.hostinger.com include:247150427.spf05.hubspotemail.net ~all` (one SPF record only); existing DMARC kept | Done 2026-10-11: HubSpot shows braventa.io as **Authenticated** |
 | Custom contact properties `braventa_request_type` (Early access / Walkthrough / Question) and `braventa_product_updates` (Yes/No), added to the form as hidden fields and sent by `site/src/lib/hubspot.ts` | Done 2026-10-11 |
 | Email footer (company name + postal address, required by HubSpot and anti-spam law for every marketing email) | Done 2026-10-11 as a placeholder: "Pixel Marketing Design, Unit B-C 205 Teachers Village Road, Baguio City, Benguet 2600, Philippines" (the address already in HubSpot). Replace with Braventa and the US LLC address once registered |
-| Automatic "we got your message" email (copy in §6) | To do: form → Automation → send follow-up email from hello@braventa.io |
+| Automatic "we got your message" email (copy in §6): form → Automation → simple workflow "Send a follow-up email after form submission" → marketing email "braventa.io contact - automatic reply", from Braventa <hello@braventa.io>, subscription type Marketing Information, footer Primary. The form sets new contacts as marketing contacts so they can receive it | Live 2026-10-11; test delivered 4 s after submission |
 
 **Marketing consent:** the consent record for D-014 is `contact_requests.marketing_opt_in` in Supabase, mirrored to
 HubSpot as `braventa_product_updates`. Newsletters and other marketing email go only to contacts where it is Yes; the
