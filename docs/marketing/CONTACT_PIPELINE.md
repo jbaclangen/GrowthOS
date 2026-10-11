@@ -29,7 +29,7 @@ Supabase is the system of record; a HubSpot failure is logged in Vercel and neve
 | `CONTACT_HASH_SALT` | **Secret** | ≥ 32 random characters. Signs the form token and salts the IP hash. **Without it the timing check and per-visitor rate limit are off** (the per-email limit and honeypot still apply) |
 | `HUBSPOT_PORTAL_ID` | Config | The Braventa HubSpot account ID |
 | `HUBSPOT_FORM_GUID` | Config | The "braventa.io contact" form's GUID. Without both HubSpot vars, nothing is sent to HubSpot |
-| `HUBSPOT_ACCESS_TOKEN` | **Secret** | Optional: a HubSpot private-app token with the `forms` scope. When set, submissions use the authenticated endpoint, which avoids the *Unregistered Site Domain* spam block (§5) |
+| `HUBSPOT_ACCESS_TOKEN` | **Secret** | Optional: a HubSpot private-app token with the `forms` scope. When set, submissions use the authenticated endpoint. It does **not** avoid the spam block on its own (§5) |
 
 ## 3. HubSpot setup (Pixelmarketingdesign portal, Hub ID 247150427)
 
@@ -39,7 +39,7 @@ Supabase is the system of record; a HubSpot failure is logged in Vercel and neve
 | Submission notifications → jbaclangen@gmail.com (owner 97785306) | Done |
 | `HUBSPOT_PORTAL_ID`, `HUBSPOT_FORM_GUID` on Vercel `braventa-site` (Config, Production) | Done |
 | `braventa.io` added to Settings → Tracking code → Advanced tracking → Additional site domains | Done |
-| Server submissions accepted (not blocked as spam) | **Open:** test submissions are blocked as *Unregistered Site Domain* (see §5) |
+| Server submissions accepted (not blocked as spam) | Fixed 2026-10-11 by sending no `pageUri` (see §5) |
 | Branded sending domain: Settings → Content → Domains & URLs → Connect a domain → Email sending → `braventa.io`; add HubSpot's DKIM CNAMEs + SPF in Hostinger without touching existing records | To do — needs a braventa.io mailbox first (no MX records exist) to verify the from-address |
 | Follow-up email from a braventa.io address confirming receipt | To do (after the sending domain) |
 | Email footer and company details show Braventa | To do |
@@ -49,15 +49,15 @@ visitor's marketing choice are written at the top of the HubSpot *Message*. The 
 `contact_requests.marketing_opt_in` in Supabase; marketing email only goes to contacts whose request says
 "Product updates: yes".
 
-## 5. Known issue: HubSpot spam check
+## 5. HubSpot spam check (resolved 2026-10-11)
 
-HubSpot blocks server-side Forms API submissions whose `pageUri` domain it doesn't consider registered (spam type
-*Unregistered Site Domain*). Adding braventa.io to *Additional site domains* did not clear it within minutes. Options:
-1. Wait for HubSpot to pick up the domain, then re-test (cheapest).
-2. **Built:** set `HUBSPOT_ACCESS_TOKEN` (private app → Scopes: `forms`) as a Vercel Secret; the site then uses the
-   authenticated endpoint (`/submissions/v3/integration/secure/submit/…`), which HubSpot treats as trusted.
-3. Release blocked submissions manually (form → Submissions → Spam) — not sustainable.
-Until resolved, Supabase still stores every request; check `contact_requests` for new rows.
+HubSpot blocks Forms API submissions whose `pageUri` is on a domain without its tracking code (spam type
+*Unregistered Site Domain*). Adding braventa.io to *Additional site domains* and switching to the authenticated
+endpoint (`HUBSPOT_ACCESS_TOKEN`) both still got blocked; 9 test submissions sit in the form's Spam tab. braventa.io
+deliberately runs no trackers, so the site now sends **no `pageUri`**, only `pageName` ("Contact · Braventa"), and
+submissions arrive normally. Don't add a `pageUri` back unless the HubSpot tracking code is installed on the site
+(which would need a cookie notice and privacy-page change).
+
 ## 4. Privacy
 
 The raw IP is never stored: `ip_hash` is HMAC-SHA256(IP, `CONTACT_HASH_SALT`). HubSpot is listed on
