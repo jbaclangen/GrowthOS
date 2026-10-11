@@ -58,7 +58,9 @@ export async function ConnectionsSection() {
           Google Search Console
         </h2>
         <span className="chip bg-accent-soft text-accent-soft-foreground">Pro</span>
-        {connection ? (
+        {!configured ? (
+          <span className="chip bg-surface-muted text-muted">Not available yet</span>
+        ) : connection ? (
           <StatusChip connection={connection} paused={!access?.allowed} />
         ) : (
           <span className="chip bg-surface-muted text-muted">Not connected</span>
