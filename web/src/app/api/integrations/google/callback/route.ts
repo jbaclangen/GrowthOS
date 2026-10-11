@@ -1,6 +1,6 @@
 import { NextResponse, connection, type NextRequest } from "next/server";
 import { getCurrentOrg, getUser } from "@/lib/auth";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   GoogleOAuthError,
   SEARCH_CONSOLE_SCOPE,
@@ -48,10 +48,20 @@ export async function GET(request: NextRequest) {
   const code = params.get("code");
   if (!code) return toSettings(request, "error");
 
-  // The organization is authorised above (membership read through RLS); the service client is scoped to it.
-  const db = createSupabaseAdminClient();
-  const { data: orgRow } = await db.from("organizations").select("plan, trial_ends_at").eq("id", org.id).maybeSingle();
+  // Plan check through the user's own client, as in the start route (RLS: members read their organization).
+  const supabase = await createSupabaseServerClient();
+  const { data: orgRow, error: orgError } = await supabase
+    .from("organizations")
+    .select("plan, trial_ends_at")
+    .eq("id", org.id)
+    .maybeSingle();
+  if (orgError) {
+    console.error("Search Console callback: organization lookup failed:", orgError.message);
+    return toSettings(request, "error");
+  }
   if (!orgRow || !searchConsoleAccess(orgRow).allowed) return toSettings(request, "paused");
+  // The organization is authorised above; the service client is scoped to it for the server-only writes.
+  const db = createSupabaseAdminClient();
 
   let tokens;
   try {
@@ -80,7 +90,8 @@ export async function GET(request: NextRequest) {
       scopes,
       refreshToken: tokens.refresh_token,
     });
-  } catch {
+  } catch (e) {
+    console.error("Search Console callback: saving the connection failed:", e instanceof Error ? e.message : "unknown");
     await revokeToken(tokens.refresh_token);
     return toSettings(request, "error");
   }
