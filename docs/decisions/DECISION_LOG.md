@@ -340,3 +340,16 @@ ON-1 – ON-8 in [PRODUCT_REQUIREMENTS.md](../product/PRODUCT_REQUIREMENTS.md).
 score ring, score bars, findings by evidence type, plan progress, what you told us, profile, content plan, drafts);
 each tile opens the full section in a modal dialog addressed by `?view=`. The dashboard shows the latest analyzed
 business this way.
+
+## D-033 — Marketing site build and pre-launch rules
+**Status:** Founder (2026-10-11, in chat) for the four choices; implementation provisional.
+- **Hidden until launch:** braventa.io is deployed with noindex (robots.txt disallow, `X-Robots-Tag`, meta robots) until
+  legal pages are reviewed and copy is final; `SITE_INDEXABLE=true` switches indexing on.
+- **Contact:** a form stored in Supabase `contact_requests` (insert-only for the public), no email sending yet.
+- **Legal pages:** factual drafts marked as drafts (Terms placeholder; Privacy, Cookies and Sub-processors describe what
+  the product actually does) until a lawyer's versions exist (Q-032).
+- **About:** company story only, no founder name; drawn from the founder's agency experience and the vision of giving
+  small and mid-sized businesses multiple services in one app instead of hiring a different person for each job.
+- **Calls to action:** sign-up is invite-only (app.braventa.io), so the primary CTA is "Request early access" (contact
+  form), not sign-up. Implementation: `site/` in this repo, shared tokens and brand assets via the generators, tier list
+  imported from the app so pricing can't drift.

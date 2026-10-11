@@ -1,0 +1,62 @@
+@import "tailwindcss";
+/* All colour, type, radius, shadow and motion values come from design-system/tokens.json (D-009), shared with the app. */
+@import "../styles/tokens.css";
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* One visible focus style everywhere (WCAG 2.4.7 / 2.4.11). */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Shared primitives (same as the app) plus marketing ones. Conventions: design-system/component-guidelines.md,
+   docs/brand/VISUAL_IDENTITY.md §13 (marketing: Ink heroes, alternating bands, pill CTAs, 1280 px content). */
+@layer components {
+  :where(h1, h2, h3, h4) {
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-heading);
+    letter-spacing: var(--tracking-tight);
+  }
+  .input {
+    @apply w-full rounded-md border border-border bg-surface px-3 py-2 text-sm transition-colors duration-(--duration-fast) outline-none placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/20;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-colors duration-(--duration-fast) hover:bg-accent-hover disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-foreground transition-colors duration-(--duration-fast) hover:border-border-strong hover:bg-surface-muted disabled:pointer-events-none disabled:opacity-50;
+  }
+  .card {
+    @apply rounded-lg border border-border bg-surface p-6;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold tracking-label text-muted uppercase;
+  }
+  .display {
+    @apply font-display text-display font-bold tracking-display;
+  }
+  /* Short uppercase marketing section heads (VOICE_AND_MESSAGING §2 "display voice"). */
+  .section-head {
+    @apply font-display text-sm font-bold tracking-label uppercase text-accent;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-[11px] leading-4 font-semibold tracking-label uppercase;
+  }
+  .prose-legal {
+    @apply max-w-3xl space-y-4 text-base leading-relaxed [&_h2]:mt-10 [&_h2]:text-2xl [&_h3]:mt-6 [&_h3]:text-lg [&_li]:ml-5 [&_li]:list-disc [&_a]:text-accent [&_a]:underline;
+  }
+}
