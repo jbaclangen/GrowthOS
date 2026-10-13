@@ -5,6 +5,7 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { normalizeUrl } from "@/lib/integrations/crawler";
+import { failStaleJobs } from "@/lib/pipeline/jobs";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { analysesInLastDay, createOnboarding, MAX_ANALYSES_PER_DAY, queueJob, RATE_LIMIT_MESSAGE } from "@/lib/onboarding/start";
 import { parseOwnerInputs, toProfileColumns } from "@/lib/owner-inputs";
@@ -67,7 +68,9 @@ export async function rerunAnalysis(businessProfileId: string): Promise<RerunSta
     .maybeSingle();
   if (!profile?.website_url) return { error: "This business wasn't found." };
 
-  // One analysis at a time per business: a queued or running job (any phase) blocks a re-run.
+  // One analysis at a time per business: a queued or running job (any phase) blocks a re-run. Jobs cut off by the
+  // hosting time limit are cleared first so they don't block forever.
+  await failStaleJobs(profile.organization_id);
   const { data: active } = await supabase
     .from("ai_jobs")
     .select("id")

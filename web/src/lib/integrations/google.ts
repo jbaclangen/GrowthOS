@@ -6,7 +6,10 @@ export type PageSpeedStrategy = "mobile" | "desktop";
 // PageSpeed runs Lighthouse on Google's side; slow sites take 60–90 s (thebenefitlink.com measured ~88 s on
 // 2026-10-11), so 60 s would drop results the old untimed call got. 120 s still fits the 300 s function limit
 // and runs in parallel with the crawl.
-const PSI_TIMEOUT_MS = 120000;
+// PageSpeed can take 90+ s on slow sites, but the whole analysis must fit the hosting limit (300 s on Vercel Hobby):
+// past this, the report says PageSpeed timed out and the score uses Braventa's assessment alone. Raise it with maxDuration
+// on a paid plan.
+const PSI_TIMEOUT_MS = 55000;
 const MAX_OPPORTUNITIES = 5;
 
 // Real-user Core Web Vitals from the Chrome UX Report (CrUX), as PageSpeed Insights returns them in
