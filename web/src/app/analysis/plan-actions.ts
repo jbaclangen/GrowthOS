@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { refresh } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { failStaleJobs } from "@/lib/pipeline/jobs";
 import { runAnalysisJob } from "@/lib/pipeline/website-intel";
 import { finalPriorities } from "@/lib/plan/priority";
 
@@ -111,6 +112,7 @@ export async function requestDiagnosisUpdate(diagnosisId: string): Promise<Actio
     .select("website_url")
     .eq("id", diagnosis.business_profile_id)
     .single();
+  await failStaleJobs(diagnosis.organization_id);
   const { data: running } = await supabase
     .from("ai_jobs")
     .select("id")

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
+import { failStaleJobs } from "@/lib/pipeline/jobs";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ScoreBadge } from "@/components/score-badge";
 import { isOpen } from "@/lib/onboarding/steps";
@@ -24,6 +25,7 @@ async function Dashboard() {
   await requireUser();
   const org = await getCurrentOrg();
   const supabase = await createSupabaseServerClient();
+  if (org) await failStaleJobs(org.id);
 
   const [{ data: profiles }, { data: jobs }, { data: sessions }] = await Promise.all([
     supabase
