@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/safe-next";
 
 export type AuthState = { error?: string; message?: string } | undefined;
 
@@ -24,7 +25,8 @@ export async function signIn(_: AuthState, formData: FormData): Promise<AuthStat
   if (error?.code === "email_not_confirmed") return { error: "Confirm your email first. Check your inbox for the link." };
   if (error?.code === "invalid_credentials") return { error: "That email and password don't match. Try again." };
   if (error) return { error: error.message };
-  redirect("/dashboard");
+  // Back to where sign-in was asked for, such as an AI assistant's connection request (/oauth/authorize).
+  redirect(safeNext(formData.get("next")));
 }
 
 export async function signUp(_: AuthState, formData: FormData): Promise<AuthState> {
@@ -33,12 +35,13 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
 
   const supabase = await createSupabaseServerClient();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const next = safeNext(formData.get("next"), "/onboarding");
   const { data, error } = await supabase.auth.signUp({
     ...parsed.data,
-    options: { emailRedirectTo: `${appUrl}/auth/callback?next=/onboarding` },
+    options: { emailRedirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent(next)}` },
   });
   if (error) return { error: error.message };
-  if (data.session) redirect("/onboarding");
+  if (data.session) redirect(next);
   return { message: "Check your email for a confirmation link, then come back and sign in." };
 }
 

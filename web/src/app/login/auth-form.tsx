@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { signIn, signUp, type AuthState } from "./actions";
 
-export function AuthForm() {
+export function AuthForm({ next }: { next: string | null }) {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [state, action, pending] = useActionState<AuthState, FormData>(
     mode === "signin" ? signIn : signUp,
@@ -12,6 +12,7 @@ export function AuthForm() {
 
   return (
     <form action={action} className="mt-8 space-y-4">
+      {next && <input type="hidden" name="next" value={next} />}
       <label className="block">
         <span className="text-sm font-medium">Email</span>
         <input name="email" type="email" required autoComplete="email" className="input mt-1" />

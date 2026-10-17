@@ -1,0 +1,8 @@
+// Where to send someone after signing in (?next=…). Only same-site paths: no scheme, no "//host" and no "/\host",
+// which browsers also read as another host. Pure, unit-tested.
+export function safeNext(next: unknown, fallback = "/dashboard") {
+  if (typeof next !== "string" || next.length > 2000) return fallback;
+  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
+  if (/[\u0000-\u001f]/.test(next)) return fallback;
+  return next;
+}

@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Scope } from "@/lib/oauth/scopes";
 import { CATEGORIES, getPainPoint, painPointsInCategory } from "@/lib/onboarding/catalog";
 import { MAX_SELECTED, MAX_STATEMENT, validateDiscovery, validateReview } from "@/lib/onboarding/discovery";
 import { MAX_ANSWER, getQuestion, validateFollowUps } from "@/lib/onboarding/followups";
@@ -15,16 +16,19 @@ import { loadReport } from "@/app/analysis/[id]/report-data";
 // onboarding from what it knows about the business. Each tool is a thin wrapper over lib/onboarding, the same code
 // the web forms use, so both paths behave the same.
 //
-// Security: ctx.db is the service client. The route has already resolved ctx.organizationId from a valid access key;
+// Security: ctx.db is the service client. The route has already resolved ctx.organizationId from a valid key or token;
 // every session and business is loaded scoped to it, and IDs from the assistant are never trusted otherwise.
 // Text from the assistant is owner input: it goes into prompts the same way form answers do (as quoted data).
 
-export type ToolContext = { db: SupabaseClient; organizationId: string; userId: string; appUrl: string };
+// userId is null for service keys (organization-level, no person attached); rows they create have no created_by.
+export type ToolContext = { db: SupabaseClient; organizationId: string; userId: string | null; appUrl: string };
 
 export class ToolError extends Error {}
 
 type Tool = {
   name: string;
+  // The OAuth scope (or service-key scope) a caller needs to see and call this tool (lib/oauth/scopes.ts).
+  scope: Scope;
   title: string;
   description: string;
   inputSchema: Record<string, unknown>;
@@ -139,6 +143,7 @@ const answerArgs = z.object({
 export const TOOLS: Tool[] = [
   {
     name: "braventa_start_onboarding",
+    scope: "onboarding",
     title: "Start Braventa onboarding",
     description:
       "Starts onboarding for the owner's business: Braventa begins reviewing the website (public pages and Google PageSpeed) and opens the discovery questions. Use only details the owner has given you. Returns a session_id for the other tools.",
@@ -190,6 +195,7 @@ export const TOOLS: Tool[] = [
   },
   {
     name: "braventa_get_discovery_questions",
+    scope: "onboarding",
     title: "Get Braventa discovery questions",
     description:
       "Lists the common business problems the owner can pick from, grouped by area, plus a free-text question. Pick the ones the owner has actually described, and summarize their situation in their own words.",
@@ -217,6 +223,7 @@ export const TOOLS: Tool[] = [
   },
   {
     name: "braventa_submit_discovery",
+    scope: "onboarding",
     title: "Submit Braventa discovery answers",
     description:
       "Saves the problems the owner chose and their description. Braventa matches the description to known problems and returns all candidates; confirm them and the top priorities with the owner, then call braventa_confirm_priorities. Submitting again replaces earlier answers for this session.",
@@ -256,6 +263,7 @@ export const TOOLS: Tool[] = [
   },
   {
     name: "braventa_confirm_priorities",
+    scope: "onboarding",
     title: "Confirm the owner's priorities",
     description:
       "Saves which problems the owner keeps and their top 1–3 priorities in order. Braventa then asks a few follow-up questions about those priorities (returned here), or finishes discovery if it has enough.",
@@ -285,6 +293,7 @@ export const TOOLS: Tool[] = [
   },
   {
     name: "braventa_get_follow_up_questions",
+    scope: "onboarding",
     title: "Get Braventa follow-up questions",
     description: "Lists the follow-up questions waiting for an answer in this session.",
     inputSchema: {
@@ -304,6 +313,7 @@ export const TOOLS: Tool[] = [
   },
   {
     name: "braventa_answer_follow_up_questions",
+    scope: "onboarding",
     title: "Answer Braventa follow-up questions",
     description:
       "Saves answers to the pending follow-up questions. For choice questions send the choice value; for text questions the owner's real answer. Questions left out are skipped. Set finish to true to stop asking questions and start building the plan.",
@@ -351,6 +361,7 @@ export const TOOLS: Tool[] = [
   },
   {
     name: "braventa_get_status",
+    scope: "onboarding",
     title: "Check Braventa onboarding status",
     description:
       "Shows where onboarding stands and, once the plan is ready, a short summary: growth score, the top priorities in the plan, and a link to the full report. The owner confirms or corrects the diagnosis and approves posts in Braventa itself.",

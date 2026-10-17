@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { createAccessKey, keyLastUsed, type CreateKeyState } from "./actions";
+import { CopyBlock } from "./copy-block";
 
 type App = "desktop" | "code";
 
@@ -37,7 +38,7 @@ export function KeyForm({ serverUrl, needsBusiness }: { serverUrl: string; needs
             </label>
           ))}
         </fieldset>
-        <p className="mt-2 text-xs text-muted">claude.ai and ChatGPT are coming soon.</p>
+        <p className="mt-2 text-xs text-muted">For claude.ai and ChatGPT, use sign-in instead (above): they don&apos;t take keys.</p>
       </Step>
 
       <Step n={2} title="Create an access key">
@@ -193,27 +194,6 @@ function ConnectionCheck({ prefix }: { prefix: string }) {
           </span>
         )}
       </p>
-    </div>
-  );
-}
-
-function CopyBlock({ label, value }: { label: string; value: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <div className="mt-2">
-      <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-surface-muted p-3 text-xs text-foreground">
-        <code aria-label={label}>{value}</code>
-      </pre>
-      <button
-        type="button"
-        className="btn-secondary mt-2"
-        onClick={async () => {
-          await navigator.clipboard.writeText(value);
-          setCopied(true);
-        }}
-      >
-        {copied ? "Copied" : `Copy ${label.toLowerCase()}`}
-      </button>
     </div>
   );
 }
