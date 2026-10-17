@@ -98,8 +98,13 @@ RLS. Rules:
   `https://<host>/api/jobs/continue` and `token` an HMAC-shaped value (check constraints); a composite foreign key
   ties each row to a job of the same organization. Rows are deleted with the job or organization and by an hourly
   cleanup after a day. While a request is queued, `pg_net` keeps its body (so the token) in `net.http_request_queue`,
-  and responses for 6 hours in `net._http_response`; the `net` schema isn't exposed through the Data API. Tokens are
-  never logged (errors log only the PostgREST code and message, never the failing row).
+  and responses for 6 hours in `net._http_response`; the `net` schema isn't exposed through the Data API. But
+  `pg_net` grants those tables to `PUBLIC` (Supabase doesn't support changing that), so a queued token is readable
+  by any database login role (`postgres`, or a role created with `LOGIN`), not only through the Data API, and a
+  stalled `pg_net` worker keeps bodies in the queue until it is restarted (`select net.worker_restart();`); the
+  health checks fail when posts go unanswered. Tokens are never logged (errors log only the PostgREST code and
+  message, never the failing row). The `pg_cron` sweeper, running as the table's owner, fails a job only through
+  the dispatch's own (job, organization) pair and only while that step is still pending.
 - Password policy, leaked-password protection, rate limits, and email confirmation requirement are set in the
   Supabase dashboard and are not verifiable from the repo; confirm them before launch.
 - **MCP access keys (D-036):** `/api/mcp` accepts `Authorization: Bearer brv_…` personal access keys instead of a
@@ -281,7 +286,8 @@ What is undecided / not implemented:
   jobs).
 - `job_dispatches` (production hand-offs): `attempts`, `last_sent_at` and `last_request_id` (the `pg_net` request,
   whose response stays in `net._http_response` for 6 hours) per step; `job_dispatch_health()` (service role only)
-  reports failed posts to the health checks without exposing tokens.
+  reports failed posts (by status code), posts with no answer, whether `pg_net`'s worker and the sweeper run, to the
+  health checks without exposing tokens.
 - `content_items.approved_by/approved_at`: last approval only (overwritten on undo).
 - Server `console.error` for failed jobs and failed usage inserts (Vercel function logs in production).
   Error messages can include upstream response bodies (e.g. OpenRouter errors) and are shown to the user on

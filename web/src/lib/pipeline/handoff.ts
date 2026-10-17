@@ -9,9 +9,11 @@ import { firstStep } from "./steps";
 export const HANDOFF_ERROR = "The analysis couldn't continue. Run it again.";
 
 // Hands `step` of a job to its own function invocation (/api/jobs/continue), through the database in production and
-// directly in development (lib/pipeline/dispatch.ts). When the hand-off can't be recorded or isn't accepted, the job
-// is failed now with this message, instead of polling until the stale-job reaper says it took too long (and blocking
-// re-runs meanwhile). `db`, when given, must be the service client. `resend` re-sends a step already handed off.
+// directly in development (lib/pipeline/dispatch.ts). When the hand-off can't be recorded (database mode), isn't
+// accepted (direct mode) or, on a re-send, has failed for good, the job is failed now with this message, instead of
+// polling until the stale-job reaper says it took too long (and blocking re-runs meanwhile). In database mode the
+// route answers Postgres, not the app: the sweeper in the job_dispatches migration fails a refused hand-off with this
+// same message. `db`, when given, must be the service client. `resend` re-sends a step already handed off.
 // Never throws.
 export async function handOff(job: JobRef, step: string, db?: SupabaseClient, opts: { resend?: boolean } = {}): Promise<boolean> {
   try {

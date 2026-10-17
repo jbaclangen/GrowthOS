@@ -490,8 +490,15 @@ private test with about 3 invited accounts.
   leave the database. The table holds the HMAC tokens: service role only (RLS, no policies, no client privileges),
   deleted with the job and after a day. `direct` (the default elsewhere) keeps the app POSTing to itself for local
   development, which Supabase can't reach. The route, token, claims, immediate failure of an unrecordable hand-off
-  and the 10-minute reaper are unchanged. Migration `20261017110000_job_dispatches.sql` must be applied before this
-  app version is deployed.
+  and the 10-minute reaper are unchanged. One thing does change in production: the route answers Postgres, not the
+  app, so a refused hand-off no longer fails the job at once. The sweeper reads `pg_net`'s response to the last post
+  and fails the job with the same "couldn't continue" message within about a minute when the post was refused (not
+  202, 408, 429 or 5xx, e.g. a 401 from a key mismatch) or the 4th post failed too; the report page's re-send does
+  the same. A post that never gets an answer (`pg_net`'s worker stopped) waits for the reaper, and the health checks
+  fail on it. Set `JOB_DISPATCH=database` in Vercel's Production environment; without it, `database` is also the
+  default for `VERCEL=1` or a production build with an https `NEXT_PUBLIC_APP_URL`, so production never falls back
+  to calling itself. The `job_dispatches` migration must be applied, with the Supabase CLI so its version is
+  recorded, before this app version is deployed.
 
 ## D-043 — In-app AI assistant ("Ask Braventa"), read-only
 **Status:** Founder (2026-10-17, in chat). Supersedes D-020's "not in the MVP": the in-app assistant ships now, before

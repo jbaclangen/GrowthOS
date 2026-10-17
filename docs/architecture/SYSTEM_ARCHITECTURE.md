@@ -101,6 +101,7 @@ sequenceDiagram
   DB->>N: AFTER INSERT trigger: net.http_post (sent on commit)
   N->>C: POST {jobId, step, token}
   C-->>N: 202 (if the dispatch can't be recorded: job failed at once, "couldn't continue")
+  Note over DB,N: a refused post, or a 4th failed one, is failed by the sweeper below with the same message
   loop each step: crawling, profiling, scoring, planning, writing
     C->>DB: claim the step (conditional update: pending to running)
     C->>C: run the step (at most one model call, about a minute)
@@ -111,6 +112,7 @@ sequenceDiagram
   C->>DB: ai_jobs status=succeeded (or failed + error)
   loop every minute (pg_cron)
     DB->>N: re-post dispatches still pending 60 s after the last post (4 posts at most)
+    DB->>DB: fail jobs whose last post was refused, or whose 4th post failed too
   end
   loop every 4 s while job queued/running
     U->>P: router.refresh() (AutoRefresh)
@@ -153,17 +155,26 @@ Step by step (code references are to `web/src/`):
      queued at `scoring` and handed off the same way.
    - **Dispatch modes** (`JOB_DISPATCH`, amended D-042 2026-10-17): Vercel answers a deployment calling itself in a
      chain with HTTP 508 (loop detection, about four calls), which failed the 5th step of a production re-run. So in
-     production (`database`, the default when `VERCEL=1`) the app never calls itself: it inserts the hand-off into
+     production (`database`: set `JOB_DISPATCH=database`; without it, the default when `VERCEL=1` or for a
+     production build whose `NEXT_PUBLIC_APP_URL` is https) the app never calls itself: it inserts the hand-off into
      `public.job_dispatches` with the service client, and Postgres POSTs it with `pg_net` from an `AFTER INSERT`
      trigger once the insert commits; a `pg_cron` sweeper re-posts a step still pending a minute after its last post
      (4 posts at most). Locally (`direct`, the default elsewhere) the app POSTs to its own route, at the dev server's
-     own port (`PORT`, which `next dev` sets to the port it listens on), since Supabase can't reach localhost.
+     own port (`PORT`, which `next dev` sets to the port it listens on), since Supabase can't reach localhost
+     (`next dev`, and `next start` on an http URL, default to `direct`).
    - **Hand-off failures** (`lib/pipeline/handoff.ts`, `jobs.ts`): `dispatchStep` never throws. Direct mode retries
-     timeouts, 408, 429 and 5xx (3 attempts); database mode retries dropped connections (3 attempts) but not a
-     missing table or a refused write. A hand-off that can't be recorded or isn't accepted fails the job at once
-     ("The analysis couldn't continue. Run it again."). A step still pending 60 s after it was queued (accepted but
-     never claimed) is re-sent by the report page's poll, at most once a minute (database mode: Postgres re-posts
-     the stored dispatch, `resend_job_dispatch`); the claim makes repeats harmless.
+     timeouts, 408, 429 and 5xx (3 attempts) and fails the job at once ("The analysis couldn't continue. Run it
+     again.") when the route refuses the hand-off or every attempt fails. Database mode retries dropped connections
+     (3 attempts) but not a missing table or a refused write, and fails the job at once only when the hand-off can't
+     be recorded: the route answers Postgres, not the app. So the sweeper reads `pg_net`'s response to the last post
+     (`net._http_response`, `job_dispatch_failed`) and fails the job with the same message, within about a minute,
+     when that post was refused (anything but 202, 408, 429 or 5xx: a 401 from a deployment signing with another
+     key, a 404, or a redirect, which `pg_net` doesn't follow) or when the 4th post failed too. A post that never
+     gets an answer (`pg_net`'s worker stopped, or lost its queue) is left to the 10-minute reaper and makes the
+     health checks fail. A step still pending 60 s after it was queued (accepted but never claimed) is re-sent by
+     the report page's poll, at most once a minute (database mode: Postgres re-posts the stored dispatch,
+     `resend_job_dispatch`, which instead reports a hand-off that failed for good, so the app fails the job); the
+     claim makes repeats harmless.
    - Crawl (max 6 same-host pages, 6,000 chars each, 15 s timeout and 2 MB cap per fetch, public addresses
      only — see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#7-prompt-injection-posture)) and PageSpeed (mobile) run in
      parallel; PageSpeed failure is tolerated.
@@ -174,8 +185,9 @@ Step by step (code references are to `web/src/`):
    - Drafted posts are written with `status = 'needs_approval'`. Nothing is published; no publishing
      integration exists.
 7. **Failure.** Any thrown error marks the job `failed` with the error message (shown on the analysis page), and
-   a refused hand-off with "couldn't continue". A step cut off by the platform, or one whose re-sends never got it
-   claimed, is marked failed by `failStaleJobs` (`lib/pipeline/jobs.ts`) 10 minutes after the step's last
+   a hand-off that can't be recorded or is refused with "couldn't continue" (at once, except that in production a
+   post the route refuses is failed by the `pg_cron` sweeper within about a minute). A step cut off by the
+   platform, one whose re-sends never got it claimed, or one whose posts `pg_net` never sent, is marked failed by `failStaleJobs` (`lib/pipeline/jobs.ts`) 10 minutes after the step's last
    progress (`output.step_started_at`, else `created_at`). A failed job keeps at most `{step}` in its output: the
    page text, evidence and discovery answers held between steps are dropped.
 8. **Polling.** `/analysis/[id]` is a server component inside `<Suspense>` (required with Cache Components
@@ -198,7 +210,7 @@ The brief and `CLAUDE.md` assign workflow execution to n8n. The pipeline current
 |---|---|---|
 | Simplicity | One codebase, typed, zod-validated, uses `runWorker` directly | Second system; JSON workflows; must call back into the app for every AI step to keep the routing rule |
 | Duration | Each step runs in its own invocation (`maxDuration` 300 on the routes that start or continue a job) and takes about a minute; the steps are chained through `/api/jobs/continue` | Long-running and scheduled jobs are native |
-| Durability | A hand-off that can't be recorded (or, locally, is refused) fails the job at once; in production Postgres re-posts one that never ran every minute (4 posts at most), and the report page re-sends it after 60 s while open; a step that dies mid-run is failed by the reaper 10 minutes after its last progress (the step itself is never retried) | Execution history, retries, error workflows |
+| Durability | A hand-off that can't be recorded (or, locally, is refused) fails the job at once; in production Postgres re-posts one that never ran every minute (4 posts at most) and fails the job within about a minute when a post is refused or the 4th one fails, and the report page re-sends it after 60 s while open; a step that dies mid-run is failed by the reaper 10 minutes after its last progress (the step itself is never retried) | Execution history, retries, error workflows |
 | Scheduling | None | Cron, delays, follow-ups |
 | Observability | `console.error` + `ai_jobs.error` | n8n execution log + `ai_jobs.n8n_execution_id` (column already exists) |
 

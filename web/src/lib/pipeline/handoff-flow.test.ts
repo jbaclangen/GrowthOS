@@ -65,16 +65,18 @@ function setup() {
     {
       unique: { job_dispatches: [["job_id", "step"]] },
       rpc: {
-        // Plays resend_job_dispatch: re-posts the stored row (here: marks it for delivery) while the step is pending.
+        // Plays resend_job_dispatch: re-posts the stored row (here: marks it for delivery) while the step is pending,
+        // unless its last post was refused (row.refused plays job_dispatch_failed).
         resend_job_dispatch: (args, tables) => {
           const row = tables.job_dispatches.find((d) => d.job_id === args.p_job_id && d.organization_id === args.p_organization_id && d.step === args.p_step);
-          if (!row) return null;
+          if (!row) return "missing";
           const job = tables.ai_jobs.find((j) => j.id === args.p_job_id)!;
           const out = job.output as JobState | null;
-          if (!["queued", "running"].includes(job.status as string) || out?.step !== args.p_step || out?.step_state !== "pending") return false;
+          if (!["queued", "running"].includes(job.status as string) || out?.step !== args.p_step || out?.step_state !== "pending") return "not_pending";
+          if (row.refused) return "failed";
           row.attempts = Number(row.attempts) + 1;
           reposted.push(row);
-          return true;
+          return "posted";
         },
       },
     },
@@ -115,7 +117,10 @@ afterEach(() => {
 
 describe("direct mode (local development)", () => {
   beforeEach(() => {
+    // The dev server: no VERCEL, not a production build (PORT unset, so it posts to NEXT_PUBLIC_APP_URL).
     vi.stubEnv("VERCEL", "");
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("PORT", "");
     // The app's own POST lands in the continue route, as on the dev server.
     fetchMock.mockImplementation(async (url: string, init: RequestInit) => {
       expect(url).toBe(URL_);
@@ -165,6 +170,14 @@ describe("direct mode (local development)", () => {
 describe("database mode (production on Vercel)", () => {
   beforeEach(() => vi.stubEnv("VERCEL", "1"));
 
+  it("is used by a production build even when Vercel doesn't expose VERCEL", async () => {
+    vi.stubEnv("VERCEL", "");
+    setup();
+    expect(await handOff(REF, "profiling")).toBe(true);
+    expect(state.fake!.tables.job_dispatches).toEqual([expect.objectContaining({ job_id: JOB, step: "profiling" })]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   // Plays pg_net: posts every recorded hand-off not yet delivered (and any re-posts) to the route.
   async function deliver(delivered: Set<unknown>) {
     for (const row of [...state.fake!.tables.job_dispatches.filter((r) => !delivered.has(r.id)), ...reposted.splice(0)]) {
@@ -212,6 +225,24 @@ describe("database mode (production on Vercel)", () => {
     await deliver(new Set(state.fake!.tables.job_dispatches.map((d) => d.id)));
     await state.after.shift()!();
     expect(job().output).toMatchObject({ step: "scoring", step_state: "pending" });
+  });
+
+  it("fails the job, instead of waiting for the reaper, when the route refused Postgres's post", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.parse("2026-10-17T12:00:00.000Z"));
+    setup();
+    await handOff(REF, "profiling");
+    // pg_net got a 401 (the deployment signs with another key): the step is still pending a minute later.
+    state.fake!.tables.job_dispatches[0].refused = true;
+    vi.setSystemTime(Date.parse("2026-10-17T12:01:30.000Z"));
+    (job().output as JobState).step_started_at = "2026-10-17T12:00:00.000Z";
+    await superviseJobs(ORG);
+    await drain();
+    vi.useRealTimers();
+    expect(reposted).toHaveLength(0);
+    expect(state.fake!.tables.job_dispatches).toHaveLength(1);
+    expect(job()).toMatchObject({ status: "failed", error: "The analysis couldn't continue. Run it again.", output: { step: "profiling" } });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("fails the job at once when the hand-off can't be recorded (migration not applied)", async () => {

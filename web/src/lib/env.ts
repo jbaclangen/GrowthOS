@@ -26,8 +26,9 @@ const schema = {
   // Optional, at least 32 characters. Signs the hand-off between analysis steps (/api/jobs/continue); when unset, a
   // key is derived from SUPABASE_SECRET_KEY (lib/pipeline/continue-token.ts).
   JOB_CONTINUE_SECRET: z.string().min(32).optional(),
-  // Optional. How analysis steps are handed on (lib/pipeline/dispatch.ts): "database" (Postgres POSTs each hand-off
-  // with pg_net) or "direct" (the app POSTs to itself). Unset: "database" on Vercel (VERCEL=1), else "direct".
+  // How analysis steps are handed on (lib/pipeline/dispatch.ts): "database" (Postgres POSTs each hand-off with pg_net;
+  // set it in production) or "direct" (the app POSTs to itself). Unset: "database" on Vercel (VERCEL=1) or for a
+  // production build with an https NEXT_PUBLIC_APP_URL, else "direct".
   JOB_DISPATCH: z.enum(["database", "direct"]).optional(),
 };
 

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeSupabase, type FakeSupabase, type Row } from "../../../test/fake-supabase";
 import { continueKey, signContinue, verifyContinue } from "./continue-token";
-import { continueUrl, databaseContinueUrl, dispatchMode, dispatchStep, retryable, retryableDbError } from "./dispatch";
+import { continueUrl, databaseContinueUrl, dispatchMode, dispatchStep, retryable, retryableDbError, type ResendResult } from "./dispatch";
 
 const JOB_ID = "6f1c2a7e-1d1b-4c55-9a52-3f3d1b2c4e5f";
 const ORG = "0b9a3c1e-7f00-4d8e-9a11-5b7c2d3e4f60";
@@ -64,6 +64,22 @@ describe("dispatchMode", () => {
     expect(dispatchMode()).toBe("database");
     vi.stubEnv("VERCEL", "1");
     vi.stubEnv("JOB_DISPATCH", "direct");
+    expect(dispatchMode()).toBe("direct");
+  });
+
+  it("uses the database for any production build with a public https URL, even without VERCEL", () => {
+    // Vercel sets VERCEL=1 only while the project exposes system environment variables; production must not fall back
+    // to calling itself (HTTP 508) when that setting is off or the app runs with `next start` elsewhere.
+    vi.stubEnv("NODE_ENV", "production");
+    expect(dispatchMode()).toBe("database");
+    // A production build on a developer machine (`next start` on localhost) still posts directly.
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "http://localhost:3000");
+    expect(dispatchMode()).toBe("direct");
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "not a url");
+    expect(dispatchMode()).toBe("direct");
+    // The dev server posts directly whatever its public URL.
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://app.example.com");
     expect(dispatchMode()).toBe("direct");
   });
 
@@ -164,11 +180,13 @@ describe("dispatchStep, direct mode", () => {
 
 describe("dispatchStep, database mode", () => {
   let fake: FakeSupabase;
-  const resend = vi.fn((args: Row, tables: Record<string, Row[]>): boolean | null => {
+  // Plays resend_job_dispatch for a job still waiting for the step: a row marked refused has failed for good.
+  const resend = vi.fn((args: Row, tables: Record<string, Row[]>): ResendResult | null => {
     const row = (tables.job_dispatches ?? []).find((d) => d.job_id === args.p_job_id && d.organization_id === args.p_organization_id && d.step === args.p_step);
-    if (!row) return null;
+    if (!row) return "missing";
+    if (row.refused) return "failed";
     row.attempts = Number(row.attempts) + 1;
-    return true;
+    return "posted";
   });
 
   beforeEach(() => {
@@ -269,7 +287,7 @@ describe("dispatchStep, database mode", () => {
     });
 
     it("does nothing more when the job no longer waits for the step", async () => {
-      resend.mockReturnValueOnce(false);
+      resend.mockReturnValueOnce("not_pending");
       expect(await dispatch("scoring", { resend: true })).toBe(true);
       expect(fake.tables.job_dispatches).toHaveLength(0);
     });
@@ -277,6 +295,23 @@ describe("dispatchStep, database mode", () => {
     it("records the hand-off afresh when none is stored (a job handed off before database mode)", async () => {
       expect(await dispatch("planning", { resend: true })).toBe(true);
       expect(resend).toHaveBeenCalledTimes(1);
+      expect(fake.tables.job_dispatches).toEqual([expect.objectContaining({ job_id: JOB_ID, step: "planning" })]);
+    });
+
+    it("reports a hand-off that failed for good, without posting or recording it again, so the caller fails the job", async () => {
+      // e.g. the deployment answered 401: it signs with another key than the one that recorded the token.
+      await dispatch("scoring");
+      fake.tables.job_dispatches[0].refused = true;
+      expect(await dispatch("scoring", { resend: true })).toBe(false);
+      expect(fake.tables.job_dispatches).toHaveLength(1);
+      expect(fake.tables.job_dispatches[0].attempts).toBe(1);
+      expect(logged()).toContain("refused or failed 4 times");
+      expect(logged()).not.toContain(signContinue(continueKey(), JOB_ID, "scoring"));
+    });
+
+    it("records the hand-off when the re-send answers something unexpected", async () => {
+      resend.mockReturnValueOnce(null);
+      expect(await dispatch("planning", { resend: true })).toBe(true);
       expect(fake.tables.job_dispatches).toEqual([expect.objectContaining({ job_id: JOB_ID, step: "planning" })]);
     });
 

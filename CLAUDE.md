@@ -94,8 +94,10 @@ per 24 h; no re-run while a job is active). Every job runs as steps (crawling â†
 writing), one function invocation each, handed off via HMAC-signed `POST /api/jobs/continue` so none hits Vercel Hobby's
 300 s limit (D-042, `lib/pipeline/steps.ts`; the first step too). In production the app never calls itself (Vercel
 answers a self-call chain with 508): it inserts the hand-off into `job_dispatches` and Postgres POSTs it (`pg_net`;
-a `pg_cron` sweeper re-posts pending steps); locally it POSTs directly (`JOB_DISPATCH`, `lib/pipeline/dispatch.ts`).
-A hand-off that can't be recorded or is refused fails the job at once, the report
+a `pg_cron` sweeper re-posts pending steps); locally it POSTs directly (`JOB_DISPATCH`, `lib/pipeline/dispatch.ts`;
+set `JOB_DISPATCH=database` in production). A hand-off that can't be recorded (or, locally, is refused) fails the
+job at once; in production the route answers Postgres, so the sweeper fails a refused post (or a 4th failed post)
+within about a minute, and a post that never gets an answer waits for the reaper. The report
 page re-sends a step left pending for 60 s, and the reaper fails a step with no progress for 10 min. Production runs paid models (`AI_MODE` defaults to paid; only `free` switches). The OpenRouter account enforces zero data
 retention, which blocks every free model, so `AI_MODE=free` fails until that changes (D-037).
 Pages read cookies, so with Cache Components their content must sit inside `<Suspense>`.
