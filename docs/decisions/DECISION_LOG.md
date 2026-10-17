@@ -460,3 +460,12 @@ private test with about 3 invited accounts.
 - Pro then creates, publishes and manages content in those tools from the growth plan, each action approved by the
   owner (D-013), executed by n8n. Basic sees the connections as Pro and paused.
 - Detail: [INTEGRATIONS_ROADMAP.md](../product/INTEGRATIONS_ROADMAP.md).
+
+## D-042 — Analyses run as a chain of steps, one function invocation each
+**Status:** Engineering (2026-10-17). Fixes analyses cut off by Vercel Hobby's 300 s limit.
+- A full re-run for a regulated business took ~330 s in one invocation and was killed. Each job now runs as steps
+  (`crawling`, `profiling`, `scoring`, `planning`, `writing`), one invocation each, state in `ai_jobs.output`,
+  handed off through `POST /api/jobs/continue` (HMAC-signed; `JOB_CONTINUE_SECRET` optional). Measured steps ≤ 60 s.
+- The stale-job reaper measures from the current step's last progress, not the job's creation (10 minutes).
+- Prompts, models and outputs are unchanged. Moving orchestration to n8n or a queue stays the long-term option
+  ([SYSTEM_ARCHITECTURE.md §3](../architecture/SYSTEM_ARCHITECTURE.md)). Detail: AI_ROUTING_AND_COSTS.md (Reliability).

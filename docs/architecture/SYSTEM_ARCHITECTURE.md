@@ -130,6 +130,15 @@ Step by step (code references are to `web/src/`):
    `organization_id` from the job row (which RLS already vetted at insert time), and scopes every write with
    that id. Steps, each recorded in `ai_jobs.output.step`: `crawling` -> `profiling` -> `scoring` ->
    `planning` -> `writing` -> `done`.
+   - **Step chaining** (`lib/pipeline/steps.ts`, 2026-10-17): each step runs in its own function invocation, so
+     no invocation reaches Vercel Hobby's 300 s limit. `runAnalysisJob(jobId, step?)` claims the pending step
+     with a conditional update on `output.step`/`output.step_state`, runs it, stores what later steps need in
+     `ai_jobs.output`, queues the next step and calls `dispatchStep` (`lib/pipeline/dispatch.ts`), which POSTs
+     `{jobId, step, token}` to `/api/jobs/continue` at `NEXT_PUBLIC_APP_URL`. The route checks the HMAC token
+     (`lib/pipeline/continue-token.ts`), answers 202 and runs the step in its own `after()` (`maxDuration` 300).
+     The first step runs in the `after()` of whatever queued the job (server action or MCP route). Evidence jobs
+     run `crawling`, `profiling`; plan jobs `scoring`, `planning`, `writing`; re-runs all five; corrections only
+     `scoring`. When an evidence job finishes and discovery is done, the plan job is handed off the same way.
    - Crawl (max 6 same-host pages, 6,000 chars each, 15 s timeout and 2 MB cap per fetch, public addresses
      only — see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#7-prompt-injection-posture)) and PageSpeed (mobile) run in
      parallel; PageSpeed failure is tolerated.
@@ -139,7 +148,9 @@ Step by step (code references are to `web/src/`):
      `content_writer`. Each output is zod-validated; a bad parse is retried once.
    - Drafted posts are written with `status = 'needs_approval'`. Nothing is published; no publishing
      integration exists.
-7. **Failure.** Any thrown error marks the job `failed` with the error message (shown on the analysis page).
+7. **Failure.** Any thrown error marks the job `failed` with the error message (shown on the analysis page). A
+   step cut off by the platform or a lost hand-off is marked failed by `failStaleJobs` (`lib/pipeline/jobs.ts`)
+   10 minutes after the step's last progress (`output.step_started_at`, else `created_at`).
 8. **Polling.** `/analysis/[id]` is a server component inside `<Suspense>` (required with Cache Components
    because it reads cookies). While the latest job is `queued`/`running` it mounts `AutoRefresh`, which calls
    `router.refresh()` every 4 seconds. No websockets or Supabase Realtime are used.
@@ -159,8 +170,8 @@ The brief and `CLAUDE.md` assign workflow execution to n8n. The pipeline current
 | | In-process `after()` (today) | n8n workflow (target) |
 |---|---|---|
 | Simplicity | One codebase, typed, zod-validated, uses `runWorker` directly | Second system; JSON workflows; must call back into the app for every AI step to keep the routing rule |
-| Duration | Bounded by the serverless function's max duration. `after()` runs for the route's default or configured `maxDuration`; **no `maxDuration` is set anywhere in the repo**, and a 3–4 minute run is close to or over typical serverless limits | Long-running and scheduled jobs are native |
-| Durability | If the invocation dies, the job is left `running` forever (no reaper, no retry) | Execution history, retries, error workflows |
+| Duration | Each step runs in its own invocation (`maxDuration` 300 on the routes that start or continue a job) and takes about a minute; the steps are chained through `/api/jobs/continue` | Long-running and scheduled jobs are native |
+| Durability | A step that dies is failed by the stale-job reaper 10 minutes after its last progress; no automatic retry | Execution history, retries, error workflows |
 | Scheduling | None | Cron, delays, follow-ups |
 | Observability | `console.error` + `ai_jobs.error` | n8n execution log + `ai_jobs.n8n_execution_id` (column already exists) |
 

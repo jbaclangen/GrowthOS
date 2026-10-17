@@ -79,8 +79,12 @@ RLS. Rules:
   path (`next` must start with `/` and not `//`; it is appended to the request origin, so open redirects are
   not possible). `/` forwards a stray `code` to the callback.
 - `src/proxy.ts` refreshes the session cookie on each request (`getClaims()`) and redirects unauthenticated
-  requests to `/login` except for `/`, `/login`, `/auth/*`, `/api/health/*`, `/api/mcp`. Pages and actions additionally
-  call `requireUser()` (`supabase.auth.getUser()`, which validates with the Auth server).
+  requests to `/login` except for `/`, `/login`, `/auth/*`, `/api/health/*`, `/api/mcp`, `/api/jobs/continue`. Pages
+  and actions additionally call `requireUser()` (`supabase.auth.getUser()`, which validates with the Auth server).
+- **Analysis step hand-off (D-042):** `/api/jobs/continue` is server-to-server only. It requires an HMAC-SHA256 of the
+  job id and step (`JOB_CONTINUE_SECRET`, else a key derived from `SUPABASE_SECRET_KEY` with HKDF), compared in
+  constant time. A valid token only lets the caller run that job's step if it is still pending; it reads and writes
+  nothing else and returns no data.
 - Password policy, leaked-password protection, rate limits, and email confirmation requirement are set in the
   Supabase dashboard and are not verifiable from the repo; confirm them before launch.
 - **MCP access keys (D-036):** `/api/mcp` accepts `Authorization: Bearer brv_…` personal access keys instead of a

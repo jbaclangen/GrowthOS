@@ -23,6 +23,9 @@ const schema = {
     .string()
     .refine((v) => Buffer.from(v, "base64").length === 32, "must be 32 bytes, base64-encoded"),
   NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000"),
+  // Optional, at least 32 characters. Signs the hand-off between analysis steps (/api/jobs/continue); when unset, a
+  // key is derived from SUPABASE_SECRET_KEY (lib/pipeline/continue-token.ts).
+  JOB_CONTINUE_SECRET: z.string().min(32).optional(),
 };
 
 export type ServerEnv = { [K in keyof typeof schema]: z.infer<(typeof schema)[K]> };

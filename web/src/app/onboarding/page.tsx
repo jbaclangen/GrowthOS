@@ -3,7 +3,7 @@ import Link from "next/link";
 import { StartForm } from "./start-form";
 
 export const metadata: Metadata = { title: "Analyze your business" };
-// Analysis jobs run in after() for up to ~4 minutes; 300 s is the Vercel Hobby maximum.
+// The first step of an analysis runs in after(); each step stays well under 300 s, the Vercel Hobby maximum.
 export const maxDuration = 300;
 
 export default function OnboardingPage() {

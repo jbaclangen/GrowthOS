@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { runWorkerJson } from "@/lib/ai/router";
 import { crawlSite, type SiteAudit } from "@/lib/integrations/crawler";
@@ -16,6 +16,8 @@ import {
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { fromProfileRow, type OwnerInputs } from "@/lib/owner-inputs";
 import { startPlanIfReady } from "@/lib/onboarding/orchestrate";
+import { dispatchStep } from "./dispatch";
+import { advanceState, canClaim, firstStep, nextStep, readState, type JobState, type RunStep } from "./steps";
 import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
 import { orderPlan, toFindings, toPlanItems, type DiscoveryFacts } from "@/lib/plan/priority";
 import {
@@ -36,6 +38,7 @@ import {
   type Diagnosis,
   type DiscoveryContext,
   type PageSpeedScores,
+  type Plan,
   type Signals,
 } from "./prompts";
 
@@ -47,7 +50,9 @@ export type { BusinessIntel } from "./prompts";
 //   drafts. Starts when the evidence is in and the owner has finished or skipped discovery (see startPlanIfReady).
 // "website_intel" (re-run) does both in one job, reusing the latest confirmed discovery answers.
 // "diagnosis_update" re-runs only the diagnosis with the owner's corrections, reusing the stored evidence.
-// Runs server-side against ai_jobs rows; every write is scoped to the job's organization.
+// Each job runs as a chain of steps, one function invocation per step (crawling, profiling, scoring, planning,
+// writing; see ./steps.ts), so no invocation runs into the hosting time limit. What a later step needs is stored in
+// ai_jobs.output. Runs server-side against ai_jobs rows; every write is scoped to the job's organization.
 
 export const STEPS = [
   { key: "crawling", label: "Reading the website" },
@@ -229,12 +234,26 @@ type Ctx = {
   businessProfileId: string;
   websiteUrl: string;
   owner: OwnerInputs | null;
-  setStep: (step: StepKey) => PromiseLike<unknown>;
 };
 
-async function gatherEvidence(ctx: Ctx): Promise<{ evidence: Evidence; intel: BusinessIntel }> {
+type JobInput = {
+  businessProfileId: string;
+  websiteUrl: string;
+  sessionId?: string;
+  evidenceJobId?: string;
+  // diagnosis_update: the diagnosis the owner corrected.
+  diagnosisId?: string;
+};
+
+// A step either hands artifacts to the next step (stored in ai_jobs.output) or, as the last step, returns the
+// job's final output.
+type StepResult = { artifacts: Record<string, unknown> } | { final: Record<string, unknown> };
+
+const MISSING_ANALYSIS = "The website analysis is missing. Re-run the analysis.";
+
+// Step "crawling": crawl + PageSpeed + checks. Hands on the evidence and the page digest for the profile.
+async function crawlStep(ctx: Ctx): Promise<StepResult> {
   const { db, org } = ctx;
-  await ctx.setStep("crawling");
   const { crawl, psi: psiReport, findings, summary, runId } = await runAudit(ctx);
   const psi = psiReport.mobile?.scores ?? null;
 
@@ -253,14 +272,36 @@ async function gatherEvidence(ctx: Ctx): Promise<{ evidence: Evidence; intel: Bu
     );
   }
 
-  await ctx.setStep("profiling");
+  const evidence: Evidence = {
+    signals: crawl.signals,
+    psi,
+    psiError: psiReport.errors.mobile,
+    pages: crawl.pages.map((p) => ({ url: p.url, title: p.title })),
+    audit: {
+      runId,
+      coverage: coverageLine(summary),
+      homeBlocked: crawl.audit.homeBlocked,
+      findings: promptFindings(findings, MAX_PROMPT_FINDINGS),
+      desktop: psiReport.desktop?.scores ?? null,
+    },
+  };
+  // The digest is the (fenced, capped) page text the profile prompt reads; it is dropped once the profile is done.
+  return { artifacts: { evidence, digest: siteDigest(crawl) } };
+}
+
+// Step "profiling": the business profile from the page digest.
+async function profileStep(ctx: Ctx, state: JobState, worker: string): Promise<StepResult> {
+  const { db, org } = ctx;
+  const evidence = state.evidence as Evidence | undefined;
+  if (typeof state.digest !== "string" || !evidence) throw new Error(MISSING_ANALYSIS);
+
   const intel = await runWorkerJson(
     {
       organizationId: org,
       jobId: ctx.jobId,
       worker: "business_analyst",
       maxTokens: MAX_TOKENS.profile,
-      messages: [{ role: "user", content: profilePrompt(siteDigest(crawl), ctx.owner) }],
+      messages: [{ role: "user", content: profilePrompt(state.digest, ctx.owner) }],
     },
     (v) => profileSchema.parse(v),
   );
@@ -287,22 +328,22 @@ async function gatherEvidence(ctx: Ctx): Promise<{ evidence: Evidence; intel: Bu
     tone_rules: intel.brand_voice.traits,
   });
 
-  return {
-    intel,
-    evidence: {
-      signals: crawl.signals,
-      psi,
-      psiError: psiReport.errors.mobile,
-      pages: crawl.pages.map((p) => ({ url: p.url, title: p.title })),
-      audit: {
-        runId,
-        coverage: coverageLine(summary),
-        homeBlocked: crawl.audit.homeBlocked,
-        findings: promptFindings(findings, MAX_PROMPT_FINDINGS),
-        desktop: psiReport.desktop?.scores ?? null,
-      },
-    },
-  };
+  // The evidence job ends here; the plan job reads its evidence from this output, as before.
+  if (worker === "website_evidence") return { final: { step: "evidence_done", evidence } };
+  return { artifacts: { digest: undefined } };
+}
+
+// The profile the evidence step stored on the business (the diagnosis, plan and drafts all read it).
+async function loadIntel(ctx: Ctx): Promise<BusinessIntel> {
+  const { data: profile } = await ctx.db
+    .from("business_profiles")
+    .select("intelligence")
+    .eq("id", ctx.businessProfileId)
+    .eq("organization_id", ctx.org)
+    .single();
+  const intel = profileSchema.safeParse(profile?.intelligence);
+  if (!intel.success) throw new Error(MISSING_ANALYSIS);
+  return intel.data;
 }
 
 // Confirmed discovery answers for this business: a specific completed session, or the latest one.
@@ -493,7 +534,6 @@ async function reviseDiagnosis(ctx: Ctx, diagnosisId: string) {
   };
   const discovery = await loadDiscovery(db, org, ctx.businessProfileId);
 
-  await ctx.setStep("scoring");
   const raw = await diagnose(ctx, evidence, intel.data, discovery, corrections);
   const { diagnosisId: revisedId } = await storeDiagnosis(ctx, raw, discovery, {
     reportId: previous.report_id,
@@ -504,10 +544,30 @@ async function reviseDiagnosis(ctx: Ctx, diagnosisId: string) {
   return revisedId;
 }
 
-async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, discovery: DiscoveryContext | null) {
-  const { db, org, jobId, owner } = ctx;
+async function reviseStep(ctx: Ctx, input: JobInput): Promise<StepResult> {
+  if (!input.diagnosisId) throw new Error("No diagnosis to update.");
+  const diagnosisId = await reviseDiagnosis(ctx, input.diagnosisId);
+  return { final: { step: "done", diagnosis_id: diagnosisId } };
+}
 
-  await ctx.setStep("scoring");
+// Step "scoring": growth score + diagnosis + growth plan (ON-7, ON-8), and the report.
+async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: string): Promise<StepResult> {
+  const { db, org } = ctx;
+  let evidence = state.evidence as Evidence | undefined;
+  if (worker === "website_plan") {
+    const { data: evidenceJob } = await db
+      .from("ai_jobs")
+      .select("output")
+      .eq("id", input.evidenceJobId ?? "")
+      .eq("organization_id", org)
+      .maybeSingle();
+    evidence = (evidenceJob?.output as { evidence?: Evidence } | null)?.evidence;
+  }
+  if (!evidence) throw new Error(MISSING_ANALYSIS);
+  const intel = await loadIntel(ctx);
+  // A plan job uses its own onboarding session; a re-run (no session) uses the latest completed one.
+  const discovery = await loadDiscovery(db, org, ctx.businessProfileId, input.sessionId);
+
   const raw = await diagnose(ctx, evidence, intel, discovery, null);
   const growthScore = computeGrowthScore(evidence.psi, raw.scores);
 
@@ -544,19 +604,39 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
 
   const { items: planItems } = await storeDiagnosis(ctx, raw, discovery, { reportId: report?.id ?? null, evidence });
 
-  await ctx.setStep("planning");
+  return {
+    artifacts: {
+      evidence: undefined,
+      report_id: report?.id ?? null,
+      growth_score: growthScore,
+      plan_titles: planItems.map((i) => i.title),
+      discovery,
+    },
+  };
+}
+
+// Posts go out at ~9am Philippines time on their planned day; day 1 is the plan's start date.
+function dayDate(start: Date, day: number) {
+  const d = new Date(start);
+  d.setUTCDate(d.getUTCDate() + day - 1);
+  d.setUTCHours(1, 0, 0, 0);
+  return d.toISOString();
+}
+
+// Step "planning": the 30-day plan and its calendar items.
+async function planStep(ctx: Ctx, state: JobState): Promise<StepResult> {
+  const { db, org, jobId, owner } = ctx;
+  const intel = await loadIntel(ctx);
+  const discovery = (state.discovery ?? null) as DiscoveryContext | null;
+  const planTitles = Array.isArray(state.plan_titles) ? (state.plan_titles as string[]) : [];
+
   const plan = await runWorkerJson(
     {
       organizationId: org,
       jobId,
       worker: "content_strategist",
       maxTokens: MAX_TOKENS.plan,
-      messages: [
-        {
-          role: "user",
-          content: planPrompt({ intel, planTitles: planItems.map((i) => i.title), owner, discovery }),
-        },
-      ],
+      messages: [{ role: "user", content: planPrompt({ intel, planTitles, owner, discovery }) }],
     },
     (v) => planSchema.parse(v),
   );
@@ -578,33 +658,41 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
     .single();
   if (calError || !calendar) throw new Error(`calendar insert failed: ${calError?.message}`);
 
-  const dayDate = (day: number) => {
-    const d = new Date(start);
-    d.setUTCDate(d.getUTCDate() + day - 1);
-    d.setUTCHours(1, 0, 0, 0); // ~9am Philippines time
-    return d.toISOString();
-  };
+  const { error: itemsError } = await db.from("content_items").insert(
+    plan.days.map((d) => ({
+      organization_id: org,
+      calendar_id: calendar.id,
+      channel: d.channel,
+      content_type: d.format,
+      scheduled_for: dayDate(start, d.day),
+      title: d.topic,
+      brief: `${d.pillar} — ${d.objective}`,
+      status: "brief" as const,
+    })),
+  );
+  if (itemsError) throw new Error(`content insert failed: ${itemsError.message}`);
+
+  // First content batch: the first 5 planned posts, drafted by the next step and sent for human approval.
+  const firstBatch = plan.days.slice().sort((a, b) => a.day - b.day).slice(0, 5);
+  return { artifacts: { calendar_id: calendar.id, first_batch: firstBatch, starts_at: start.toISOString() } };
+}
+
+// Step "writing": drafts the first batch of posts (status needs_approval, D-013).
+async function writeStep(ctx: Ctx, state: JobState): Promise<StepResult> {
+  const { db, org, jobId, owner } = ctx;
+  const calendarId = typeof state.calendar_id === "string" ? state.calendar_id : null;
+  const firstBatch = Array.isArray(state.first_batch) ? (state.first_batch as Plan["days"]) : null;
+  const start = typeof state.starts_at === "string" ? new Date(state.starts_at) : null;
+  if (!calendarId || !firstBatch || !start) throw new Error(MISSING_ANALYSIS);
+  const intel = await loadIntel(ctx);
 
   const { data: items, error: itemsError } = await db
     .from("content_items")
-    .insert(
-      plan.days.map((d) => ({
-        organization_id: org,
-        calendar_id: calendar.id,
-        channel: d.channel,
-        content_type: d.format,
-        scheduled_for: dayDate(d.day),
-        title: d.topic,
-        brief: `${d.pillar} — ${d.objective}`,
-        status: "brief" as const,
-      })),
-    )
-    .select("id, scheduled_for, channel, title, brief");
-  if (itemsError || !items) throw new Error(`content insert failed: ${itemsError?.message}`);
+    .select("id, scheduled_for")
+    .eq("calendar_id", calendarId)
+    .eq("organization_id", org);
+  if (itemsError || !items) throw new Error(`content lookup failed: ${itemsError?.message}`);
 
-  // First content batch: the first 5 planned posts, sent for human approval.
-  await ctx.setStep("writing");
-  const firstBatch = plan.days.slice().sort((a, b) => a.day - b.day).slice(0, 5);
   const written = await runWorkerJson(
     {
       organizationId: org,
@@ -619,7 +707,7 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
 
   for (const w of written.items) {
     // Postgres returns "+00:00" timestamps, so compare instants, not strings.
-    const wanted = new Date(dayDate(w.day)).getTime();
+    const wanted = new Date(dayDate(start, w.day)).getTime();
     const target = items.find((i) => new Date(i.scheduled_for).getTime() === wanted);
     if (!target) continue;
     const hashtags = w.hashtags.length ? `\n\n${w.hashtags.map((h) => (h.startsWith("#") ? h : `#${h}`)).join(" ")}` : "";
@@ -639,28 +727,72 @@ async function buildPlan(ctx: Ctx, evidence: Evidence, intel: BusinessIntel, dis
       .eq("organization_id", org);
   }
 
-  return { reportId: report?.id ?? null, calendarId: calendar.id, growthScore };
+  return {
+    final: { step: "done", report_id: state.report_id ?? null, calendar_id: calendarId, growth_score: state.growth_score ?? null },
+  };
 }
 
-type JobInput = {
-  businessProfileId: string;
-  websiteUrl: string;
-  sessionId?: string;
-  evidenceJobId?: string;
-  // diagnosis_update: the diagnosis the owner corrected.
-  diagnosisId?: string;
-};
+function runStep(ctx: Ctx, state: JobState, input: JobInput, worker: string): Promise<StepResult> {
+  switch (state.step) {
+    case "crawling":
+      return crawlStep(ctx);
+    case "profiling":
+      return profileStep(ctx, state, worker);
+    case "scoring":
+      return worker === "diagnosis_update" ? reviseStep(ctx, input) : scoreStep(ctx, state, input, worker);
+    case "planning":
+      return planStep(ctx, state);
+    case "writing":
+      return writeStep(ctx, state);
+  }
+}
 
-// Runs one analysis job of any phase. Never throws: failures are recorded on the job row.
-export async function runAnalysisJob(jobId: string): Promise<void> {
+// Runs the job's current step (when it is pending and, if given, is `expectedStep`), then hands the next step to a
+// new function invocation (/api/jobs/continue). Each step fits well inside one invocation's time limit; see
+// lib/pipeline/steps.ts. Never throws: failures are recorded on the job row. Safe to call more than once for the
+// same step: only the call that claims the step runs it.
+export async function runAnalysisJob(jobId: string, expectedStep?: string): Promise<void> {
   const db = createSupabaseAdminClient();
   const { data: job, error: jobError } = await db.from("ai_jobs").select("*").eq("id", jobId).single();
   if (jobError || !job) {
     console.error(`ai_job ${jobId} not found`, jobError);
     return;
   }
+  if (job.status !== "queued" && job.status !== "running") return;
   const org: string = job.organization_id;
+  const worker: string = job.worker;
   const input = job.input as JobInput;
+  const state = readState(worker, job.output, job.created_at);
+  if (!canClaim(state, expectedStep)) return;
+
+  // Claim the step: only one invocation moves it from pending to running.
+  const claim = randomUUID();
+  const claimedAt = new Date().toISOString();
+  const running: JobState = { ...state, step_state: "running", step_started_at: claimedAt, claim };
+  let claimQuery = db
+    .from("ai_jobs")
+    .update({ status: "running", output: running, ...(job.started_at ? {} : { started_at: claimedAt }) })
+    .eq("id", jobId)
+    .eq("organization_id", org)
+    .in("status", ["queued", "running"]);
+  claimQuery =
+    job.output === null
+      ? claimQuery.is("output", null)
+      : claimQuery.eq("output->>step", state.step).eq("output->>step_state", "pending");
+  const { data: claimed, error: claimError } = await claimQuery.select("id");
+  if (claimError) console.error(`claiming step ${state.step} of job ${jobId} failed`, claimError);
+  if (!claimed?.length) return;
+
+  // Writes that only the invocation holding this claim may make (the reaper may have failed the job meanwhile).
+  const owned = (values: Record<string, unknown>) =>
+    db
+      .from("ai_jobs")
+      .update(values)
+      .eq("id", jobId)
+      .eq("organization_id", org)
+      .eq("status", "running")
+      .eq("output->>claim", claim)
+      .select("id");
 
   const { data: ownerRow } = await db
     .from("business_profiles")
@@ -668,7 +800,6 @@ export async function runAnalysisJob(jobId: string): Promise<void> {
     .eq("id", input.businessProfileId)
     .eq("organization_id", org)
     .single();
-
   const ctx: Ctx = {
     db,
     jobId,
@@ -677,59 +808,41 @@ export async function runAnalysisJob(jobId: string): Promise<void> {
     websiteUrl: input.websiteUrl,
     // Guided onboarding answers (Customer-provided). Read fresh each run so edits apply to re-runs.
     owner: ownerRow ? fromProfileRow(ownerRow) : null,
-    setStep: (step) => db.from("ai_jobs").update({ output: { step } }).eq("id", jobId).eq("organization_id", org),
   };
 
-  await db.from("ai_jobs").update({ status: "running", started_at: new Date().toISOString() }).eq("id", jobId);
-  const finish = (output: Record<string, unknown>) =>
-    db
-      .from("ai_jobs")
-      .update({ status: "succeeded", finished_at: new Date().toISOString(), output })
-      .eq("id", jobId)
-      .eq("organization_id", org);
-
+  const started = Date.now();
+  let result: StepResult;
   try {
-    if (job.worker === "website_evidence") {
-      const { evidence } = await gatherEvidence(ctx);
-      await finish({ step: "evidence_done", evidence });
-    } else if (job.worker === "website_plan") {
-      const [{ data: evidenceJob }, { data: profile }] = await Promise.all([
-        db.from("ai_jobs").select("output").eq("id", input.evidenceJobId ?? "").eq("organization_id", org).maybeSingle(),
-        db.from("business_profiles").select("intelligence").eq("id", input.businessProfileId).eq("organization_id", org).single(),
-      ]);
-      const evidence = (evidenceJob?.output as { evidence?: Evidence } | null)?.evidence;
-      const intel = profileSchema.safeParse(profile?.intelligence);
-      if (!evidence || !intel.success) throw new Error("The website analysis is missing. Re-run the analysis.");
-      const discovery = await loadDiscovery(db, org, input.businessProfileId, input.sessionId);
-      const result = await buildPlan(ctx, evidence, intel.data, discovery);
-      await finish({ step: "done", report_id: result.reportId, calendar_id: result.calendarId, growth_score: result.growthScore });
-    } else if (job.worker === "diagnosis_update") {
-      if (!input.diagnosisId) throw new Error("No diagnosis to update.");
-      const diagnosisId = await reviseDiagnosis(ctx, input.diagnosisId);
-      await finish({ step: "done", diagnosis_id: diagnosisId });
-    } else {
-      const { evidence, intel } = await gatherEvidence(ctx);
-      const discovery = await loadDiscovery(db, org, input.businessProfileId);
-      const result = await buildPlan(ctx, evidence, intel, discovery);
-      await finish({ step: "done", report_id: result.reportId, calendar_id: result.calendarId, growth_score: result.growthScore });
-    }
+    result = await runStep(ctx, running, input, worker);
+    if ("artifacts" in result && !nextStep(worker, state.step)) throw new Error(`No step follows ${state.step}.`);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    console.error(`analysis job ${jobId} (${job.worker}) failed`, e);
+    console.error(`analysis job ${jobId} (${worker}) failed at ${state.step}`, e);
     await db
       .from("ai_jobs")
       .update({ status: "failed", error: message, finished_at: new Date().toISOString() })
-      .eq("id", jobId);
+      .eq("id", jobId)
+      .eq("organization_id", org);
+    return;
+  }
+  console.info(`analysis job ${jobId} (${worker}) step ${state.step} took ${Date.now() - started} ms`);
+
+  if ("final" in result) {
+    const { data: done } = await owned({ status: "succeeded", finished_at: new Date().toISOString(), output: result.final });
+    if (!done?.length) return;
+    // Evidence is in: if the owner already finished discovery, the plan can start now, in its own invocation.
+    if (worker === "website_evidence" && input.sessionId) {
+      try {
+        const planJobId = await startPlanIfReady(input.sessionId);
+        if (planJobId) await dispatchStep(planJobId, firstStep("website_plan"));
+      } catch (e) {
+        console.error(`starting the plan after evidence job ${jobId} failed`, e);
+      }
+    }
     return;
   }
 
-  // Evidence is in: if the owner already finished discovery, the plan can start now.
-  if (job.worker === "website_evidence" && input.sessionId) {
-    try {
-      const planJobId = await startPlanIfReady(input.sessionId);
-      if (planJobId) await runAnalysisJob(planJobId);
-    } catch (e) {
-      console.error(`starting the plan after evidence job ${jobId} failed`, e);
-    }
-  }
+  const next = nextStep(worker, state.step) as RunStep;
+  const { data: advanced } = await owned({ output: advanceState(running, result.artifacts, next) });
+  if (advanced?.length) await dispatchStep(jobId, next);
 }

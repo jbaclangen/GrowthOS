@@ -11,6 +11,7 @@
     "tokens:check": "node scripts/build-tokens.mjs --check",
     "eval:models": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/compare-models.mts",
     "audit:site": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/audit-site.mts",
+    "pipeline:local": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/run-pipeline-local.mts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
