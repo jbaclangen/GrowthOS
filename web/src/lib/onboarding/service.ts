@@ -6,7 +6,8 @@ import { addNextRound } from "./next-questions";
 import { startPlanIfReady } from "./orchestrate";
 import type { Discovery, Review } from "./discovery";
 import type { FollowUpUpdate } from "./followups";
-import { runAnalysisJob } from "@/lib/pipeline/website-intel";
+import { handOff } from "@/lib/pipeline/handoff";
+import { firstStep } from "@/lib/pipeline/steps";
 
 // The onboarding steps (ON-2 to ON-6), shared by the web forms (app/onboarding/[sessionId]/actions.ts) and the AI
 // assistant connection (lib/mcp, D-036). Callers pass the database client:
@@ -27,11 +28,16 @@ export async function loadSession(db: SupabaseClient, sessionId: string, organiz
   return (data as Session | null) ?? null;
 }
 
-// When discovery is finished (or skipped) and the website evidence is in, build the plan.
+// When discovery is finished (or skipped) and the website evidence is in, build the plan. Its first step runs in
+// its own invocation, not in this request's (which may already have spent minutes on follow-up question calls).
 function startPlanAfterResponse(sessionId: string) {
   after(async () => {
-    const planJobId = await startPlanIfReady(sessionId);
-    if (planJobId) await runAnalysisJob(planJobId);
+    try {
+      const plan = await startPlanIfReady(sessionId);
+      if (plan) await handOff(plan, firstStep(plan.worker));
+    } catch (e) {
+      console.error(`starting the plan for onboarding session ${sessionId} failed`, e);
+    }
   });
 }
 

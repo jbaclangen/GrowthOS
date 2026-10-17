@@ -47,7 +47,9 @@ did not approve.
 Current gaps:
 - **Members can still write the other M-all tables directly** through the Supabase Data API with the
   publishable key, bypassing server-action logic: e.g. edit `ai_jobs.status`/`output`, `reports`, or
-  `content_items` text fields (including text of an approved item, without resetting approval). Harmless
+  `content_items` text fields (including text of an approved item, without resetting approval). Since D-042 a
+  member could also rewrite a pending analysis step's stored inputs (e.g. the page digest), which the next step
+  feeds to a model: same organization only, and that text is already treated as untrusted. Harmless
   while one user = one org; must be tightened (role checks, or moving writes behind server actions only)
   before multi-user organizations or any real publishing.
 - **Platform admins see every tenant** through RLS. There is no audit of their access.
@@ -79,8 +81,13 @@ RLS. Rules:
   path (`next` must start with `/` and not `//`; it is appended to the request origin, so open redirects are
   not possible). `/` forwards a stray `code` to the callback.
 - `src/proxy.ts` refreshes the session cookie on each request (`getClaims()`) and redirects unauthenticated
-  requests to `/login` except for `/`, `/login`, `/auth/*`, `/api/health/*`, `/api/mcp`. Pages and actions additionally
-  call `requireUser()` (`supabase.auth.getUser()`, which validates with the Auth server).
+  requests to `/login` except for `/`, `/login`, `/auth/*`, `/api/health/*`, `/api/mcp`, `/api/jobs/continue`. Pages
+  and actions additionally call `requireUser()` (`supabase.auth.getUser()`, which validates with the Auth server).
+- **Analysis step hand-off (D-042):** `/api/jobs/continue` is server-to-server only. It requires an HMAC-SHA256 of the
+  job id and step (`JOB_CONTINUE_SECRET`, else a key derived from `SUPABASE_SECRET_KEY` with HKDF), compared in
+  constant time. A valid token only lets the caller run that job's step if it is still pending; it reads and writes
+  nothing else and returns no data. The server sends the token only to `NEXT_PUBLIC_APP_URL` (in development, its
+  own port), never to an address taken from the request, so a forged Host header can't redirect it.
 - Password policy, leaked-password protection, rate limits, and email confirmation requirement are set in the
   Supabase dashboard and are not verifiable from the repo; confirm them before launch.
 - **MCP access keys (D-036):** `/api/mcp` accepts `Authorization: Bearer brv_…` personal access keys instead of a
@@ -233,6 +240,12 @@ What is undecided / not implemented:
 - No user-facing account or organization deletion, no data export.
 - No retention period for crawled pages (`knowledge_documents` accumulate per content hash), re-run
   artefacts, AI job inputs/outputs, or `ai_usage`.
+- `ai_jobs.output` (D-042): while an analysis runs, it holds copies of what later steps need: up to 20,000
+  characters of crawled page text (the digest, until the profile step), the website evidence (home page signals,
+  page list, PageSpeed scores, audit findings) and the owner's discovery answers (pain points, own-words
+  statements, follow-up answers). A job that succeeds keeps only pointers, except the evidence job, which keeps the
+  evidence for the plan job. A job that fails, at a step, at a hand-off or by the reaper, keeps at most its step
+  name. Members of the organization can read the row (RLS).
 - No retention rule for future CRM data. Search Console: 12 newest snapshots per organization; the token and all
   snapshots are deleted on disconnect; a paused (Basic) connection keeps both until disconnected.
 - Supabase backups (point-in-time recovery) mean deleted data persists in backups for the plan's backup
@@ -241,7 +254,9 @@ What is undecided / not implemented:
 ## 11. Logging and audit
 
 - `ai_usage`: one row per successful model call (org, job, worker, model, tokens, cost).
-- `ai_jobs`: job input, step progress, output pointers, error text.
+- `ai_jobs`: job input, step progress (`output.step`, `step_state`, `step_started_at`, `resent_at`), error text;
+  while running, the step artifacts listed in §10; when done, output pointers (and the evidence, for evidence
+  jobs).
 - `content_items.approved_by/approved_at`: last approval only (overwritten on undo).
 - Server `console.error` for failed jobs and failed usage inserts (Vercel function logs in production).
   Error messages can include upstream response bodies (e.g. OpenRouter errors) and are shown to the user on

@@ -87,6 +87,9 @@ queues one `website_plan` job once discovery is done and evidence succeeded → 
 Plan: growth score + diagnosis + growth plan (`diagnoses`, `diagnosis_findings`, `growth_plan_items`) → 30-day plan → 5
 drafted posts (status `needs_approval`). Owner corrections queue a `diagnosis_update` job (diagnosis step only).
 Re-run queues `website_intel`, which does both halves with the latest finished discovery (max 10 analyses/re-runs per org
-per 24 h; no re-run while a job is active). Production runs paid models (`AI_MODE` defaults to paid; only `free` switches). The OpenRouter account enforces zero data
+per 24 h; no re-run while a job is active). Every job runs as steps (crawling → profiling → scoring → planning →
+writing), one function invocation each, handed off via HMAC-signed `POST /api/jobs/continue` so none hits Vercel Hobby's
+300 s limit (D-042, `lib/pipeline/steps.ts`; the first step too). A refused hand-off fails the job at once, the report
+page re-sends a step left pending for 60 s, and the reaper fails a step with no progress for 10 min. Production runs paid models (`AI_MODE` defaults to paid; only `free` switches). The OpenRouter account enforces zero data
 retention, which blocks every free model, so `AI_MODE=free` fails until that changes (D-037).
 Pages read cookies, so with Cache Components their content must sit inside `<Suspense>`.

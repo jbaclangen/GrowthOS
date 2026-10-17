@@ -1,11 +1,11 @@
 "use server";
 
-import { after } from "next/server";
 import { refresh } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { failStaleJobs } from "@/lib/pipeline/jobs";
-import { runAnalysisJob } from "@/lib/pipeline/website-intel";
+import { startJob } from "@/lib/pipeline/handoff";
+import { initialState } from "@/lib/pipeline/steps";
 import { finalPriorities } from "@/lib/plan/priority";
 
 // Owner actions on the diagnosis and growth plan (ON-7, ON-8, MS-5). All go through the signed-in user's
@@ -128,12 +128,13 @@ export async function requestDiagnosisUpdate(diagnosisId: string): Promise<Actio
       worker: "diagnosis_update",
       task_class: "complex",
       input: { businessProfileId: diagnosis.business_profile_id, websiteUrl: profile?.website_url ?? "", diagnosisId: diagnosis.id },
+      output: initialState("diagnosis_update"),
       created_by: user.id,
     })
     .select("id")
     .single();
   if (error || !job) return { error: "The update couldn't start. Try again." };
-  after(() => runAnalysisJob(job.id));
+  startJob({ id: job.id as string, organizationId: diagnosis.organization_id as string, worker: "diagnosis_update" });
   refresh();
   return {};
 }

@@ -15,7 +15,8 @@ import { loadReport } from "./report-data";
 import { ReportSection } from "./report-sections";
 
 export const metadata: Metadata = { title: "Growth assessment" };
-// Analysis jobs run in after() for up to ~4 minutes; 300 s is the Vercel Hobby maximum.
+// Analysis steps run in their own invocations (D-042); after() here only hands a step on (up to ~50 s with
+// retries). 300 s is the Vercel Hobby maximum.
 export const maxDuration = 300;
 
 export default function AnalysisPage(props: PageProps<"/analysis/[id]">) {

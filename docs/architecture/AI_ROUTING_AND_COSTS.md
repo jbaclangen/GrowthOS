@@ -104,10 +104,28 @@ on HTTP 408/429/5xx, including provider errors OpenRouter reports inside a 200 r
 output ceilings are `MAX_TOKENS` in `web/src/lib/pipeline/prompts.ts` (profile 6000, opportunities 4000,
 plan 10000, writer 12000); reasoning models count their thinking as output. If an answer is still cut off,
 `runWorkerJson` retries once with a 50% higher ceiling. The OpenRouter `fetch` times out after 120 s (`CHAT_TIMEOUT_MS`).
-
 Free mode: ~3–5½ minutes per run; OpenRouter free models are limited per API key (shared across all tenants).
-Paid mode: about 2 minutes per step-chain on Sonnet; about 5 minutes for a regulated business, where Opus
-writes the drafts (measured 330 s on thebenefitlink.com, including one cut-off retry since fixed).
+Paid mode: about 3 minutes for a full re-run; about 4 minutes for a regulated business, where Opus writes the
+drafts (a single-invocation run measured 330 s on thebenefitlink.com, past Vercel Hobby's 300 s limit).
+
+**Step chaining (hosting time limit).** Vercel Hobby stops every function invocation at 300 s with no cleanup, so
+an analysis runs as a chain of steps, one invocation each (`web/src/lib/pipeline/steps.ts`): `crawling` (crawl +
+PageSpeed + checks, no AI), `profiling` (Sonnet), `scoring` (diagnosis, Opus), `planning` (30-day plan, Sonnet),
+`writing` (5 drafts, one call; Opus when regulated). Each step makes at most one model call (plus its retries), so
+a step takes about a minute and even a full 120 s model timeout fits; only a step whose retries all run to their
+timeouts could still reach the limit. A step claims itself on the `ai_jobs` row (conditional
+update on `output.step` / `output.step_state`), stores what later steps need in `ai_jobs.output` (evidence, page
+digest, discovery, plan titles, calendar id, first batch), queues the next step and hands it to
+`POST /api/jobs/continue` (HMAC of job id + step, `JOB_CONTINUE_SECRET` or a key derived from
+`SUPABASE_SECRET_KEY`); that route answers 202 and runs the step in its own `after()`. The first step is handed off
+the same way, from the `after()` of the request that queued the job. A repeated or late hand-off does nothing. A
+step that fails marks the job failed with its error, as before. A hand-off the route doesn't accept (3 attempts;
+timeouts, 408, 429 and 5xx are retried) fails the job at once with "The analysis couldn't continue. Run it again."
+A step still pending 60 s after its hand-off is re-sent by the report page's poll (`resendDue`), and a step cut off
+by the platform is failed by the stale-job reaper 10 minutes after the step's last progress
+(`output.step_started_at`, `lib/pipeline/jobs.ts`). Failed jobs keep no step artifacts. Measured 2026-10-17 on a re-run (`npm run pipeline:local`):
+thebenefitlink.com (regulated) 56 / 22 / 59 / 45 / 58 s per step, 244 s total, $0.38; pixelmarketingdesign.com
+25 / 20 / 56 / 48 / 33 s, 185 s total, $0.29.
 
 ### 4.1 Model comparison (2026-10-10, re-run 2026-10-11)
 
