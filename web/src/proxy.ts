@@ -5,7 +5,8 @@ import { createServerClient } from "@supabase/ssr";
 // signed-out visitors to /login. Authorization itself is enforced by RLS.
 // /api/mcp authenticates with a personal access key instead of a session cookie (D-036); /api/jobs/continue with an
 // HMAC of the job id and step (server-to-server hand-off between analysis steps, lib/pipeline/dispatch.ts).
-const PUBLIC_PATHS = ["/", "/login", "/auth", "/api/health", "/api/mcp", "/api/jobs/continue", "/robots.txt"];
+// /api/assistant checks the session itself and answers 401 JSON instead of a redirect the browser can't use (D-043).
+const PUBLIC_PATHS = ["/", "/login", "/auth", "/api/health", "/api/mcp", "/api/jobs/continue", "/api/assistant", "/robots.txt"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

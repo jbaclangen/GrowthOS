@@ -68,6 +68,12 @@ recorded only the successful run's 4 calls: failed calls and latency are not log
 onboarding with a personal access key from Settings → AI assistant access. See
 [MCP_SERVER.md](../architecture/MCP_SERVER.md). claude.ai and ChatGPT connectors are not built (Q-039).
 
+**In-app AI assistant (D-042):** "Ask Braventa…" in the header (`web/src/components/assistant.tsx`) opens a dialog
+that answers how Braventa works and questions about the user's own businesses and latest report. Read-only; same
+access rule as the MCP connection (trial or any plan); 40 questions per organization a day. Knowledge base:
+`web/src/lib/assistant/knowledge.ts` (published as `docs/help/APP_GUIDE.md`); endpoint `POST /api/assistant`;
+worker `app_assistant` (Haiku); table `assistant_messages` (migration must be applied before deploy).
+
 **Exists in the schema or code, but is not a feature:** `campaigns`, `knowledge_chunks` and
 `match_knowledge` (no embeddings written), `integrations` (no connections), `subscriptions` (no
 billing), `platform_admins` (no admin UI), content states `draft`, `in_qa`, `scheduled`, `published`
@@ -100,8 +106,8 @@ sequence.
 | 11 | **Opportunity tracking** — accept, dismiss, done | MS-5 (D-022) | Recommendations lead to actions, not just text | Small — **Live** (on plan items) |
 | 12 | **"Do this first" summary** at the top of the results page | UX-1 (D-022) | The next best action is obvious without reading the whole page | Small — **Live** |
 
-**Deferred but committed: AI assistant (BI-11, D-020)** — Next phase, after knowledge-base retrieval (BI-8)
-and paid AI mode.
+**AI assistant (BI-11):** a read-only help and report assistant is live (D-042, supersedes D-020). A grounded
+assistant over uploaded documents still needs knowledge-base retrieval (BI-8) and stays in the Next phase.
 
 **Considered and deferred: HubSpot read-only summary (CRM-1, CRM-2).** It is the strongest
 differentiator and the founder's area of experience, but it needs a HubSpot public app, OAuth, token
@@ -122,7 +128,7 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
 - Team invitations, roles UI, organization switching, client portals for agencies.
 - Long-form content (blogs, email campaigns, video scripts), repurposing, image generation.
 - Automated QA reviewer step (manual approval is the MVP quality gate).
-- Knowledge-base embeddings, document upload, and a chat assistant (assistant is committed for Next — D-020).
+- Knowledge-base embeddings and document upload (the read-only in-app assistant shipped without them — D-042).
 - Campaign objects and campaign planning.
 - Dedicated website audit report beyond the assessment.
 - Admin console, white-labelling, public API, mobile apps.

@@ -41,7 +41,9 @@ describe("features", () => {
   it("never lets anyone use a feature that isn't live", () => {
     expect(canUse("premium", "ai_agents")).toBe(false);
     expect(canUse("basic", "diagnosis")).toBe(true);
-    expect(canUse("basic", "ai_assistant")).toBe(false);
+    expect(canUse("pro", "full_audit")).toBe(false);
+    // The in-app assistant is live on every tier (D-042).
+    expect(canUse("basic", "ai_assistant")).toBe(true);
   });
 
   it("reports that Pro adds a live feature: the Search Console connection", () => {

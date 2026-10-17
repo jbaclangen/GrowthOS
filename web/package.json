@@ -12,6 +12,8 @@
     "eval:models": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/compare-models.mts",
     "audit:site": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/audit-site.mts",
     "pipeline:local": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/run-pipeline-local.mts",
+    "help:doc": "tsx --tsconfig tsconfig.json scripts/build-help-doc.mts",
+    "help:doc:check": "tsx --tsconfig tsconfig.json scripts/build-help-doc.mts --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "health": "tsx --env-file=.env.local --tsconfig tsconfig.json scripts/health-check.mts"

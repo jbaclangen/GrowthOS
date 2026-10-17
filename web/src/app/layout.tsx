@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { Comfortaa, Quicksand } from "next/font/google";
 import { Logo } from "@/components/brand/logo";
+import { AssistantLauncher } from "@/components/assistant";
 import { getUser } from "@/lib/auth";
 import { getOrgAccess } from "@/lib/plans/access";
 import { signOut } from "./login/actions";
@@ -58,14 +59,17 @@ async function UserMenu() {
         : access.tier === "pro"
           ? "Pro"
           : "Premium";
+  // The in-app assistant (D-042): an active trial or a plan; otherwise the bar says what unlocks it.
+  const assistant = !access ? "needs_business" : access.subscribed ? "enabled" : "needs_plan";
   return (
-    <div className="flex items-center gap-3 text-sm">
+    <div className="flex items-center gap-2 text-sm sm:gap-3">
+      <AssistantLauncher state={assistant} />
       {planLabel && (
         <Link href="/plans" className="chip bg-accent-soft text-accent-soft-foreground hover:underline">
           {planLabel}
         </Link>
       )}
-      <span className="hidden text-muted sm:inline">{user.email}</span>
+      <span className="hidden text-muted lg:inline">{user.email}</span>
       <Link href="/settings" className="text-muted hover:underline">
         Settings
       </Link>

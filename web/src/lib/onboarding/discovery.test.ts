@@ -28,9 +28,11 @@ describe("catalog", () => {
   });
 
   it("labels unbuilt capabilities as planned or manual, never available", () => {
-    for (const id of ["crm_intelligence", "automation", "analytics", "ai_assistant"] as const) {
+    for (const id of ["crm_intelligence", "automation", "analytics"] as const) {
       expect(SOLUTIONS[id].availability).toBe("planned");
     }
+    // The in-app assistant shipped (D-042).
+    expect(SOLUTIONS.ai_assistant.availability).toBe("available");
   });
 
   it("lists every active pain point for the classifier prompt", () => {
