@@ -38,19 +38,22 @@ function isDroppedConnection(e: unknown) {
 }
 
 // One chat completion. `models` is tried in order; OpenRouter handles fallback.
+// timeoutMs and retry let a caller with a hard deadline (a route handler's maxDuration) finish inside it.
 export async function chat(opts: {
   models: string[];
   messages: ChatMessage[];
   maxTokens?: number;
   temperature?: number;
   json?: boolean;
+  timeoutMs?: number; // per attempt; default CHAT_TIMEOUT_MS
+  retry?: boolean; // one more attempt after a provider hiccup; default true
 }): Promise<ChatResult> {
   for (let attempt = 1; ; attempt++) {
     try {
       return await chatOnce(opts);
     } catch (e) {
       const retryable = e instanceof RetryableError || isDroppedConnection(e);
-      if (!retryable || attempt >= 2) throw e;
+      if (!retryable || attempt >= 2 || opts.retry === false) throw e;
       await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
     }
   }
@@ -68,7 +71,7 @@ async function chatOnce(opts: Parameters<typeof chat>[0]): Promise<ChatResult> {
       response_format: opts.json ? { type: "json_object" } : undefined,
       usage: { include: true },
     }),
-    signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
+    signal: AbortSignal.timeout(opts.timeoutMs ?? CHAT_TIMEOUT_MS),
   });
   if (!res.ok) {
     const message = `OpenRouter ${res.status}: ${await res.text()}`;

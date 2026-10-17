@@ -32,7 +32,10 @@ decision. Never describe the product as doing something the code doesn't do, wha
 - Never invent capabilities or present planned features as live. Live today: website analysis (technical checks of up to 25 pages,
   robots.txt respected, PageSpeed mobile + desktop) + pain-point discovery → business profile → growth score + diagnosis the owner confirms or corrects → one prioritized growth plan (accept / dismiss /
   done) → 30-day plan → 5 drafted posts with approve/reject, shown as an infographic with detail dialogs; an MCP server (`/api/mcp`, D-036)
-  lets Claude Code/Desktop fill in onboarding with a personal access key; 14-day Pro
+  lets Claude Code/Desktop fill in onboarding with a personal access key; a read-only in-app assistant ("Ask Braventa"
+  in the header, `/api/assistant`, D-043) answers how the app works and about the user's latest report — its knowledge
+  base `web/src/lib/assistant/knowledge.ts` must stay true to the code (`npm run help:doc` regenerates
+  `docs/help/APP_GUIDE.md`); 14-day Pro
   trial then Basic (D-030; Pro features are Coming soon). No CRM, publishing,
   email sending, automation, analytics, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.

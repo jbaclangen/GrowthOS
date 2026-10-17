@@ -41,7 +41,18 @@ describe("features", () => {
   it("never lets anyone use a feature that isn't live", () => {
     expect(canUse("premium", "ai_agents")).toBe(false);
     expect(canUse("basic", "diagnosis")).toBe(true);
-    expect(canUse("basic", "ai_assistant")).toBe(false);
+    expect(canUse("pro", "full_audit")).toBe(false);
+  });
+
+  it("says the in-app assistant pauses after the trial, since canUse() isn't its gate (D-043)", () => {
+    // An ended trial is effective Basic, which includes the feature, yet assistantAccess refuses it until the
+    // business chooses a plan (lib/assistant/access.ts). The plans pages must say so, as for assistant_connection.
+    const ended = effectiveAccess({ plan: "trial", trial_ends_at: days(-1) }, now);
+    expect(ended.tier).toBe("basic");
+    expect(canUse(ended.tier, "ai_assistant")).toBe(true);
+    for (const id of ["ai_assistant", "assistant_connection"] as const) {
+      expect(FEATURES.find((f) => f.id === id)?.detail).toContain("Paused after the trial until you choose a plan.");
+    }
   });
 
   it("reports that Pro adds a live feature: the Search Console connection", () => {

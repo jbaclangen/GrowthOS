@@ -30,7 +30,7 @@ Do not rewrite history.
 | D-017 | 2026-10-10 | Wordmark is lowercase `braventa` in Quicksand Bold | Superseded by D-026 |
 | D-018 | 2026-10-10 | Crawler reaches public sites only; clients can only approve/reject/undo content, approver set by the database | Provisional |
 | D-019 | 2026-10-10 | Product vision document adopted as strategic planning context (not a spec); existing approved decisions stand | Founder |
-| D-020 | 2026-10-10 | AI assistant is not in the MVP but is committed for the Next phase (resolves Q-021) | Founder |
+| D-020 | 2026-10-10 | AI assistant is not in the MVP but is committed for the Next phase (resolves Q-021) | Superseded by D-043 |
 | D-021 | 2026-10-10 | Guided onboarding questions (BI-12) are in the MVP (resolves Q-022) | Founder |
 | D-022 | 2026-10-10 | Opportunity tracking (MS-5) and the "do this first" summary (UX-1) are in the MVP (resolves Q-023) | Founder |
 | D-023 | 2026-10-10 | Withdrawn — this number was briefly used for the crawler/approval-rules decision, which keeps its original ID D-018 | Withdrawn |
@@ -200,6 +200,7 @@ but D-003 follows from D-001 and is already applied.
 (BI-11) stays out of the MVP and moves from Future vision to **Next phase** as a committed item. It depends on
 knowledge-base retrieval (BI-8) and paid models. The founder asked for a cost estimate for testing it with one
 company and a model recommendation aligned with the vision's routing principles before it is built.
+**Superseded by D-043** (2026-10-17): a read-only in-app assistant ships now, without retrieval.
 
 ## D-021 — Guided onboarding questions in the MVP
 **Status:** Founder (2026-10-10, answer to Q-022). BI-12 becomes MVP: optional questions on `/onboarding` for
@@ -478,3 +479,27 @@ private test with about 3 invited accounts.
 - Prompts, models and outputs are unchanged. Moving orchestration to n8n or a queue stays the long-term option
   ([SYSTEM_ARCHITECTURE.md §3](../architecture/SYSTEM_ARCHITECTURE.md)). Resolves Q-004. Detail: AI_ROUTING_AND_COSTS.md
   (Reliability).
+
+## D-043 — In-app AI assistant ("Ask Braventa"), read-only
+**Status:** Founder (2026-10-17, in chat). Supersedes D-020's "not in the MVP": the in-app assistant ships now, before
+knowledge-base retrieval (BI-8), as a help and report assistant.
+- Opened from an "Ask Braventa…" search bar in the app header (an icon on small screens; shortcut Ctrl+K, Cmd+K on a
+  Mac — no single-key shortcut, WCAG 2.1.4). It answers how Braventa works (app map, live vs coming soon, plans and trial, connecting Claude and Search Console,
+  troubleshooting, privacy) and about the user's own businesses and latest report (growth score, diagnosis findings,
+  plan items, content plan, drafts status). Read-only: it never changes anything and points to the page instead.
+- Access: the same rule as the AI assistant connection (D-036): every account during the 14-day trial, then any plan
+  (Basic, Pro or Premium). Others see the bar disabled with "Choose a plan to ask" linking to `/plans`. The model call gets one 40-second
+  attempt (no retry), inside the route's 60-second limit.
+- Knowledge is a curated, versioned file in code (`web/src/lib/assistant/knowledge.ts`), partly generated from
+  `FEATURES` and the report's sections, and published as `docs/help/APP_GUIDE.md` for support.braventa.io. A test
+  fails when a page route is missing from it or the doc is out of date.
+- Business data is read with the user's own client (RLS), capped at 6,000 characters and fenced as untrusted data.
+- Model: worker `app_assistant` (simple → Claude Haiku 5.5) through `lib/ai/router.ts` (budget + `ai_usage`), about
+  $0.001 per question in testing. One JSON response per question (no streaming), for robustness.
+- Limits: 40 questions per organization per 24 hours and 5 per user per minute, counted in `assistant_usage`
+  (migration `20261017020224_assistant_usage.sql`, applied 2026-10-17; without it the
+  assistant answers "isn't available right now"). Each question's row is reserved before the model is called, in one
+  locked database step, so parallel requests can't exceed the limits; failed questions still count.
+- Privacy (review, 2026-10-17): questions and answers are **not stored**. The conversation lives in the browser tab;
+  `assistant_usage` keeps only who asked and when, and `ai_usage` the tokens and cost. Keeping question text for
+  product insight would need a retention period and a way to delete it first (Q-041).

@@ -71,7 +71,7 @@ Builds and maintains the structured business profile used by every other module.
 | BI-8 | Knowledge base: store source documents, chunk, embed, and retrieve for grounding | Next phase | Partial (crawled pages stored in `knowledge_documents`; no chunking, embedding, or retrieval) |
 | BI-9 | Upload documents and notes as sources | Next phase | Not started |
 | BI-10 | Brand voice and messaging profile the user can edit (`brand_profiles`) | Next phase | Partial (row written per run; not shown separately or editable; a new row is inserted on every re-run) |
-| BI-11 | Q&A assistant grounded in the knowledge base (`marketing_assistant` worker) | Next phase, committed (D-020) | Not started |
+| BI-11 | Q&A assistant grounded in the knowledge base (`marketing_assistant` worker) | Next phase, committed (D-020); a read-only help and report assistant shipped first (D-043) | **Partial**: "Ask Braventa" in the header answers how the app works and about the latest report (`app_assistant` worker, `/api/assistant`); answers grounded in uploaded documents still need BI-8 |
 | BI-12 | Optional guided onboarding questions — primary goal, service area, current tools — stored on the profile (Customer-provided) and used in prompts (vision §7 step 2) | MVP (D-021) | **Live** (`web/src/components/owner-questions.tsx`, `web/src/lib/owner-inputs.ts`; stored in `business_profiles.goals`, `service_area`, `current_tools`; fed to all four pipeline prompts; editable in the "From you" panel on `/analysis/[id]`) |
 
 **MVP acceptance criteria**

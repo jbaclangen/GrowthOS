@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 // Matches web/src/lib/ai/router.ts and docs/architecture/AI_ROUTING_AND_COSTS.md (paid lineup, D-024).
 const TASKS = [
   { task: "Matching your own words to common business problems, choosing follow-up questions", model: "Anthropic Claude Haiku" },
+  { task: "Answering your questions in the app (Ask Braventa)", model: "Anthropic Claude Haiku" },
   { task: "Building your business profile, planning 30 days of content, drafting posts", model: "Anthropic Claude Sonnet" },
   { task: "Diagnosing your business and building the growth plan; drafts for regulated industries", model: "Anthropic Claude Opus" },
 ];
@@ -45,8 +46,8 @@ export default function AiUse() {
           </p>
           <p>
             If the first-choice model is unavailable, a request falls back to a backup model through OpenRouter: OpenAI GPT
-            for matching your words, choosing questions, the profile, content plan and drafts, and Claude Sonnet for the
-            diagnosis.
+            for matching your words, choosing questions, answering your questions in the app, the profile, content plan and
+            drafts, and Claude Sonnet for the diagnosis.
           </p>
         </div>
         <div className="mt-6 overflow-x-auto">
@@ -73,6 +74,10 @@ export default function AiUse() {
             <li>Text from your website&apos;s public pages, and its Google PageSpeed scores.</li>
             <li>The answers you give during setup, and any corrections you make to the diagnosis.</li>
             <li>The business profile built from those, so drafts match your brand voice.</li>
+            <li>
+              Questions you ask the in-app assistant, with a short summary of your account and latest report. We don&apos;t
+              store the questions or the answers.
+            </li>
           </ul>
           <p>
             Text read from websites is fenced off as data, and the models are told never to follow instructions found in

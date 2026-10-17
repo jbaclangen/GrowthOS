@@ -11,22 +11,8 @@ import type { Report } from "./report-data";
 // palette in fixed order for categories, values always printed next to the marks (the chart blue is below 3:1
 // on the dark surface, so color never carries a value alone).
 
-export const VIEWS = {
-  scores: "Growth score",
-  diagnosis: "What's holding the business back",
-  plan: "Growth plan",
-  technical: "Technical checks",
-  answers: "What you told us",
-  profile: "Business profile",
-  content: "30-day content plan",
-  drafts: "Drafted posts",
-  opportunities: "Top 5 opportunities",
-} as const;
-export type ViewKey = keyof typeof VIEWS;
-
-export function isView(v: unknown): v is ViewKey {
-  return typeof v === "string" && v in VIEWS;
-}
+import { VIEWS, type ViewKey } from "./views";
+export { VIEWS, isView, type ViewKey } from "./views";
 
 const PROVENANCE_ORDER: Provenance[] = ["customer_provided", "verified", "inferred"];
 const PROVENANCE_COLOR: Record<Provenance, string> = {

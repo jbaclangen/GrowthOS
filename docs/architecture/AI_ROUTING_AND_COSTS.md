@@ -65,6 +65,7 @@ failure. Both attempts are logged to `ai_usage`. After two failures it throws
 | `campaign_planner` | standard | No |
 | `qa_reviewer` | qa | **No** — there is no automated QA pass on drafts |
 | `marketing_assistant` | standard | No (retrieval not built) |
+| `app_assistant` | simple | Yes — the in-app assistant "Ask Braventa" (`/api/assistant`, D-043): about 6,500 input and 100–800 output tokens, about $0.001 and 2–5 s per question; one 40 s attempt, no retry (`timeoutMs`, `retry: false`), to stay inside the route's 60 s limit |
 | `extractor` | simple | Yes — classifies the owner's free-text discovery answer into catalog pain points (`web/src/lib/onboarding/classify.ts`) and picks the follow-up questions from the question bank (`web/src/lib/onboarding/next-questions.ts`; about $0.0003 and 2–4 s per round) |
 
 Each worker contributes only a one-line system prompt; task instructions live in the feature's user message
@@ -82,7 +83,7 @@ side-by-side comparison (D-024, §4.1):
 
 | Class | `free` chain | `paid` chain | Workers |
 |---|---|---|---|
-| simple | nemotron-3-super (free) -> nemotron-3-ultra (free) | claude-haiku-5.5 -> gpt-5.6-sol | extractor, marketing_assistant |
+| simple | nemotron-3-super (free) -> nemotron-3-ultra (free) | claude-haiku-5.5 -> gpt-5.6-sol | extractor, marketing_assistant, app_assistant |
 | standard | nemotron-3-super (free) -> nemotron-3-ultra (free) | claude-sonnet-5.5 -> gpt-5.6-sol | business_analyst, content_strategist, content_writer, seo_analyst, campaign_planner |
 | complex | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-opus-5.5 -> claude-sonnet-5.5 | website_auditor, crm_analyst |
 | qa | nemotron-3-ultra (free) -> nemotron-3-super (free) | claude-opus-5.5 -> claude-sonnet-5.5 | qa_reviewer |

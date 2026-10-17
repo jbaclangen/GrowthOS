@@ -41,6 +41,9 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
     const { data: orgId, error } = await supabase.rpc("create_organization", { org_name: name });
     if (error) return { error: error.message };
     org = { id: orgId as string, name, role: "owner" };
+    // The header (root layout) shows the plan chip and the assistant only once an organization exists; refresh it so
+    // the redirect below re-renders the layout instead of keeping "Analyze a website first" from before.
+    refresh();
   }
 
   // Discovery runs alongside the website analysis (D-028): open a session, start the evidence job now,
