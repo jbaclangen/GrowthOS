@@ -44,7 +44,7 @@ describe("features", () => {
     expect(canUse("pro", "full_audit")).toBe(false);
   });
 
-  it("says the in-app assistant pauses after the trial, since canUse() isn't its gate (D-042)", () => {
+  it("says the in-app assistant pauses after the trial, since canUse() isn't its gate (D-043)", () => {
     // An ended trial is effective Basic, which includes the feature, yet assistantAccess refuses it until the
     // business chooses a plan (lib/assistant/access.ts). The plans pages must say so, as for assistant_connection.
     const ended = effectiveAccess({ plan: "trial", trial_ends_at: days(-1) }, now);

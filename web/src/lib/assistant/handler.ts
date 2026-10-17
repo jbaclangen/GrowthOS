@@ -2,7 +2,7 @@ import type { ChatMessage } from "@/lib/integrations/openrouter";
 import { ASSISTANT_LIMITS, assistantAccess, checkAssistantLimits } from "./access";
 import { buildAssistantMessages, parseAssistantRequest, type BusinessSummary } from "./prompt";
 
-// The request flow behind POST /api/assistant (D-042), with every I/O step injected so it is unit-tested without a
+// The request flow behind POST /api/assistant (D-043), with every I/O step injected so it is unit-tested without a
 // database or a model. Order: signed in → organization → plan → input → reserve a slot under the limits → context →
 // model → mark the slot answered or failed. The slot is reserved BEFORE the model is called, in one atomic database
 // step, so parallel requests can't all pass the limit check; a question that fails afterwards still counts.

@@ -4,7 +4,7 @@ import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
 import { PROVENANCE_LABEL, type Provenance } from "@/lib/plan/priority";
 import { knowledgeForPrompt } from "./knowledge";
 
-// The in-app assistant's prompt (D-042). Pure logic, unit-tested: input validation, the business summary as fenced,
+// The in-app assistant's prompt (D-043). Pure logic, unit-tested: input validation, the business summary as fenced,
 // size-capped untrusted data, and the message list sent through the AI router.
 
 export const MAX_QUESTION_CHARS = 1000;

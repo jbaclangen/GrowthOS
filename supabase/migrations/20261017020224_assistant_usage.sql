@@ -1,4 +1,4 @@
--- In-app assistant, "Ask Braventa" (D-042). One row per question asked: the source for the per-organization daily
+-- In-app assistant, "Ask Braventa" (D-043). One row per question asked: the source for the per-organization daily
 -- limit (40 a day) and the per-user burst limit (5 a minute). It stores no question or answer text: the conversation
 -- lives only in the user's browser tab, and tokens, cost and model are logged in ai_usage (worker app_assistant).
 --
@@ -64,4 +64,4 @@ $$;
 revoke all on function public.reserve_assistant_question(uuid, uuid, int, int) from public, anon, authenticated;
 grant execute on function public.reserve_assistant_question(uuid, uuid, int, int) to service_role;
 
-comment on table public.assistant_usage is 'In-app assistant (D-042): one row per question, the rate-limit source. No question or answer text. Written by the server only.';
+comment on table public.assistant_usage is 'In-app assistant (D-043): one row per question, the rate-limit source. No question or answer text. Written by the server only.';

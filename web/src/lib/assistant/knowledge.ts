@@ -3,7 +3,7 @@ import { PROVENANCE_LABEL } from "@/lib/plan/priority";
 import { VIEWS } from "@/app/analysis/[id]/views";
 import { ASSISTANT_LIMITS } from "./access";
 
-// The in-app assistant's help knowledge base ("Ask Braventa", D-042). THIS FILE IS THE SOURCE: docs/help/APP_GUIDE.md
+// The in-app assistant's help knowledge base ("Ask Braventa", D-043). THIS FILE IS THE SOURCE: docs/help/APP_GUIDE.md
 // is generated from it (`npm run help:doc`), and a unit test fails when the two differ or when a page route under
 // web/src/app is missing from APP_ROUTES. Parts come straight from code (FEATURES, VIEWS, provenance labels) so they
 // can't drift. Keep every sentence true of the current code: never describe a planned feature as live.

@@ -226,7 +226,7 @@ human approval, unless the client has explicitly configured an authorised automa
   or training-enabled endpoints. **Configured 2026-10-11:** the OpenRouter account enforces zero data retention,
   so only endpoints that don't keep prompts are used. That excludes all free models, so production runs
   `AI_MODE=paid` (D-037, Q-040).
-- In-app assistant (D-042): the user's question, up to 12 earlier messages from the same browser tab, the help guide
+- In-app assistant (D-043): the user's question, up to 12 earlier messages from the same browser tab, the help guide
   and a summary of their own account (business names, websites, growth score, diagnosis findings, plan items, draft
   titles and statuses; at most 6,000 characters, fenced as untrusted data) go to the `app_assistant` model. No email
   addresses, keys or tokens.
@@ -252,7 +252,7 @@ What is undecided / not implemented:
   statements, follow-up answers). A job that succeeds keeps only pointers, except the evidence job, which keeps the
   evidence for the plan job. A job that fails, at a step, at a hand-off or by the reaper, keeps at most its step
   name. Members of the organization can read the row (RLS).
-- In-app assistant (D-042): questions and answers are not stored; the conversation lives only in the browser tab.
+- In-app assistant (D-043): questions and answers are not stored; the conversation lives only in the browser tab.
   `assistant_usage` keeps one row per question (who, when, answered or failed) for the limits, and `ai_usage` the
   tokens and cost. Both are deleted with the organization (and `assistant_usage` with the user).
 - No retention rule for future CRM data. Search Console: 12 newest snapshots per organization; the token and all
@@ -299,7 +299,7 @@ is not marketing consent.
   organization can still be created to get a fresh allowance (same gap as the AI budget).
 - Each analysis makes up to ~40 requests to the customer's site (robots.txt, sitemaps, 25 pages, 10 link checks,
   2 variants) and 2 PageSpeed calls (25,000/day default quota).
-- In-app assistant (D-042): 40 questions per organization per 24 hours and 5 per user per minute. The slot is reserved
+- In-app assistant (D-043): 40 questions per organization per 24 hours and 5 per user per minute. The slot is reserved
   before the model is called by `reserve_assistant_question` (counts and inserts under a per-organization advisory
   lock), so parallel requests can't all pass, and failed questions still count. Without the table the route fails
   closed (503). Input is capped at 1,000 characters (64 KB body), NUL and other control characters and lone

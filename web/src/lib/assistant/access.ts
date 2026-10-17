@@ -1,6 +1,6 @@
 import { hasSubscription } from "@/lib/plans/subscription";
 
-// Who may use the in-app assistant ("Ask Braventa", D-042): the same rule as the AI assistant connection (D-036).
+// Who may use the in-app assistant ("Ask Braventa", D-043): the same rule as the AI assistant connection (D-036).
 // Every account during the 14-day trial, then any plan (Basic, Pro or Premium). Pure logic, unit-tested.
 // This is the gate, not canUse(tier, "ai_assistant"): a trial that ended without a plan is effective Basic, yet the
 // assistant pauses until the business chooses a plan (FEATURES says so in the feature's detail).
@@ -15,7 +15,7 @@ export function assistantAccess(org: { plan: string; trial_ends_at: string | Dat
 }
 
 // Daily and burst limits, counted in assistant_usage: one row per question, reserved before the model is called by
-// reserve_assistant_question (migration 20261017120000_assistant_usage.sql), which counts and inserts under a
+// reserve_assistant_question (migration 20261017020224_assistant_usage.sql), which counts and inserts under a
 // per-organization lock. Parallel requests can't all pass, and questions that fail still count.
 export const ASSISTANT_LIMITS = {
   perOrgPerDay: 40,

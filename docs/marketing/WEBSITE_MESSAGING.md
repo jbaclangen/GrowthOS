@@ -43,14 +43,14 @@ connect is described as such in its copy. Badges come from `StatusBadge` in `sit
 | Website Intelligence | Limited (up to 6 pages, mobile PageSpeed, crawl signals) | `web/src/lib/integrations/crawler.ts`, `google.ts` |
 | CRM Intelligence, Automation, Analytics | Coming soon | nothing user-facing |
 | Connect your AI assistant (MCP) — Claude Desktop and Claude Code | Live once the MCP PR merges; every plan during the trial, then any subscribed plan | MCP phase 1 (`/api/mcp`); claude.ai and ChatGPT connectors Coming soon |
-| In-app AI assistant ("Ask Braventa" in the app header) | Live (D-042) once its migration is applied and the PR merges; every plan during the trial, then any subscribed plan | `/api/assistant`, `web/src/lib/assistant/*`; read-only |
+| In-app AI assistant ("Ask Braventa" in the app header) | Live (D-043) once its migration is applied and the PR merges; every plan during the trial, then any subscribed plan | `/api/assistant`, `web/src/lib/assistant/*`; read-only |
 
 **AI assistant connection copy rules:** say "connect your AI assistant" (not the "In-app AI assistant" feature in
 `tiers.ts`, which is Ask Braventa, below). It fills in setup and discovery and reports status; the owner still confirms
 the diagnosis and approves posts in the app; it can't publish. Keys are shown once, stored as a hash, show last use, and
 can be revoked. After the trial, access pauses until the business subscribes; don't imply self-serve checkout.
 
-**In-app assistant copy rules (D-042):** call it "Ask Braventa" or "the in-app assistant". It answers how Braventa
+**In-app assistant copy rules (D-043):** call it "Ask Braventa" or "the in-app assistant". It answers how Braventa
 works and questions about the business's own report; it is read-only: it can't change the plan, confirm the
 diagnosis, approve drafts, start analyses or contact anyone, and its answers can be wrong. 40 questions per business
 a day. After the trial it pauses until the business subscribes. Questions go to the AI model with a summary of the

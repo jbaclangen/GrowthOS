@@ -48,7 +48,7 @@ export const WORKERS = {
   qa_reviewer: { taskClass: "qa", system: "You review marketing deliverables for accuracy, brand fit and quality. Be strict." },
   marketing_assistant: { taskClass: "simple", system: "You answer questions about this business using only the provided context." },
   extractor: { taskClass: "simple", system: "You extract structured data. Reply with JSON only." },
-  // The in-app assistant, "Ask Braventa" (D-042). Context: lib/assistant/prompt.ts.
+  // The in-app assistant, "Ask Braventa" (D-043). Context: lib/assistant/prompt.ts.
   app_assistant: {
     taskClass: "simple",
     system: `You are Ask Braventa, the help assistant inside Braventa, a business growth app for small and mid-sized service businesses. You answer the signed-in user's questions about using Braventa and about their own business data in Braventa.

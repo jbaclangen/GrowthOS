@@ -60,7 +60,7 @@ async function UserMenu() {
         : access.tier === "pro"
           ? "Pro"
           : "Premium";
-  // The in-app assistant (D-042): an active trial or a plan; otherwise the bar says what unlocks it.
+  // The in-app assistant (D-043): an active trial or a plan; otherwise the bar says what unlocks it.
   const assistant = !access ? "needs_business" : access.subscribed ? "enabled" : "needs_plan";
   // Every item keeps its size (shrink-0, no wrapping) except the email, which truncates; on phones the account items
   // sit in AccountMenu instead, so the row fits from 320px up without scrolling sideways.

@@ -30,7 +30,7 @@ Do not rewrite history.
 | D-017 | 2026-10-10 | Wordmark is lowercase `braventa` in Quicksand Bold | Superseded by D-026 |
 | D-018 | 2026-10-10 | Crawler reaches public sites only; clients can only approve/reject/undo content, approver set by the database | Provisional |
 | D-019 | 2026-10-10 | Product vision document adopted as strategic planning context (not a spec); existing approved decisions stand | Founder |
-| D-020 | 2026-10-10 | AI assistant is not in the MVP but is committed for the Next phase (resolves Q-021) | Superseded by D-042 |
+| D-020 | 2026-10-10 | AI assistant is not in the MVP but is committed for the Next phase (resolves Q-021) | Superseded by D-043 |
 | D-021 | 2026-10-10 | Guided onboarding questions (BI-12) are in the MVP (resolves Q-022) | Founder |
 | D-022 | 2026-10-10 | Opportunity tracking (MS-5) and the "do this first" summary (UX-1) are in the MVP (resolves Q-023) | Founder |
 | D-023 | 2026-10-10 | Withdrawn — this number was briefly used for the crawler/approval-rules decision, which keeps its original ID D-018 | Withdrawn |
@@ -200,7 +200,7 @@ but D-003 follows from D-001 and is already applied.
 (BI-11) stays out of the MVP and moves from Future vision to **Next phase** as a committed item. It depends on
 knowledge-base retrieval (BI-8) and paid models. The founder asked for a cost estimate for testing it with one
 company and a model recommendation aligned with the vision's routing principles before it is built.
-**Superseded by D-042** (2026-10-17): a read-only in-app assistant ships now, without retrieval.
+**Superseded by D-043** (2026-10-17): a read-only in-app assistant ships now, without retrieval.
 
 ## D-021 — Guided onboarding questions in the MVP
 **Status:** Founder (2026-10-10, answer to Q-022). BI-12 becomes MVP: optional questions on `/onboarding` for
@@ -497,7 +497,7 @@ knowledge-base retrieval (BI-8), as a help and report assistant.
 - Model: worker `app_assistant` (simple → Claude Haiku 5.5) through `lib/ai/router.ts` (budget + `ai_usage`), about
   $0.001 per question in testing. One JSON response per question (no streaming), for robustness.
 - Limits: 40 questions per organization per 24 hours and 5 per user per minute, counted in `assistant_usage`
-  (migration `20261017120000_assistant_usage.sql`, which must be applied before merge and deploy; without it the
+  (migration `20261017020224_assistant_usage.sql`, applied 2026-10-17; without it the
   assistant answers "isn't available right now"). Each question's row is reserved before the model is called, in one
   locked database step, so parallel requests can't exceed the limits; failed questions still count.
 - Privacy (review, 2026-10-17): questions and answers are **not stored**. The conversation lives in the browser tab;

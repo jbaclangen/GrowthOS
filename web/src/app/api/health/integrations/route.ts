@@ -32,10 +32,10 @@ export async function GET() {
       if (error) throw new Error(error.message);
       return `connected, ${count} organizations`;
     }),
-    // The in-app assistant (D-042) fails closed without its table: migration 20261017120000_assistant_usage.sql.
+    // The in-app assistant (D-043) fails closed without its table: migration 20261017020224_assistant_usage.sql.
     check(async () => {
       const { error } = await createSupabaseAdminClient().from("assistant_usage").select("id", { count: "exact", head: true });
-      if (error) throw new Error(`assistant_usage unavailable (apply migration 20261017120000_assistant_usage.sql): ${error.message}`);
+      if (error) throw new Error(`assistant_usage unavailable (apply migration 20261017020224_assistant_usage.sql): ${error.message}`);
       return "assistant_usage table present";
     }),
     check(async () => {

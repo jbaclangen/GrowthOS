@@ -1,4 +1,4 @@
-// A tiny, safe markdown subset for assistant answers (D-042): paragraphs, bulleted and numbered lists (one level of
+// A tiny, safe markdown subset for assistant answers (D-043): paragraphs, bulleted and numbered lists (one level of
 // nesting), **bold**, `code` and [links](/route), including links inside bold. It returns plain data that React
 // renders as text, so model output can never inject HTML. Links are kept only for app routes ("/…") and https links
 // on braventa.io; anything else stays as text. Pure logic, unit-tested.

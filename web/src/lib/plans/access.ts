@@ -5,7 +5,7 @@ import { effectiveAccess, type Access } from "./tiers";
 import { hasSubscription } from "./subscription";
 
 // The signed-in user's organization and its current tier (D-030). RLS limits the read to the user's own org.
-// `subscribed`: an active trial or a plan (lib/plans/subscription.ts); gates the in-app assistant (D-042).
+// `subscribed`: an active trial or a plan (lib/plans/subscription.ts); gates the in-app assistant (D-043).
 export async function getOrgAccess(): Promise<({ orgId: string; orgName: string; subscribed: boolean } & Access) | null> {
   // The trial depends on the current time, so this always renders at request time (Cache Components).
   await connection();

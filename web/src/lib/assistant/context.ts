@@ -6,7 +6,7 @@ import { isOpen } from "@/lib/onboarding/steps";
 import { effectiveAccess } from "@/lib/plans/tiers";
 import { describeSearchConsole, type BusinessSummary } from "./prompt";
 
-// The signed-in user's own account, summarized for the assistant (D-042). Every read uses the user's client, so RLS
+// The signed-in user's own account, summarized for the assistant (D-043). Every read uses the user's client, so RLS
 // limits it to their organization; the organization id is only used to narrow queries RLS already allows.
 // Lighter than loadReport (analysis/[id]/report-data.ts): no page text, no crawl coverage, and it never writes.
 

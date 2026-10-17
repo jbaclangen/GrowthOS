@@ -70,7 +70,7 @@ describe("assistant limits", () => {
   });
 
   it("is counted by a database function that reserves the row before the model is called", () => {
-    const sql = readFileSync(fileURLToPath(new URL("../../../../supabase/migrations/20261017120000_assistant_usage.sql", import.meta.url)), "utf8");
+    const sql = readFileSync(fileURLToPath(new URL("../../../../supabase/migrations/20261017020224_assistant_usage.sql", import.meta.url)), "utf8");
     expect(sql).toMatch(/pg_advisory_xact_lock/);
     expect(sql).toMatch(/interval '24 hours'/);
     expect(sql).toMatch(/interval '1 minute'/);

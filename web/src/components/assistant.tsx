@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CLIENT_ERRORS, isApplePlatform, isAssistantShortcut, readAssistantReply } from "@/lib/assistant/client";
 import { parseMarkdown, type Inline, type List } from "@/lib/assistant/markdown";
 
-// "Ask Braventa", the in-app assistant (D-042): a search-style button in the header (an icon on small screens)
+// "Ask Braventa", the in-app assistant (D-043): a search-style button in the header (an icon on small screens)
 // opens a modal dialog. Native <dialog> + showModal() gives the focus trap, Escape to close and an inert page.
 // Shortcut: Cmd+K on Apple devices, Ctrl+K elsewhere. It always needs the modifier (WCAG 2.1.4: no single-character
 // shortcuts), and on a Mac Ctrl+K is left alone because text fields use it to delete to the end of the line.

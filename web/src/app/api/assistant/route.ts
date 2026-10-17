@@ -5,7 +5,7 @@ import { handleAssistantRequest, type AssistantOrg, type Reservation } from "@/l
 import { loadBusinessSummary } from "@/lib/assistant/context";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 
-// POST /api/assistant — "Ask Braventa", the in-app assistant (D-042). Body: { question, history? }.
+// POST /api/assistant — "Ask Braventa", the in-app assistant (D-043). Body: { question, history? }.
 // Answers in one JSON response ({ answer } or { error }); the flow and its checks live in lib/assistant/handler.ts.
 // Reads go through the signed-in user's client (RLS). The service client only reserves and settles this
 // organization's assistant_usage rows, scoped to the organization the user's membership resolved.
