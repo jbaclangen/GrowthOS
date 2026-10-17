@@ -59,8 +59,10 @@ Ordered by recommended priority.
    account and business deletion (PL-8).
 2. **Billing and plan limits:** Stripe subscriptions using the `subscriptions` table (PL-7); limits
    enforced from the pricing framework once decided.
-3. **HubSpot read-only CRM summary:** connect, pipeline summary, data quality, follow-up
-   recommendations (CRM-1 – CRM-4). Built first with HubSpot-using design partners.
+3. **Connected tools, read-only first (Pro, D-041):** the Google Search Console connection is live; next, a
+   "Connect your tools" step in discovery, then Search Console data in the diagnosis, then GA4 (WI-6), then a
+   HubSpot read-only CRM summary: connect, pipeline summary, data quality, follow-up recommendations (CRM-1 – CRM-4).
+   Built first with HubSpot-using design partners. Order: [INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) §5.
 4. **AI assistant (committed, D-020):** a read-only help and report assistant is live (D-043); next,
    knowledge-base retrieval (BI-8) then the assistant grounded in it (BI-11); goals and objectives (BI-7, MS-6). Opportunity tracking moved into Now (D-022).
 5. **Quality gate:** automated QA review before approval (CS-9).
@@ -81,8 +83,9 @@ met or consciously revised; pricing decided.
 - Scheduling and publishing through connected tools, with approval by default (CS-12).
 - HubSpot task creation and CRM workflow automation (CRM-5, CRM-6); additional CRMs (CRM-7).
 - Trigger-based automations and client-configured authorised automations (AU-7, AU-8).
-- Analytics integrations (GA4, Search Console) and the full Improve stage: planned vs actual, outcome
-  learning, next-best-action recommendations (AN-5 – AN-7).
+- The full Improve stage: planned vs actual, outcome learning, next-best-action recommendations
+  (AN-5 – AN-7). (Search Console and GA4 moved to Next with the Pro integrations — D-041; the Search Console
+  connection is live.)
 - Campaign planning, repurposing, video scripts and creative briefs (MS-7, CS-11).
 - (Grounded Q&A assistant moved to Next — D-020; the read-only in-app assistant shipped — D-043.)
 - Agency features: client approval views, multi-client reporting (CS-13).

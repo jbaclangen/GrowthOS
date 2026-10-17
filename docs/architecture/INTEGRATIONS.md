@@ -34,7 +34,7 @@ Status definitions:
 | n8n | Workflow execution, scheduling, orchestration | **Configured only** | `web/src/lib/integrations/n8n.ts` (`listWorkflows`, `triggerWebhook`, `verifyCallback`); used only by the dev health route | `N8N_BASE_URL`, `N8N_API_KEY`, `N8N_WEBHOOK_SECRET` (>= 32 chars) | Instance `n8nautomations.pixelmarketingdesign.com`. `n8n/` folder empty: no workflows exported. **No `/api/n8n/*` routes exist**, and `proxy.ts` would redirect them to `/login` until `/api/n8n` is made public. `triggerWebhook` and `verifyCallback` are unused |
 | Google Analytics 4 (Data/Admin API) | Traffic and conversion data for reporting | **Configured only** (API enabled in GCP; no code) | None | OAuth per customer property (planned); current API key is PageSpeed-only | Enablement recorded in infrastructure notes, not verifiable from the repo. `integrations.provider` comment lists `google_analytics` |
 | Google Search Console | Read-only clicks, impressions, top queries and pages, device split, sitemaps, home-page URL Inspection (Pro) | **Built, not yet enabled**: code complete; needs the OAuth client, the three env vars and the `20261011161133_search_console` migration before a customer can connect ([SEARCH_CONSOLE_SETUP.md](SEARCH_CONSOLE_SETUP.md)) | `web/src/lib/integrations/{google-oauth,search-console,search-console-access,secret-box}.ts`, `web/src/app/api/integrations/google/{start,callback}/route.ts`, `web/src/app/settings/connections-*.tsx`, `web/src/app/search/` | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `INTEGRATIONS_ENCRYPTION_KEY` (server-only); per-org OAuth refresh token, encrypted | See [Google Search Console](#google-search-console-pro) below. Not yet used by the diagnosis (`searchConsoleSummaryForPrompt` exists, unwired). `braventa.io` itself is verified in Search Console (TXT record) — that is Braventa's own domain, not this integration |
-| HubSpot | First CRM integration: pipeline and lead summaries | **Planned** (priority) | None. Health route returns a "Sprint 5" placeholder | HubSpot public app (OAuth client id/secret), per-org tokens in Vault | See plan below |
+| HubSpot | First CRM integration: pipeline and lead summaries | **Planned** (priority) | None. Health route returns a "Sprint 5" placeholder | HubSpot public app (OAuth client id/secret), `INTEGRATIONS_ENCRYPTION_KEY`; per-org OAuth refresh token, encrypted | See plan below |
 | HubSpot (Braventa's own CRM) | braventa.io contact requests: notification, CRM record, replies from hello@braventa.io via Hostinger SMTP (D-034, Pixelmarketingdesign portal 247150427). Not the customer-facing integration above | **Live** (submissions arrive since the 2026-10-11 `pageUri` fix) | `site/src/lib/hubspot.ts` (Forms API, no secret; form `ce8aca1a-…`) | `HUBSPOT_PORTAL_ID`, `HUBSPOT_FORM_GUID` on Vercel `braventa-site` | [CONTACT_PIPELINE.md](../marketing/CONTACT_PIPELINE.md) |
 | Braventa MCP server (inbound) | Owners' AI assistants (Claude Code, Claude Desktop) fill in onboarding (D-036) | **Live, phase 1** | `web/src/app/api/mcp/route.ts`, `web/src/lib/mcp/` | None (owners' personal access keys, hashed in `mcp_access_keys`) | [MCP_SERVER.md](MCP_SERVER.md). OAuth for claude.ai/ChatGPT not built (Q-039) |
 | WordPress | Publish approved blog content; read site content | **Idea** | None | Application password or OAuth per site | Brief cites founder's WordPress experience; no decision. Publishing requires approval flow (D-013) |
@@ -117,10 +117,13 @@ does not replace it. Nothing below is built.
 **Phase 1 — read-only summaries.**
 1. Create a HubSpot **public app** (OAuth 2.0) owned by Braventa; request the minimum read scopes needed
    for contacts, companies, deals and owners (exact scope list to be fixed during build). No write scopes.
-2. Connect flow: org admin clicks Connect -> HubSpot consent -> `/api/integrations/hubspot/callback`
-   (server route) exchanges the code, then stores the refresh and access tokens in **Supabase Vault** and
-   writes only `vault_secret_id`, `external_account_id` (portal id), `scopes`, `status = 'connected'`,
-   `connected_at` to `integrations` via the admin client, scoped to the admin's authorised org.
+2. Connect flow, the same pattern as Search Console: the organization's owner (only with Pro access) clicks
+   Connect -> HubSpot consent -> `/api/integrations/hubspot/callback` (server route, behind the signed-in
+   session like the Google routes) checks owner role and Pro access, exchanges the code, encrypts the refresh
+   token with `secret-box.ts` (AES-256-GCM, `INTEGRATIONS_ENCRYPTION_KEY`) and upserts one row into
+   `integration_connections` (add `hubspot` to its `provider` check list) with the service client, scoped to
+   the authorized organization: `refresh_token_ciphertext`, `scopes`, `connected_by`, `status = 'active'`,
+   plus the portal id (the table has no column for it yet). No access token is stored.
    The OAuth `state` parameter must bind to the user and org to prevent cross-tenant connection.
 3. Sync: a scheduled job (n8n or a cron route) pulls bounded snapshots (counts, stage totals, stale deals,
    missing fields) into tenant tables (e.g. `crm_snapshots`, with `organization_id` + RLS). Store aggregates
@@ -128,13 +131,13 @@ does not replace it. Nothing below is built.
 4. Analysis: `crm_analyst` worker summarises the snapshot (aggregates only by default; minimise personal
    data sent to models — no free-tier models for CRM data). Output as a `reports` row
    (`report_type = 'crm_summary'`).
-5. Disconnect: revoke the token at HubSpot, delete the Vault secret, set `status = 'revoked'`, delete synced
-   rows per the retention decision.
+5. Disconnect: revoke the token at HubSpot, set `refresh_token_ciphertext = null` and `status = 'revoked'`,
+   delete synced rows per the retention decision.
 
 **Phase 2 — assisted actions (later, approval required).** Create tasks or notes, update properties, enrol
 in sequences. Each action is proposed, shown to a human, approved, executed, and logged (D-013). Requires
 write scopes and an audit table.
 
-**Prerequisites before Phase 1:** Vault-backed token storage and helper functions; `/api/...` callback
-route made public in `proxy.ts` with its own authentication; an audit log for connect/disconnect; a
-documented data-retention rule for CRM data; HubSpot app listing requirements reviewed.
+**Prerequisites before Phase 1:** a migration adding `hubspot` (and a portal id column) to
+`integration_connections`; an audit log for connect/disconnect; a documented data-retention rule for CRM
+data; HubSpot app listing requirements reviewed.

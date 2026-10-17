@@ -111,9 +111,10 @@ assistant over uploaded documents still needs knowledge-base retrieval (BI-8) an
 
 **Considered and deferred: HubSpot read-only summary (CRM-1, CRM-2).** It is the strongest
 differentiator and the founder's area of experience, but it needs a HubSpot public app, OAuth, token
-storage in Vault, and data-handling decisions, and it only helps customers who use HubSpot. Recommended
-as the **first Next-phase item**, built for two or three design partners who use HubSpot, rather than
-as an MVP blocker. Revisit if early customers are predominantly HubSpot users (see
+storage in Vault, and data-handling decisions, and it only helps customers who use HubSpot. Planned for
+the **Next phase** as step 4 of the Pro integrations order, after Search Console and GA4 (D-041,
+[INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) §5), built for two or three design partners who use
+HubSpot, rather than as an MVP blocker. Revisit if early customers are predominantly HubSpot users (see
 [OPEN_QUESTIONS.md](../decisions/OPEN_QUESTIONS.md)).
 
 ## 4. Explicitly out of scope for the MVP

@@ -40,7 +40,7 @@ several need the provider's app review before real customers can connect.
 | Google Search Console | Google OAuth | `webmasters.readonly` (**live**) | none planned | Google verification before 100 users |
 | Google Analytics 4 | Google OAuth | `analytics.readonly` | none planned | Google verification |
 | Google Business Profile | Google OAuth | `business.manage` (no read-only scope exists) | posts, replies to reviews (owner-approved) | Business Profile API access request |
-| HubSpot | HubSpot public app OAuth | contacts, companies, deals, lists, forms, marketing emails: read (`crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`, `crm.lists.read`, `forms`, `content` read) | create/update contacts and tasks, draft marketing emails (`crm.objects.contacts.write`, …) only after the owner enables an action | HubSpot app listing review for the marketplace (not needed for private testing) |
+| HubSpot | HubSpot public app OAuth | contacts, companies, deals, lists: read (`crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`, `crm.lists.read`); not `forms` or `content`, since neither is read-only | create/update contacts and tasks, draft marketing emails (`crm.objects.contacts.write`, …) only after the owner enables an action | HubSpot app listing review for the marketplace (not needed for private testing) |
 | Canva | Canva Connect API OAuth | `design:meta:read`, `design:content:read`, `asset:read`, `brandtemplate:meta:read` | `design:content:write`, `asset:write`; brand-template autofill needs Canva Enterprise on the customer's side | Canva integration review |
 | HeyGen | API key from the customer's account (encrypted like OAuth tokens) | list avatars/videos | create avatar videos from approved scripts | none; usage billed to the customer's HeyGen account |
 | Higgsfield | API key (confirm a public API exists for customers) | — | generate video/image from approved prompts | confirm terms allow use on behalf of customers |
@@ -48,7 +48,7 @@ several need the provider's app review before real customers can connect.
 | LinkedIn (company page) | LinkedIn OAuth | `r_organization_social` | `w_organization_social` | Community Management API approval |
 | YouTube | Google OAuth | `youtube.readonly` | `youtube.upload` | Google verification (sensitive) |
 | TikTok | TikTok OAuth | `user.info.basic`, `video.list` | `video.publish` (Content Posting API) | TikTok app audit; unaudited apps post privately only |
-| X (Twitter) | X OAuth 2 | `tweet.read`, `users.read` | `tweet.write` | Paid API tier required |
+| X (Twitter) | X OAuth 2 | `tweet.read`, `users.read` | `tweet.write` | Developer console; pay-per-use API ($0.015 a post, $0.20 with a link) |
 
 ## 4. How it's built (reuse what Search Console proved)
 
@@ -74,11 +74,14 @@ several need the provider's app review before real customers can connect.
 3. GA4 (same Google client; add the scope and verification).
 4. HubSpot read-only (needs a HubSpot public app).
 5. Canva and HeyGen read + draft actions (approval-gated).
-6. Social accounts (Meta, LinkedIn, Google Business Profile first; app reviews take weeks, so apply early).
+6. Social accounts (Meta, LinkedIn, Google Business Profile first; Meta Business Verification and Google Business
+   Profile API access have no stated time, so apply early).
 7. Higgsfield, YouTube, TikTok, X after their API terms are confirmed.
 
 ## 6. Open items
 - Which tools do the first testers actually use? Build those first.
-- Provider app reviews (Meta, LinkedIn, TikTok, Google verification) take weeks; start the applications before
-  the code is finished.
-- Costs: X's paid API tier; HeyGen and Higgsfield usage billed to the customer's own account or to Braventa?
+- Provider approvals can be slow, so start the applications before the code is finished. Meta says App Review
+  decisions come within a week. Meta Business Verification and Google Business Profile API access have no stated time
+  (Google said in September 2026 that processing is delayed). LinkedIn, TikTok and Google verification can take weeks.
+- Costs: X's pay-per-use API ($0.015 a post, $0.20 with a link; the legacy Basic and Pro plans moved to it); HeyGen
+  and Higgsfield usage billed to the customer's own account or to Braventa?

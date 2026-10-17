@@ -15,7 +15,7 @@ developer tools, (4) legal.
 | Get started | Create your account; Run your first analysis; What happens during the analysis; Resume an unfinished setup | Launch | No |
 | Use Braventa | Choose your pain points; Answer follow-up questions; Understand your growth score; Confirm or correct your diagnosis; Work your growth plan; Use your 30-day plan; Approve drafted posts; Re-run an analysis; Plans and your trial | Launch | No |
 | How the AI works | Measured, assessed and inferred; What we read from your website; Why nothing is published without approval (D-013); AI limits | Launch | No |
-| What Braventa can and can't do | Capabilities today; Coming next by tier (PLANS_AND_TIERS.md); Known limitations (no JavaScript rendering, up to 6 pages) | Launch | Must be kept current with every release |
+| What Braventa can and can't do | Capabilities today; Coming next by tier (PLANS_AND_TIERS.md); Known limitations (no JavaScript rendering, up to 25 pages, skips pages robots.txt blocks) | Launch | Must be kept current with every release |
 | Account and data | Profile; Data export or deletion request; Delete your account | Launch | Deletion process to confirm |
 | Troubleshooting and FAQ | Analysis stuck or failed; Site couldn't be read; Score seems wrong; Sign-in email didn't arrive | Launch | No |
 | Plans and billing | Basic vs Pro vs Premium; The 14-day trial; Talk to us; Invoices | Soon | Billing (Q-010) |

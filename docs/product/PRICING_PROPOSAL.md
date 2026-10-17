@@ -56,11 +56,12 @@ the prices below are set to break even at **about 8 paying customers**.
 | Moz Pro (entry) | from ~$49 | SEO tool |
 | SE Ranking (Core) | ~$103–129 | SEO suite |
 | Ahrefs (Lite / Standard) | ~$129 / ~$249 | SEO suite, no diagnosis or plan |
-| Semrush (Pro / Guru) | ~$140 / ~$250 | SEO suite; local SEO is an add-on |
+| Semrush (SEO / Starter / Pro+) | $139 / $199 / $299 | SEO suite; local SEO is an add-on; Advanced is custom-priced |
 | Marketing agency retainer | typically $1,000–5,000 | Done-for-you service |
 
 Prices are from public pricing roundups (2026) and vary by billing period; check vendor pages before publishing any
-comparison. Braventa sits between the SEO suites (data, no plan) and an agency (plan and work, high cost).
+comparison. Semrush prices are from its own pricing page, billed monthly (checked 2026-10-18). Braventa sits between
+the SEO suites (data, no plan) and an agency (plan and work, high cost).
 
 ## 3. Proposed prices
 
@@ -86,7 +87,7 @@ above baseline) builds the scaling reserve.
 the $75 trial cost in month one and covers about 60% of fixed costs; 2–3 more customers reach break-even.
 
 **Market fit check:** Basic at $89 sits below the SEO suites ($100–140) while adding the diagnosis, the plan and drafts.
-Pro at $229 is level with Semrush Guru and Ahrefs Standard (~$250). Premium from $599 is well under an agency retainer.
+Pro at $229 sits between Semrush Starter ($199) and Ahrefs Standard (~$250). Premium from $599 is well under an agency retainer.
 Pro launches at **$229** (founder, 2026-10-12). Pro's live features today are the Search Console connection and the
 full trial experience; the Pro integrations in [INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) are what grow its value,
 so site copy must keep marking the rest Coming soon until each ships.
