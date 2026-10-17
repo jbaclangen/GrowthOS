@@ -3,11 +3,11 @@
 **Status / last reviewed: 2026-10-17.** Phase 1 live (founder decision D-036): personal access keys for Claude Code
 and Claude Desktop. **Phase 2 built, not yet live:** OAuth 2.1 sign-in ("Sign in with Braventa") for claude.ai,
 Claude Desktop, Claude Code and ChatGPT connectors, plus organization-level service keys for automation. Phase 2
-goes live once migration `20261017120000_mcp_oauth.sql` is applied **and then** the code is deployed (the code
+goes live once migration `20261017030000_mcp_oauth.sql` is applied **and then** the code is deployed (the code
 reads the new columns, so the order matters). Release checklist: apply the migration to `mlztvhvmsullvwawwamc`, run
 `list_migrations` and the security and performance advisors, and only then merge (a push to `main` deploys
 production). Merging first makes every existing personal key fail with 401 until the migration is applied.
-Decision: D-042.
+Decision: D-044.
 
 Owners who already worked on their business in an AI assistant let it fill in Braventa's onboarding: website,
 discovery, priorities and follow-up questions. The owner still confirms or corrects the diagnosis and approves posts
@@ -172,7 +172,7 @@ Claude Desktop config with a key (`claude_desktop_config.json`; the env variable
 
 ## 9. Data
 
-Migrations `20261011140425_mcp_access.sql` (phase 1) and `20261017120000_mcp_oauth.sql` (phase 2):
+Migrations `20261011140425_mcp_access.sql` (phase 1) and `20261017030000_mcp_oauth.sql` (phase 2):
 
 - `mcp_access_keys`: personal and service keys. `kind` (personal | service), `user_id` (null for service keys),
   `created_by`, `name`, `key_prefix`, `key_hash` (never readable from the browser), `scopes`, `expires_at`,
@@ -190,7 +190,7 @@ Migrations `20261011140425_mcp_access.sql` (phase 1) and `20261017120000_mcp_oau
   Members can read non-secret columns (never `token_hash`); only the server writes.
 - Cleanup: `oauth_cleanup()` (service role) deletes codes and tokens a day after they expire and clients that never
   connected 7 days after registering. The server runs it after each registration and code exchange; there's no
-  schedule yet (Q-041).
+  schedule yet (Q-043).
 - `mcp_tool_calls`: audit log and rate-limit source (`organization_id`, `key_id` or `oauth_grant_id`, tool, ok, error).
   Members read their organization's; only the server writes.
 - Privacy: what the assistant sends is stored like form answers. The status summary goes back into the owner's
@@ -223,4 +223,4 @@ Migrations `20261011140425_mcp_access.sql` (phase 1) and `20261017120000_mcp_oau
 - Live test with claude.ai, Claude Desktop, Claude Code and ChatGPT once migration + deploy are done.
 - Privacy and sub-processor pages: name OpenAI (ChatGPT) alongside Anthropic as the owner's own assistant, and
   describe OAuth connections, service keys and the registration IP hash.
-- Optional: CIMD support, a scheduled `oauth_cleanup` (Q-041), read-only tools for the plan and drafts (Q-039).
+- Optional: CIMD support, a scheduled `oauth_cleanup` (Q-043), read-only tools for the plan and drafts (Q-039).

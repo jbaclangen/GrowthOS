@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 // Guards on the phase 2 migration that unit tests can't exercise against a database. They read the SQL and check
 // that the rules reviewers found missing stay in place.
-const sql = readFileSync(fileURLToPath(new URL("../../../../supabase/migrations/20261017120000_mcp_oauth.sql", import.meta.url)), "utf8")
+const sql = readFileSync(fileURLToPath(new URL("../../../../supabase/migrations/20261017030000_mcp_oauth.sql", import.meta.url)), "utf8")
   .replace(/--.*$/gm, "")
   .replace(/\s+/g, " ");
 

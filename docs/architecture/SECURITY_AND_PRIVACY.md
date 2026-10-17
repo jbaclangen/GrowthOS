@@ -114,7 +114,7 @@ RLS. Rules:
   owner must still be a member of the organization. The route uses the service client and scopes every query to the
   key's organization; it rejects foreign `Origin` headers and rate-limits tool calls (30/min, 300/hour per key), logging
   each in `mcp_tool_calls`. Details: [MCP_SERVER.md](MCP_SERVER.md).
-- **MCP phase 2: OAuth 2.1 and service keys (built; live after migration `20261017120000_mcp_oauth.sql` + deploy).**
+- **MCP phase 2: OAuth 2.1 and service keys (built; live after migration `20261017030000_mcp_oauth.sql` + deploy).**
   Braventa is an OAuth 2.1 authorization server for its own MCP server only ("Sign in with Braventa" for claude.ai,
   Claude Desktop/Code and ChatGPT); it is not a third-party login for Braventa itself. Controls:
   - PKCE S256 required; one-time authorization codes (10 minutes) bound to client, redirect URI, code challenge, user,
@@ -134,7 +134,7 @@ RLS. Rules:
     page has been visible and focused for a moment (double-clickjacking). `iss` on every response (RFC 9207).
   - Service keys (`brv_sk_`): organization-level, owners only (RLS via `is_org_owner`), optional expiry, stored hashed,
     at most 10 active (unexpired). They act without a user, so rows they create have no `created_by`, and they keep
-    working after their creator leaves (D-042). Only an owner can make someone an owner (`memberships_owner_guard`),
+    working after their creator leaves (D-044). Only an owner can make someone an owner (`memberships_owner_guard`),
     so an admin can't promote themselves to create one. Revoking a key is one-way.
   - `/api/mcp` answers 401 with `WWW-Authenticate: Bearer resource_metadata=…` (plus `error="invalid_token"` for bad
     credentials), allows browser Origins only from Braventa, claude.ai, claude.com, chatgpt.com and chat.openai.com,

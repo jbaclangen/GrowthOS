@@ -4,7 +4,7 @@
 2026-10-17.** Architecture and internals: [MCP_SERVER.md](../architecture/MCP_SERVER.md).
 
 **Status.** Personal access keys work today. OAuth sign-in and service keys are built and go live once the
-`20261017120000_mcp_oauth.sql` migration is applied and the release is deployed; until then `/oauth/*` and service
+`20261017030000_mcp_oauth.sql` migration is applied and the release is deployed; until then `/oauth/*` and service
 keys return errors. Braventa has no REST API: the MCP server is the only programmatic interface.
 
 ## 1. Endpoint

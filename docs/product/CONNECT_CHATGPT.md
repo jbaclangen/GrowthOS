@@ -1,6 +1,6 @@
 # Connect ChatGPT to Braventa (MCP)
 
-**Status (2026-10-17): built; live once the `20261017120000_mcp_oauth.sql` migration is applied and the release is
+**Status (2026-10-17): built; live once the `20261017030000_mcp_oauth.sql` migration is applied and the release is
 deployed, then confirmed with a live ChatGPT test (§2).** ChatGPT's custom connectors sign in with OAuth, which
 Braventa's MCP server now supports ("Sign in with Braventa", MCP phase 2; see
 [MCP_SERVER.md](../architecture/MCP_SERVER.md) §3). Until it's live, use Claude Desktop or Claude Code with an
