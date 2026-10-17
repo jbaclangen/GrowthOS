@@ -13,13 +13,13 @@ const MAX_ACTIVE_KEYS = 5;
 export type CreateKeyState = { error?: string; key?: string; name?: string; prefix?: string } | undefined;
 
 export async function createAccessKey(_: CreateKeyState, formData: FormData): Promise<CreateKeyState> {
-  await requireUser();
+  const user = await requireUser();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Name the key, for example \"Claude Desktop on my laptop\"." };
   if (name.length > 60) return { error: "Keep the name under 60 characters." };
 
   const supabase = await createSupabaseServerClient();
-  let org = await getCurrentOrg();
+  let org = await getCurrentOrg(user.id);
   if (!org) {
     // New accounts can start from their AI assistant (D-036): the key needs an organization, so create it here,
     // the same way the first website analysis does. The trial starts now.
@@ -34,6 +34,7 @@ export async function createAccessKey(_: CreateKeyState, formData: FormData): Pr
   const { count } = await supabase
     .from("mcp_access_keys")
     .select("id", { count: "exact", head: true })
+    .eq("kind", "personal")
     .is("revoked_at", null);
   if ((count ?? 0) >= MAX_ACTIVE_KEYS) return { error: `You can have up to ${MAX_ACTIVE_KEYS} active keys. Revoke one first.` };
 
@@ -54,6 +55,7 @@ export async function keyLastUsed(prefix: string): Promise<string | null> {
   const { data } = await supabase
     .from("mcp_access_keys")
     .select("last_used_at")
+    .eq("kind", "personal")
     .eq("key_prefix", prefix)
     .is("revoked_at", null)
     .order("created_at", { ascending: false })
@@ -69,6 +71,7 @@ export async function revokeAccessKey(keyId: string) {
     .from("mcp_access_keys")
     .update({ revoked_at: new Date().toISOString() })
     .eq("id", keyId)
+    .eq("kind", "personal")
     .is("revoked_at", null);
   if (error) throw new Error("The key wasn't revoked. Try again.");
   refresh();

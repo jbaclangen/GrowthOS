@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
   const user = await getUser();
   if (!user) return NextResponse.redirect(new URL("/login?next=/settings", request.url), 303);
-  const org = await getCurrentOrg();
+  const org = await getCurrentOrg(user.id);
   if (!org) return toSettings(request, "no-business");
   if (org.role !== "owner") return toSettings(request, "owner-only");
 

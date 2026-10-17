@@ -11,8 +11,8 @@ import { disconnectSearchConsole, selectProperty, syncSearchConsole } from "@/li
 // /settings through a short ?gsc= code (connection-notice.tsx).
 
 async function authorisedOrg(ownerOnly: boolean) {
-  await requireUser();
-  const org = await getCurrentOrg();
+  const user = await requireUser();
+  const org = await getCurrentOrg(user.id);
   if (!org) redirect("/settings?gsc=no-business#connections");
   if (ownerOnly && org.role !== "owner") redirect("/settings?gsc=owner-only#connections");
   if (!searchConsoleConfigured()) redirect("/settings?gsc=not-configured#connections");

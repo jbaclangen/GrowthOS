@@ -22,8 +22,8 @@ type Connection = {
   last_synced_at: string | null;
 };
 
-export async function ConnectionsSection() {
-  const org = await getCurrentOrg();
+export async function ConnectionsSection({ userId }: { userId: string }) {
+  const org = await getCurrentOrg(userId);
   const configured = searchConsoleConfigured();
   const supabase = await createSupabaseServerClient();
   const [{ data: orgRow }, { data: conn }, { data: snap }] = org
@@ -54,9 +54,9 @@ export async function ConnectionsSection() {
     <section id="connections" className="card mt-6 scroll-mt-6" aria-labelledby="connections-heading">
       <p className="eyebrow">Connections</p>
       <div className="mt-1 flex flex-wrap items-center gap-2">
-        <h2 id="connections-heading" className="text-lg font-semibold">
+        <h3 id="connections-heading" className="text-lg font-semibold">
           Google Search Console
-        </h2>
+        </h3>
         <span className="chip bg-accent-soft text-accent-soft-foreground">Pro</span>
         {!configured ? (
           <span className="chip bg-surface-muted text-muted">Not available yet</span>

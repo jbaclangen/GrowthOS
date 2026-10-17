@@ -9,7 +9,8 @@
 - [Getting started: analyze your business](#getting-started)
 - [Your report](#report)
 - [Ask Braventa (this assistant)](#assistant)
-- [Connect Claude (AI assistant access)](#connect-claude)
+- [Connect Claude or ChatGPT (AI assistant connection)](#connect-claude)
+- [Service keys (automation)](#service-keys)
 - [Connect Google Search Console](#search-console)
 - [Plans and the trial](#plans)
 - [What's live and what's coming soon](#features)
@@ -27,7 +28,7 @@ Braventa is a business growth system for small and mid-sized service businesses.
 ## Where things are
 
 - **Home** — `/`. Sends you to your dashboard when you're signed in, or to sign in when you're not. How to get there: Open app.braventa.io.
-- **Sign in** — `/login`. Sign in with your email and password, or create an account. New accounts get a confirmation email first. How to get there: Open app.braventa.io when you're signed out, or select Sign out in the header.
+- **Sign in** — `/login`. Sign in with your email and password, or create an account. New accounts get a confirmation email first. When an AI app sent you here to connect to Braventa, you go on to its approval screen after signing in. How to get there: Open app.braventa.io when you're signed out, or select Sign out in the header.
 - **Dashboard** — `/dashboard`. Your businesses. The most recently analyzed one opens as a one-screen summary (infographic) of its latest report; every business has a tile with its growth score and status (Analyzing, Waiting for your answers, Last analysis failed, or the date it was analyzed). Start a new analysis with Analyze a website. How to get there: Select the Braventa logo in the header.
 - **Analyze your business (step 1 of 4)** — `/onboarding`. Enter a website address and, optionally, the business name, your main goal for the next few months, where you serve customers and the tools you already use. Braventa starts reading the website and opens discovery. How to get there: Select Analyze a website on the dashboard.
 - **Discovery (step 2 of 4)** — `/onboarding/[sessionId]`. Pick what's making it hardest for the business to grow right now from a list of common problems, and describe it in your own words if you like. The website analysis keeps running in the background. How to get there: Comes right after step 1. To resume an unfinished setup, open the business from the dashboard and select the continue button.
@@ -36,7 +37,8 @@ Braventa is a business growth system for small and mid-sized service businesses.
 - **Report (growth assessment)** — `/analysis/[id]`. The full report for one business: Do this first, the growth score, the diagnosis to confirm or correct, the growth plan, technical checks, your answers, the business profile, the 30-day content plan and the drafted posts. Each tile opens its section; Re-run analysis starts a fresh analysis. How to get there: Select a business on the dashboard, or Open full report under the latest report.
 - **Plans** — `/plans`. Compares Basic, Pro and Premium with each feature marked Live or Coming soon, shows your current plan or trial, and has Talk to us buttons to ask the Braventa team about a plan. How to get there: Select the plan chip in the header (for example Pro trial · 9 days left).
 - **Search performance** — `/search`. Read-only Google Search Console data for your website: clicks, impressions, top search queries and pages, and Google's indexing verdicts. Empty until Search Console is connected in Settings. How to get there: Settings → Connections → Google Search Console, once connected.
-- **Settings** — `/settings`. AI assistant access (create and revoke access keys that let Claude fill in the setup) and Connections (Google Search Console). How to get there: Select Settings in the header. Direct sections: /settings#ai-assistant and /settings#connections.
+- **Settings** — `/settings`. Integrations: connect Claude or ChatGPT to Braventa (step-by-step setup with the server URL, or a personal access key instead), Connected apps (see and disconnect apps approved with Sign in with Braventa), Service keys for automation tools (owners only) and Google Search Console. How to get there: Select Settings in the header. Direct sections: /settings#ai-assistant, /settings#connected-apps, /settings#service-keys and /settings#connections.
+- **Connect an app (Sign in with Braventa)** — `/oauth/authorize`. The approval screen an AI app (claude.ai, Claude Desktop, Claude Code or ChatGPT) opens when you connect it to Braventa. It shows the app's name, where you go back to after approving, and what the app can and can't do. Choose the business, then select Approve, or Cancel. How to get there: Your AI app opens it when you connect Braventa; you don't open it yourself. Start from the setup steps in Settings → Integrations.
 
 <a id="getting-started"></a>
 
@@ -88,15 +90,32 @@ Open it from **Ask Braventa…** in the header (the search icon on small screens
 
 <a id="connect-claude"></a>
 
-## Connect Claude (AI assistant access)
+## Connect Claude or ChatGPT (AI assistant connection)
 
-If you've already worked on your business with Claude, Claude can answer Braventa's setup questions for you. It works with **Claude Desktop** and **Claude Code**; claude.ai and ChatGPT are coming soon.
-1. Open [Settings → AI assistant access](/settings#ai-assistant).
-2. Choose Claude Desktop or Claude Code, give the key a name and select **Create key**. The key is shown once, already placed in the setup you need; copy it before leaving the page.
-3. Claude Desktop (needs Node.js): Settings → Developer → Edit config, add the setup Braventa showed, save, then fully quit and reopen Claude Desktop. Claude Code: paste the command Braventa showed into a terminal, start Claude Code and type /mcp to see Braventa listed.
-4. Ask Claude "Check my Braventa status", then select **Check connection** in Settings.
-5. Ask Claude to set up your business. It can start the analysis, answer discovery and follow-up questions, confirm priorities and report your growth score. It can't confirm the diagnosis, accept plan items, approve drafts or publish.
-Keys work like a password: up to 5 active keys per person; revoke one in Settings if you no longer use it or think someone else has it. Braventa stores only a one-way hash of each key. Available to everyone during the trial, then on any plan; after a trial ends without a plan the connection pauses (keys and data are kept). Limits: 30 requests a minute and 300 an hour per key.
+If you've already worked on your business with Claude or ChatGPT, your assistant can answer Braventa's setup questions for you. It works with **claude.ai**, **Claude Desktop**, **Claude Code** and **ChatGPT** (plans with Developer mode). [Settings → Integrations](/settings#ai-assistant) has the server URL to copy and step-by-step setup for each app. Menu names in the apps change now and then.
+
+**Sign in with Braventa (recommended, no key to keep safe):**
+- **claude.ai and Claude Desktop:** in Claude, open Customize → Connectors (on some versions, Settings → Connectors), select + Add, then Add custom connector. Name it Braventa, paste the server URL, leave authentication on sign-in (OAuth) and select Add. Then select Connect, and in a chat turn Braventa on from + → Connectors. Claude Desktop uses the same connectors as claude.ai. On Claude Team and Enterprise plans, an owner adds the connector under Organization settings → Connectors first.
+- **Claude Code:** run the command shown in Settings (`claude mcp add --transport http braventa` followed by the server URL) in a terminal, start Claude Code, type /mcp, choose braventa and select Authenticate.
+- **ChatGPT:** needs a plan with Developer mode (Plus, Pro, Business, Enterprise or Edu). In ChatGPT, open Settings → Apps → Advanced settings and turn on Developer mode. Choose Create, name it Braventa, paste the server URL and choose OAuth. In a new chat, turn Braventa on from the + menu; ChatGPT asks before each action that changes something.
+Each app then opens a Braventa window ([Connect an app](/oauth/authorize)): sign in, choose your business and select **Approve**. Only approve a connection you started yourself. Approve turns on after a moment once the window is in front.
+
+**Use an access key instead** (Claude Desktop config file or Claude Code, for example when the app can't open a browser): in Settings, open **Use an access key instead**, choose Claude Desktop or Claude Code, name the key and select **Create key**. The key is shown once, already placed in the setup you need; copy it before leaving the page. Claude Desktop (needs Node.js): Settings → Developer → Edit config, add the setup Braventa showed, save, then fully quit and reopen Claude Desktop. Claude Code: paste the command Braventa showed into a terminal, start Claude Code and type /mcp to see Braventa listed. Then ask Claude "Check my Braventa status" and select **Check connection** in Settings. claude.ai and ChatGPT don't take keys: use sign-in.
+
+**Then ask your assistant** to set up your business from what it knows. It can start the analysis, answer discovery and follow-up questions, confirm priorities and report your growth score. It can't confirm the diagnosis, accept plan items, approve drafts or publish.
+
+**Connected apps** in Settings lists each app approved with Sign in with Braventa, the business, and when it was last used. **Disconnect** stops an app right away; the person who connected it or the business owner can do it. An app that isn't used for 30 days shows Signed out: connect it again from the app.
+Access keys work like a password: up to 5 active keys per person; revoke one in Settings if you no longer use it or think someone else has it. Braventa stores only a one-way hash of each key. Available to everyone during the trial, then on any plan; after a trial ends without a plan the connection pauses (connections, keys and data are kept). Limits: 30 requests a minute and 300 an hour per key or connected app.
+
+<a id="service-keys"></a>
+
+## Service keys (automation)
+
+Service keys let automation tools and scripts (n8n, Zapier, your own code) use Braventa's MCP server without a person signing in. Only the business owner can create and revoke them, in [Settings → Integrations → Service keys](/settings#service-keys).
+1. Name the key after what uses it (for example "n8n onboarding workflow").
+2. Choose when it expires: in 30 days, in 90 days, in 1 year, or never.
+3. Select **Create service key**. The key (it starts with brv_sk_) is shown once, with the header to send on every request to the server URL: `Authorization: Bearer` followed by the key. Copy it before leaving the page.
+A service key belongs to the business, not to a person: it keeps working if the owner who created it leaves, until it's revoked or expires. It can do the same setup and status steps as a connected AI assistant, and nothing more: it can't confirm the diagnosis, accept plan items, approve drafts or publish. Up to 10 active service keys per business; expired keys don't count, and you can still revoke them to tidy the list. Treat a service key like a password and revoke it when you stop using the tool. The same trial and plan rule and the same limits apply as for the AI assistant connection.
 
 <a id="search-console"></a>
 
@@ -134,7 +153,7 @@ Every new account starts with a 14-day Pro trial. When it ends, the account has 
 **Premium** — Everything in Pro, plus custom integrations with the systems your business runs on (coming soon).
 - Custom integrations (Coming soon): E-commerce platforms, QuickBooks, Xero and other systems, scoped with you.
 
-Not available today on any plan: CRM connections, publishing or scheduling posts, sending email, automations, analytics reports from GA4, billing in the app, team invitations, editing or regenerating drafts, editing the business profile Braventa wrote from your website (services, customers, strengths, gaps and brand voice) or the business name, password reset in the app, and a public API. Your main goal, service area and tools can be changed: see What you told us in the report.
+Not available today on any plan: CRM connections, publishing or scheduling posts, sending email, automations, analytics reports from GA4, billing in the app, team invitations, editing or regenerating drafts, editing the business profile Braventa wrote from your website (services, customers, strengths, gaps and brand voice) or the business name, password reset in the app, and a REST API (automation tools can use Braventa's MCP server with a service key instead). Your main goal, service area and tools can be changed: see What you told us in the report.
 
 <a id="troubleshooting"></a>
 
@@ -147,7 +166,7 @@ Not available today on any plan: CRM connections, publishing or scheduling posts
 - **Monthly AI usage limit reached:** new analyses and assistant answers pause until next month, or contact us to raise the limit.
 - **Score seems wrong:** check the findings marked Inferred and correct them with Not right; confirmed corrections update the plan.
 - **Sign-in email didn't arrive:** check your spam folder. If it still hasn't arrived, contact us. Password reset isn't available in the app yet; contact us for help.
-- **Claude connection problems:** see Connect Claude; create a new key if Claude says the key isn't valid.
+- **Claude or ChatGPT connection problems:** see Connect Claude or ChatGPT. If the Braventa window says the app isn't registered or the return address isn't recognized, remove the connector in your app and add it again. If your app says it was disconnected or asks you to sign in again, connect it again from the app. If your assistant says the key isn't valid, the key may be revoked, expired or mistyped: create a new one.
 For anything else, contact the Braventa team through the contact page on braventa.io (braventa.io/contact).
 
 <a id="privacy"></a>
@@ -159,5 +178,5 @@ For anything else, contact the Braventa team through the contact page on bravent
 - AI requests only go to models with zero data retention: they don't store your prompts or train on them.
 - Questions you ask this assistant are sent, with a summary of your account and latest report, to the AI model that writes the answer. Braventa doesn't store the questions or answers; it records only who asked and when, to apply the limits.
 - Nothing is published, posted or emailed for you; you approve drafts and carry out changes yourself.
-- Search Console access is read-only, and Claude access keys are stored only as a one-way hash and can be revoked any time.
+- Search Console access is read-only. Access keys, service keys and connected apps' sign-ins are stored only as a one-way hash; revoke a key or disconnect an app in Settings any time.
 - To ask about your data or deleting it, contact the Braventa team through braventa.io/contact.

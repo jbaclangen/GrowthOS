@@ -35,7 +35,7 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
   }
 
   const supabase = await createSupabaseServerClient();
-  let org = await getCurrentOrg();
+  let org = await getCurrentOrg(user.id);
   if (!org) {
     const name = parsed.data.businessName || new URL(websiteUrl).hostname.replace(/^www\./, "");
     const { data: orgId, error } = await supabase.rpc("create_organization", { org_name: name });

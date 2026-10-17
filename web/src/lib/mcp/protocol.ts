@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { hasScope } from "@/lib/oauth/scopes";
 import { TOOLS, ToolError, findTool, type ToolContext } from "./tools";
 
 // A minimal MCP server over Streamable HTTP (stateless, JSON responses only, no server-sent events): enough for
@@ -35,7 +36,13 @@ const callParams = z.object({ name: z.string(), arguments: z.record(z.string(), 
 export type CallLog = (tool: string, ok: boolean, error?: string) => Promise<void>;
 
 // Handles one JSON-RPC message. Returns null for notifications (no id), which get no response body.
-export async function handleMessage(msg: JsonRpcRequest, ctx: ToolContext, log: CallLog): Promise<JsonRpcResponse | null> {
+// `scopes` are what the caller's key or OAuth grant allows: tools outside them are neither listed nor callable.
+export async function handleMessage(
+  msg: JsonRpcRequest,
+  ctx: ToolContext,
+  log: CallLog,
+  scopes: readonly string[],
+): Promise<JsonRpcResponse | null> {
   const isNotification = msg.id === undefined;
   if (isNotification) return null;
   const { id } = msg;
@@ -59,7 +66,7 @@ export async function handleMessage(msg: JsonRpcRequest, ctx: ToolContext, log: 
         jsonrpc: "2.0",
         id: id ?? null,
         result: {
-          tools: TOOLS.map((t) => ({
+          tools: TOOLS.filter((t) => hasScope(scopes, t.scope)).map((t) => ({
             name: t.name,
             title: t.title,
             description: t.description,
@@ -73,6 +80,11 @@ export async function handleMessage(msg: JsonRpcRequest, ctx: ToolContext, log: 
       if (!params.success) return rpcError(id, ERR.invalidParams, "tools/call needs a tool name.");
       const tool = findTool(params.data.name);
       if (!tool) return rpcError(id, ERR.invalidParams, `Unknown tool: ${params.data.name}`);
+      if (!hasScope(scopes, tool.scope)) {
+        const message = `This connection isn't allowed to use ${tool.name} (needs the "${tool.scope}" scope). Reconnect Braventa and approve that access.`;
+        await log(tool.name, false, message);
+        return { jsonrpc: "2.0", id: id ?? null, result: { content: [{ type: "text", text: message }], isError: true } };
+      }
       const args = tool.args.safeParse(params.data.arguments ?? {});
       if (!args.success) {
         const issue = args.error.issues[0];

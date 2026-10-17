@@ -37,7 +37,7 @@ export async function queueJob(
   organizationId: string,
   worker: AnalysisWorker,
   input: { businessProfileId: string; websiteUrl: string; sessionId?: string },
-  userId: string,
+  userId: string | null,
 ) {
   const { data: job, error } = await db
     .from("ai_jobs")
@@ -51,7 +51,7 @@ export async function queueJob(
 
 export type NewOnboarding = {
   organizationId: string;
-  userId: string;
+  userId: string | null;
   websiteUrl: string;
   businessName?: string;
   owner: OwnerInputs;

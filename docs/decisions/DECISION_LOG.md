@@ -523,3 +523,24 @@ knowledge-base retrieval (BI-8), as a help and report assistant.
 - Privacy (review, 2026-10-17): questions and answers are **not stored**. The conversation lives in the browser tab;
   `assistant_usage` keeps only who asked and when, and `ai_usage` the tokens and cost. Keeping question text for
   product insight would need a retention period and a way to delete it first (Q-041).
+
+## D-044 — AI assistant connection (MCP), phase 2: OAuth sign-in and service keys
+**Status:** Provisional (team, PR #36, 2026-10-17). Built ahead of Q-039's default ("build after real owners use
+phase 1"); the founder confirms or overrides it before it goes live. Built, not live: it goes live once migration
+`20261017030000_mcp_oauth.sql` is applied and then the code is deployed.
+- **Sign in with Braventa (OAuth 2.1).** Braventa runs its own authorization server, for its MCP server only (it isn't
+  a way to log in to Braventa, and it isn't delegated to another provider): open dynamic client registration, PKCE
+  S256, tokens bound to the MCP URL (RFC 8707), `iss` on every response (RFC 9207). claude.ai, Claude Desktop and
+  Claude Code connectors and ChatGPT connect without a pasted key. Why self-hosted: each connection must be tied to one
+  user, one business, one app and the MCP URL, and be listed and disconnected in Settings → Integrations.
+- **Lifetimes.** Codes 10 minutes, one use. Access tokens 1 hour. Refresh tokens 30 days, rotated on every use;
+  presenting a rotated one again ends the connection, except within 60 seconds while its replacement is unused
+  (concurrent or retried refreshes). Scope `onboarding` only; `read` and `write` stay reserved.
+- **Service keys (`brv_sk_`)** for automation (n8n, Zapier, scripts): organization-level, created and revoked by
+  owners only, optional expiry (30, 90 or 365 days, or none), at most 10 active (unexpired). By design they belong to
+  the business, not a person: they keep working after the owner who created them leaves, until revoked or expired.
+  Only an owner can make someone an owner, so an admin can't promote themselves to create one.
+- **Unchanged:** the access rule (D-036: the trial, then a plan) and approval in the app (D-013): no credential can
+  confirm the diagnosis, accept plan items, approve drafts or publish.
+- Resolves the OAuth half of Q-039. Spec: [MCP_SERVER.md](../architecture/MCP_SERVER.md) §3, §7 and §10; developer
+  guide: [MCP_AND_API.md](../developers/MCP_AND_API.md).
