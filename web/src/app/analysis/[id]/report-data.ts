@@ -4,7 +4,8 @@ import type { BusinessIntel, StepKey } from "@/lib/pipeline/website-intel";
 import type { CoverageSummary, AuditFinding } from "@/lib/audit/checks";
 import type { CoverageEntry, PageAudit, SiteAudit } from "@/lib/integrations/crawler";
 import type { PageSpeedReport } from "@/lib/integrations/google";
-import { failStaleJobs } from "@/lib/pipeline/jobs";
+import { superviseJobs } from "@/lib/pipeline/jobs";
+import { firstStep } from "@/lib/pipeline/steps";
 import { getPainPoint } from "@/lib/onboarding/catalog";
 import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
 import { isOpen } from "@/lib/onboarding/steps";
@@ -75,8 +76,9 @@ export type Issue = { id: string; priority: number | null; details: { question: 
 export async function loadReport(supabase: SupabaseClient, id: string) {
   const { data: profile } = await supabase.from("business_profiles").select("*").eq("id", id).maybeSingle();
   if (!profile) return null;
-  // Clear jobs cut off by the hosting time limit, so the report shows a failure instead of polling forever.
-  await failStaleJobs(profile.organization_id);
+  // Clear jobs cut off by the hosting time limit, so the report shows a failure instead of polling forever, and
+  // re-send steps whose hand-off was lost.
+  await superviseJobs(profile.organization_id);
 
   const [{ data: job }, { data: report }, { data: calendar }, { data: session }, { data: diagnoses }] = await Promise.all([
     supabase
@@ -199,7 +201,9 @@ export async function loadReport(supabase: SupabaseClient, id: string) {
     job?.status === "succeeded" &&
     jobStep === "evidence_done";
   const running = (jobActive && !updatingDiagnosis) || planPending;
-  const progressStep: StepKey = planPending || jobStep === "evidence_done" ? "scoring" : (jobStep ?? "crawling");
+  // A job without a step state yet (queued by an older version) shows its own first step.
+  const progressStep: StepKey =
+    planPending || jobStep === "evidence_done" ? "scoring" : (jobStep ?? (job ? firstStep(job.worker) : "crawling"));
 
   const issues: Issue[] = (answers ?? [])
     .filter((a) => a.kind === "pain_point" && a.confirmed && a.pain_point_id && getPainPoint(a.pain_point_id))

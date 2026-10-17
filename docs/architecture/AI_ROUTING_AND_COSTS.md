@@ -117,10 +117,13 @@ timeouts could still reach the limit. A step claims itself on the `ai_jobs` row 
 update on `output.step` / `output.step_state`), stores what later steps need in `ai_jobs.output` (evidence, page
 digest, discovery, plan titles, calendar id, first batch), queues the next step and hands it to
 `POST /api/jobs/continue` (HMAC of job id + step, `JOB_CONTINUE_SECRET` or a key derived from
-`SUPABASE_SECRET_KEY`); that route answers 202 and runs the step in its own `after()`. A repeated or late hand-off
-does nothing. A step that fails marks the job failed with its error, as before; a lost hand-off or a step cut off
+`SUPABASE_SECRET_KEY`); that route answers 202 and runs the step in its own `after()`. The first step is handed off
+the same way, from the `after()` of the request that queued the job. A repeated or late hand-off does nothing. A
+step that fails marks the job failed with its error, as before. A hand-off the route doesn't accept (3 attempts;
+timeouts, 408, 429 and 5xx are retried) fails the job at once with "The analysis couldn't continue. Run it again."
+A step still pending 60 s after its hand-off is re-sent by the report page's poll (`resendDue`), and a step cut off
 by the platform is failed by the stale-job reaper 10 minutes after the step's last progress
-(`output.step_started_at`, `lib/pipeline/jobs.ts`). Measured 2026-10-17 on a re-run (`npm run pipeline:local`):
+(`output.step_started_at`, `lib/pipeline/jobs.ts`). Failed jobs keep no step artifacts. Measured 2026-10-17 on a re-run (`npm run pipeline:local`):
 thebenefitlink.com (regulated) 56 / 22 / 59 / 45 / 58 s per step, 244 s total, $0.38; pixelmarketingdesign.com
 25 / 20 / 56 / 48 / 33 s, 185 s total, $0.29.
 

@@ -4,6 +4,8 @@ import { listWorkflows } from "@/lib/integrations/n8n";
 import { pageSpeed } from "@/lib/integrations/google";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { envConfigured } from "@/lib/env";
+import { continueKey } from "@/lib/pipeline/continue-token";
+import { continueUrl } from "@/lib/pipeline/dispatch";
 
 type Check = { ok: boolean; detail: string };
 
@@ -22,7 +24,7 @@ export async function GET() {
     return NextResponse.json({ error: "disabled in production" }, { status: 404 });
   }
 
-  const [supabase, openrouter, n8n, google] = await Promise.all([
+  const [supabase, openrouter, n8n, google, handoff] = await Promise.all([
     check(async () => {
       const { error, count } = await createSupabaseAdminClient()
         .from("organizations")
@@ -43,6 +45,7 @@ export async function GET() {
       const r = await pageSpeed("https://example.com", "desktop");
       return `PageSpeed OK (example.com performance ${r.scores.performance})`;
     }),
+    check(jobHandoffCheck),
   ]);
 
   return NextResponse.json({
@@ -50,6 +53,7 @@ export async function GET() {
     openrouter,
     n8n,
     google_pagespeed: google,
+    job_handoff: handoff,
     // OAuth needs a signed-in owner, so this only checks the configuration (docs/architecture/SEARCH_CONSOLE_SETUP.md).
     google_search_console: searchConsoleCheck(),
     hubspot: { ok: false, detail: "Sprint 5: needs a HubSpot public app (OAuth)" },
@@ -64,4 +68,28 @@ function searchConsoleCheck(): Check {
   return missing.length
     ? { ok: false, detail: `not set up: missing or invalid ${missing.join(", ")}` }
     : { ok: true, detail: "configured (OAuth client and encryption key set; the OAuth flow itself isn't exercised here)" };
+}
+
+// Analysis steps hand off to each other through /api/jobs/continue (D-042). Checks the signing key and that the
+// route is reachable where the steps will call it: an empty request must come back 400 from the route itself, not
+// a redirect to /login or another server.
+async function jobHandoffCheck(): Promise<string> {
+  if (!envConfigured("JOB_CONTINUE_SECRET")) {
+    throw new Error("JOB_CONTINUE_SECRET is set but shorter than 32 characters: every analysis would fail as soon as it is queued");
+  }
+  continueKey();
+  const url = continueUrl();
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+    cache: "no-store",
+    redirect: "manual",
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (res.status !== 400) {
+    const hint = res.status >= 300 && res.status < 400 ? " (redirected: is the route public in proxy.ts, and is this the right server?)" : "";
+    throw new Error(`${url} answered HTTP ${res.status}, expected 400 for an empty request${hint}`);
+  }
+  return `${url} reachable; key ${process.env.JOB_CONTINUE_SECRET?.trim() ? "from JOB_CONTINUE_SECRET" : "derived from SUPABASE_SECRET_KEY"}`;
 }

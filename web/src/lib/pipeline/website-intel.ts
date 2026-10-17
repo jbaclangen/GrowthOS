@@ -16,7 +16,8 @@ import {
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { fromProfileRow, type OwnerInputs } from "@/lib/owner-inputs";
 import { startPlanIfReady } from "@/lib/onboarding/orchestrate";
-import { dispatchStep } from "./dispatch";
+import { claimStep, ownedUpdate } from "./claims";
+import { HANDOFF_ERROR, handOff } from "./handoff";
 import { advanceState, canClaim, firstStep, nextStep, readState, type JobState, type RunStep } from "./steps";
 import { answerLabel, getQuestion } from "@/lib/onboarding/followups";
 import { orderPlan, toFindings, toPlanItems, type DiscoveryFacts } from "@/lib/plan/priority";
@@ -747,11 +748,20 @@ function runStep(ctx: Ctx, state: JobState, input: JobInput, worker: string): Pr
   }
 }
 
-// Runs the job's current step (when it is pending and, if given, is `expectedStep`), then hands the next step to a
-// new function invocation (/api/jobs/continue). Each step fits well inside one invocation's time limit; see
-// lib/pipeline/steps.ts. Never throws: failures are recorded on the job row. Safe to call more than once for the
-// same step: only the call that claims the step runs it.
-export async function runAnalysisJob(jobId: string, expectedStep?: string): Promise<void> {
+// Runs `step` of the job when it is the job's pending step, then hands the next step to a new function invocation
+// (/api/jobs/continue). Each step fits well inside one invocation's time limit; see lib/pipeline/steps.ts. Called
+// only by the continue route. Never throws (it runs in after()): a step's failure is recorded on the job row, and a
+// failure before the step is claimed leaves it pending, so the report page re-sends it. Safe to call more than once
+// for the same step: only the call that claims the step runs it.
+export async function runAnalysisJob(jobId: string, step: string): Promise<void> {
+  try {
+    await runClaimedStep(jobId, step);
+  } catch (e) {
+    console.error(`analysis job ${jobId}: step ${step} could not run`, e);
+  }
+}
+
+async function runClaimedStep(jobId: string, expectedStep: string): Promise<void> {
   const db = createSupabaseAdminClient();
   const { data: job, error: jobError } = await db.from("ai_jobs").select("*").eq("id", jobId).single();
   if (jobError || !job) {
@@ -766,33 +776,10 @@ export async function runAnalysisJob(jobId: string, expectedStep?: string): Prom
   if (!canClaim(state, expectedStep)) return;
 
   // Claim the step: only one invocation moves it from pending to running.
+  const ref = { id: jobId, organizationId: org };
   const claim = randomUUID();
-  const claimedAt = new Date().toISOString();
-  const running: JobState = { ...state, step_state: "running", step_started_at: claimedAt, claim };
-  let claimQuery = db
-    .from("ai_jobs")
-    .update({ status: "running", output: running, ...(job.started_at ? {} : { started_at: claimedAt }) })
-    .eq("id", jobId)
-    .eq("organization_id", org)
-    .in("status", ["queued", "running"]);
-  claimQuery =
-    job.output === null
-      ? claimQuery.is("output", null)
-      : claimQuery.eq("output->>step", state.step).eq("output->>step_state", "pending");
-  const { data: claimed, error: claimError } = await claimQuery.select("id");
-  if (claimError) console.error(`claiming step ${state.step} of job ${jobId} failed`, claimError);
-  if (!claimed?.length) return;
-
-  // Writes that only the invocation holding this claim may make (the reaper may have failed the job meanwhile).
-  const owned = (values: Record<string, unknown>) =>
-    db
-      .from("ai_jobs")
-      .update(values)
-      .eq("id", jobId)
-      .eq("organization_id", org)
-      .eq("status", "running")
-      .eq("output->>claim", claim)
-      .select("id");
+  const running: JobState = { ...state, step_state: "running", step_started_at: new Date().toISOString(), claim };
+  if (!(await claimStep(db, { ...ref, output: job.output, startedAt: job.started_at }, running))) return;
 
   const { data: ownerRow } = await db
     .from("business_profiles")
@@ -818,9 +805,10 @@ export async function runAnalysisJob(jobId: string, expectedStep?: string): Prom
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error(`analysis job ${jobId} (${worker}) failed at ${state.step}`, e);
+    // The step's artifacts (page text, evidence, discovery answers) aren't kept on a failed job.
     await db
       .from("ai_jobs")
-      .update({ status: "failed", error: message, finished_at: new Date().toISOString() })
+      .update({ status: "failed", error: message, finished_at: new Date().toISOString(), output: { step: state.step } })
       .eq("id", jobId)
       .eq("organization_id", org);
     return;
@@ -828,13 +816,17 @@ export async function runAnalysisJob(jobId: string, expectedStep?: string): Prom
   console.info(`analysis job ${jobId} (${worker}) step ${state.step} took ${Date.now() - started} ms`);
 
   if ("final" in result) {
-    const { data: done } = await owned({ status: "succeeded", finished_at: new Date().toISOString(), output: result.final });
+    const { data: done } = await ownedUpdate(db, ref, claim, {
+      status: "succeeded",
+      finished_at: new Date().toISOString(),
+      output: result.final,
+    });
     if (!done?.length) return;
     // Evidence is in: if the owner already finished discovery, the plan can start now, in its own invocation.
     if (worker === "website_evidence" && input.sessionId) {
       try {
-        const planJobId = await startPlanIfReady(input.sessionId);
-        if (planJobId) await dispatchStep(planJobId, firstStep("website_plan"));
+        const plan = await startPlanIfReady(input.sessionId);
+        if (plan) await handOff(plan, firstStep(plan.worker), db);
       } catch (e) {
         console.error(`starting the plan after evidence job ${jobId} failed`, e);
       }
@@ -843,6 +835,21 @@ export async function runAnalysisJob(jobId: string, expectedStep?: string): Prom
   }
 
   const next = nextStep(worker, state.step) as RunStep;
-  const { data: advanced } = await owned({ output: advanceState(running, result.artifacts, next) });
-  if (advanced?.length) await dispatchStep(jobId, next);
+  const output = advanceState(running, result.artifacts, next);
+  let advanced = await ownedUpdate(db, ref, claim, { output });
+  // One retry for a failed write. If the first write did land, the retry matches nothing (the claim is cleared), and
+  // the report page re-sends the pending step a minute later.
+  if (advanced.error) advanced = await ownedUpdate(db, ref, claim, { output });
+  if (advanced.error) {
+    console.error(`analysis job ${jobId} (${worker}) couldn't queue ${next}`, advanced.error);
+    await ownedUpdate(db, ref, claim, {
+      status: "failed",
+      error: HANDOFF_ERROR,
+      finished_at: new Date().toISOString(),
+      output: { step: state.step },
+    });
+    return;
+  }
+  // A failed hand-off fails the job at once, with a message that says what happened.
+  if (advanced.data?.length) await handOff(ref, next, db);
 }

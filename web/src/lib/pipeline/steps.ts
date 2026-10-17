@@ -79,22 +79,13 @@ export function advanceState(state: JobState, artifacts: Record<string, unknown>
   return { ...state, ...artifacts, step: next, step_state: "pending", step_started_at: now.toISOString(), claim: null };
 }
 
-// Stale-job reaper (lib/pipeline/jobs.ts). Each step is bounded by one function invocation (300 s), so a job whose
-// last progress is older than this was cut off by the hosting limit, or its hand-off to the next step was lost.
+// Stale-job reaper (lib/pipeline/jobs.ts). Each step is bounded by one function invocation (300 s) and a lost
+// hand-off is re-sent after a minute, so a job whose last progress is older than this was cut off by the hosting
+// limit, or its step could not be handed on at all.
 export const STALE_JOB_MS = 10 * 60 * 1000;
 
-export function lastProgressAt(job: { created_at: string; output: unknown }): number {
-  const at = (job.output as { step_started_at?: unknown } | null)?.step_started_at;
-  const t = typeof at === "string" ? Date.parse(at) : NaN;
-  return Number.isNaN(t) ? Date.parse(job.created_at) : t;
-}
-
-export function isStale(job: { status: string; created_at: string; output: unknown }, now: number = Date.now()): boolean {
-  return (job.status === "queued" || job.status === "running") && now - lastProgressAt(job) > STALE_JOB_MS;
-}
-
-// The same rule as a PostgREST `or` filter: last progress (output.step_started_at, else created_at) before cutoff.
-// ISO timestamps from toISOString() compare correctly as text.
+// The reaper's rule as a PostgREST `or` filter: the last progress (output.step_started_at, else created_at) is
+// before the cutoff. ISO timestamps from toISOString() compare correctly as text. Tested in jobs.test.ts.
 export function staleFilter(cutoffIso: string): string {
   return `output->>step_started_at.lt."${cutoffIso}",and(output->>step_started_at.is.null,created_at.lt."${cutoffIso}")`;
 }

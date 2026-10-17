@@ -1,10 +1,14 @@
 import "server-only";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { initialState } from "@/lib/pipeline/steps";
+
+export type QueuedPlan = { id: string; organizationId: string; worker: "website_plan" };
 
 // Discovery runs alongside the website analysis (ON-4, D-028). The plan job may start only when both the
 // evidence job has succeeded and the owner has completed or skipped discovery. Whichever finishes second
-// calls this; the conditional update on plan_job_id guarantees a single plan job per session.
-export async function startPlanIfReady(sessionId: string): Promise<string | null> {
+// calls this; the conditional update on plan_job_id guarantees a single plan job per session. The caller hands the
+// queued job's first step on (lib/pipeline/handoff.ts).
+export async function startPlanIfReady(sessionId: string): Promise<QueuedPlan | null> {
   const db = createSupabaseAdminClient();
   const { data: session } = await db
     .from("onboarding_sessions")
@@ -34,6 +38,8 @@ export async function startPlanIfReady(sessionId: string): Promise<string | null
         sessionId: session.id,
         evidenceJobId: session.evidence_job_id,
       },
+      // Queued at its first step, so the report shows "scoring" while the step is handed on.
+      output: initialState("website_plan"),
       created_by: session.created_by,
     })
     .select("id")
@@ -51,5 +57,5 @@ export async function startPlanIfReady(sessionId: string): Promise<string | null
     await db.from("ai_jobs").delete().eq("id", job.id).eq("organization_id", session.organization_id);
     return null;
   }
-  return job.id;
+  return { id: job.id as string, organizationId: session.organization_id as string, worker: "website_plan" };
 }

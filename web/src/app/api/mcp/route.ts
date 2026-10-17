@@ -8,7 +8,8 @@ import { ERR, SUPPORTED_VERSIONS, handleMessage, rpcError, type JsonRpcRequest }
 // resolves to one user and organization; every tool call is scoped to that organization (lib/mcp/tools.ts).
 // proxy.ts lets this path through without a session cookie because the key is checked here.
 
-// Tool calls can start the website analysis and the plan, which run after the response (as in the web flow).
+// Tool calls can start the website analysis and the plan; their steps run in their own invocations, handed on after
+// the response (D-042). The follow-up question tools call the extractor model, which can take a few minutes.
 export const maxDuration = 300;
 
 const RATE_PER_MINUTE = 30;

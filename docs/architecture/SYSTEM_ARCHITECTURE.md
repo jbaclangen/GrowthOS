@@ -47,8 +47,8 @@ flowchart LR
     PX[src/proxy.ts<br/>session refresh + login redirect]
     RSC[Server components<br/>/dashboard, /analysis/id, /onboarding]
     SA[Server actions<br/>startAnalysis, rerunAnalysis, setContentStatus]
-    AFTER[after callback<br/>runWebsiteIntel]
-    API[Route handlers<br/>/auth/callback, /api/health/integrations]
+    AFTER[after callback<br/>startJob / handOff]
+    API[Route handlers<br/>/auth/callback, /api/health/integrations,<br/>/api/jobs/continue: runAnalysisJob]
     N8NAPI["/api/n8n/* (NOT IMPLEMENTED)"]
     ROUTER[lib/ai/router.ts<br/>runWorker / runWorkerJson]
   end
@@ -83,32 +83,30 @@ flowchart LR
 ```mermaid
 sequenceDiagram
   participant U as Browser
-  participant SA as startAnalysis (server action)
+  participant SA as Server action (or MCP route)
   participant DB as Supabase
-  participant BG as after(): runWebsiteIntel
+  participant C as /api/jobs/continue (one invocation per step)
   participant P as /analysis/[id] page
 
   U->>SA: POST form (website, businessName?)
-  SA->>SA: requireUser(); zod validate; normalizeUrl()
-  SA->>DB: getCurrentOrg() (RLS); if none, rpc create_organization
-  SA->>DB: insert business_profiles (RLS)
-  SA->>DB: insert ai_jobs {worker: website_intel, status: queued} (RLS)
-  SA->>BG: after(() => runWebsiteIntel(job.id))
-  SA-->>U: redirect /analysis/{businessProfileId}
+  SA->>SA: requireUser(), zod validate, normalizeUrl()
+  SA->>DB: getCurrentOrg() (RLS), if none rpc create_organization
+  SA->>DB: insert business_profiles, ai_jobs {status: queued, output: first step pending} (RLS)
+  SA-->>U: redirect (discovery, or /analysis/{businessProfileId})
+  SA->>C: after(): POST {jobId, step, HMAC token} (dispatchStep)
+  C-->>SA: 202 (if refused: job failed at once, "couldn't continue")
+  loop each step: crawling, profiling, scoring, planning, writing
+    C->>DB: claim the step (conditional update: pending to running)
+    C->>C: run the step (at most one model call, about a minute)
+    C->>DB: store artifacts in ai_jobs.output, next step pending
+    C->>C: after(): POST the next step (a new invocation)
+  end
+  C->>DB: ai_jobs status=succeeded (or failed + error)
   loop every 4 s while job queued/running
     U->>P: router.refresh() (AutoRefresh)
+    P->>DB: fail stale jobs, re-send a step pending for over 60 s
     P->>DB: read profile, latest ai_jobs, report, calendar, items (RLS)
   end
-  BG->>DB: ai_jobs status=running
-  BG->>BG: crawlSite + pageSpeed (parallel)
-  BG->>DB: upsert knowledge_documents
-  BG->>BG: business_analyst -> website_auditor (runWorkerJson)
-  BG->>DB: update business_profiles, insert brand_profiles, insert reports
-  BG->>BG: content_strategist (30-day plan)
-  BG->>DB: insert content_calendars + content_items (status brief)
-  BG->>BG: content_writer (first 5 posts)
-  BG->>DB: update 5 content_items -> needs_approval
-  BG->>DB: ai_jobs status=succeeded (or failed + error)
 ```
 
 Step by step (code references are to `web/src/`):
@@ -121,24 +119,32 @@ Step by step (code references are to `web/src/`):
 3. **Tenant.** `getCurrentOrg()` returns the first membership (MVP: one org per user). If the user has none,
    the action calls the `create_organization` RPC, which creates the org and an `owner` membership in one
    SECURITY DEFINER transaction.
-4. **Queue.** A `business_profiles` row and an `ai_jobs` row (`worker = 'website_intel'`,
-   `task_class = 'complex'`, `input = {businessProfileId, websiteUrl}`) are inserted **with the user's
-   client**, so RLS proves membership before anything runs.
-5. **Run.** `after(() => runWebsiteIntel(job.id))` schedules the pipeline to run after the response is sent,
-   in the same server process / serverless invocation. The user is redirected to `/analysis/{profileId}`.
+4. **Queue.** A `business_profiles` row and an `ai_jobs` row (`worker = 'website_evidence'` for a new
+   analysis, `'website_intel'` for a re-run; `task_class = 'complex'`; `input = {businessProfileId, websiteUrl,
+   sessionId?}`; `output` = its first step, pending) are inserted **with the user's client**, so RLS proves
+   membership before anything runs.
+5. **Run.** `startJob` (`lib/pipeline/handoff.ts`) hands the first step to `/api/jobs/continue` in `after()`,
+   so even the first step runs in its own invocation with the full time limit, whatever the queuing request
+   already spent. The user is redirected to discovery or `/analysis/{profileId}`.
 6. **Pipeline** (`lib/pipeline/website-intel.ts`) uses the **admin client**. It loads the job by id and takes
    `organization_id` from the job row (which RLS already vetted at insert time), and scopes every write with
    that id. Steps, each recorded in `ai_jobs.output.step`: `crawling` -> `profiling` -> `scoring` ->
    `planning` -> `writing` -> `done`.
    - **Step chaining** (`lib/pipeline/steps.ts`, 2026-10-17): each step runs in its own function invocation, so
-     no invocation reaches Vercel Hobby's 300 s limit. `runAnalysisJob(jobId, step?)` claims the pending step
+     no invocation reaches Vercel Hobby's 300 s limit. `runAnalysisJob(jobId, step)` claims the pending step
      with a conditional update on `output.step`/`output.step_state`, runs it, stores what later steps need in
      `ai_jobs.output`, queues the next step and calls `dispatchStep` (`lib/pipeline/dispatch.ts`), which POSTs
      `{jobId, step, token}` to `/api/jobs/continue` at `NEXT_PUBLIC_APP_URL`. The route checks the HMAC token
      (`lib/pipeline/continue-token.ts`), answers 202 and runs the step in its own `after()` (`maxDuration` 300).
-     The first step runs in the `after()` of whatever queued the job (server action or MCP route). Evidence jobs
-     run `crawling`, `profiling`; plan jobs `scoring`, `planning`, `writing`; re-runs all five; corrections only
-     `scoring`. When an evidence job finishes and discovery is done, the plan job is handed off the same way.
+     The first step is handed off the same way, from the `after()` of whatever queued the job (server action or
+     MCP route). Evidence jobs run `crawling`, `profiling`; plan jobs `scoring`, `planning`, `writing`; re-runs
+     all five; corrections only `scoring`. When an evidence job finishes and discovery is done, the plan job is
+     queued at `scoring` and handed off the same way. In development the hand-off goes to the dev server's own
+     port (`PORT`, which `next dev` sets to the port it listens on), not `NEXT_PUBLIC_APP_URL`.
+   - **Hand-off failures** (`lib/pipeline/handoff.ts`, `jobs.ts`): `dispatchStep` retries timeouts, 408, 429 and
+     5xx (3 attempts) and never throws. A hand-off that isn't accepted fails the job at once ("The analysis
+     couldn't continue. Run it again."). A step still pending 60 s after it was queued (accepted but never
+     claimed) is re-sent by the report page's poll, at most once a minute; the claim makes repeats harmless.
    - Crawl (max 6 same-host pages, 6,000 chars each, 15 s timeout and 2 MB cap per fetch, public addresses
      only — see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#7-prompt-injection-posture)) and PageSpeed (mobile) run in
      parallel; PageSpeed failure is tolerated.
@@ -148,9 +154,11 @@ Step by step (code references are to `web/src/`):
      `content_writer`. Each output is zod-validated; a bad parse is retried once.
    - Drafted posts are written with `status = 'needs_approval'`. Nothing is published; no publishing
      integration exists.
-7. **Failure.** Any thrown error marks the job `failed` with the error message (shown on the analysis page). A
-   step cut off by the platform or a lost hand-off is marked failed by `failStaleJobs` (`lib/pipeline/jobs.ts`)
-   10 minutes after the step's last progress (`output.step_started_at`, else `created_at`).
+7. **Failure.** Any thrown error marks the job `failed` with the error message (shown on the analysis page), and
+   a refused hand-off with "couldn't continue". A step cut off by the platform, or one whose re-sends never got it
+   claimed, is marked failed by `failStaleJobs` (`lib/pipeline/jobs.ts`) 10 minutes after the step's last
+   progress (`output.step_started_at`, else `created_at`). A failed job keeps at most `{step}` in its output: the
+   page text, evidence and discovery answers held between steps are dropped.
 8. **Polling.** `/analysis/[id]` is a server component inside `<Suspense>` (required with Cache Components
    because it reads cookies). While the latest job is `queued`/`running` it mounts `AutoRefresh`, which calls
    `router.refresh()` every 4 seconds. No websockets or Supabase Realtime are used.
@@ -171,23 +179,25 @@ The brief and `CLAUDE.md` assign workflow execution to n8n. The pipeline current
 |---|---|---|
 | Simplicity | One codebase, typed, zod-validated, uses `runWorker` directly | Second system; JSON workflows; must call back into the app for every AI step to keep the routing rule |
 | Duration | Each step runs in its own invocation (`maxDuration` 300 on the routes that start or continue a job) and takes about a minute; the steps are chained through `/api/jobs/continue` | Long-running and scheduled jobs are native |
-| Durability | A step that dies is failed by the stale-job reaper 10 minutes after its last progress; no automatic retry | Execution history, retries, error workflows |
+| Durability | A refused hand-off fails the job at once; an accepted one that never ran is re-sent after 60 s while the report page is open; a step that dies mid-run is failed by the reaper 10 minutes after its last progress (the step itself is never retried) | Execution history, retries, error workflows |
 | Scheduling | None | Cron, delays, follow-ups |
 | Observability | `console.error` + `ai_jobs.error` | n8n execution log + `ai_jobs.n8n_execution_id` (column already exists) |
 
-**Recommendation.** Keep `after()` for the demo, but before deploying to Vercel: (a) export
-`maxDuration` on the routes that call `after()` (the server action's page segment) at the plan maximum and
-measure real run time; (b) add a stale-job sweep (mark `running` jobs older than N minutes as `failed`).
-Move to n8n (or a queue) when any of these is true: runs exceed the host's max duration, a feature needs
-scheduling or retries (recurring audits, CRM syncs, follow-ups), or concurrent runs start timing out. When
-moving, keep the pipeline logic in the app and have n8n orchestrate by calling authenticated app endpoints,
-so AI routing, budgets and RLS-scoped writes stay in one place.
+**Recommendation.** Keep the step chain for the MVP. D-042 already handles what used to be the trigger to move, a
+run longer than the host's max duration: each step is its own invocation (about a minute, `maxDuration` 300),
+the stale-job reaper fails steps that die, and lost hand-offs are re-sent. Move to n8n (or a queue) when any of
+these is true: a single step no longer fits one invocation (a much larger crawl, or a step with several model
+calls), a feature needs scheduling or retries of failed steps (recurring audits, CRM syncs, follow-ups), lost
+steps must recover without the report page open (re-sends only happen while it polls), or concurrent runs start
+timing out. When moving, keep the pipeline logic in the app and have n8n orchestrate by calling authenticated
+app endpoints (the continue route is already one), so AI routing, budgets and RLS-scoped writes stay in one place.
 
 ## 4. Auth and request gate
 
 - `src/proxy.ts` (Next 16's replacement for middleware) refreshes the Supabase session cookie on every
   matched request and redirects signed-out visitors to `/login?next=...`. Public paths: `/`, `/login`,
-  `/auth/*`, `/api/health/*`, `/api/mcp` (authenticates with a personal access key itself, D-036). It is a convenience gate only; authorization is enforced by RLS and
+  `/auth/*`, `/api/health/*`, `/api/mcp` (authenticates with a personal access key itself, D-036), `/api/jobs/continue`
+  (checks an HMAC of the job id and step itself, D-042). It is a convenience gate only; authorization is enforced by RLS and
   `requireUser()`.
 - Any future `/api/n8n/*` callback route is **not** in `PUBLIC_PATHS`, so n8n calls (which carry no Supabase
   session) would be redirected to `/login`. Adding the route requires adding `/api/n8n` to `PUBLIC_PATHS`

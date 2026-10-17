@@ -1,8 +1,8 @@
 import "server-only";
-import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import { runAnalysisJob } from "@/lib/pipeline/website-intel";
+import { startJob } from "@/lib/pipeline/handoff";
+import { initialState } from "@/lib/pipeline/steps";
 import { CATALOG_VERSION } from "./catalog";
 import { toProfileColumns, type OwnerInputs } from "@/lib/owner-inputs";
 
@@ -30,7 +30,8 @@ export async function analysesInLastDay(db: SupabaseClient, organizationId: stri
   return count ?? 0;
 }
 
-// Queues an analysis job, then runs it after the response so the caller can show progress.
+// Queues an analysis job at its first step, then hands that step to its own invocation after the response, so the
+// caller can show progress.
 export async function queueJob(
   db: SupabaseClient,
   organizationId: string,
@@ -40,11 +41,11 @@ export async function queueJob(
 ) {
   const { data: job, error } = await db
     .from("ai_jobs")
-    .insert({ organization_id: organizationId, worker, task_class: "complex", input, created_by: userId })
+    .insert({ organization_id: organizationId, worker, task_class: "complex", input, output: initialState(worker), created_by: userId })
     .select("id")
     .single();
   if (error || !job) throw new Error(error?.message ?? "Could not queue analysis");
-  after(() => runAnalysisJob(job.id));
+  startJob({ id: job.id as string, organizationId, worker });
   return job.id as string;
 }
 

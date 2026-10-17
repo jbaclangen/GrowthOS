@@ -466,6 +466,15 @@ private test with about 3 invited accounts.
 - A full re-run for a regulated business took ~330 s in one invocation and was killed. Each job now runs as steps
   (`crawling`, `profiling`, `scoring`, `planning`, `writing`), one invocation each, state in `ai_jobs.output`,
   handed off through `POST /api/jobs/continue` (HMAC-signed; `JOB_CONTINUE_SECRET` optional). Measured steps ≤ 60 s.
-- The stale-job reaper measures from the current step's last progress, not the job's creation (10 minutes).
+- Every step is handed off, the first included, so each gets the full limit whatever the request that queued the
+  job already spent. Jobs are inserted at their first step (`output.step`), so the report shows the right step at once.
+- A hand-off the route doesn't accept (after retrying timeouts, 408, 429 and 5xx) fails the job at once: "The
+  analysis couldn't continue. Run it again." A step still pending 60 s after its hand-off is re-sent by the report
+  page's poll, at most once a minute; the claim on `ai_jobs` makes repeats harmless.
+- The stale-job reaper measures from the current step's last progress, not the job's creation (10 minutes). A
+  failed job keeps only its step in `ai_jobs.output`; page text, evidence and discovery answers are dropped.
+- The hand-off goes to `NEXT_PUBLIC_APP_URL` (in development, the dev server's own port), never to the request's
+  Host header.
 - Prompts, models and outputs are unchanged. Moving orchestration to n8n or a queue stays the long-term option
-  ([SYSTEM_ARCHITECTURE.md §3](../architecture/SYSTEM_ARCHITECTURE.md)). Detail: AI_ROUTING_AND_COSTS.md (Reliability).
+  ([SYSTEM_ARCHITECTURE.md §3](../architecture/SYSTEM_ARCHITECTURE.md)). Resolves Q-004. Detail: AI_ROUTING_AND_COSTS.md
+  (Reliability).

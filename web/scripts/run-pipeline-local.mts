@@ -3,23 +3,29 @@
 // throwaway business in a dedicated test organization, hands the first step to /api/jobs/continue exactly as the
 // app does, then polls the job and prints how long each step (= one function invocation) took.
 //
-//   npx next dev -p 3006   (with NEXT_PUBLIC_APP_URL=http://localhost:3006)
-//   npm run pipeline:local -- https://example.com [https://another.com]
+//   npx next dev -p 3006
+//   npm run pipeline:local -- --origin http://localhost:3006 https://example.com [https://another.com]
+//
+// --origin is the dev server that runs the steps (default NEXT_PUBLIC_APP_URL from .env.local). The dev server hands
+// later steps to itself (the port it listens on), so only the first hand-off needs it.
 //
 // Every row it creates belongs to the organization named below; delete that organization to clean up.
 
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { dispatchStep } from "@/lib/pipeline/dispatch";
-import { firstStep } from "@/lib/pipeline/steps";
+import { firstStep, initialState } from "@/lib/pipeline/steps";
 
 const ORG_NAME = "Pipeline test (delete me)";
 const WORKER = "website_intel";
 const POLL_MS = 2000;
 const GIVE_UP_MS = 20 * 60 * 1000;
 
-const urls = process.argv.slice(2);
-if (!urls.length) {
-  console.error("Usage: npm run pipeline:local -- https://example.com [...]");
+const args = process.argv.slice(2);
+const originAt = args.indexOf("--origin");
+const origin = originAt === -1 ? undefined : args[originAt + 1];
+const urls = originAt === -1 ? args : args.filter((_, i) => i !== originAt && i !== originAt + 1);
+if (!urls.length || (originAt !== -1 && !origin)) {
+  console.error("Usage: npm run pipeline:local -- [--origin http://localhost:3006] https://example.com [...]");
   process.exit(1);
 }
 
@@ -45,14 +51,16 @@ async function runOne(org: string, websiteUrl: string) {
   if (pErr || !profile) throw new Error(`profile insert failed: ${pErr?.message}`);
   const { data: job, error: jErr } = await db
     .from("ai_jobs")
-    .insert({ organization_id: org, worker: WORKER, task_class: "complex", input: { businessProfileId: profile.id, websiteUrl } })
+    .insert({ organization_id: org, worker: WORKER, task_class: "complex", input: { businessProfileId: profile.id, websiteUrl }, output: initialState(WORKER) })
     .select("id, created_at")
     .single();
   if (jErr || !job) throw new Error(`job insert failed: ${jErr?.message}`);
 
   console.log(`\n${websiteUrl}: job ${job.id}`);
   const t0 = Date.now();
-  if (!(await dispatchStep(job.id, firstStep(WORKER)))) throw new Error("the continue route did not accept the first step");
+  if (!(await dispatchStep(job.id, firstStep(WORKER), { origin }))) {
+    throw new Error(`the continue route at ${origin ?? "NEXT_PUBLIC_APP_URL"} did not accept the first step (is the dev server running there?)`);
+  }
 
   // Each running step's claim time and each pending step's queue time come from output.step_started_at.
   const claims = new Map<string, number>();

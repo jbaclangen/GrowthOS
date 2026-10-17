@@ -1,18 +1,7 @@
 import { describe, expect, it } from "vitest";
-import {
-  STALE_JOB_MS,
-  advanceState,
-  canClaim,
-  firstStep,
-  initialState,
-  isStale,
-  lastProgressAt,
-  nextStep,
-  readState,
-  staleFilter,
-  stepsFor,
-  type JobState,
-} from "./steps";
+import { advanceState, canClaim, firstStep, initialState, nextStep, readState, stepsFor, type JobState } from "./steps";
+
+// The database side (claims, the reaper filter, re-sends) is tested in claims.test.ts and jobs.test.ts.
 
 describe("step sequences", () => {
   it("runs each worker's steps in order", () => {
@@ -76,35 +65,5 @@ describe("step state", () => {
     // A repeated continuation for the step that just ran is not claimable.
     expect(canClaim(readState("website_intel", next), "crawling")).toBe(false);
     expect(canClaim(readState("website_intel", next), "profiling")).toBe(true);
-  });
-});
-
-describe("stale-job reaper", () => {
-  const created = "2026-10-17T10:00:00.000Z";
-  const t = (iso: string) => Date.parse(iso);
-
-  it("measures from the current step's start, not the job's creation", () => {
-    const job = { status: "running", created_at: created, output: { step: "writing", step_started_at: "2026-10-17T10:14:00.000Z" } };
-    expect(lastProgressAt(job)).toBe(t("2026-10-17T10:14:00.000Z"));
-    // 16 minutes after creation but 2 minutes into the step: healthy.
-    expect(isStale(job, t("2026-10-17T10:16:00.000Z"))).toBe(false);
-    expect(isStale(job, t("2026-10-17T10:14:00.000Z") + STALE_JOB_MS + 1)).toBe(true);
-  });
-
-  it("falls back to created_at for jobs without step progress", () => {
-    const job = { status: "queued", created_at: created, output: null };
-    expect(isStale(job, t(created) + STALE_JOB_MS)).toBe(false);
-    expect(isStale(job, t(created) + STALE_JOB_MS + 1)).toBe(true);
-  });
-
-  it("never reaps finished jobs", () => {
-    const job = { status: "succeeded", created_at: created, output: { step: "done" } };
-    expect(isStale(job, t(created) + 10 * STALE_JOB_MS)).toBe(false);
-  });
-
-  it("builds the matching database filter", () => {
-    expect(staleFilter("2026-10-17T10:00:00.000Z")).toBe(
-      'output->>step_started_at.lt."2026-10-17T10:00:00.000Z",and(output->>step_started_at.is.null,created_at.lt."2026-10-17T10:00:00.000Z")',
-    );
   });
 });
