@@ -3,10 +3,8 @@
 **Status / last reviewed: 2026-10-17.** Phase 1 live (founder decision D-036): personal access keys for Claude Code
 and Claude Desktop. **Phase 2 built, not yet live:** OAuth 2.1 sign-in ("Sign in with Braventa") for claude.ai,
 Claude Desktop, Claude Code and ChatGPT connectors, plus organization-level service keys for automation. Phase 2
-goes live once migration `20261017030000_mcp_oauth.sql` is applied **and then** the code is deployed (the code
-reads the new columns, so the order matters). Release checklist: apply the migration to `mlztvhvmsullvwawwamc`, run
-`list_migrations` and the security and performance advisors, and only then merge (a push to `main` deploys
-production). Merging first makes every existing personal key fail with 401 until the migration is applied.
+migration `20261017030000_mcp_oauth.sql` was applied to `mlztvhvmsullvwawwamc` on 2026-10-17, before the code
+shipped (the code reads the new columns, so the migration must always land first).
 Decision: D-044.
 
 Owners who already worked on their business in an AI assistant let it fill in Braventa's onboarding: website,
