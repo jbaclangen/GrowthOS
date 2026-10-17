@@ -3,11 +3,12 @@ import { env } from "@/lib/env";
 
 export type PageSpeedStrategy = "mobile" | "desktop";
 
-// PageSpeed runs Lighthouse on Google's side; slow sites take 60–90 s (thebenefitlink.com measured ~88 s on
-// 2026-10-11). The crawl and PageSpeed run in their own `crawling` step, one function invocation (300 s on Vercel
-// Hobby, D-042), alongside a crawl capped at 45 s, so 120 s fits with room for the writes after it. Past this, the
-// report says PageSpeed timed out and the score uses Braventa's assessment alone.
-const PSI_TIMEOUT_MS = 120_000;
+// PageSpeed runs Lighthouse on Google's side, and the time varies from run to run: thebenefitlink.com's mobile run
+// took 86 s once and over 120 s another time on 2026-10-17 (desktop: 41 s). The crawl and PageSpeed run in their own
+// `crawling` step, one function invocation (300 s on Vercel Hobby, D-042), alongside a crawl capped at 45 s, so 180 s
+// still leaves about two minutes for the writes after it. Past this, the report says PageSpeed timed out and the score
+// uses Braventa's assessment alone.
+const PSI_TIMEOUT_MS = 180_000;
 const MAX_OPPORTUNITIES = 5;
 
 // Real-user Core Web Vitals from the Chrome UX Report (CrUX), as PageSpeed Insights returns them in
@@ -82,7 +83,7 @@ export function topOpportunities(audits: Record<string, Audit>, max = MAX_OPPORT
     .map(({ id, title, savingsMs, displayValue }) => ({ id, title, savingsMs, displayValue }));
 }
 
-// Lighthouse scores (0-100) plus the raw audits and CrUX field data. Times out after 120 s.
+// Lighthouse scores (0-100) plus the raw audits and CrUX field data. Times out after 180 s.
 export async function pageSpeed(url: string, strategy: PageSpeedStrategy = "mobile") {
   const params = new URLSearchParams({ url, strategy, key: env().GOOGLE_API_KEY });
   for (const c of ["performance", "seo", "accessibility", "best-practices"]) params.append("category", c);
