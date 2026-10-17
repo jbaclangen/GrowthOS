@@ -32,6 +32,11 @@ export default function Privacy() {
         <li>What Braventa produces for you: business profile, diagnosis, growth plan, content plan and drafts, and your approvals.</li>
         <li>A log of AI usage (which task, which model, tokens and cost) so we can enforce usage limits.</li>
         <li>If you connect an AI assistant: your access keys, stored only as a one-way hash, and when each was last used.</li>
+        <li>
+          If you use the in-app assistant (Ask Braventa): a record that you asked a question and when, to apply its daily
+          limit. We don&apos;t store your questions or the answers. Each question is sent, with a short summary of your
+          account and latest report, to our AI providers to write the answer.
+        </li>
       </ul>
       <h3>If you connect an AI assistant (optional)</h3>
       <ul>

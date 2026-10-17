@@ -4,7 +4,7 @@ import { PROVIDER } from "@/lib/integrations/search-console";
 import { orderPlan, type Provenance } from "@/lib/plan/priority";
 import { isOpen } from "@/lib/onboarding/steps";
 import { effectiveAccess } from "@/lib/plans/tiers";
-import type { BusinessSummary } from "./prompt";
+import { describeSearchConsole, type BusinessSummary } from "./prompt";
 
 // The signed-in user's own account, summarized for the assistant (D-042). Every read uses the user's client, so RLS
 // limits it to their organization; the organization id is only used to narrow queries RLS already allows.
@@ -81,14 +81,11 @@ export async function loadBusinessSummary(
     link: `/analysis/${p.id}`,
   }));
 
-  const searchConsole = !conn || conn.status === "revoked"
-    ? "not connected"
-    : `${conn.status === "connected" ? "connected" : `status ${conn.status}`}${conn.selected_property ? ` (property ${conn.selected_property})` : " (no property chosen yet)"}`;
 
   const summary: BusinessSummary = {
     organizationName: org.name,
     plan: planLabel(org),
-    searchConsole,
+    searchConsole: describeSearchConsole(conn, org),
     claudeKeys: keyCount ?? 0,
     businesses,
     latest: null,

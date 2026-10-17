@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { Comfortaa, Quicksand } from "next/font/google";
 import { Logo } from "@/components/brand/logo";
+import { AccountMenu } from "@/components/account-menu";
 import { AssistantLauncher } from "@/components/assistant";
 import { getUser } from "@/lib/auth";
 import { getOrgAccess } from "@/lib/plans/access";
@@ -28,8 +29,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${quicksand.variable} ${comfortaa.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <header className="border-b border-border bg-surface">
-          <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
-            <Link href="/dashboard" aria-label="Braventa home" className="text-foreground">
+          <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-4 px-4">
+            <Link href="/dashboard" aria-label="Braventa home" className="shrink-0 text-foreground">
               <Logo height={28} />
             </Link>
             <Suspense fallback={null}>
@@ -61,23 +62,26 @@ async function UserMenu() {
           : "Premium";
   // The in-app assistant (D-042): an active trial or a plan; otherwise the bar says what unlocks it.
   const assistant = !access ? "needs_business" : access.subscribed ? "enabled" : "needs_plan";
+  // Every item keeps its size (shrink-0, no wrapping) except the email, which truncates; on phones the account items
+  // sit in AccountMenu instead, so the row fits from 320px up without scrolling sideways.
   return (
-    <div className="flex items-center gap-2 text-sm sm:gap-3">
+    <div className="flex min-w-0 items-center gap-2 text-sm sm:gap-3">
       <AssistantLauncher state={assistant} />
       {planLabel && (
-        <Link href="/plans" className="chip bg-accent-soft text-accent-soft-foreground hover:underline">
+        <Link href="/plans" className="chip hidden shrink-0 whitespace-nowrap bg-accent-soft text-accent-soft-foreground hover:underline sm:inline-flex">
           {planLabel}
         </Link>
       )}
-      <span className="hidden text-muted lg:inline">{user.email}</span>
-      <Link href="/settings" className="text-muted hover:underline">
+      <span className="hidden min-w-0 truncate text-muted lg:block">{user.email}</span>
+      <Link href="/settings" className="hidden shrink-0 text-muted hover:underline sm:inline">
         Settings
       </Link>
-      <form action={signOut}>
-        <button type="submit" className="btn-secondary">
+      <form action={signOut} className="hidden shrink-0 sm:block">
+        <button type="submit" className="btn-secondary whitespace-nowrap">
           Sign out
         </button>
       </form>
+      <AccountMenu email={user.email ?? ""} plan={planLabel} signOut={signOut} />
     </div>
   );
 }

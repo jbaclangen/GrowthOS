@@ -1,15 +1,18 @@
-// A tiny, safe markdown subset for assistant answers (D-042): paragraphs, bulleted and numbered lists, **bold**,
-// `code` and [links](/route). It returns plain data that React renders as text, so model output can never inject
-// HTML. Links are kept only for app routes ("/…") and https links on braventa.io; anything else stays as text.
-// Pure logic, unit-tested.
+// A tiny, safe markdown subset for assistant answers (D-042): paragraphs, bulleted and numbered lists (one level of
+// nesting), **bold**, `code` and [links](/route), including links inside bold. It returns plain data that React
+// renders as text, so model output can never inject HTML. Links are kept only for app routes ("/…") and https links
+// on braventa.io; anything else stays as text. Pure logic, unit-tested.
 
 export type Inline =
   | { type: "text"; text: string }
-  | { type: "strong"; text: string }
+  | { type: "strong"; inlines: Inline[] } // text, code and links; never nested bold
   | { type: "code"; text: string }
   | { type: "link"; text: string; href: string; external: boolean };
 
-export type Block = { type: "p"; inlines: Inline[] } | { type: "ul" | "ol"; items: Inline[][] };
+// `start` is the first item's number as written (numbered lists only), so a list split by the model still counts on.
+export type List = { type: "ul" | "ol"; start: number; items: ListItem[] };
+export type ListItem = { inlines: Inline[]; sub: List | null };
+export type Block = { type: "p"; inlines: Inline[] } | List;
 
 export function safeHref(href: string): { href: string; external: boolean } | null {
   const h = href.trim();
@@ -37,7 +40,8 @@ export function parseInline(text: string): Inline[] {
   let last = 0;
   for (const m of text.matchAll(INLINE)) {
     if (m.index > last) out.push({ type: "text", text: text.slice(last, m.index) });
-    if (m[1] !== undefined) out.push({ type: "strong", text: m[1] });
+    // Bold content can't contain "*", so parsing it again finds code and links but never more bold.
+    if (m[1] !== undefined) out.push({ type: "strong", inlines: parseInline(m[1]) });
     else if (m[2] !== undefined) out.push({ type: "code", text: m[2] });
     else {
       const link = safeHref(m[4]);
@@ -55,46 +59,83 @@ export function parseInline(text: string): Inline[] {
   }, []);
 }
 
+type DraftList = { type: "ul" | "ol"; start: number; items: { text: string; sub: { type: "ul" | "ol"; start: number; items: string[] } | null }[] };
+
+const ITEM = /^(?:([-*•])|(\d+)[.)])\s+(.*)$/;
+
 export function parseMarkdown(source: string): Block[] {
   const blocks: Block[] = [];
   let para: string[] = [];
-  let list: { type: "ul" | "ol"; items: string[] } | null = null;
+  // Assigned inside flushList too, so the type is declared rather than narrowed from the initial null.
+  let list = null as DraftList | null;
+  // A blank line since the last list line: the list stays open in case the next line continues it ("1." blank "2.").
+  let gap = false;
 
   const flushPara = () => {
     if (para.length) blocks.push({ type: "p", inlines: parseInline(para.join(" ")) });
     para = [];
   };
   const flushList = () => {
-    if (list) blocks.push({ type: list.type, items: list.items.map(parseInline) });
+    if (list) {
+      blocks.push({
+        type: list.type,
+        start: list.start,
+        items: list.items.map((item) => ({
+          inlines: parseInline(item.text),
+          sub: item.sub ? { ...item.sub, items: item.sub.items.map((t) => ({ inlines: parseInline(t), sub: null })) } : null,
+        })),
+      });
+    }
     list = null;
+    gap = false;
   };
 
   for (const raw of source.replace(/\r\n/g, "\n").split("\n")) {
     const line = raw.trim();
-    // Headings become bold paragraphs; the answer sits inside a dialog with its own heading.
+    const indented = /^(?: {2,}|\t)/.test(raw);
     const heading = line.match(/^#{1,6}\s+(.*)$/);
-    const bullet = line.match(/^[-*•]\s+(.*)$/);
-    const numbered = line.match(/^\d+[.)]\s+(.*)$/);
+    const item = line.match(ITEM);
     if (!line) {
       flushPara();
-      flushList();
-    } else if (bullet || numbered) {
-      flushPara();
-      const type = bullet ? "ul" : "ol";
-      if (list && list.type !== type) flushList();
-      if (!list) list = { type, items: [] };
-      list.items.push((bullet ?? numbered)![1]);
-    } else if (heading) {
-      flushPara();
-      flushList();
-      blocks.push({ type: "p", inlines: [{ type: "strong", text: heading[1].replace(/\*\*/g, "") }] });
-    } else if (list && /^\s{2,}/.test(raw)) {
-      // Continuation of a list item.
-      list.items[list.items.length - 1] += ` ${line}`;
-    } else {
-      flushList();
-      para.push(line);
+      if (list) gap = true;
+      continue;
     }
+    if (item) {
+      const type = item[1] ? "ul" : "ol";
+      const start = item[2] ? Number(item[2]) : 1;
+      const text = item[3];
+      if (list && indented && list.items.length) {
+        // An indented item belongs to the item above it ("1. Open Settings" then "   - Choose Claude Desktop").
+        const parent = list.items[list.items.length - 1];
+        if (!parent.sub) parent.sub = { type, start, items: [] };
+        parent.sub.items.push(text);
+        gap = false;
+        continue;
+      }
+      flushPara();
+      if (list && list.type !== type) flushList();
+      if (!list) list = { type, start, items: [] };
+      list.items.push({ text, sub: null });
+      gap = false;
+      continue;
+    }
+    if (heading) {
+      flushPara();
+      flushList();
+      // Headings become bold paragraphs; the answer sits inside a dialog with its own heading.
+      blocks.push({ type: "p", inlines: [{ type: "strong", inlines: parseInline(heading[1].replace(/\*\*/g, "")) }] });
+      continue;
+    }
+    if (list && indented) {
+      // Continuation of the last list item (or of its last sub-item when there was no blank line).
+      const last = list.items[list.items.length - 1];
+      if (last.sub && !gap) last.sub.items[last.sub.items.length - 1] += ` ${line}`;
+      else last.text += ` ${line}`;
+      gap = false;
+      continue;
+    }
+    flushList();
+    para.push(line);
   }
   flushPara();
   flushList();

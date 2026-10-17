@@ -72,7 +72,7 @@ onboarding with a personal access key from Settings → AI assistant access. See
 that answers how Braventa works and questions about the user's own businesses and latest report. Read-only; same
 access rule as the MCP connection (trial or any plan); 40 questions per organization a day. Knowledge base:
 `web/src/lib/assistant/knowledge.ts` (published as `docs/help/APP_GUIDE.md`); endpoint `POST /api/assistant`;
-worker `app_assistant` (Haiku); table `assistant_messages` (migration must be applied before deploy).
+worker `app_assistant` (Haiku); table `assistant_usage` (limits only, no question text; migration must be applied before deploy).
 
 **Exists in the schema or code, but is not a feature:** `campaigns`, `knowledge_chunks` and
 `match_knowledge` (no embeddings written), `integrations` (no connections), `subscriptions` (no

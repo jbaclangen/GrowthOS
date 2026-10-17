@@ -483,18 +483,23 @@ private test with about 3 invited accounts.
 ## D-043 — In-app AI assistant ("Ask Braventa"), read-only
 **Status:** Founder (2026-10-17, in chat). Supersedes D-020's "not in the MVP": the in-app assistant ships now, before
 knowledge-base retrieval (BI-8), as a help and report assistant.
-- Opened from an "Ask Braventa…" search bar in the app header (an icon on small screens; shortcuts `/` and Ctrl+K).
-  It answers how Braventa works (app map, live vs coming soon, plans and trial, connecting Claude and Search Console,
+- Opened from an "Ask Braventa…" search bar in the app header (an icon on small screens; shortcut Ctrl+K, Cmd+K on a
+  Mac — no single-key shortcut, WCAG 2.1.4). It answers how Braventa works (app map, live vs coming soon, plans and trial, connecting Claude and Search Console,
   troubleshooting, privacy) and about the user's own businesses and latest report (growth score, diagnosis findings,
   plan items, content plan, drafts status). Read-only: it never changes anything and points to the page instead.
 - Access: the same rule as the AI assistant connection (D-036): every account during the 14-day trial, then any plan
-  (Basic, Pro or Premium). Others see the bar disabled with "Choose a plan to use the assistant" linking to `/plans`.
+  (Basic, Pro or Premium). Others see the bar disabled with "Choose a plan to ask" linking to `/plans`. The model call gets one 40-second
+  attempt (no retry), inside the route's 60-second limit.
 - Knowledge is a curated, versioned file in code (`web/src/lib/assistant/knowledge.ts`), partly generated from
   `FEATURES` and the report's sections, and published as `docs/help/APP_GUIDE.md` for support.braventa.io. A test
   fails when a page route is missing from it or the doc is out of date.
 - Business data is read with the user's own client (RLS), capped at 6,000 characters and fenced as untrusted data.
 - Model: worker `app_assistant` (simple → Claude Haiku 5.5) through `lib/ai/router.ts` (budget + `ai_usage`), about
   $0.001 per question in testing. One JSON response per question (no streaming), for robustness.
-- Limits: 40 questions per organization per 24 hours and 5 per user per minute, counted in `assistant_messages`
-  (migration `20261017120000_assistant_messages.sql`, which must be applied before deploy; without it the assistant
-  answers "isn't available right now"). The table also keeps each user's history; users read only their own rows.
+- Limits: 40 questions per organization per 24 hours and 5 per user per minute, counted in `assistant_usage`
+  (migration `20261017120000_assistant_usage.sql`, which must be applied before merge and deploy; without it the
+  assistant answers "isn't available right now"). Each question's row is reserved before the model is called, in one
+  locked database step, so parallel requests can't exceed the limits; failed questions still count.
+- Privacy (review, 2026-10-17): questions and answers are **not stored**. The conversation lives in the browser tab;
+  `assistant_usage` keeps only who asked and when, and `ai_usage` the tokens and cost. Keeping question text for
+  product insight would need a retention period and a way to delete it first (Q-041).

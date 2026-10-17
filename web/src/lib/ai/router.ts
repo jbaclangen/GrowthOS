@@ -83,6 +83,9 @@ export async function runWorker(opts: {
   json?: boolean;
   maxTokens?: number;
   highRisk?: boolean;
+  // For callers with a hard deadline, such as a route handler (see chat()): per-attempt timeout and one retry or none.
+  timeoutMs?: number;
+  retry?: boolean;
 }) {
   const base: TaskClass = WORKERS[opts.worker].taskClass;
   const taskClass = opts.highRisk ? ESCALATE[base] : base;
@@ -121,6 +124,8 @@ export async function runWorker(opts: {
       messages: [{ role: "system", content: systemPrompt(opts.worker) }, ...opts.messages],
       json: opts.json,
       maxTokens: opts.maxTokens,
+      timeoutMs: opts.timeoutMs,
+      retry: opts.retry,
     });
   } catch (e) {
     // Failed calls are logged too (cost 0), so failure rates and latency are visible per worker and model.

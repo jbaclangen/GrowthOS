@@ -47,12 +47,13 @@ Braventa is a business growth system for small and mid-sized service businesses.
 3. **Confirm your priorities:** keep what applies and choose your top three in order.
 4. **A few more questions:** up to four follow-ups. Skip any you like.
 Braventa reads the website while you answer. Once you finish and the website analysis is done, it builds the plan (about 3–4 minutes). The report then opens with Do this first. You can leave and come back; an unfinished setup can be resumed from the business's tile on the dashboard.
+To change your goal, service area or tools later, open the report's **What you told us** section, select **Edit answers**, save, then select **Re-run analysis**.
 
 <a id="report"></a>
 
 ## Your report
 
-The report page for a business (open it from the dashboard) starts with **Do this first**: drafts waiting for your approval if there are any, otherwise the top open item in your growth plan with its first step. Below it, tiles open these sections:
+The report page for a business (open it from the dashboard) starts with **Do this first**: the top open item in your growth plan with its first step, how many drafts are waiting for your approval, and one button for the next step. Until the diagnosis is confirmed, that button is **Check the diagnosis and confirm your plan**. After that, it's **Review … drafts waiting for your approval** while drafts are waiting, then **Start on:** followed by the top open plan item. Below it, tiles open these sections:
 - Growth score (`?view=scores`)
 - What's holding the business back (`?view=diagnosis`)
 - Growth plan (`?view=plan`)
@@ -69,7 +70,9 @@ Top 5 opportunities only appears on older reports from before the single growth 
 
 **Diagnosis ("What's holding the business back").** Up to six findings, each labeled by where it comes from: Verified, From you, Inferred. Verified means it cites a measured check (technical checks T1, T2…, PageSpeed); From you means you said it; Inferred means it's Braventa's AI assessment and worth confirming. For each finding select That's right or Not right (with a short correction). Then Confirm diagnosis and plan, or Update the plan with my corrections (takes about a minute; the 30-day plan and drafts stay as they are).
 
-**Growth plan.** Up to seven recommended actions, each with why it matters, a first step, effort and impact. Order: your own priorities first, then a calculated score (impact × urgency × confidence ÷ effort) that never overrides yours. Each item: I'll do this (shown as You're on it), Not for us (Dismissed), Mark done (Done), and Undo.
+**Growth plan.** Up to seven recommended actions, each with why it matters, a first step, effort and impact. Order: your own priorities first, then a calculated score (impact × urgency × confidence ÷ effort) that never overrides yours. Until you confirm the diagnosis and plan, the plan is a proposal and its items have no buttons. Once it's confirmed, each open item has I'll do this (then shown as You're on it, with Mark done) and Not for us (Dismissed); Undo returns an item to open.
+
+**What you told us.** Your discovery answers, and **Your goal and context**: your main goal, where you serve customers and the tools you use. To change these, select **Edit answers** (or **Add answers**), then **Save answers**. Changes apply to the next analysis: select **Re-run analysis** to update the plan and drafts. The problems you picked during discovery can't be edited here.
 
 **Technical checks.** Braventa reads up to 25 pages of your website (from the sitemap and links), respects robots.txt (user agent Braventa) and runs Google PageSpeed for mobile and desktop. Each check has a severity and a label: Fix first, Improve next or Monitor. It doesn't run JavaScript, so content that only appears after scripts run can be missed.
 
@@ -81,7 +84,7 @@ Top 5 opportunities only appears on older reports from before the single growth 
 
 ## Ask Braventa (this assistant)
 
-Open it from **Ask Braventa…** in the header, or press / or Ctrl+K (Cmd+K on a Mac). It answers questions about how Braventa works and about your own businesses and latest report. It's read-only: it can't change your plan, approve drafts, start analyses or contact anyone. It can be wrong, so check important details in the report. Limits: 40 questions per business account per day. Available during the 14-day trial and on any plan (Basic, Pro or Premium).
+Open it from **Ask Braventa…** in the header (the search icon on small screens), or press Ctrl+K (Cmd+K on a Mac). It answers questions about how Braventa works and about your own businesses and latest report. It's read-only: it can't change your plan, approve drafts, start analyses or contact anyone. It can be wrong, so check important details in the report. Limits: 40 questions per business account per day, and 5 per person per minute. Available during the 14-day trial and on any plan (Basic, Pro or Premium); after a trial ends without a plan, it pauses until you choose one. The conversation stays in your browser tab: it's gone when you reload the page or select Clear conversation.
 
 <a id="connect-claude"></a>
 
@@ -117,7 +120,7 @@ Every new account starts with a 14-day Pro trial. When it ends, the account has 
 - Growth score and diagnosis (Live): Findings marked by evidence, which you confirm or correct.
 - Prioritized growth plan (Live): Recommended actions with first steps; accept, dismiss or mark done.
 - 30-day content plan and drafted posts (Live): Drafts in your brand voice for you to approve or reject. Braventa doesn't publish them.
-- In-app AI assistant (Live): Ask how Braventa works and about your latest report, from the search bar in the header. Answers only; it can't make changes for you.
+- In-app AI assistant (Live): Ask how Braventa works and about your latest report, from the search bar in the header. Answers only; it can't make changes for you. Paused after the trial until you choose a plan.
 - Connect your AI assistant (Live): Let Claude answer the setup questions from what it already knows about your business (Claude Code and Claude Desktop). Paused after the trial until you choose a plan.
 
 **Pro** — Everything in Basic, plus your Google Search Console data in Braventa. Coming soon: a full marketing audit, more connected tools and AI agents that carry out approved changes for you.
@@ -131,7 +134,7 @@ Every new account starts with a 14-day Pro trial. When it ends, the account has 
 **Premium** — Everything in Pro, plus custom integrations with the systems your business runs on (coming soon).
 - Custom integrations (Coming soon): E-commerce platforms, QuickBooks, Xero and other systems, scoped with you.
 
-Not available today on any plan: CRM connections, publishing or scheduling posts, sending email, automations, analytics reports from GA4, billing in the app, team invitations, editing or regenerating drafts, editing the business profile, password reset in the app, and a public API.
+Not available today on any plan: CRM connections, publishing or scheduling posts, sending email, automations, analytics reports from GA4, billing in the app, team invitations, editing or regenerating drafts, editing the business profile Braventa wrote from your website (services, customers, strengths, gaps and brand voice) or the business name, password reset in the app, and a public API. Your main goal, service area and tools can be changed: see What you told us in the report.
 
 <a id="troubleshooting"></a>
 
@@ -154,7 +157,7 @@ For anything else, contact the Braventa team through the contact page on bravent
 - Everything you see is limited to your own business account; other customers can't see your data, and this assistant only sees yours.
 - Braventa reads only public pages of your website and respects robots.txt.
 - AI requests only go to models with zero data retention: they don't store your prompts or train on them.
-- Questions you ask this assistant and its answers are stored with your account, to apply the daily limit and keep a history.
+- Questions you ask this assistant are sent, with a summary of your account and latest report, to the AI model that writes the answer. Braventa doesn't store the questions or answers; it records only who asked and when, to apply the limits.
 - Nothing is published, posted or emailed for you; you approve drafts and carry out changes yourself.
 - Search Console access is read-only, and Claude access keys are stored only as a one-way hash and can be revoked any time.
 - To ask about your data or deleting it, contact the Braventa team through braventa.io/contact.

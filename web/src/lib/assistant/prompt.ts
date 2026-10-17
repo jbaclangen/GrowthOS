@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ChatMessage } from "@/lib/integrations/openrouter";
+import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
 import { PROVENANCE_LABEL, type Provenance } from "@/lib/plan/priority";
 import { knowledgeForPrompt } from "./knowledge";
 
@@ -11,10 +12,23 @@ export const MAX_HISTORY_MESSAGES = 12; // about six turns (question + answer)
 export const MAX_HISTORY_CHARS = 4000; // per message; answers are short, this only stops abuse
 export const MAX_BUSINESS_CHARS = 6000;
 
+// Control characters (NUL can't be stored in Postgres text) except tab and newlines, and lone UTF-16 surrogates
+// (not valid Unicode, so JSON encoders and databases reject them) come out before validation.
+const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+
+export function normalizeText(value: string): string {
+  return value.replace(CONTROL_CHARS, "").replace(LONE_SURROGATE, "�");
+}
+
+const normalized = (schema: z.ZodString) => z.preprocess((v) => (typeof v === "string" ? normalizeText(v) : v), schema);
+
 const requestSchema = z.object({
-  question: z.string().trim().min(1, "Type a question first.").max(MAX_QUESTION_CHARS, `Keep your question under ${MAX_QUESTION_CHARS.toLocaleString("en-US")} characters.`),
+  question: normalized(
+    z.string().trim().min(1, "Type a question first.").max(MAX_QUESTION_CHARS, `Keep your question under ${MAX_QUESTION_CHARS.toLocaleString("en-US")} characters.`),
+  ),
   history: z
-    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(MAX_HISTORY_CHARS) }))
+    .array(z.object({ role: z.enum(["user", "assistant"]), content: normalized(z.string().max(MAX_HISTORY_CHARS)) }))
     .max(40)
     .optional()
     .default([]),
@@ -39,7 +53,7 @@ export function parseAssistantRequest(body: unknown): { ok: true; value: Assista
 export type BusinessSummary = {
   organizationName: string;
   plan: string; // e.g. "Pro trial, 9 days left"
-  searchConsole: string; // e.g. "connected (property sc-domain:example.com)" or "not connected"
+  searchConsole: string; // describeSearchConsole(), e.g. "connected (property sc-domain:example.com)" or "not connected"
   claudeKeys: number; // the user's active Claude access keys
   businesses: { name: string; website: string | null; growthScore: number | null; status: string; link: string }[];
   latest: null | {
@@ -63,6 +77,22 @@ export type BusinessSummary = {
   };
 };
 
+// The Google Search Console line of the summary, as the app shows it. integration_connections.status is active,
+// paused, revoked or error; on Basic an active row is still paused (searchConsoleAccess), as Settings and /search say.
+export function describeSearchConsole(
+  conn: { status: string; selected_property: string | null } | null,
+  org: { plan: string; trial_ends_at: string | Date },
+  now = new Date(),
+): string {
+  if (!conn || conn.status === "revoked") return "not connected";
+  const property = conn.selected_property ? ` (property ${conn.selected_property})` : " (no property chosen yet)";
+  if (conn.status === "error") return `connected but needs reconnecting in Settings → Connections${property}`;
+  if (!searchConsoleAccess(org, now).allowed) {
+    return `connected but paused on Basic: data already fetched is kept, nothing new is fetched until the business moves to Pro or Premium${property}`;
+  }
+  return `connected${property}`;
+}
+
 // Untrusted text: no markup, so it can't close the fence or pose as instructions, and capped in length.
 export function clean(value: string | null | undefined, max = 300): string {
   if (!value) return "";
@@ -77,7 +107,7 @@ export function formatBusinessSummary(b: BusinessSummary, maxChars = MAX_BUSINES
   const lines: string[] = [
     `Business account: ${clean(b.organizationName, 120)}`,
     `Plan: ${clean(b.plan, 80)}`,
-    `Google Search Console: ${clean(b.searchConsole, 160)}`,
+    `Google Search Console: ${clean(b.searchConsole, 300)}`,
     `This user's active Claude access keys: ${b.claudeKeys}`,
   ];
   if (!b.businesses.length) lines.push("Businesses: none yet (no website analyzed).");

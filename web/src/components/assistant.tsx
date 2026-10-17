@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { parseMarkdown, type Inline } from "@/lib/assistant/markdown";
+import { CLIENT_ERRORS, isApplePlatform, isAssistantShortcut, readAssistantReply } from "@/lib/assistant/client";
+import { parseMarkdown, type Inline, type List } from "@/lib/assistant/markdown";
 
 // "Ask Braventa", the in-app assistant (D-042): a search-style button in the header (an icon on small screens)
 // opens a modal dialog. Native <dialog> + showModal() gives the focus trap, Escape to close and an inert page.
-// Shortcuts: "/" (outside text fields) and Ctrl+K / Cmd+K. Answers render through a safe markdown subset as text,
-// never as HTML. The conversation lives in this component only; the last six turns go with each question.
+// Shortcut: Cmd+K on Apple devices, Ctrl+K elsewhere. It always needs the modifier (WCAG 2.1.4: no single-character
+// shortcuts), and on a Mac Ctrl+K is left alone because text fields use it to delete to the end of the line.
+// Answers render through a safe markdown subset as text, never as HTML. The conversation lives in this component
+// only (in the browser tab, never stored); the last six turns go with each question.
 
 const MAX_CHARS = 1000;
 const HISTORY_MESSAGES = 12;
@@ -15,6 +18,10 @@ const HISTORY_MESSAGES = 12;
 const SUGGESTIONS = ["Where do I connect Claude?", "What does my growth score mean?", "What should I do first?"];
 
 type Message = { role: "user" | "assistant"; content: string };
+
+// Apple devices use Cmd (Meta) for the shortcut. Read on the client only: the server renders without the hint.
+const applePlatform = () => isApplePlatform(navigator);
+const noSubscribe = () => () => {};
 
 function openDialog(dialog: HTMLDialogElement | null, input: HTMLTextAreaElement | null) {
   if (dialog && !dialog.open) dialog.showModal();
@@ -30,28 +37,29 @@ function SearchIcon() {
   );
 }
 
+// `text` fits the 15rem bar without truncation; `label` is the fuller name for the icon-only link on small screens.
 const UNAVAILABLE = {
-  needs_plan: { href: "/plans", text: "Choose a plan to use the assistant" },
-  needs_business: { href: "/onboarding", text: "Analyze a website to use the assistant" },
+  needs_plan: { href: "/plans", text: "Choose a plan to ask", label: "Choose a plan to use the assistant" },
+  needs_business: { href: "/onboarding", text: "Analyze a website first", label: "Analyze a website to use the assistant" },
 } as const;
 
 // enabled: active trial or a plan. needs_plan: trial over without a plan. needs_business: no business account yet.
 export function AssistantLauncher({ state }: { state: "enabled" | keyof typeof UNAVAILABLE }) {
   if (state !== "enabled") {
-    const { href, text } = UNAVAILABLE[state];
+    const { href, text, label } = UNAVAILABLE[state];
     return (
       <>
         <Link
           href={href}
-          className="hidden h-9 w-60 items-center gap-2 rounded-md border border-border bg-surface-muted px-3 text-sm text-muted hover:underline md:flex"
+          className="hidden h-9 w-60 shrink-0 items-center gap-2 rounded-md border border-border bg-surface-muted px-3 text-sm text-muted hover:underline md:flex"
         >
           <SearchIcon />
-          <span className="truncate">{text}</span>
+          <span className="whitespace-nowrap">{text}</span>
         </Link>
         <Link
           href={href}
-          aria-label={text}
-          className="flex h-11 w-11 items-center justify-center rounded-md text-muted hover:bg-surface-muted md:hidden"
+          aria-label={label}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface-muted md:hidden"
         >
           <SearchIcon />
         </Link>
@@ -65,10 +73,14 @@ function Assistant() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  // Where the last press started: the dialog closes on a backdrop click only when the press also started there, so
+  // a text selection dragged out of the panel doesn't close it.
+  const pressOnBackdrop = useRef(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const apple = useSyncExternalStore<boolean | null>(noSubscribe, applePlatform, () => null);
   const titleId = useId();
   const descId = useId();
   const inputId = useId();
@@ -78,16 +90,11 @@ function Assistant() {
   const close = () => dialogRef.current?.close();
 
   useEffect(() => {
-    const open = () => openDialog(dialogRef.current, inputRef.current);
+    const mac = applePlatform();
     const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      const typing = !!target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "k") {
+      if (isAssistantShortcut(e, mac)) {
         e.preventDefault();
-        open();
-      } else if (e.key === "/" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        open();
+        openDialog(dialogRef.current, inputRef.current);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -110,36 +117,29 @@ function Assistant() {
     const history = messages.slice(-HISTORY_MESSAGES);
     setMessages((m) => [...m, { role: "user", content: q }]);
     setQuestion("");
+    let reply: { answer: string } | { error: string };
     try {
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: q, history }),
       });
-      const isJson = res.headers.get("content-type")?.includes("application/json");
-      if (res.redirected || !isJson) {
-        throw new Error("Your session has ended. Sign in again to use the assistant.");
-      }
-      const data = (await res.json()) as { answer?: string; error?: string };
-      if (!res.ok || !data.answer) {
-        throw new Error(data.error ?? "The assistant couldn't answer just now. Try again in a minute.");
-      }
-      setMessages((m) => [...m, { role: "assistant", content: data.answer! }]);
+      reply = await readAssistantReply(res);
     } catch (e) {
-      const message =
-        e instanceof TypeError
-          ? "Braventa couldn't be reached. Check your internet connection, then try again."
-          : e instanceof Error
-            ? e.message
-            : "The assistant couldn't answer just now. Try again in a minute.";
-      setError(message);
+      // fetch rejects with a TypeError when the network is down; anything else is unexpected.
+      reply = { error: e instanceof TypeError ? CLIENT_ERRORS.offline : CLIENT_ERRORS.server };
+    }
+    if ("answer" in reply) {
+      const answer = reply.answer;
+      setMessages((m) => [...m, { role: "assistant", content: answer }]);
+    } else {
+      setError(reply.error);
       // Keep the question so it can be resent.
       setMessages((m) => m.slice(0, -1));
       setQuestion(q);
-    } finally {
-      setPending(false);
-      requestAnimationFrame(() => inputRef.current?.focus());
     }
+    setPending(false);
+    requestAnimationFrame(() => inputRef.current?.focus());
   };
 
   const clear = () => {
@@ -148,25 +148,31 @@ function Assistant() {
     inputRef.current?.focus();
   };
 
+  const shortcut = apple === null ? null : apple ? { hint: "⌘K", keys: "Meta+K" } : { hint: "Ctrl K", keys: "Control+K" };
+
   return (
     <>
       <button
         type="button"
         onClick={open}
         aria-haspopup="dialog"
-        aria-keyshortcuts="/ Control+K Meta+K"
-        className="hidden h-9 w-60 items-center gap-2 rounded-md border border-border bg-surface px-3 text-left text-sm text-muted transition-colors duration-(--duration-fast) hover:border-border-strong md:flex"
+        aria-keyshortcuts={shortcut?.keys}
+        className="hidden h-9 w-52 shrink-0 items-center gap-2 rounded-md border border-border bg-surface px-3 text-left text-sm text-muted transition-colors duration-(--duration-fast) hover:border-border-strong md:flex lg:w-60"
       >
         <SearchIcon />
         <span className="flex-1 truncate">Ask Braventa…</span>
-        <kbd className="rounded-sm border border-border px-1.5 text-xs text-muted">/</kbd>
+        {shortcut && (
+          <kbd aria-hidden="true" className="hidden rounded-sm border border-border px-1.5 text-xs whitespace-nowrap text-muted lg:inline">
+            {shortcut.hint}
+          </kbd>
+        )}
       </button>
       <button
         type="button"
         onClick={open}
         aria-haspopup="dialog"
         aria-label="Ask Braventa"
-        className="flex h-11 w-11 items-center justify-center rounded-md text-muted hover:bg-surface-muted md:hidden"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface-muted md:hidden"
       >
         <SearchIcon />
       </button>
@@ -175,18 +181,23 @@ function Assistant() {
         ref={dialogRef}
         aria-labelledby={titleId}
         aria-describedby={descId}
+        onPointerDown={(e) => {
+          pressOnBackdrop.current = e.target === dialogRef.current;
+        }}
         onClick={(e) => {
-          // A click on the backdrop (the dialog element itself, outside the panel) closes it.
-          if (e.target === dialogRef.current) close();
+          // A click on the backdrop (the dialog element itself, outside the panel) closes it, if the press began there.
+          const onBackdrop = pressOnBackdrop.current && e.target === dialogRef.current;
+          pressOnBackdrop.current = false;
+          if (onBackdrop) close();
         }}
         className="m-auto max-h-[90vh] w-[min(42rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-background p-0 text-foreground backdrop:bg-overlay"
       >
         <div className="flex max-h-[90vh] flex-col">
-          <div className="flex items-center justify-between gap-4 border-b border-border bg-surface px-5 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border bg-surface px-5 py-3">
             <h2 id={titleId} className="text-lg font-semibold">
               Ask Braventa
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {messages.length > 0 && (
                 <button type="button" className="btn-secondary" onClick={clear} disabled={pending}>
                   Clear conversation
@@ -210,7 +221,16 @@ function Assistant() {
                 <ul className="mt-2 flex flex-wrap gap-2">
                   {SUGGESTIONS.map((s) => (
                     <li key={s}>
-                      <button type="button" className="btn-secondary" onClick={() => ask(s)} disabled={pending}>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => {
+                          // This list unmounts once the question is added; move focus first so it isn't lost.
+                          inputRef.current?.focus();
+                          ask(s);
+                        }}
+                        disabled={pending}
+                      >
                         {s}
                       </button>
                     </li>
@@ -296,7 +316,11 @@ function Inlines({ inlines, onNavigate }: { inlines: Inline[]; onNavigate: () =>
       {inlines.map((i, k) => {
         switch (i.type) {
           case "strong":
-            return <strong key={k}>{i.text}</strong>;
+            return (
+              <strong key={k}>
+                <Inlines inlines={i.inlines} onNavigate={onNavigate} />
+              </strong>
+            );
           case "code":
             return (
               <code key={k} className="rounded-sm bg-surface-muted px-1">
@@ -322,6 +346,23 @@ function Inlines({ inlines, onNavigate }: { inlines: Inline[]; onNavigate: () =>
   );
 }
 
+function AnswerList({ list, onNavigate, nested = false }: { list: List; onNavigate: () => void; nested?: boolean }) {
+  const items = list.items.map((item, j) => (
+    <li key={j}>
+      <Inlines inlines={item.inlines} onNavigate={onNavigate} />
+      {item.sub && <AnswerList list={item.sub} onNavigate={onNavigate} nested />}
+    </li>
+  ));
+  const spacing = nested ? "mt-1 space-y-1 pl-5" : "space-y-1 pl-5";
+  return list.type === "ol" ? (
+    <ol start={list.start} className={`list-decimal ${spacing}`}>
+      {items}
+    </ol>
+  ) : (
+    <ul className={`list-disc ${spacing}`}>{items}</ul>
+  );
+}
+
 function Answer({ text, onNavigate }: { text: string; onNavigate: () => void }) {
   return (
     <div className="space-y-2">
@@ -330,22 +371,8 @@ function Answer({ text, onNavigate }: { text: string; onNavigate: () => void }) 
           <p key={k}>
             <Inlines inlines={b.inlines} onNavigate={onNavigate} />
           </p>
-        ) : b.type === "ul" ? (
-          <ul key={k} className="list-disc space-y-1 pl-5">
-            {b.items.map((item, j) => (
-              <li key={j}>
-                <Inlines inlines={item} onNavigate={onNavigate} />
-              </li>
-            ))}
-          </ul>
         ) : (
-          <ol key={k} className="list-decimal space-y-1 pl-5">
-            {b.items.map((item, j) => (
-              <li key={j}>
-                <Inlines inlines={item} onNavigate={onNavigate} />
-              </li>
-            ))}
-          </ol>
+          <AnswerList key={k} list={b} onNavigate={onNavigate} />
         ),
       )}
     </div>

@@ -110,7 +110,7 @@ function featuresSection(): string {
     lines.push("");
   }
   lines.push(
-    "Not available today on any plan: CRM connections, publishing or scheduling posts, sending email, automations, analytics reports from GA4, billing in the app, team invitations, editing or regenerating drafts, editing the business profile, password reset in the app, and a public API.",
+    "Not available today on any plan: CRM connections, publishing or scheduling posts, sending email, automations, analytics reports from GA4, billing in the app, team invitations, editing or regenerating drafts, editing the business profile Braventa wrote from your website (services, customers, strengths, gaps and brand voice) or the business name, password reset in the app, and a public API. Your main goal, service area and tools can be changed: see What you told us in the report.",
   );
   return lines.join("\n");
 }
@@ -120,7 +120,7 @@ function reportSection(): string {
     .map(([key, title]) => `- ${title} (\`?view=${key}\`)`)
     .join("\n");
   const provenance = Object.values(PROVENANCE_LABEL).join(", ");
-  return `The report page for a business (open it from the dashboard) starts with **Do this first**: drafts waiting for your approval if there are any, otherwise the top open item in your growth plan with its first step. Below it, tiles open these sections:
+  return `The report page for a business (open it from the dashboard) starts with **Do this first**: the top open item in your growth plan with its first step, how many drafts are waiting for your approval, and one button for the next step. Until the diagnosis is confirmed, that button is **Check the diagnosis and confirm your plan**. After that, it's **Review … drafts waiting for your approval** while drafts are waiting, then **Start on:** followed by the top open plan item. Below it, tiles open these sections:
 ${views}
 
 Top 5 opportunities only appears on older reports from before the single growth plan.
@@ -129,7 +129,9 @@ Top 5 opportunities only appears on older reports from before the single growth 
 
 **Diagnosis ("What's holding the business back").** Up to six findings, each labeled by where it comes from: ${provenance}. Verified means it cites a measured check (technical checks T1, T2…, PageSpeed); From you means you said it; Inferred means it's Braventa's AI assessment and worth confirming. For each finding select That's right or Not right (with a short correction). Then Confirm diagnosis and plan, or Update the plan with my corrections (takes about a minute; the 30-day plan and drafts stay as they are).
 
-**Growth plan.** Up to seven recommended actions, each with why it matters, a first step, effort and impact. Order: your own priorities first, then a calculated score (impact × urgency × confidence ÷ effort) that never overrides yours. Each item: I'll do this (shown as You're on it), Not for us (Dismissed), Mark done (Done), and Undo.
+**Growth plan.** Up to seven recommended actions, each with why it matters, a first step, effort and impact. Order: your own priorities first, then a calculated score (impact × urgency × confidence ÷ effort) that never overrides yours. Until you confirm the diagnosis and plan, the plan is a proposal and its items have no buttons. Once it's confirmed, each open item has I'll do this (then shown as You're on it, with Mark done) and Not for us (Dismissed); Undo returns an item to open.
+
+**What you told us.** Your discovery answers, and **Your goal and context**: your main goal, where you serve customers and the tools you use. To change these, select **Edit answers** (or **Add answers**), then **Save answers**. Changes apply to the next analysis: select **Re-run analysis** to update the plan and drafts. The problems you picked during discovery can't be edited here.
 
 **Technical checks.** Braventa reads up to 25 pages of your website (from the sitemap and links), respects robots.txt (user agent Braventa) and runs Google PageSpeed for mobile and desktop. Each check has a severity and a label: Fix first, Improve next or Monitor. It doesn't run JavaScript, so content that only appears after scripts run can be missed.
 
@@ -157,13 +159,14 @@ export function knowledgeSections(): Section[] {
 2. **Discovery:** pick the problems holding the business back, or describe them in your own words.
 3. **Confirm your priorities:** keep what applies and choose your top three in order.
 4. **A few more questions:** up to four follow-ups. Skip any you like.
-Braventa reads the website while you answer. Once you finish and the website analysis is done, it builds the plan (about 3–4 minutes). The report then opens with Do this first. You can leave and come back; an unfinished setup can be resumed from the business's tile on the dashboard.`,
+Braventa reads the website while you answer. Once you finish and the website analysis is done, it builds the plan (about 3–4 minutes). The report then opens with Do this first. You can leave and come back; an unfinished setup can be resumed from the business's tile on the dashboard.
+To change your goal, service area or tools later, open the report's **What you told us** section, select **Edit answers**, save, then select **Re-run analysis**.`,
     },
     { id: "report", title: "Your report", body: reportSection() },
     {
       id: "assistant",
       title: "Ask Braventa (this assistant)",
-      body: `Open it from **Ask Braventa…** in the header, or press / or Ctrl+K (Cmd+K on a Mac). It answers questions about how Braventa works and about your own businesses and latest report. It's read-only: it can't change your plan, approve drafts, start analyses or contact anyone. It can be wrong, so check important details in the report. Limits: ${ASSISTANT_LIMITS.perOrgPerDay} questions per business account per day. Available during the ${TRIAL_DAYS}-day trial and on any plan (Basic, Pro or Premium).`,
+      body: `Open it from **Ask Braventa…** in the header (the search icon on small screens), or press Ctrl+K (Cmd+K on a Mac). It answers questions about how Braventa works and about your own businesses and latest report. It's read-only: it can't change your plan, approve drafts, start analyses or contact anyone. It can be wrong, so check important details in the report. Limits: ${ASSISTANT_LIMITS.perOrgPerDay} questions per business account per day, and ${ASSISTANT_LIMITS.perUserPerMinute} per person per minute. Available during the ${TRIAL_DAYS}-day trial and on any plan (Basic, Pro or Premium); after a trial ends without a plan, it pauses until you choose one. The conversation stays in your browser tab: it's gone when you reload the page or select Clear conversation.`,
     },
     {
       id: "connect-claude",
@@ -206,7 +209,7 @@ For anything else, contact the Braventa team through the contact page on bravent
       body: `- Everything you see is limited to your own business account; other customers can't see your data, and this assistant only sees yours.
 - Braventa reads only public pages of your website and respects robots.txt.
 - AI requests only go to models with zero data retention: they don't store your prompts or train on them.
-- Questions you ask this assistant and its answers are stored with your account, to apply the daily limit and keep a history.
+- Questions you ask this assistant are sent, with a summary of your account and latest report, to the AI model that writes the answer. Braventa doesn't store the questions or answers; it records only who asked and when, to apply the limits.
 - Nothing is published, posted or emailed for you; you approve drafts and carry out changes yourself.
 - Search Console access is read-only, and Claude access keys are stored only as a one-way hash and can be revoked any time.
 - To ask about your data or deleting it, contact the Braventa team through braventa.io/contact.`,

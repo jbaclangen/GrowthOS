@@ -7,7 +7,7 @@
 // - Solution availability must match what the product actually does today (CLAUDE.md: never present
 //   planned features as live). Update it when a capability ships.
 
-export const CATALOG_VERSION = 2;
+export const CATALOG_VERSION = 1;
 
 export type Availability = "available" | "planned" | "manual";
 
@@ -44,8 +44,8 @@ export const SOLUTIONS = {
   },
   ai_assistant: {
     label: "Business assistant",
-    availability: "available",
-    description: "Ask Braventa, in the app header, answers questions about how Braventa works and your latest report. It can't make changes.",
+    availability: "planned",
+    description: "An assistant that answers questions about your business is planned, not available yet.",
   },
   lifecycle_campaigns: {
     label: "Customer follow-up and retention",
