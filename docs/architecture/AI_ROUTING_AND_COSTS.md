@@ -225,8 +225,8 @@ Known limitations:
 | Reuse business knowledge; cache | **Not implemented** | Crawled pages are stored in `knowledge_documents` but re-runs re-crawl and re-prompt from scratch; no prompt or response cache; no embeddings |
 | Track model, tokens, latency, failures, cost | Implemented | Per call in `ai_usage`: model, tokens, cost, `latency_ms`, `status`, `error` (2026-10-10) |
 | Configurable fallbacks | Implemented (code-level) | Chains in `router.ts`; changing them requires a deploy. No per-org or per-worker override |
-| Evaluate quality before moving to cheaper models | **Not implemented** | No eval set, no QA scoring, no record of which model produced which artefact beyond `ai_usage.model` |
-| Minimise customer data sent to models | Partial | Inputs are bounded (20k-char site digest from up to 25 pages); no redaction; full profile JSON is re-sent to each later step |
+| Evaluate quality before moving to cheaper models | **Not implemented** | No eval set, no QA scoring, no record of which model produced which artifact beyond `ai_usage.model` |
+| Minimize customer data sent to models | Partial | Inputs are bounded (20k-char site digest from up to 25 pages); no redaction; full profile JSON is re-sent to each later step |
 | Never expose provider keys in browser code | Implemented | `OPENROUTER_API_KEY` read only via `server-only` `env.ts` |
 | Keep model selection configurable | Implemented in code | Not configurable at runtime (no env or DB override) |
 

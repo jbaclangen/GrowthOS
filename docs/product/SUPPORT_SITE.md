@@ -19,7 +19,7 @@ developer tools, (4) legal.
 | Account and data | Profile; Data export or deletion request; Delete your account | Launch | Deletion process to confirm |
 | Troubleshooting and FAQ | Analysis stuck or failed; Site couldn't be read; Score seems wrong; Sign-in email didn't arrive | Launch | No |
 | Plans and billing | Basic vs Pro vs Premium; The 14-day trial; Talk to us; Invoices | Soon | Billing (Q-010) |
-| Integrations | Overview (Coming next); GA4; Search Console; Tag Manager; WordPress; Canva; HeyGen; Higgsfield; social accounts | Later | All |
+| Integrations | Overview (Coming next); GA4; Search Console; Tag Manager; WordPress; Canva; HeyGen; Higgsfield; social accounts | Later | All except Search Console (live for Pro) |
 | AI agents (Pro) | How approval-gated agents work; Audit log; Pause an agent | Later | All |
 | Developers (`/developers`) | Overview; Authentication; API reference (OpenAPI); Webhooks (signing, retries, versioning); n8n nodes and templates; Rate limits; Developer changelog; `llms.txt` | Later | No public API, webhooks or `/api/n8n/*` routes exist |
 | Release notes | Shipped changes only | Launch (light) | No |

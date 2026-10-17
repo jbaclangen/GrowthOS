@@ -3,12 +3,13 @@
 This document sequences Braventa's capabilities into three phases — Now (MVP proof of concept), Next
 (validation with paying customers), and Later (future vision) — and sets out the business model and a
 configurable pricing framework. It is a planning document, not a commitment: items move only when
-evidence or a founder decision supports it. No prices or entitlements are decided (D-012); every number
-in the pricing framework is a placeholder.
+evidence or a founder decision supports it. Tier names and prices are decided (D-030, D-039; seat prices D-046,
+planned); other limits and entitlements in the pricing framework are placeholders.
 
-**Status / last reviewed: 2026-10-10.** Phase contents align with [MVP_SCOPE.md](MVP_SCOPE.md) and
+**Status / last reviewed: 2026-10-18.** Phase contents align with [MVP_SCOPE.md](MVP_SCOPE.md) and
 [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.md). Sequencing is **Provisional** until confirmed in
-[DECISION_LOG.md](../decisions/DECISION_LOG.md).
+[DECISION_LOG.md](../decisions/DECISION_LOG.md); the Pro integrations, modules, team access, planner and API items
+in Next follow founder decisions D-041 and D-045 – D-053, none of which is built yet.
 
 **Label mapping to the [product vision](GrowthOS_Product_Vision_and_Planning_Context.md) (§8, D-019).**
 The vision asks for Current / MVP / Next / Later / Exploratory. In these docs: **Current** = status *Live*;
@@ -36,10 +37,10 @@ one sitting. Growth Loop coverage: Understand, plus plan, create, approve.
 | Edit business profile; provenance labels | BI-5, BI-6, MS-2 | Not started |
 | Draft the next batch | CS-8 | Not started |
 | Password reset | PL-5 | Not started |
-| Paid AI mode for real customers | NFR performance | Configuration ready, not switched |
+| Paid AI mode for real customers | NFR performance | Live (production runs paid models, D-037) |
 | Guided onboarding questions | BI-12 (D-021) | Live |
-| Opportunity tracking; "do this first" summary | MS-5, UX-1 (D-022) | Not started |
-| AI-assisted onboarding, stage 1: catalog, discovery, top three, website analysis in parallel | ON-1 – ON-4 (D-028) | Not started |
+| Opportunity tracking; "do this first" summary | MS-5, UX-1 (D-022) | Live (delivered by ON-8) |
+| AI-assisted onboarding, stage 1: catalog, discovery, top three, website analysis in parallel | ON-1 – ON-4 (D-028) | Live |
 | AI-assisted onboarding, stage 2: adaptive follow-ups, saved progress | ON-5, ON-6 | Live |
 | AI-assisted onboarding, stage 3: confirmed diagnosis and single plan (replaces 5 opportunities) | ON-7, ON-8 (delivers MS-5, UX-1) | Live |
 
@@ -48,47 +49,73 @@ first-run journey ([USER_JOURNEYS.md](USER_JOURNEYS.md)) without help.
 
 ## 2. Next — validation with paying customers
 
-**Goal:** prove that service businesses pay for and keep using Braventa; add the first connected tool.
-Ordered by recommended priority.
+**Goal:** prove that service businesses pay for and keep using Braventa; put connected tools to work in the
+diagnosis (the first, Google Search Console, is already connected for Pro, but its data doesn't reach the
+diagnosis yet). Ordered by recommended priority.
 
-> **Tiers (D-030):** the items below that connect tools or act for the owner are **Pro** features; their proposed build order is in [PLANS_AND_TIERS.md](PLANS_AND_TIERS.md) §5 (billing, Google read-only, WordPress + first approval-gated agent, social publishing, full audit, creative tools). The public sites follow [SITEMAP.md](../marketing/SITEMAP.md) and [SUPPORT_SITE.md](SUPPORT_SITE.md) (D-031).
+> **Tiers and build order (D-030, D-041):** the items below that connect tools or act for the owner are **Pro** features. They follow D-041's order ([INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) §5) as amended by the founder decisions of 2026-10-18 (D-045 – D-053), in the sequence of the [research README](../research/README.md) §4: the "Connect your tools" step, then the module registry and Search visibility (item 3); then roles and permissions (item 8); then HubSpot read-only (item 3), the social planner and publishing (item 9) and the read-only public API (item 10), which can run in parallel once roles are in. GA4, Canva and HeyGen slot in per D-041. Where the proposed Pro order in [PLANS_AND_TIERS.md](PLANS_AND_TIERS.md) §5 differs from D-041, this roadmap follows D-041. The public sites follow [SITEMAP.md](../marketing/SITEMAP.md) and [SUPPORT_SITE.md](SUPPORT_SITE.md) (D-031).
 
-1. **Production readiness:** deploy to `app.braventa.io` on Vercel (D-011); confirm the analysis run fits
-   the hosting function-duration limits or move long runs to n8n (see
-   [SYSTEM_ARCHITECTURE.md](../architecture/SYSTEM_ARCHITECTURE.md)); plain-language error messages;
-   account and business deletion (PL-8).
+1. **Production readiness:** the app runs on `app.braventa.io` on Vercel (D-011), and analyses run as a chain
+   of steps that each fit the hosting function-duration limit (D-042, see
+   [SYSTEM_ARCHITECTURE.md](../architecture/SYSTEM_ARCHITECTURE.md)). Still to do: plain-language error
+   messages; account and business deletion (PL-8).
 2. **Billing and plan limits:** Stripe subscriptions using the `subscriptions` table (PL-7); limits
    enforced from the pricing framework once decided.
-3. **Connected tools, read-only first (Pro, D-041):** the Google Search Console connection is live; next, a
-   "Connect your tools" step in discovery, then Search Console data in the diagnosis, then GA4 (WI-6), then a
-   HubSpot read-only CRM summary: connect, pipeline summary, data quality, follow-up recommendations (CRM-1 – CRM-4).
-   Built first with HubSpot-using design partners. Order: [INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) §5.
+3. **Connected tools and modules, read-only first (Pro, D-041, D-051, D-048):** the Google Search Console
+   connection is live; next, a "Connect your tools" step in discovery with the Pro gate; then the module registry
+   (D-051 steps 1–5, no change in behavior); then Search visibility, the first new module: Search Console data in the
+   diagnosis, with scores that say "based on N modules"; then GA4 (WI-6); then a HubSpot read-only CRM summary:
+   connect, pipeline summary, data quality, follow-up recommendations (CRM-1 – CRM-4), over HubSpot's REST API with
+   per-tenant OAuth as an unlisted HubSpot app (D-048). GoHighLevel replaces HubSpot if the testers turn out to be
+   agency-managed; ask them first. Built first with design partners who use these tools. Order:
+   [INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) §5.
 4. **AI assistant (committed, D-020):** a read-only help and report assistant is live (D-043); next,
    knowledge-base retrieval (BI-8) then the assistant grounded in it (BI-11); goals and objectives (BI-7, MS-6). Opportunity tracking moved into Now (D-022).
 5. **Quality gate:** automated QA review before approval (CS-9).
 6. **Website checklist and improvement plan** (WI-4, WI-5).
 7. **Customer-facing usage view** and weekly summary (AN-3, AN-4).
-8. **Team access:** invitations, roles, organization switching (PL-6), only if agencies prove to be a
-   buying segment.
-9. **First n8n workflows** with callbacks to `/api/n8n/*`, execution log, retries (AU-3 – AU-6);
-   scheduled weekly re-assessment (AU-4).
-10. **Long-form drafts:** blog and email (CS-10).
-11. **Document upload** (BI-9). (Knowledge-base retrieval moved up with the assistant, item 4.)
+8. **Team access (decided, D-046, D-047):** eight fixed roles with fixed permissions, no custom roles in v1; no one
+   approves their own work except the Owner; connecting integrations stays Owner-only. First the roles and
+   permissions foundation, then invitations, seat limits and organization switching (PL-6), and client approvers
+   (free up to a cap per tier) with a single-use, signed approval link. Invitations need transactional email
+   (Q-010); charging for extra seats needs Stripe (item 2). Each organization also gets an account type, Brand or
+   Agency/Organization (D-045).
+9. **Social planner, then publishing (Pro, D-049; CS-12, moved from Later):** first the planner without publishing:
+   calendar, per-network variants, media library, internal and client approval, comments, revisions and audit trail.
+   Then publishing through Outstand (chosen after a one-week spike) behind a `Publisher` interface, run by an in-app
+   scheduler: Facebook Pages, Instagram and LinkedIn, and Google Business Profile once Google approves access. X is
+   skipped. A post goes out only if its approved revision is the current one (D-013). Publishing is out of the MVP
+   (MVP_SCOPE.md §4); until it ships, nothing may say Braventa publishes. Detail:
+   [INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) §4.
+10. **Read-only public API v1 (D-050):** objects GET, search and properties over the existing tables, with the same
+    handlers exposed as MCP tools; each tool declares its scope, and the default is deny. Scoped `api_keys`
+    (generalized from `mcp_access_keys`), an `api_audit_log` and per-key rate limits. API and MCP clients may create
+    drafts and request approval; approval and publishing happen only in the app. Path versioning is still open.
+11. **First n8n workflows** with callbacks to `/api/n8n/*`, execution log, retries (AU-3 – AU-6);
+    scheduled weekly re-assessment (AU-4).
+12. **Long-form drafts:** blog and email (CS-10).
+13. **Document upload** (BI-9). (Knowledge-base retrieval moved up with the assistant, item 4.)
 
 **Exit criteria:** validation metrics in [MVP_SCOPE.md](MVP_SCOPE.md#5-success-metrics-for-validation-with-paying-customers)
 met or consciously revised; pricing decided.
 
 ## 3. Later — future vision
 
-- Scheduling and publishing through connected tools, with approval by default (CS-12).
-- HubSpot task creation and CRM workflow automation (CRM-5, CRM-6); additional CRMs (CRM-7).
+- (Scheduling and publishing, CS-12, moved to Next, item 9 — D-049.) Later publishing work: TikTok, YouTube Shorts,
+  Pinterest, Threads and Bluesky; direct connectors for high-volume networks; planner extras (best time, queues, CSV
+  import, first comment, post analytics).
+- HubSpot task creation and CRM workflow automation (CRM-5, CRM-6); additional CRMs (CRM-7). Salesforce and Keap
+  ingestion are deferred (D-048).
+- More modules, in D-041 order, from the module-to-tier map (D-051); public API write endpoints and webhooks
+  (D-050); custom roles (D-046).
 - Trigger-based automations and client-configured authorised automations (AU-7, AU-8).
 - The full Improve stage: planned vs actual, outcome learning, next-best-action recommendations
   (AN-5 – AN-7). (Search Console and GA4 moved to Next with the Pro integrations — D-041; the Search Console
   connection is live.)
 - Campaign planning, repurposing, video scripts and creative briefs (MS-7, CS-11).
 - (Grounded Q&A assistant moved to Next — D-020; the read-only in-app assistant shipped — D-043.)
-- Agency features: client approval views, multi-client reporting (CS-13).
+- Agency features: multi-client reporting (CS-13). (Client approvers and roles moved to Next with team access,
+  item 8 — D-046, D-047.)
 - Marketing site at braventa.io (D-011), community, and partner programme.
 
 ### 3.1 Exploratory — no requirement ID until a need is validated
@@ -101,7 +128,9 @@ met or consciously revised; pricing decided.
 
 **Resolved 2026-10-10:** guided onboarding (BI-12) and opportunity tracking + "do this first" (MS-5, UX-1) moved into
 the MVP (D-021, D-022); the assistant is committed for Next (D-020). **2026-10-17:** a read-only in-app assistant
-shipped ahead of retrieval (D-043).
+shipped ahead of retrieval (D-043). **2026-10-18:** the founder decided account types, team roles and seats, client
+approvers, the first CRM, social publishing, the public API and feature modules (D-045 – D-051); team access no longer
+waits for agencies to prove a buying segment, and publishing (CS-12) moved from Later to Next. None of it is built.
 
 ## 4. Business model and pricing framework
 
@@ -118,7 +147,8 @@ managed marketing operations; premium integrations or usage allowances.
 
 ### 4.2 Subscription framework
 
-**Every tier name, limit, entitlement, and price below is an Assumption — not decided (D-012).** The
+**Tier names and prices are decided in [PLANS_AND_TIERS.md](PLANS_AND_TIERS.md) (D-030, D-039; seats D-046).** Every other
+limit and entitlement below is an Assumption — not decided (D-012). The
 framework defines the variables, not their values. Implement plan limits as configuration (for example,
 a `plans` definition keyed by plan id) so values can change without code changes.
 
@@ -163,7 +193,7 @@ currently offered.
 | CRM configuration and optimisation | HubSpot pipeline, properties, data clean-up: `{{crm_scope}}` | Project `{{crm_fee}}` | CRM Intelligence (Next) |
 | Automation packages | Pre-built n8n workflows configured for the client: `{{automation_scope}}` | Package `{{automation_fee}}` plus optional retainer | Automation (Next/Later) |
 | Website and conversion optimisation | Implementing Website Intelligence recommendations: `{{website_scope}}` | Project `{{website_fee}}` | Website Intelligence (MVP/Next) |
-| Managed marketing operations | Ongoing content approval, publishing, reporting on the client's behalf: `{{managed_scope}}` | Monthly retainer `{{managed_fee}}` | Publishing and reporting (Later); client-authorised approvals (D-013) |
+| Managed marketing operations | Ongoing content approval, publishing, reporting on the client's behalf: `{{managed_scope}}` | Monthly retainer `{{managed_fee}}` | Publishing (Next, D-049) and reporting (Later); client-authorized approvals (D-013) |
 | Premium integrations or usage packs | Additional connected tools or runs | Add-on `{{addon_fee}}` | Billing (Next) |
 
 Managed services that act for a client must still follow the approval model: the client either approves
