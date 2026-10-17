@@ -5,12 +5,20 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // lte, gt, gte and or (PostgREST syntax, including and(...) groups), JSON text paths ("output->>step"), limit,
 // order (ignored), single and maybeSingle. Each statement runs atomically when awaited, so of two conditional updates
 // racing for one row only the first matches, as in Postgres. Values are stored as JSON, which drops undefined fields
-// as jsonb does.
+// as jsonb does. Optional: unique constraints on inserts (error code 23505, as PostgREST reports it) and rpc()
+// functions implemented in the test.
 
 export type Row = Record<string, unknown>;
 type Filter = (row: Row) => boolean;
-type Result = { data: unknown; error: { message: string } | null };
+export type FakeError = { message: string; code?: string; details?: string };
+type Result = { data: unknown; error: FakeError | null };
 export type Write = { table: string; kind: "insert" | "update" | "delete"; values: unknown };
+export type FakeOptions = {
+  // Per table, the column sets that must be unique among inserted rows.
+  unique?: Record<string, string[][]>;
+  // rpc(name, args) implementations; they get the args and the tables. Calling an unknown function is an error.
+  rpc?: Record<string, (args: Row, tables: Record<string, Row[]>) => unknown>;
+};
 
 // A column, or a JSON field as text with "col->>key" (null when missing, as in Postgres).
 function read(row: Row, column: string): unknown {
@@ -93,8 +101,9 @@ class Query implements PromiseLike<Result> {
   constructor(
     private table: string,
     private rows: Row[],
-    private failNext: (write: Write) => string | null,
+    private failNext: (write: Write) => FakeError | null,
     private defaults: () => Row,
+    private unique: string[][] = [],
   ) {}
 
   select() {
@@ -178,12 +187,29 @@ class Query implements PromiseLike<Result> {
 
   private run(): Result {
     const injected = this.kind === "select" ? null : this.failNext({ table: this.table, kind: this.kind, values: this.values });
-    if (injected) return { data: null, error: { message: injected } };
+    if (injected) return { data: null, error: injected };
     const json = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
     const matches = () => this.rows.filter((row) => this.filters.every((f) => f(row)));
     let out: Row[];
     if (this.kind === "insert") {
       out = (Array.isArray(this.values) ? this.values : [this.values as Row]).map((v) => ({ ...this.defaults(), ...json(v) }));
+      for (const columns of this.unique) {
+        const key = (row: Row) => JSON.stringify(columns.map((c) => row[c] ?? null));
+        const seen = new Set(this.rows.map(key));
+        for (const row of out) {
+          if (seen.has(key(row))) {
+            return {
+              data: null,
+              error: {
+                code: "23505",
+                message: `duplicate key value violates unique constraint "${this.table}_${columns.join("_")}_key"`,
+                details: `Key (${columns.join(", ")})=(${columns.map((c) => String(row[c])).join(", ")}) already exists.`,
+              },
+            };
+          }
+          seen.add(key(row));
+        }
+      }
       this.rows.push(...out);
       if (!this.returning) return { data: null, error: null };
     } else if (this.kind === "update") {
@@ -207,29 +233,41 @@ class Query implements PromiseLike<Result> {
 export type FakeSupabase = {
   db: SupabaseClient;
   tables: Record<string, Row[]>;
-  // Makes the next n writes (insert, update, delete) that `match` fail with an error, as a dropped connection would.
-  failWrites: (n: number, match?: (write: Write) => boolean) => void;
+  // Makes the next n writes (insert, update, delete) that `match` fail with `error` (by default a dropped connection,
+  // which PostgREST reports without a code).
+  failWrites: (n: number, match?: (write: Write) => boolean, error?: FakeError) => void;
+  // Every rpc() call, in order.
+  rpcCalls: { name: string; args: Row }[];
 };
 
 // `defaults` are column defaults per table for inserted rows (every row also gets an id and created_at).
-export function fakeSupabase(tables: Record<string, Row[]> = {}, defaults: Record<string, Row> = {}): FakeSupabase {
+export function fakeSupabase(tables: Record<string, Row[]> = {}, defaults: Record<string, Row> = {}, options: FakeOptions = {}): FakeSupabase {
   let failures = 0;
   let matches: (write: Write) => boolean = () => true;
+  let failure: FakeError = { message: "connection reset" };
   const failNext = (write: Write) => {
     if (failures <= 0 || !matches(write)) return null;
     failures -= 1;
-    return "connection reset";
+    return failure;
   };
+  const rpcCalls: { name: string; args: Row }[] = [];
   const db = {
     from(table: string) {
       tables[table] ??= [];
       const rowDefaults = () => ({ id: crypto.randomUUID(), created_at: new Date().toISOString(), ...defaults[table] });
-      return new Query(table, tables[table], failNext, rowDefaults);
+      return new Query(table, tables[table], failNext, rowDefaults, options.unique?.[table]);
+    },
+    async rpc(name: string, args: Row = {}): Promise<Result> {
+      rpcCalls.push({ name, args });
+      const fn = options.rpc?.[name];
+      if (!fn) return { data: null, error: { code: "PGRST202", message: `Could not find the function public.${name}` } };
+      return { data: fn(args, tables) ?? null, error: null };
     },
   };
-  const failWrites = (n: number, match: (write: Write) => boolean = () => true) => {
+  const failWrites = (n: number, match: (write: Write) => boolean = () => true, error: FakeError = { message: "connection reset" }) => {
     failures = n;
     matches = match;
+    failure = error;
   };
-  return { db: db as unknown as SupabaseClient, tables, failWrites };
+  return { db: db as unknown as SupabaseClient, tables, failWrites, rpcCalls };
 }

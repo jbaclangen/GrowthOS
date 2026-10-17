@@ -63,13 +63,14 @@ export async function resendDue(
 }
 
 // For the page that polls a running analysis: fails jobs that stopped making progress, then re-sends steps whose
-// hand-off was lost (after the response, so the page isn't held up).
+// hand-off was lost (after the response, so the page isn't held up). In database mode the re-send is a re-post of
+// the stored dispatch by Postgres, which also re-posts on its own every minute (lib/pipeline/dispatch.ts).
 export async function superviseJobs(organizationId: string) {
   await failStaleJobs(organizationId);
   const due = await resendDue(organizationId);
   if (due.length) {
     after(async () => {
-      await Promise.all(due.map((job) => handOff(job, job.step)));
+      await Promise.all(due.map((job) => handOff(job, job.step, undefined, { resend: true })));
     });
   }
 }

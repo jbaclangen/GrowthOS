@@ -90,6 +90,21 @@ RLS. Rules:
   constant time. A valid token only lets the caller run that job's step if it is still pending; it reads and writes
   nothing else and returns no data. The server sends the token only to `NEXT_PUBLIC_APP_URL` (in development, its
   own port), never to an address taken from the request, so a forged Host header can't redirect it.
+  In production (database dispatch mode, amended D-042 2026-10-17) the server doesn't POST the token itself: it stores
+  `{job, step, url, token}` in `public.job_dispatches` and Postgres POSTs it with `pg_net`, because Vercel refuses a
+  deployment calling itself in a chain (HTTP 508). That table holds bearer tokens, so it is **service-role only**: RLS
+  on with no policies, all privileges revoked from `anon`, `authenticated` and `PUBLIC`; the server never reads a
+  token back (inserts return nothing, re-sends happen inside Postgres through `resend_job_dispatch`); `url` must be
+  `https://<host>/api/jobs/continue` and `token` an HMAC-shaped value (check constraints); a composite foreign key
+  ties each row to a job of the same organization. Rows are deleted with the job or organization and by an hourly
+  cleanup after a day. While a request is queued, `pg_net` keeps its body (so the token) in `net.http_request_queue`,
+  and responses for 6 hours in `net._http_response`; the `net` schema isn't exposed through the Data API. But
+  `pg_net` grants those tables to `PUBLIC` (Supabase doesn't support changing that), so a queued token is readable
+  by any database login role (`postgres`, or a role created with `LOGIN`), not only through the Data API, and a
+  stalled `pg_net` worker keeps bodies in the queue until it is restarted (`select net.worker_restart();`); the
+  health checks fail when posts go unanswered. Tokens are never logged (errors log only the PostgREST code and
+  message, never the failing row). The `pg_cron` sweeper, running as the table's owner, fails a job only through
+  the dispatch's own (job, organization) pair and only while that step is still pending.
 - Password policy, leaked-password protection, rate limits, and email confirmation requirement are set in the
   Supabase dashboard and are not verifiable from the repo; confirm them before launch.
 - **MCP access keys (D-036):** `/api/mcp` accepts `Authorization: Bearer brv_…` personal access keys instead of a
@@ -252,6 +267,9 @@ What is undecided / not implemented:
   statements, follow-up answers). A job that succeeds keeps only pointers, except the evidence job, which keeps the
   evidence for the plan job. A job that fails, at a step, at a hand-off or by the reaper, keeps at most its step
   name. Members of the organization can read the row (RLS).
+- `job_dispatches` (D-042, production hand-offs): one row per handed-off step with its HMAC token (see §4). Service
+  role only; deleted with the job or organization, and by the hourly `cleanup_job_dispatches` once older than a day
+  (which also trims the sweeper's `cron.job_run_details` to 7 days).
 - In-app assistant (D-043): questions and answers are not stored; the conversation lives only in the browser tab.
   `assistant_usage` keeps one row per question (who, when, answered or failed) for the limits, and `ai_usage` the
   tokens and cost. Both are deleted with the organization (and `assistant_usage` with the user).
@@ -266,6 +284,10 @@ What is undecided / not implemented:
 - `ai_jobs`: job input, step progress (`output.step`, `step_state`, `step_started_at`, `resent_at`), error text;
   while running, the step artifacts listed in §10; when done, output pointers (and the evidence, for evidence
   jobs).
+- `job_dispatches` (production hand-offs): `attempts`, `last_sent_at` and `last_request_id` (the `pg_net` request,
+  whose response stays in `net._http_response` for 6 hours) per step; `job_dispatch_health()` (service role only)
+  reports failed posts (by status code), posts with no answer, whether `pg_net`'s worker and the sweeper run, to the
+  health checks without exposing tokens.
 - `content_items.approved_by/approved_at`: last approval only (overwritten on undo).
 - Server `console.error` for failed jobs and failed usage inserts (Vercel function logs in production).
   Error messages can include upstream response bodies (e.g. OpenRouter errors) and are shown to the user on

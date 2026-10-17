@@ -7,7 +7,8 @@
 //   npm run pipeline:local -- --origin http://localhost:3006 https://example.com [https://another.com]
 //
 // --origin is the dev server that runs the steps (default NEXT_PUBLIC_APP_URL from .env.local). The dev server hands
-// later steps to itself (the port it listens on), so only the first hand-off needs it.
+// later steps to itself (the port it listens on, "direct" dispatch mode), so only the first hand-off needs it. Leave
+// JOB_DISPATCH unset (or "direct") locally: in "database" mode Supabase would post the steps to NEXT_PUBLIC_APP_URL.
 //
 // Every row it creates belongs to the organization named below; delete that organization to clean up.
 
@@ -58,7 +59,8 @@ async function runOne(org: string, websiteUrl: string) {
 
   console.log(`\n${websiteUrl}: job ${job.id}`);
   const t0 = Date.now();
-  if (!(await dispatchStep(job.id, firstStep(WORKER), { origin }))) {
+  // --origin always hands off directly; without it, the mode follows JOB_DISPATCH (direct on a developer machine).
+  if (!(await dispatchStep({ id: job.id, organizationId: org }, firstStep(WORKER), { origin }))) {
     throw new Error(`the continue route at ${origin ?? "NEXT_PUBLIC_APP_URL"} did not accept the first step (is the dev server running there?)`);
   }
 

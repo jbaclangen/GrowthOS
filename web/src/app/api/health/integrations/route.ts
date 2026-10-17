@@ -5,7 +5,8 @@ import { pageSpeed } from "@/lib/integrations/google";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { envConfigured } from "@/lib/env";
 import { continueKey } from "@/lib/pipeline/continue-token";
-import { continueUrl } from "@/lib/pipeline/dispatch";
+import { continueUrl, databaseContinueUrl, dispatchMode } from "@/lib/pipeline/dispatch";
+import { assessDispatchHealth, type DispatchHealth } from "@/lib/pipeline/dispatch-health";
 
 type Check = { ok: boolean; detail: string };
 
@@ -77,15 +78,40 @@ function searchConsoleCheck(): Check {
     : { ok: true, detail: "configured (OAuth client and encryption key set; the OAuth flow itself isn't exercised here)" };
 }
 
-// Analysis steps hand off to each other through /api/jobs/continue (D-042). Checks the signing key and that the
-// route is reachable where the steps will call it: an empty request must come back 400 from the route itself, not
-// a redirect to /login or another server.
+// Analysis steps hand off to each other through /api/jobs/continue (D-042). Checks the signing key, reports the
+// dispatch mode (lib/pipeline/dispatch.ts) and checks that the route is reachable where the hand-offs will call it
+// (direct mode: this server; database mode: the public https URL Postgres posts to). Whatever the mode here, it also
+// checks the database side (job_dispatch_health, service role only): every environment shares one database and
+// production hands off through it, so a missing migration, extension, worker or sweeper, or posts that were refused
+// or never answered, make this check fail even on a developer machine.
 async function jobHandoffCheck(): Promise<string> {
   if (!envConfigured("JOB_CONTINUE_SECRET")) {
     throw new Error("JOB_CONTINUE_SECRET is set but shorter than 32 characters: every analysis would fail as soon as it is queued");
   }
+  if (!envConfigured("JOB_DISPATCH")) throw new Error('JOB_DISPATCH must be "database" or "direct" (or unset)');
   continueKey();
-  const url = continueUrl();
+  const key = process.env.JOB_CONTINUE_SECRET?.trim() ? "from JOB_CONTINUE_SECRET" : "derived from SUPABASE_SECRET_KEY";
+  const mode = dispatchMode();
+  const url = mode === "direct" ? continueUrl() : databaseContinueUrl();
+  const label = mode === "direct" ? "direct mode (this app posts to itself)" : "database mode (Postgres posts each hand-off)";
+  const { data, error } = await createSupabaseAdminClient().rpc("job_dispatch_health");
+  if (error) {
+    throw new Error(
+      `${label}; job_dispatch_health failed, so production can't hand analysis steps on: apply the job_dispatches migration ` +
+        `(supabase/migrations) with the Supabase CLI: ${error.message}`,
+    );
+  }
+  const report = assessDispatchHealth((data ?? {}) as DispatchHealth);
+  await expectContinueRoute(url);
+  const detail = `${label}: ${url} reachable; key ${key}; Postgres side: ${report.summary}`;
+  if (report.problems.length) throw new Error(`${detail}. ${report.status}: ${report.problems.join("; ")}`);
+  return detail;
+}
+
+// An empty request must come back 400 from the route itself, not a redirect to /login or another server. It can't
+// prove that the deployment signs with the same key (the route rejects the body before it checks a token): in database
+// mode a key mismatch shows up as 401s among the failed posts that job_dispatch_health reports.
+async function expectContinueRoute(url: string) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -98,5 +124,4 @@ async function jobHandoffCheck(): Promise<string> {
     const hint = res.status >= 300 && res.status < 400 ? " (redirected: is the route public in proxy.ts, and is this the right server?)" : "";
     throw new Error(`${url} answered HTTP ${res.status}, expected 400 for an empty request${hint}`);
   }
-  return `${url} reachable; key ${process.env.JOB_CONTINUE_SECRET?.trim() ? "from JOB_CONTINUE_SECRET" : "derived from SUPABASE_SECRET_KEY"}`;
 }

@@ -120,11 +120,33 @@ digest, discovery, plan titles, calendar id, first batch), queues the next step 
 `POST /api/jobs/continue` (HMAC of job id + step, `JOB_CONTINUE_SECRET` or a key derived from
 `SUPABASE_SECRET_KEY`); that route answers 202 and runs the step in its own `after()`. The first step is handed off
 the same way, from the `after()` of the request that queued the job. A repeated or late hand-off does nothing. A
-step that fails marks the job failed with its error, as before. A hand-off the route doesn't accept (3 attempts;
-timeouts, 408, 429 and 5xx are retried) fails the job at once with "The analysis couldn't continue. Run it again."
-A step still pending 60 s after its hand-off is re-sent by the report page's poll (`resendDue`), and a step cut off
-by the platform is failed by the stale-job reaper 10 minutes after the step's last progress
-(`output.step_started_at`, `lib/pipeline/jobs.ts`). Failed jobs keep no step artifacts. Measured 2026-10-17 on a re-run (`npm run pipeline:local`):
+step that fails marks the job failed with its error, as before.
+
+**Who sends the hand-off (`lib/pipeline/dispatch.ts`, `JOB_DISPATCH`).** Vercel answers a deployment that calls
+itself in a chain with HTTP 508 `INFINITE_LOOP_DETECTED` after about four calls (undocumented threshold): in
+production on 2026-10-17 the 5th self-call of a re-run (`writing`) failed that way. So in production the app never
+POSTs to itself:
+- **database** (production: set `JOB_DISPATCH=database` in Vercel's Production environment; without it, also the
+  default when `VERCEL=1` or for a production build whose `NEXT_PUBLIC_APP_URL` is https): the app inserts
+  `{organization_id, job_id, step, url, token}` into `public.job_dispatches` (service client, scoped to the job's
+  organization; the `job_dispatches` migration) and an `AFTER INSERT` trigger has Postgres POST it with `pg_net`
+  once the insert commits (10 s timeout). If the hand-off can't be recorded (3 attempts for dropped connections; a
+  missing table or refused write is not retried) the job fails at once with "The analysis couldn't continue. Run it
+  again." The route's answer goes to Postgres, not the app, so a `pg_cron` sweeper checks it every minute from
+  `pg_net`'s response to the last post: a post the route refused (anything but 202, 408, 429 or 5xx, e.g. a 401
+  because the deployment signs with another key, a 404 or a redirect) fails the job with the same message; so does
+  a 4th post that failed too (timeout, connection error, 408, 429, 5xx). Otherwise it re-posts a dispatch whose step
+  is still pending 60 s after its last post, up to 4 posts in all. A post that never gets an answer (`pg_net`'s
+  worker stopped, or its queue was lost) is left to the reaper, and `job_dispatch_health` reports it.
+- **direct** (default everywhere else, i.e. local development): the app POSTs to its own route (3 attempts; timeouts,
+  408, 429 and 5xx are retried) and a refusal, or 3 failed attempts, fails the job at once the same way. Supabase
+  can't reach localhost, and `next dev` has no loop detection.
+
+A step still pending 60 s after its hand-off is also re-sent by the report page's poll (`resendDue`): in database
+mode by `resend_job_dispatch`, which has Postgres re-post the stored dispatch, so the token never leaves the
+database, or answers that the hand-off failed for good, and the app fails the job. A step cut off by the platform
+is failed by the stale-job reaper 10 minutes after the step's last progress
+(`output.step_started_at`, `lib/pipeline/jobs.ts`). Failed jobs keep no step artifacts. Measured 2026-10-17 on a re-run (`npm run pipeline:local`, direct mode):
 thebenefitlink.com (regulated) 56 / 22 / 59 / 45 / 58 s per step, 244 s total, $0.38; pixelmarketingdesign.com
 25 / 20 / 56 / 48 / 33 s, 185 s total, $0.29.
 

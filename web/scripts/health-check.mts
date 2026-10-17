@@ -7,6 +7,8 @@
 //
 // Uses web/.env.local (service key) to read Supabase; never prints secrets.
 
+import { assessDispatchHealth, type DispatchHealth } from "@/lib/pipeline/dispatch-health";
+
 type Status = "OK" | "WARN" | "FAIL";
 type Result = { area: string; check: string; status: Status; detail: string };
 const results: Result[] = [];
@@ -105,6 +107,19 @@ async function supabase() {
     add("Integrations", "Active MCP access keys", "OK", `${keys.count}`);
   } catch (e) {
     add("Supabase", "Queries", "FAIL", (e as Error).message.slice(0, 200));
+  }
+  // Production hands each analysis step on through Postgres (job_dispatches + pg_net, re-posted by a pg_cron sweeper;
+  // D-042). job_dispatch_health is service-role only and returns counts and versions, never tokens. The rules are
+  // shared with /api/health/integrations (src/lib/pipeline/dispatch-health.ts): FAIL when hand-offs can't go out,
+  // including posts pg_net never answered (stalled worker: `select net.worker_restart();`), WARN on refused posts.
+  const check = "Step hand-off through Postgres (pg_net)";
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/job_dispatch_health`, { method: "POST", headers: { ...h, "content-type": "application/json" }, body: "{}" });
+    if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 120)}`);
+    const report = assessDispatchHealth((await res.json()) as DispatchHealth);
+    add("Pipeline", check, report.status, report.problems.length ? `${report.problems.join("; ")} — ${report.summary}` : report.summary);
+  } catch (e) {
+    add("Pipeline", check, "FAIL", `job_dispatch_health unavailable (apply the job_dispatches migration in supabase/migrations with the Supabase CLI): ${(e as Error).message.slice(0, 160)}`);
   }
 }
 
