@@ -12,7 +12,8 @@
     "eval:models": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/compare-models.mts",
     "audit:site": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/audit-site.mts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "health": "tsx --env-file=.env.local --tsconfig tsconfig.json scripts/health-check.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
