@@ -19,7 +19,7 @@ export type AssistantDeps = {
   reserve: (orgId: string, userId: string, limits: typeof ASSISTANT_LIMITS) => Promise<Reservation>;
   finish: (orgId: string, usageId: number, status: "answered" | "failed") => Promise<void>;
   loadSummary: (org: AssistantOrg, userId: string) => Promise<BusinessSummary>;
-  ask: (orgId: string, messages: ChatMessage[]) => Promise<{ text: string }>;
+  ask: (orgId: string, messages: ChatMessage[]) => Promise<{ text: string; finishReason?: string | null }>;
   isBudgetError: (e: unknown) => boolean;
   logError: (message: string, e: unknown) => void;
   now?: Date;
@@ -34,6 +34,7 @@ export const MESSAGES = {
   budget: "Your business has reached its monthly AI usage limit, so the assistant is paused until next month. Contact us at braventa.io/contact to raise the limit.",
   failed: "The assistant couldn't answer just now. Try again in a minute; if it keeps happening, contact us at braventa.io/contact.",
   empty: "The assistant didn't return an answer. Try asking again, in different words.",
+  cutOff: "(The answer was cut short. Ask about one thing at a time for a complete answer.)",
 } as const;
 
 export async function handleAssistantRequest(body: unknown, deps: AssistantDeps): Promise<AssistantResponse> {
@@ -97,5 +98,9 @@ export async function handleAssistantRequest(body: unknown, deps: AssistantDeps)
     return { status: 502, body: { error: MESSAGES.empty } };
   }
   await settle("answered");
-  return { status: 200, body: { answer: text, remainingToday: limit.remainingToday } };
+  // Hit the output ceiling: keep what arrived and say so, instead of showing a sentence that just stops.
+  const complete = answer.finishReason === "length" ? `${text}…
+
+${MESSAGES.cutOff}` : text;
+  return { status: 200, body: { answer: complete, remainingToday: limit.remainingToday } };
 }

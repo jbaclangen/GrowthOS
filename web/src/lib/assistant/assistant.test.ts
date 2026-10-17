@@ -432,6 +432,17 @@ describe("handleAssistantRequest", () => {
     };
   }
 
+  it("keeps a cut-off answer and says it was cut short", async () => {
+    const res = await handleAssistantRequest(
+      { question: "Hi" },
+      deps({ ask: async () => ({ text: "First, fix the testimonials page", finishReason: "length" }) }),
+    );
+    expect(res.status).toBe(200);
+    const answer = (res.body as { answer: string }).answer;
+    expect(answer.startsWith("First, fix the testimonials page…")).toBe(true);
+    expect(answer).toContain(MESSAGES.cutOff);
+  });
+
   it("reserves a slot, answers, then marks the slot answered", async () => {
     const calls: string[] = [];
     const reserve = vi.fn(async () => (calls.push("reserve"), free));
