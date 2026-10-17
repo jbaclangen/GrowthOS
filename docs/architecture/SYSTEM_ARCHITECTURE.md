@@ -56,6 +56,7 @@ flowchart LR
   subgraph Supabase["Supabase (system of record)"]
     AUTH[Auth]
     DB[(Postgres + RLS<br/>is_member)]
+    NET[pg_net + pg_cron<br/>job_dispatches: posts step hand-offs]
   end
 
   OR[OpenRouter]
@@ -69,6 +70,8 @@ flowchart LR
   SA -- user client, RLS --> DB
   SA -- schedules --> AFTER
   AFTER -- admin client, org-scoped --> DB
+  DB --> NET
+  NET -- "POST {jobId, step, token} (production)" --> API
   AFTER --> SITE
   AFTER --> PSI
   AFTER --> ROUTER --> OR
@@ -85,6 +88,7 @@ sequenceDiagram
   participant U as Browser
   participant SA as Server action (or MCP route)
   participant DB as Supabase
+  participant N as pg_net (in Postgres)
   participant C as /api/jobs/continue (one invocation per step)
   participant P as /analysis/[id] page
 
@@ -93,18 +97,24 @@ sequenceDiagram
   SA->>DB: getCurrentOrg() (RLS), if none rpc create_organization
   SA->>DB: insert business_profiles, ai_jobs {status: queued, output: first step pending} (RLS)
   SA-->>U: redirect (discovery, or /analysis/{businessProfileId})
-  SA->>C: after(): POST {jobId, step, HMAC token} (dispatchStep)
-  C-->>SA: 202 (if refused: job failed at once, "couldn't continue")
+  SA->>DB: after(): insert job_dispatches {job, step, HMAC token} (dispatchStep, database mode)
+  DB->>N: AFTER INSERT trigger: net.http_post (sent on commit)
+  N->>C: POST {jobId, step, token}
+  C-->>N: 202 (if the dispatch can't be recorded: job failed at once, "couldn't continue")
   loop each step: crawling, profiling, scoring, planning, writing
     C->>DB: claim the step (conditional update: pending to running)
     C->>C: run the step (at most one model call, about a minute)
     C->>DB: store artifacts in ai_jobs.output, next step pending
-    C->>C: after(): POST the next step (a new invocation)
+    C->>DB: after(): insert job_dispatches for the next step
+    DB->>N: trigger posts it to a new invocation
   end
   C->>DB: ai_jobs status=succeeded (or failed + error)
+  loop every minute (pg_cron)
+    DB->>N: re-post dispatches still pending 60 s after the last post (4 posts at most)
+  end
   loop every 4 s while job queued/running
     U->>P: router.refresh() (AutoRefresh)
-    P->>DB: fail stale jobs, re-send a step pending for over 60 s
+    P->>DB: fail stale jobs, re-send a step pending for over 60 s (rpc resend_job_dispatch)
     P->>DB: read profile, latest ai_jobs, report, calendar, items (RLS)
   end
 ```
@@ -123,9 +133,10 @@ Step by step (code references are to `web/src/`):
    analysis, `'website_intel'` for a re-run; `task_class = 'complex'`; `input = {businessProfileId, websiteUrl,
    sessionId?}`; `output` = its first step, pending) are inserted **with the user's client**, so RLS proves
    membership before anything runs.
-5. **Run.** `startJob` (`lib/pipeline/handoff.ts`) hands the first step to `/api/jobs/continue` in `after()`,
-   so even the first step runs in its own invocation with the full time limit, whatever the queuing request
-   already spent. The user is redirected to discovery or `/analysis/{profileId}`.
+5. **Run.** `startJob` (`lib/pipeline/handoff.ts`) hands the first step to `/api/jobs/continue` in `after()`
+   (in production by recording it for Postgres to send, see below), so even the first step runs in its own
+   invocation with the full time limit, whatever the queuing request already spent. The user is redirected to
+   discovery or `/analysis/{profileId}`.
 6. **Pipeline** (`lib/pipeline/website-intel.ts`) uses the **admin client**. It loads the job by id and takes
    `organization_id` from the job row (which RLS already vetted at insert time), and scopes every write with
    that id. Steps, each recorded in `ai_jobs.output.step`: `crawling` -> `profiling` -> `scoring` ->
@@ -133,18 +144,26 @@ Step by step (code references are to `web/src/`):
    - **Step chaining** (`lib/pipeline/steps.ts`, 2026-10-17): each step runs in its own function invocation, so
      no invocation reaches Vercel Hobby's 300 s limit. `runAnalysisJob(jobId, step)` claims the pending step
      with a conditional update on `output.step`/`output.step_state`, runs it, stores what later steps need in
-     `ai_jobs.output`, queues the next step and calls `dispatchStep` (`lib/pipeline/dispatch.ts`), which POSTs
+     `ai_jobs.output`, queues the next step and calls `dispatchStep` (`lib/pipeline/dispatch.ts`), which gets
      `{jobId, step, token}` to `/api/jobs/continue` at `NEXT_PUBLIC_APP_URL`. The route checks the HMAC token
      (`lib/pipeline/continue-token.ts`), answers 202 and runs the step in its own `after()` (`maxDuration` 300).
      The first step is handed off the same way, from the `after()` of whatever queued the job (server action or
      MCP route). Evidence jobs run `crawling`, `profiling`; plan jobs `scoring`, `planning`, `writing`; re-runs
      all five; corrections only `scoring`. When an evidence job finishes and discovery is done, the plan job is
-     queued at `scoring` and handed off the same way. In development the hand-off goes to the dev server's own
-     port (`PORT`, which `next dev` sets to the port it listens on), not `NEXT_PUBLIC_APP_URL`.
-   - **Hand-off failures** (`lib/pipeline/handoff.ts`, `jobs.ts`): `dispatchStep` retries timeouts, 408, 429 and
-     5xx (3 attempts) and never throws. A hand-off that isn't accepted fails the job at once ("The analysis
-     couldn't continue. Run it again."). A step still pending 60 s after it was queued (accepted but never
-     claimed) is re-sent by the report page's poll, at most once a minute; the claim makes repeats harmless.
+     queued at `scoring` and handed off the same way.
+   - **Dispatch modes** (`JOB_DISPATCH`, amended D-042 2026-10-17): Vercel answers a deployment calling itself in a
+     chain with HTTP 508 (loop detection, about four calls), which failed the 5th step of a production re-run. So in
+     production (`database`, the default when `VERCEL=1`) the app never calls itself: it inserts the hand-off into
+     `public.job_dispatches` with the service client, and Postgres POSTs it with `pg_net` from an `AFTER INSERT`
+     trigger once the insert commits; a `pg_cron` sweeper re-posts a step still pending a minute after its last post
+     (4 posts at most). Locally (`direct`, the default elsewhere) the app POSTs to its own route, at the dev server's
+     own port (`PORT`, which `next dev` sets to the port it listens on), since Supabase can't reach localhost.
+   - **Hand-off failures** (`lib/pipeline/handoff.ts`, `jobs.ts`): `dispatchStep` never throws. Direct mode retries
+     timeouts, 408, 429 and 5xx (3 attempts); database mode retries dropped connections (3 attempts) but not a
+     missing table or a refused write. A hand-off that can't be recorded or isn't accepted fails the job at once
+     ("The analysis couldn't continue. Run it again."). A step still pending 60 s after it was queued (accepted but
+     never claimed) is re-sent by the report page's poll, at most once a minute (database mode: Postgres re-posts
+     the stored dispatch, `resend_job_dispatch`); the claim makes repeats harmless.
    - Crawl (max 6 same-host pages, 6,000 chars each, 15 s timeout and 2 MB cap per fetch, public addresses
      only — see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#7-prompt-injection-posture)) and PageSpeed (mobile) run in
      parallel; PageSpeed failure is tolerated.
@@ -179,17 +198,19 @@ The brief and `CLAUDE.md` assign workflow execution to n8n. The pipeline current
 |---|---|---|
 | Simplicity | One codebase, typed, zod-validated, uses `runWorker` directly | Second system; JSON workflows; must call back into the app for every AI step to keep the routing rule |
 | Duration | Each step runs in its own invocation (`maxDuration` 300 on the routes that start or continue a job) and takes about a minute; the steps are chained through `/api/jobs/continue` | Long-running and scheduled jobs are native |
-| Durability | A refused hand-off fails the job at once; an accepted one that never ran is re-sent after 60 s while the report page is open; a step that dies mid-run is failed by the reaper 10 minutes after its last progress (the step itself is never retried) | Execution history, retries, error workflows |
+| Durability | A hand-off that can't be recorded (or, locally, is refused) fails the job at once; in production Postgres re-posts one that never ran every minute (4 posts at most), and the report page re-sends it after 60 s while open; a step that dies mid-run is failed by the reaper 10 minutes after its last progress (the step itself is never retried) | Execution history, retries, error workflows |
 | Scheduling | None | Cron, delays, follow-ups |
 | Observability | `console.error` + `ai_jobs.error` | n8n execution log + `ai_jobs.n8n_execution_id` (column already exists) |
 
 **Recommendation.** Keep the step chain for the MVP. D-042 already handles what used to be the trigger to move, a
 run longer than the host's max duration: each step is its own invocation (about a minute, `maxDuration` 300),
-the stale-job reaper fails steps that die, and lost hand-offs are re-sent. Move to n8n (or a queue) when any of
-these is true: a single step no longer fits one invocation (a much larger crawl, or a step with several model
-calls), a feature needs scheduling or retries of failed steps (recurring audits, CRM syncs, follow-ups), lost
-steps must recover without the report page open (re-sends only happen while it polls), or concurrent runs start
-timing out. When moving, keep the pipeline logic in the app and have n8n orchestrate by calling authenticated
+the stale-job reaper fails steps that die, and lost hand-offs are re-sent (in production by Postgres, without the
+report page open; the hand-offs go through `pg_net` because Vercel's loop detection refuses a deployment calling
+itself in a chain). Move to n8n (or a queue) when any of these is true: a single step no longer fits one invocation
+(a much larger crawl, or a step with several model calls), a feature needs scheduling or retries of failed steps
+(recurring audits, CRM syncs, follow-ups), stale jobs must be failed without anyone opening the app (the reaper
+runs only when the dashboard, the report page or a new run looks at the organization's jobs), or concurrent runs
+start timing out. When moving, keep the pipeline logic in the app and have n8n orchestrate by calling authenticated
 app endpoints (the continue route is already one), so AI routing, budgets and RLS-scoped writes stay in one place.
 
 ## 4. Auth and request gate

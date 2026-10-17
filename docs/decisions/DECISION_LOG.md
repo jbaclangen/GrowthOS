@@ -479,6 +479,19 @@ private test with about 3 invited accounts.
 - Prompts, models and outputs are unchanged. Moving orchestration to n8n or a queue stays the long-term option
   ([SYSTEM_ARCHITECTURE.md §3](../architecture/SYSTEM_ARCHITECTURE.md)). Resolves Q-004. Detail: AI_ROUTING_AND_COSTS.md
   (Reliability).
+- **Amended 2026-10-17 (Engineering): in production, Supabase sends the hand-offs, not the app.** In production the
+  5th self-call of a re-run failed with "handing step writing of job … failed: HTTP 508 (attempt 3)": Vercel answers
+  a deployment that calls itself in a chain with 508 `INFINITE_LOOP_DETECTED` after about four calls (undocumented
+  threshold), so the app must never call itself in a chain. Now, with `JOB_DISPATCH=database` (the default on
+  Vercel, `VERCEL=1`), every hand-off (the first step's too) is an insert into `public.job_dispatches` (service
+  client, scoped to the job's organization) and Postgres POSTs it to `/api/jobs/continue` with `pg_net` from an
+  `AFTER INSERT` trigger; a `pg_cron` sweeper re-posts a step still pending a minute after its last post (4 posts at
+  most), and the report page's re-send has Postgres re-post the stored row (`resend_job_dispatch`), so tokens never
+  leave the database. The table holds the HMAC tokens: service role only (RLS, no policies, no client privileges),
+  deleted with the job and after a day. `direct` (the default elsewhere) keeps the app POSTing to itself for local
+  development, which Supabase can't reach. The route, token, claims, immediate failure of an unrecordable hand-off
+  and the 10-minute reaper are unchanged. Migration `20261017110000_job_dispatches.sql` must be applied before this
+  app version is deployed.
 
 ## D-043 — In-app AI assistant ("Ask Braventa"), read-only
 **Status:** Founder (2026-10-17, in chat). Supersedes D-020's "not in the MVP": the in-app assistant ships now, before

@@ -25,6 +25,7 @@ const ORG = "org-1";
 const JOB = "job-1";
 const PROFILE = "profile-1";
 const SESSION = "session-1";
+const REF = { id: JOB, organizationId: ORG };
 
 const INTEL = {
   company_name: "Example Plumbing",
@@ -78,7 +79,7 @@ describe("runAnalysisJob", () => {
     await Promise.all([runAnalysisJob(JOB, "profiling"), runAnalysisJob(JOB, "profiling")]);
     expect(runWorkerJson).toHaveBeenCalledTimes(1);
     expect(dispatchStep).toHaveBeenCalledTimes(1);
-    expect(dispatchStep).toHaveBeenCalledWith(JOB, "scoring");
+    expect(dispatchStep).toHaveBeenCalledWith(REF, "scoring", expect.anything());
     expect(jobRow()).toMatchObject({ status: "running", output: { step: "scoring", step_state: "pending", claim: null, evidence: EVIDENCE } });
     expect((jobRow().output as JobState).digest).toBeUndefined();
   });
@@ -110,7 +111,7 @@ describe("runAnalysisJob", () => {
     setup().failWrites(1, isAdvance);
     await runAnalysisJob(JOB, "profiling");
     expect(jobRow().output).toMatchObject({ step: "scoring", step_state: "pending" });
-    expect(dispatchStep).toHaveBeenCalledWith(JOB, "scoring");
+    expect(dispatchStep).toHaveBeenCalledWith(REF, "scoring", expect.anything());
   });
 
   it("fails the job when the next step can't be written", async () => {
@@ -147,7 +148,7 @@ describe("runAnalysisJob", () => {
     const session = fake.current!.tables.onboarding_sessions[0];
     const plan = jobRow(session.plan_job_id as string);
     expect(plan.worker).toBe("website_plan");
-    expect(dispatchStep).toHaveBeenCalledWith(plan.id, "scoring");
+    expect(dispatchStep).toHaveBeenCalledWith(expect.objectContaining({ id: plan.id, organizationId: ORG }), "scoring", expect.anything());
     // Not left queued for ten minutes: failed now, with an accurate message.
     expect(plan).toMatchObject({ status: "failed", error: HANDOFF_ERROR, output: { step: "scoring" } });
   });

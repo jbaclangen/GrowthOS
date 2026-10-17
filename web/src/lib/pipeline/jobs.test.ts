@@ -92,7 +92,8 @@ describe("superviseJobs", () => {
     expect(handOff).not.toHaveBeenCalled();
     expect(afterCalls).toHaveLength(1);
     await afterCalls[0]();
-    expect(handOff).toHaveBeenCalledWith({ id: "lost", organizationId: ORG, step: "planning" }, "planning");
+    // As a re-send: in database mode Postgres re-posts the stored dispatch.
+    expect(handOff).toHaveBeenCalledWith({ id: "lost", organizationId: ORG, step: "planning" }, "planning", undefined, { resend: true });
   });
 
   it("schedules nothing when no step is waiting", async () => {

@@ -30,14 +30,25 @@ describe("handOff", () => {
   it("leaves the job alone when the step is accepted", async () => {
     const { db, tables } = fakeSupabase({ ai_jobs: [queued("website_plan")] });
     expect(await handOff(JOB, "scoring", db)).toBe(true);
+    expect(dispatchStep).toHaveBeenCalledWith(JOB, "scoring", { db, resend: undefined });
     expect(tables.ai_jobs[0].status).toBe("queued");
   });
 
-  it("fails the job at once when the step isn't accepted", async () => {
+  it("fails the job at once when the step can't be handed on", async () => {
     const { db, tables } = fakeSupabase({ ai_jobs: [queued("website_plan")] });
     dispatchStep.mockResolvedValue(false);
     expect(await handOff(JOB, "scoring", db)).toBe(false);
     expect(tables.ai_jobs[0]).toMatchObject({ status: "failed", error: HANDOFF_ERROR, output: { step: "scoring" } });
+  });
+
+  it("passes a re-send on, and fails the job the same way when it can't be re-sent", async () => {
+    const fake = fakeSupabase({ ai_jobs: [queued("website_plan")] });
+    admin.db = fake.db;
+    expect(await handOff(JOB, "scoring", undefined, { resend: true })).toBe(true);
+    expect(dispatchStep).toHaveBeenCalledWith(JOB, "scoring", { db: undefined, resend: true });
+    dispatchStep.mockResolvedValue(false);
+    expect(await handOff(JOB, "scoring", undefined, { resend: true })).toBe(false);
+    expect(fake.tables.ai_jobs[0]).toMatchObject({ status: "failed", error: HANDOFF_ERROR });
   });
 
   it("never throws", async () => {
@@ -50,16 +61,16 @@ describe("handOff", () => {
 });
 
 describe("startJob", () => {
-  it("hands the job's first step to its own invocation after the response", async () => {
+  it("hands the job's first step on after the response", async () => {
     const fake = fakeSupabase({ ai_jobs: [queued("diagnosis_update")] });
     admin.db = fake.db;
     startJob({ ...JOB, worker: "diagnosis_update" });
     expect(dispatchStep).not.toHaveBeenCalled();
     await afterCalls[0]();
-    expect(dispatchStep).toHaveBeenCalledWith(JOB.id, "scoring");
+    expect(dispatchStep).toHaveBeenCalledWith(expect.objectContaining(JOB), "scoring", expect.anything());
 
     startJob({ ...JOB, worker: "website_evidence" });
     await afterCalls[1]();
-    expect(dispatchStep).toHaveBeenLastCalledWith(JOB.id, "crawling");
+    expect(dispatchStep).toHaveBeenLastCalledWith(expect.objectContaining(JOB), "crawling", expect.anything());
   });
 });

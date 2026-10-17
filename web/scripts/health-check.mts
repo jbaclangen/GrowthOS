@@ -106,6 +106,24 @@ async function supabase() {
   } catch (e) {
     add("Supabase", "Queries", "FAIL", (e as Error).message.slice(0, 200));
   }
+  // Production hands each analysis step on through Postgres (job_dispatches + pg_net, re-posted by a pg_cron sweeper;
+  // D-042). job_dispatch_health is service-role only and returns counts and versions, never tokens.
+  const check = "Step hand-off through Postgres (pg_net)";
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/job_dispatch_health`, { method: "POST", headers: { ...h, "content-type": "application/json" }, body: "{}" });
+    if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 120)}`);
+    const d = (await res.json()) as { pg_net?: string | null; pg_cron?: string | null; sweeper_scheduled?: boolean; dispatches_last_day?: number; failed_posts_last_6h?: number };
+    const ready = !!(d.pg_net && d.pg_cron && d.sweeper_scheduled);
+    add(
+      "Pipeline",
+      check,
+      !ready ? "FAIL" : d.failed_posts_last_6h ? "WARN" : "OK",
+      `pg_net ${d.pg_net ?? "missing"}, pg_cron ${d.pg_cron ?? "missing"}, sweeper ${d.sweeper_scheduled ? "scheduled" : "missing"}; ` +
+        `${d.dispatches_last_day ?? 0} hand-offs last day, ${d.failed_posts_last_6h ?? 0} failed posts last 6 h`,
+    );
+  } catch (e) {
+    add("Pipeline", check, "FAIL", `job_dispatch_health unavailable (apply migration 20261017110000_job_dispatches.sql): ${(e as Error).message.slice(0, 160)}`);
+  }
 }
 
 async function ai() {

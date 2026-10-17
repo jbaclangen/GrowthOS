@@ -5,7 +5,7 @@ import { pageSpeed } from "@/lib/integrations/google";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { envConfigured } from "@/lib/env";
 import { continueKey } from "@/lib/pipeline/continue-token";
-import { continueUrl } from "@/lib/pipeline/dispatch";
+import { continueUrl, databaseContinueUrl, dispatchMode } from "@/lib/pipeline/dispatch";
 
 type Check = { ok: boolean; detail: string };
 
@@ -77,15 +77,45 @@ function searchConsoleCheck(): Check {
     : { ok: true, detail: "configured (OAuth client and encryption key set; the OAuth flow itself isn't exercised here)" };
 }
 
-// Analysis steps hand off to each other through /api/jobs/continue (D-042). Checks the signing key and that the
-// route is reachable where the steps will call it: an empty request must come back 400 from the route itself, not
-// a redirect to /login or another server.
+// Analysis steps hand off to each other through /api/jobs/continue (D-042). Checks the signing key and reports the
+// dispatch mode (lib/pipeline/dispatch.ts). Direct mode: the route is reachable where the steps will call it. Database
+// mode: the job_dispatches migration is applied, pg_net and pg_cron are installed and the sweeper is scheduled
+// (job_dispatch_health, service role only), and the public URL Postgres posts to answers.
 async function jobHandoffCheck(): Promise<string> {
   if (!envConfigured("JOB_CONTINUE_SECRET")) {
     throw new Error("JOB_CONTINUE_SECRET is set but shorter than 32 characters: every analysis would fail as soon as it is queued");
   }
+  if (!envConfigured("JOB_DISPATCH")) throw new Error('JOB_DISPATCH must be "database" or "direct" (or unset)');
   continueKey();
-  const url = continueUrl();
+  const key = process.env.JOB_CONTINUE_SECRET?.trim() ? "from JOB_CONTINUE_SECRET" : "derived from SUPABASE_SECRET_KEY";
+  if (dispatchMode() === "direct") {
+    const url = continueUrl();
+    await expectContinueRoute(url);
+    return `direct mode (the app posts to itself): ${url} reachable; key ${key}`;
+  }
+  const url = databaseContinueUrl();
+  const { data, error } = await createSupabaseAdminClient().rpc("job_dispatch_health");
+  if (error) {
+    throw new Error(`database mode, but job_dispatch_health failed (apply migration 20261017110000_job_dispatches.sql): ${error.message}`);
+  }
+  const h = (data ?? {}) as {
+    pg_net?: string | null;
+    pg_cron?: string | null;
+    sweeper_scheduled?: boolean;
+    dispatches_last_day?: number;
+    failed_posts_last_6h?: number;
+  };
+  if (!h.pg_net) throw new Error("database mode, but the pg_net extension isn't installed");
+  if (!h.pg_cron || !h.sweeper_scheduled) throw new Error("database mode, but pg_cron or the braventa-job-dispatch-sweeper schedule is missing");
+  await expectContinueRoute(url);
+  return (
+    `database mode (Postgres posts each hand-off): ${url} reachable; pg_net ${h.pg_net}, pg_cron ${h.pg_cron}, sweeper scheduled; ` +
+    `${h.dispatches_last_day ?? 0} hand-offs in the last day, ${h.failed_posts_last_6h ?? 0} failed posts in the last 6 h; key ${key}`
+  );
+}
+
+// An empty request must come back 400 from the route itself, not a redirect to /login or another server.
+async function expectContinueRoute(url: string) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -98,5 +128,4 @@ async function jobHandoffCheck(): Promise<string> {
     const hint = res.status >= 300 && res.status < 400 ? " (redirected: is the route public in proxy.ts, and is this the right server?)" : "";
     throw new Error(`${url} answered HTTP ${res.status}, expected 400 for an empty request${hint}`);
   }
-  return `${url} reachable; key ${process.env.JOB_CONTINUE_SECRET?.trim() ? "from JOB_CONTINUE_SECRET" : "derived from SUPABASE_SECRET_KEY"}`;
 }
