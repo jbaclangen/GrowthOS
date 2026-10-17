@@ -14,6 +14,9 @@ export const maxDuration = 60;
 // One model attempt, no retry, well inside maxDuration (the lookups before it take a second or two), so a slow
 // provider ends in this route's own JSON error instead of the platform's timeout page.
 const MODEL_TIMEOUT_MS = 40_000;
+// Haiku counts any reasoning toward output; 800 cut real answers off mid-sentence (2026-10-17). Answers stay short by
+// prompt; this ceiling is only the backstop. About $0.002 at most per answer.
+const ASSISTANT_MAX_TOKENS = 2000;
 const MAX_BODY_BYTES = 64 * 1024;
 
 function json(status: number, body: object) {
@@ -91,7 +94,7 @@ export async function POST(request: NextRequest) {
     },
     loadSummary: (org, userId) => loadBusinessSummary(supabase, org, userId),
     ask: (orgId, messages) =>
-      runWorker({ organizationId: orgId, worker: "app_assistant", messages, maxTokens: 800, timeoutMs: MODEL_TIMEOUT_MS, retry: false }),
+      runWorker({ organizationId: orgId, worker: "app_assistant", messages, maxTokens: ASSISTANT_MAX_TOKENS, timeoutMs: MODEL_TIMEOUT_MS, retry: false }),
     isBudgetError: (e) => e instanceof BudgetExceededError,
     // Never logs the question or answer: only a one-line error summary.
     logError: (message, e) => console.error(message, summarizeError(e)),
