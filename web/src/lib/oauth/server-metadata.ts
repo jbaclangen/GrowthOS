@@ -62,12 +62,22 @@ export function authorizationServerMetadata(origin: string) {
   };
 }
 
+// RFC 6750 §3: error_description and scope may use only printable ASCII without `"` and `\`. Header values must be
+// bytes anyway: a character such as "→" makes the Response constructor throw, which turns a 401 into a 500. Arrows
+// become ">"; anything else outside the set is dropped. The JSON-RPC body keeps the full message.
+export function headerSafe(value: string) {
+  return value
+    .replace(/\s*→\s*/g, " > ")
+    .replace(/[^\x20-\x21\x23-\x5B\x5D-\x7E]/g, "")
+    .trim();
+}
+
 // RFC 6750 §3 + RFC 9728 §5.1: tells the client where to find the authorization server.
 export function wwwAuthenticate(origin: string, error?: { code: "invalid_token" | "insufficient_scope"; description: string; scope?: string }) {
   const parts = [`resource_metadata="${origin}${PROTECTED_RESOURCE_METADATA_PATH}"`];
   if (error) {
-    parts.push(`error="${error.code}"`, `error_description="${error.description.replace(/["\\]/g, "")}"`);
-    if (error.scope) parts.push(`scope="${error.scope}"`);
+    parts.push(`error="${error.code}"`, `error_description="${headerSafe(error.description)}"`);
+    if (error.scope) parts.push(`scope="${headerSafe(error.scope)}"`);
   }
   return `Bearer ${parts.join(", ")}`;
 }
@@ -78,4 +88,13 @@ export const KNOWN_CLIENT_ORIGINS = ["https://claude.ai", "https://claude.com", 
 
 export function mcpOriginAllowed(origin: string | null, ownOrigin: string) {
   return !origin || origin === ownOrigin || KNOWN_CLIENT_ORIGINS.includes(origin);
+}
+
+const LOOPBACK_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d{1,5})?$/;
+
+// Browser origins allowed to register a client (/oauth/register). Native apps and servers send no Origin. In a
+// browser, only our own pages, the known AI clients and local developer tools (MCP Inspector on localhost) may
+// register; any other website could otherwise register clients from its visitors' browsers.
+export function registrationOriginAllowed(origin: string | null, ownOrigins: readonly string[]) {
+  return !origin || ownOrigins.includes(origin) || KNOWN_CLIENT_ORIGINS.includes(origin) || LOOPBACK_ORIGIN.test(origin);
 }

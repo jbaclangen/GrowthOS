@@ -24,6 +24,8 @@ export const PREFIX = {
 export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60;
 export const REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
 export const CODE_TTL_SECONDS = 10 * 60;
+// How long after a refresh token is rotated the same client may present it again without ending the grant (lib/oauth/grants.ts).
+export const REFRESH_REUSE_GRACE_SECONDS = 60;
 
 const RANDOM = "[A-Za-z0-9_-]{43}";
 const PATTERNS = {

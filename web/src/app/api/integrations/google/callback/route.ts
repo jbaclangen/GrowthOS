@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   const saved = openState(request.cookies.get(STATE_COOKIE)?.value);
   const user = await getUser();
   if (!user) return NextResponse.redirect(new URL("/login?next=/settings", request.url), 303);
-  const org = await getCurrentOrg();
+  const org = await getCurrentOrg(user.id);
   if (!org || org.role !== "owner") return toSettings(request, "owner-only");
   if (!stateMatches(saved, params.get("state"), user.id, org.id) || !saved) return toSettings(request, "expired");
 

@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { currentMembership } from "@/lib/memberships";
 
 // Data Access Layer: every page and action resolves the user through here.
 
@@ -20,15 +21,8 @@ export async function requireUser() {
   return user;
 }
 
-// The user's organization (MVP: one org per user). RLS limits this to their own memberships.
-export async function getCurrentOrg() {
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
-    .from("memberships")
-    .select("role, organizations(id, name)")
-    .order("created_at")
-    .limit(1)
-    .maybeSingle();
-  const org = data?.organizations as unknown as { id: string; name: string } | null;
-  return org ? { id: org.id, name: org.name, role: data!.role as string } : null;
+// The user's organization (MVP: one org per user) and their role in it. RLS also returns co-members' memberships,
+// so the read is filtered by the user's id (lib/memberships.ts).
+export async function getCurrentOrg(userId: string) {
+  return currentMembership(await createSupabaseServerClient(), userId);
 }

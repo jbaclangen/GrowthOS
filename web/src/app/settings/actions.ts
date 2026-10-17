@@ -13,13 +13,13 @@ const MAX_ACTIVE_KEYS = 5;
 export type CreateKeyState = { error?: string; key?: string; name?: string; prefix?: string } | undefined;
 
 export async function createAccessKey(_: CreateKeyState, formData: FormData): Promise<CreateKeyState> {
-  await requireUser();
+  const user = await requireUser();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Name the key, for example \"Claude Desktop on my laptop\"." };
   if (name.length > 60) return { error: "Keep the name under 60 characters." };
 
   const supabase = await createSupabaseServerClient();
-  let org = await getCurrentOrg();
+  let org = await getCurrentOrg(user.id);
   if (!org) {
     // New accounts can start from their AI assistant (D-036): the key needs an organization, so create it here,
     // the same way the first website analysis does. The trial starts now.

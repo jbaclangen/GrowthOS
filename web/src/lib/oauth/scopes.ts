@@ -32,11 +32,15 @@ export function grantableScopes(scope: string | null | undefined): Scope[] {
   return granted.length ? granted : [...DEFAULT_SCOPES];
 }
 
-// A refresh may narrow the scopes, never widen them (RFC 6749 §6).
+// A refresh may narrow the scopes, never widen them (RFC 6749 §6). As in the authorization request, scopes that
+// weren't granted (or aren't live) are dropped rather than refused, so a client that sends its original request
+// again still refreshes; the response's `scope` says what it got (RFC 6749 §3.3). Null when nothing granted is left.
 export function narrowScopes(scope: string | null | undefined, current: readonly string[]): Scope[] | null {
-  if (!scope) return current.filter(isLive);
+  const granted = current.filter(isLive);
+  if (!scope) return granted.length ? granted : null;
   const requested = [...new Set(scope.split(/\s+/).filter(Boolean))];
-  return requested.every((s) => current.includes(s) && isLive(s)) ? (requested as Scope[]) : null;
+  const kept = requested.filter((s): s is Scope => isLive(s) && granted.includes(s));
+  return kept.length ? kept : null;
 }
 
 export function hasScope(granted: readonly string[], required: Scope) {

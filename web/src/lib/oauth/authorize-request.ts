@@ -5,12 +5,18 @@ import { canonicalResource } from "./server-metadata";
 
 // Validates an authorization request (OAuth 2.1 §4.1.1). Pure, unit-tested.
 //
-// Two kinds of failure: when the client or redirect URI can't be trusted, the error is shown on Braventa's page and
-// never sent anywhere (an open redirect otherwise). Once the redirect URI is known to be the client's, other errors
-// go back to it as ?error=… with state and iss (RFC 9207).
+// Two kinds of failure: when the client, redirect URI or state can't be used, the error is shown on Braventa's page
+// and never sent anywhere. Once the redirect URI is known to be the client's, other errors go back to it as
+// ?error=… with state and iss (RFC 9207), but only after the person has seen where they're going and clicked: anyone
+// can register a client with any https redirect URI (DCR), so sending the browser there automatically from a link
+// would be an open redirect (RFC 9700 §4.11.2). See authorizePageView.
 
 export type AuthorizeParams = Record<string, string | undefined>;
 export type ClientInfo = { client_id: string; client_name: string; redirect_uris: string[] };
+
+// state comes back to the client exactly as sent (RFC 6749 §4.1.2), so a longer one is refused rather than dropped.
+// It also keeps the whole request within the sign-in return path's limit (lib/safe-next.ts).
+export const MAX_STATE_LENGTH = 1000;
 
 export type AuthorizeRequest = {
   clientId: string;
@@ -25,7 +31,7 @@ export type AuthorizeRequest = {
 export type AuthorizeCheck =
   | { kind: "ok"; request: AuthorizeRequest }
   | { kind: "show-error"; message: string }
-  | { kind: "redirect-error"; url: string };
+  | { kind: "redirect-error"; url: string; host: string; description: string };
 
 export function errorRedirect(redirectUri: string, issuer: string, error: string, description: string, state: string | null) {
   const url = new URL(redirectUri);
@@ -46,16 +52,24 @@ export function successRedirect(redirectUri: string, issuer: string, code: strin
 
 export function checkAuthorizeRequest(params: AuthorizeParams, client: ClientInfo | null, origin: string): AuthorizeCheck {
   if (!params.client_id || !client) {
-    return { kind: "show-error", message: "This app isn't registered with Braventa. Go back to the app and connect again." };
+    return {
+      kind: "show-error",
+      message: "This app isn't registered with Braventa, or its registration expired. Remove Braventa from the app, add it again and connect.",
+    };
   }
   const redirectUri = matchRedirectUri(params.redirect_uri, client.redirect_uris);
   if (!redirectUri) {
     return { kind: "show-error", message: "This app sent a return address Braventa doesn't recognize, so it can't connect. Go back to the app and connect again." };
   }
-  const state = params.state && params.state.length <= 1000 ? params.state : null;
+  if (params.state && params.state.length > MAX_STATE_LENGTH) {
+    return { kind: "show-error", message: "This app sent a sign-in request that's too long for Braventa, so it can't connect. Contact the app's developer." };
+  }
+  const state = params.state || null;
   const fail = (error: string, description: string): AuthorizeCheck => ({
     kind: "redirect-error",
     url: errorRedirect(redirectUri, origin, error, description, state),
+    host: new URL(redirectUri).host,
+    description,
   });
 
   if (params.response_type !== "code") return fail("unsupported_response_type", "Only response_type=code is supported.");
@@ -77,4 +91,18 @@ export function checkAuthorizeRequest(params: AuthorizeParams, client: ClientInf
       resource,
     },
   };
+}
+
+// What GET /oauth/authorize shows. It never redirects by itself: a protocol error is shown on Braventa's page with
+// the app's return host and a link the person must click. Only the consent form's POST (lib/oauth/consent.ts)
+// redirects, after the person has seen the host and chosen Approve or Cancel.
+export type AuthorizePageView =
+  | { kind: "consent"; request: AuthorizeRequest }
+  | { kind: "problem"; message: string }
+  | { kind: "return-to-app"; detail: string; host: string; href: string };
+
+export function authorizePageView(check: AuthorizeCheck): AuthorizePageView {
+  if (check.kind === "ok") return { kind: "consent", request: check.request };
+  if (check.kind === "show-error") return { kind: "problem", message: check.message };
+  return { kind: "return-to-app", detail: check.description, host: check.host, href: check.url };
 }

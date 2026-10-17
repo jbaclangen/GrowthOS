@@ -2,8 +2,9 @@ import "server-only";
 import { createHmac } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
-import type { AuthMethod } from "./clients";
+import { ipBucket, type AuthMethod } from "./clients";
 import type { CodeRow, GrantRow, OAuthStore, TokenRow } from "./grants";
+import { clientCredentials } from "./http";
 import { safeEqual, sha256Hex } from "./tokens";
 
 // The OAuth tables through the service client (they have no client write policies). Every write is keyed by a
@@ -37,7 +38,10 @@ export function supabaseOAuthStore(db: SupabaseClient): OAuthStore {
     },
     async createGrant(row) {
       const { error } = await db.from("oauth_grants").insert(row);
+      // 23505 unique_violation: a replay of the code already recorded this grant id as revoked.
+      if (error?.code === "23505") return false;
       if (error) throw new Error(`oauth grant insert failed: ${error.message}`);
+      return true;
     },
     async findGrant(id) {
       const { data } = await db
@@ -47,8 +51,14 @@ export function supabaseOAuthStore(db: SupabaseClient): OAuthStore {
         .maybeSingle();
       return (data as GrantRow | null) ?? null;
     },
-    async revokeGrant(id, reason, now) {
+    async revokeGrant(id, reason, now, tombstone) {
       const at = now.toISOString();
+      if (tombstone) {
+        const { error } = await db
+          .from("oauth_grants")
+          .upsert({ ...tombstone, revoked_at: at, revoked_reason: reason }, { onConflict: "id", ignoreDuplicates: true });
+        if (error) console.error("oauth grant tombstone failed", error.message);
+      }
       await db.from("oauth_grants").update({ revoked_at: at, revoked_reason: reason }).eq("id", id).is("revoked_at", null);
       await db.from("oauth_tokens").update({ revoked_at: at }).eq("grant_id", id).is("revoked_at", null);
     },
@@ -60,18 +70,23 @@ export function supabaseOAuthStore(db: SupabaseClient): OAuthStore {
       const { data } = await db.from("oauth_tokens").select("*").eq("token_hash", tokenHash).maybeSingle();
       return (data as TokenRow | null) ?? null;
     },
-    async consumeRefreshToken(tokenHash, now) {
+    async findTokenById(id) {
+      const { data } = await db.from("oauth_tokens").select("*").eq("id", id).maybeSingle();
+      return (data as TokenRow | null) ?? null;
+    },
+    async consumeRefreshToken(tokenHash, successorId, now) {
+      const at = now.toISOString();
       const { data } = await db
         .from("oauth_tokens")
-        .update({ revoked_at: now.toISOString(), last_used_at: now.toISOString() })
+        .update({ revoked_at: at, rotated_at: at, successor_id: successorId, last_used_at: at })
         .eq("token_hash", tokenHash)
         .eq("kind", "refresh")
         .is("revoked_at", null)
         .select("id")
         .maybeSingle();
-      if (data) return { firstUse: true };
-      const { data: existing } = await db.from("oauth_tokens").select("id").eq("token_hash", tokenHash).maybeSingle();
-      return existing ? { firstUse: false } : null;
+      if (data) return { firstUse: true as const };
+      const { data: existing } = await db.from("oauth_tokens").select("*").eq("token_hash", tokenHash).eq("kind", "refresh").maybeSingle();
+      return existing ? { firstUse: false as const, token: existing as TokenRow } : null;
     },
     async revokeToken(tokenHash, now) {
       await db.from("oauth_tokens").update({ revoked_at: now.toISOString() }).eq("token_hash", tokenHash).is("revoked_at", null);
@@ -100,18 +115,11 @@ export async function findClient(db: SupabaseClient, clientId: string | null | u
 
 // Client authentication at the token and revocation endpoints: public clients send only client_id; confidential
 // clients send their secret in the body (client_secret_post) or in HTTP Basic (client_secret_basic).
+// Malformed credentials return null, which the endpoints answer with 401 invalid_client.
 export async function authenticateClient(db: SupabaseClient, form: URLSearchParams, authorization: string | null): Promise<StoredClient | null> {
-  let clientId = form.get("client_id");
-  let secret = form.get("client_secret");
-  const basic = authorization?.match(/^Basic\s+(\S+)$/i);
-  if (basic) {
-    const decoded = Buffer.from(basic[1], "base64").toString("utf8");
-    const i = decoded.indexOf(":");
-    if (i > 0) {
-      clientId = decodeURIComponent(decoded.slice(0, i));
-      secret = decodeURIComponent(decoded.slice(i + 1));
-    }
-  }
+  const credentials = clientCredentials(form, authorization);
+  if (!credentials) return null;
+  const { clientId, secret } = credentials;
   const client = await findClient(db, clientId);
   if (!client) return null;
   if (client.token_endpoint_auth_method === "none") return client;
@@ -121,9 +129,17 @@ export async function authenticateClient(db: SupabaseClient, form: URLSearchPara
 
 // Rate-limit identity for client registration: an HMAC of the IP with a key derived from a server secret, so the IP
 // itself is never stored (same approach as the contact form). Vercel sets x-forwarded-for; the first entry is the client.
+// IPv6 addresses count per /64 (ipBucket), since one connection usually gets a whole /64.
 export function registrationIpHash(headers: Headers) {
-  const ip = headers.get("x-forwarded-for")?.split(",")[0]?.trim() || headers.get("x-real-ip") || "";
-  if (!ip) return null;
+  const bucket = ipBucket(headers.get("x-forwarded-for")?.split(",")[0]?.trim() || headers.get("x-real-ip") || "");
+  if (!bucket) return null;
   const key = createHmac("sha256", env().SUPABASE_SECRET_KEY).update("braventa-oauth-registration-ip").digest();
-  return createHmac("sha256", key).update(`ip:${ip}`).digest("hex");
+  return createHmac("sha256", key).update(`ip:${bucket}`).digest("hex");
+}
+
+// Deletes expired codes and tokens and clients that never connected (database function oauth_cleanup). Run after
+// registrations and code exchanges; a failure only delays the cleanup.
+export async function cleanUpOAuth(db: SupabaseClient) {
+  const { error } = await db.rpc("oauth_cleanup");
+  if (error) console.error("oauth cleanup failed", error.message);
 }

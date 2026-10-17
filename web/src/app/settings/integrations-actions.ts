@@ -4,10 +4,10 @@ import { refresh } from "next/cache";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateSecret, sha256Hex } from "@/lib/oauth/tokens";
+import { MAX_ACTIVE_SERVICE_KEYS, countActiveServiceKeys } from "@/lib/mcp/service-keys";
 
 // Settings → Integrations: service keys (owner-only, through RLS) and disconnecting OAuth-connected apps.
 
-const MAX_ACTIVE_SERVICE_KEYS = 10;
 const EXPIRY_DAYS = new Set([30, 90, 365]);
 
 export type CreateServiceKeyState = { error?: string; key?: string; name?: string } | undefined;
@@ -16,8 +16,8 @@ export type CreateServiceKeyState = { error?: string; key?: string; name?: strin
 const servicePrefix = (key: string) => key.slice(0, 12);
 
 export async function createServiceKey(_: CreateServiceKeyState, formData: FormData): Promise<CreateServiceKeyState> {
-  await requireUser();
-  const org = await getCurrentOrg();
+  const user = await requireUser();
+  const org = await getCurrentOrg(user.id);
   if (!org) return { error: "Set up your business first." };
   if (org.role !== "owner") return { error: "Only the business owner can create service keys." };
 
@@ -29,15 +29,9 @@ export async function createServiceKey(_: CreateServiceKeyState, formData: FormD
   if (expiry !== "never" && !EXPIRY_DAYS.has(days)) return { error: "Choose when the key expires." };
   const expiresAt = expiry === "never" ? null : new Date(Date.now() + days * 86_400_000).toISOString();
 
-  // RLS lets only owners read and add service keys for their organization.
+  // RLS lets only owners read and add service keys for their organization. Expired keys don't count.
   const supabase = await createSupabaseServerClient();
-  const { count } = await supabase
-    .from("mcp_access_keys")
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", org.id)
-    .eq("kind", "service")
-    .is("revoked_at", null);
-  if ((count ?? 0) >= MAX_ACTIVE_SERVICE_KEYS) {
+  if ((await countActiveServiceKeys(supabase, org.id)) >= MAX_ACTIVE_SERVICE_KEYS) {
     return { error: `You can have up to ${MAX_ACTIVE_SERVICE_KEYS} active service keys. Revoke one first.` };
   }
 

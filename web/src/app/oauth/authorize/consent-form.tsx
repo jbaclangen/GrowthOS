@@ -1,12 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { browserGuardEnvironment, guardClicks } from "@/lib/oauth/click-guard";
 import { decideAuthorization, type ConsentState } from "./actions";
 
 type Org = { id: string; name: string; paused: boolean };
 
 export function ConsentForm({ params, orgs }: { params: Record<string, string | undefined>; orgs: Org[] }) {
   const [state, action, pending] = useActionState<ConsentState, FormData>(decideAuthorization, undefined);
+  // Approve waits until the page has been visible and focused for a moment (double-clickjacking, click-guard.ts).
+  const [armed, setArmed] = useState(false);
+  useEffect(() => guardClicks(browserGuardEnvironment(), setArmed), []);
 
   return (
     <form action={action} className="card mt-6 space-y-4">
@@ -43,7 +47,7 @@ export function ConsentForm({ params, orgs }: { params: Record<string, string | 
       )}
 
       <div className="flex flex-wrap gap-2">
-        <button type="submit" name="decision" value="approve" disabled={pending} className="btn-primary">
+        <button type="submit" name="decision" value="approve" disabled={pending || !armed} className="btn-primary">
           {pending ? "Connecting…" : "Approve"}
         </button>
         <button type="submit" name="decision" value="deny" disabled={pending} className="btn-secondary">

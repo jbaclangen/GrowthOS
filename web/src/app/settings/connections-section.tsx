@@ -22,8 +22,8 @@ type Connection = {
   last_synced_at: string | null;
 };
 
-export async function ConnectionsSection() {
-  const org = await getCurrentOrg();
+export async function ConnectionsSection({ userId }: { userId: string }) {
+  const org = await getCurrentOrg(userId);
   const configured = searchConsoleConfigured();
   const supabase = await createSupabaseServerClient();
   const [{ data: orgRow }, { data: conn }, { data: snap }] = org

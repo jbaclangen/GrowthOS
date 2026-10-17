@@ -5,15 +5,22 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { mcpAccess } from "@/lib/mcp/access";
-import { checkAuthorizeRequest, type AuthorizeParams } from "@/lib/oauth/authorize-request";
+import { memberOrganizations } from "@/lib/memberships";
+import { authorizePageView, checkAuthorizeRequest, type AuthorizeParams } from "@/lib/oauth/authorize-request";
 import { SCOPES } from "@/lib/oauth/scopes";
 import { findClient } from "@/lib/oauth/supabase-store";
 import { AUTHORIZE_PARAM_KEYS, originFromHeaders } from "@/lib/oauth/request-origin";
+import { MAX_NEXT_LENGTH } from "@/lib/safe-next";
 import { ConsentForm } from "./consent-form";
 
 // OAuth consent ("Sign in with Braventa") for AI assistants connecting to the MCP server: claude.ai, Claude Desktop,
-// Claude Code and ChatGPT. The owner signs in, picks the business and approves the access shown. Framing is blocked
-// for every page (X-Frame-Options: DENY in next.config.ts), so the buttons can't be clickjacked.
+// Claude Code and ChatGPT. The owner signs in, picks the business and approves the access shown.
+//
+// Framing is blocked for every page (X-Frame-Options: DENY in next.config.ts), which stops classic clickjacking.
+// It doesn't stop double-clickjacking, where another site swaps this page in under a double-click without a frame;
+// the consent form keeps Approve disabled until the page has been visible and focused for a moment (click-guard.ts).
+// This page never redirects to the app by itself: errors show the app's return host and a link to click
+// (authorizePageView), so a link to it can't bounce someone to an address anyone could register.
 
 export const metadata: Metadata = { title: "Connect an app" };
 
@@ -27,8 +34,6 @@ export default function AuthorizePage({ searchParams }: PageProps<"/oauth/author
   );
 }
 
-type Org = { id: string; name: string; plan: string; trial_ends_at: string };
-
 async function Authorize({ searchParams }: { searchParams: PageProps<"/oauth/authorize">["searchParams"] }) {
   const raw = await searchParams;
   const params: AuthorizeParams = {};
@@ -37,25 +42,26 @@ async function Authorize({ searchParams }: { searchParams: PageProps<"/oauth/aut
     if (typeof v === "string") params[key] = v;
   }
 
-  const user = await getUser();
-  if (!user) {
-    const query = new URLSearchParams(params as Record<string, string>).toString();
-    redirect(`/login?next=${encodeURIComponent(`/oauth/authorize?${query}`)}`);
-  }
-
+  // Validate before asking anyone to sign in: a request that can't succeed shouldn't cost a sign-in first.
   const origin = await originFromHeaders();
   const client = await findClient(createSupabaseAdminClient(), params.client_id);
-  const check = checkAuthorizeRequest(params, client, origin);
-  if (check.kind === "redirect-error") redirect(check.url);
-  if (check.kind === "show-error") return <Problem message={check.message} />;
-  const { request } = check;
+  const view = authorizePageView(checkAuthorizeRequest(params, client, origin));
+  if (view.kind === "problem") return <Problem message={view.message} />;
+  if (view.kind === "return-to-app") return <ReturnToApp detail={view.detail} host={view.host} href={view.href} />;
+  const { request } = view;
 
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
-    .from("memberships")
-    .select("role, organizations(id, name, plan, trial_ends_at)")
-    .order("created_at");
-  const orgs = (data ?? []).map((m) => m.organizations as unknown as Org).filter(Boolean);
+  const user = await getUser();
+  if (!user) {
+    const next = `/oauth/authorize?${new URLSearchParams(params as Record<string, string>).toString()}`;
+    // Sign-in only returns to paths up to MAX_NEXT_LENGTH (lib/safe-next.ts); a longer one would silently land on the
+    // dashboard instead of the consent screen.
+    if (next.length > MAX_NEXT_LENGTH) {
+      return <Problem message="This app sent a sign-in request that's too long for Braventa, so it can't connect. Contact the app's developer." />;
+    }
+    redirect(`/login?next=${encodeURIComponent(next)}`);
+  }
+
+  const orgs = await memberOrganizations(await createSupabaseServerClient(), user.id);
   const redirectHost = new URL(request.redirectUri).host;
 
   return (
@@ -117,6 +123,29 @@ function Problem({ message }: { message: string }) {
       <Link href="/dashboard" className="btn-secondary mt-4">
         Go to Braventa
       </Link>
+    </div>
+  );
+}
+
+// A protocol error for an app whose return address is registered. The person chooses whether to go back there.
+function ReturnToApp({ detail, host, href }: { detail: string; host: string; href: string }) {
+  return (
+    <div className="card" role="alert">
+      <h1 className="text-lg font-semibold">This connection can&apos;t continue</h1>
+      <p className="mt-2 text-sm">
+        The app sent a sign-in request Braventa can&apos;t accept, so nothing was connected. Go back to the app and try again,
+        or contact its developer.
+      </p>
+      <p className="mt-2 text-xs text-muted">Details for the developer: {detail}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {/* A plain link: the app's address is shown, and nothing happens until it's clicked. */}
+        <a href={href} className="btn-secondary" rel="noreferrer">
+          Return to {host}
+        </a>
+        <Link href="/dashboard" className="btn-secondary">
+          Go to Braventa
+        </Link>
+      </div>
     </div>
   );
 }

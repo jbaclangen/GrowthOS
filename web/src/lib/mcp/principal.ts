@@ -30,6 +30,22 @@ type TokenRow = {
 
 const SIGN_IN_AGAIN = "Sign in to Braventa again from your AI assistant.";
 
+// Every message a request to /api/mcp can be refused with. They go into the JSON-RPC body as written and, made
+// header-safe (lib/oauth/server-metadata.ts), into WWW-Authenticate; a test builds a Response with each one.
+export const AUTH_MESSAGES = {
+  missing: "Sign in to Braventa, or add a Braventa key: Authorization: Bearer brv_… (Braventa → Settings → Integrations).",
+  malformed: "This Braventa credential isn't valid.",
+  keyInvalid: "This Braventa key isn't valid or was revoked. Create a new one in Braventa → Settings → Integrations.",
+  serviceKeyExpired: "This Braventa service key has expired. Create a new one in Braventa → Settings → Integrations.",
+  keyOwnerLeft: "This access key's account no longer has access to the business.",
+  tokenInvalid: `This Braventa sign-in isn't valid. ${SIGN_IN_AGAIN}`,
+  disconnected: `This connection was disconnected in Braventa. ${SIGN_IN_AGAIN}`,
+  tokenExpired: "The access token expired. Refresh it.",
+  wrongResource: "This token was issued for another server.",
+  notMember: "This account no longer has access to the business.",
+  orgGone: "This business no longer exists in Braventa.",
+} as const;
+
 export function resolveAccessToken(
   token: TokenRow | null,
   grant: { revoked_at: string | null } | null,
@@ -37,14 +53,14 @@ export function resolveAccessToken(
   resource: string,
   now = new Date(),
 ): Rejected | { ok: true; principal: Omit<Principal, "org"> } {
-  if (!token || token.kind !== "access") return { ok: false, reason: "invalid", message: `This Braventa sign-in isn't valid. ${SIGN_IN_AGAIN}` };
+  if (!token || token.kind !== "access") return { ok: false, reason: "invalid", message: AUTH_MESSAGES.tokenInvalid };
   if (token.revoked_at || !grant || grant.revoked_at) {
-    return { ok: false, reason: "invalid", message: `This connection was disconnected in Braventa. ${SIGN_IN_AGAIN}` };
+    return { ok: false, reason: "invalid", message: AUTH_MESSAGES.disconnected };
   }
-  if (new Date(token.expires_at).getTime() <= now.getTime()) return { ok: false, reason: "invalid", message: "The access token expired. Refresh it." };
+  if (new Date(token.expires_at).getTime() <= now.getTime()) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.tokenExpired };
   // RFC 8707 audience check: a token issued for another resource isn't accepted here.
-  if (token.resource !== resource) return { ok: false, reason: "invalid", message: "This token was issued for another server." };
-  if (!isMember) return { ok: false, reason: "invalid", message: "This account no longer has access to the business." };
+  if (token.resource !== resource) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.wrongResource };
+  if (!isMember) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.notMember };
   return {
     ok: true,
     principal: {

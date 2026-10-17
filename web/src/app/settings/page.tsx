@@ -28,7 +28,7 @@ const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeS
 
 async function Settings() {
   const user = await requireUser();
-  const org = await getCurrentOrg();
+  const org = await getCurrentOrg(user.id);
   const supabase = await createSupabaseServerClient();
   const [{ data: keys }, { data: orgRow }, { data: memberships }] = await Promise.all([
     supabase
@@ -137,8 +137,8 @@ async function Settings() {
         </section>
 
         <ConnectedApps userId={user.id} orgNames={orgNames} ownerOf={ownerOf} />
-        {org && <ServiceKeys isOwner={org.role === "owner"} serverUrl={serverUrl} />}
-        <ConnectionsSection />
+        {org && <ServiceKeys organizationId={org.id} isOwner={org.role === "owner"} serverUrl={serverUrl} />}
+        <ConnectionsSection userId={user.id} />
       </div>
     </>
   );

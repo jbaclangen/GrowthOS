@@ -30,8 +30,8 @@ export default function SearchPage() {
 }
 
 async function SearchPerformance() {
-  await requireUser();
-  const org = await getCurrentOrg();
+  const user = await requireUser();
+  const org = await getCurrentOrg(user.id);
   const supabase = await createSupabaseServerClient();
   const [{ data: snap }, { data: orgRow }] = org
     ? await Promise.all([

@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { authenticateMcp } from "@/lib/mcp/auth";
+import { AUTH_MESSAGES } from "@/lib/mcp/principal";
 import { mcpAccess } from "@/lib/mcp/access";
 import { ERR, SUPPORTED_VERSIONS, handleMessage, rpcError, type JsonRpcRequest } from "@/lib/mcp/protocol";
 import { mcpOriginAllowed, mcpResourceFor, publicOrigin, wwwAuthenticate } from "@/lib/oauth/server-metadata";
@@ -53,10 +54,7 @@ export async function POST(request: Request) {
   const auth = await authenticateMcp(db, request.headers.get("authorization"), mcpResourceFor(origin));
   if (!auth.ok) {
     // RFC 9728 §5.1: the header points the client at the metadata, which starts "Sign in with Braventa".
-    const message =
-      auth.reason === "missing"
-        ? "Sign in to Braventa, or add a Braventa key: Authorization: Bearer brv_… (Braventa → Settings → Integrations)."
-        : auth.message;
+    const message = auth.reason === "missing" ? AUTH_MESSAGES.missing : auth.message;
     const header = auth.reason === "missing" ? wwwAuthenticate(origin) : wwwAuthenticate(origin, { code: "invalid_token", description: message });
     return reply(rpcError(null, ERR.invalidRequest, message), 401, { "WWW-Authenticate": header });
   }

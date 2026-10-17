@@ -118,17 +118,24 @@ RLS. Rules:
   Braventa is an OAuth 2.1 authorization server for its own MCP server only ("Sign in with Braventa" for claude.ai,
   Claude Desktop/Code and ChatGPT); it is not a third-party login for Braventa itself. Controls:
   - PKCE S256 required; one-time authorization codes (10 minutes) bound to client, redirect URI, code challenge, user,
-    organization, scopes and resource; a reused code revokes what it issued.
+    organization, scopes and resource; a reused code revokes what it issued, even when the replay races the first
+    exchange.
   - Opaque tokens (`brv_at_` 1 h, `brv_rt_` 30 days), stored as SHA-256 only, bound to user + organization + client +
-    scopes + resource (RFC 8707 audience check on every MCP call). Refresh tokens rotate; reuse revokes the grant.
+    scopes + resource (RFC 8707 audience check on every MCP call). Refresh tokens rotate; reuse revokes the grant,
+    except within 60 seconds while the new token is unused (concurrent or retried refreshes).
     Membership is re-checked at every exchange, refresh and MCP call.
   - Dynamic client registration is open (MCP spec) but grants nothing by itself; redirect URIs must be https or
-    loopback http; 10 registrations per IP per hour (HMAC of the IP with a key derived from `SUPABASE_SECRET_KEY`; the
-    IP isn't stored) and 500 per hour overall.
+    loopback http; 10 registrations per IP per hour, IPv6 per /64 (HMAC of the IP with a key derived from
+    `SUPABASE_SECRET_KEY`; the IP isn't stored), and 500 per hour overall for clients that aren't first-party,
+    enforced atomically in the database. Browsers may register only from Braventa, the known AI clients and
+    localhost. Unused clients are deleted after 7 days; expired codes and tokens a day after expiry.
   - The consent page requires a session, shows the app's self-declared name with the host it returns to, never
-    redirects for an unknown client or unregistered redirect URI, and can't be framed. `iss` on every response (RFC 9207).
+    redirects by itself (protocol errors show a link to click), can't be framed, and keeps Approve disabled until the
+    page has been visible and focused for a moment (double-clickjacking). `iss` on every response (RFC 9207).
   - Service keys (`brv_sk_`): organization-level, owners only (RLS via `is_org_owner`), optional expiry, stored hashed,
-    at most 10 active. They act without a user, so rows they create have no `created_by`.
+    at most 10 active (unexpired). They act without a user, so rows they create have no `created_by`, and they keep
+    working after their creator leaves (D-042). Only an owner can make someone an owner (`memberships_owner_guard`),
+    so an admin can't promote themselves to create one. Revoking a key is one-way.
   - `/api/mcp` answers 401 with `WWW-Authenticate: Bearer resource_metadata=…` (plus `error="invalid_token"` for bad
     credentials), allows browser Origins only from Braventa, claude.ai, claude.com, chatgpt.com and chat.openai.com,
     and logs each tool call against the key or the grant. The connecting user or an owner can disconnect a grant in

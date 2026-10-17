@@ -2,11 +2,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 // An in-memory stand-in for the Supabase query builder, for unit tests of code that writes ai_jobs with conditional
 // updates. Supports the subset the pipeline uses: select / insert / update / delete, the filters eq, neq, in, is, lt,
-// lte, gt, gte and or (PostgREST syntax, including and(...) groups), JSON text paths ("output->>step"), limit,
-// order (ignored), single and maybeSingle. Each statement runs atomically when awaited, so of two conditional updates
-// racing for one row only the first matches, as in Postgres. Values are stored as JSON, which drops undefined fields
-// as jsonb does. Optional: unique constraints on inserts (error code 23505, as PostgREST reports it) and rpc()
-// functions implemented in the test.
+// lte, gt, gte and or (PostgREST syntax, including and(...) groups), JSON text paths ("output->>step"), order, limit,
+// single and maybeSingle. Each statement runs atomically when awaited, so of two conditional updates racing for one
+// row only the first matches, as in Postgres. Values are stored as JSON, which drops undefined fields as jsonb does.
+// Seeded rows can play the part of what RLS lets the user see, so a test can check that a query narrows that down
+// itself (for example to the user's own membership). No joins: embedded selects return whatever the seeded row holds.
+// Optional: unique constraints on inserts (error code 23505, as PostgREST reports it) and rpc() functions implemented
+// in the test.
 
 export type Row = Record<string, unknown>;
 type Filter = (row: Row) => boolean;
@@ -97,6 +99,7 @@ class Query implements PromiseLike<Result> {
   private returning = false;
   private max: number | undefined;
   private one: "single" | "maybe" | undefined;
+  private sorts: { column: string; ascending: boolean }[] = [];
 
   constructor(
     private table: string,
@@ -159,8 +162,25 @@ class Query implements PromiseLike<Result> {
     const terms = splitTop(expr).map(parseTerm);
     return this.where((row) => terms.some((t) => t(row)));
   }
-  order() {
+  // Sorts as Postgres does by default: nulls last ascending, first descending. Stable, so ties keep insertion order.
+  order(column: string, options?: { ascending?: boolean }) {
+    this.sorts.push({ column, ascending: options?.ascending !== false });
     return this;
+  }
+  private sorted(rows: Row[]): Row[] {
+    if (this.sorts.length === 0) return rows;
+    return [...rows].sort((x, y) => {
+      for (const { column, ascending } of this.sorts) {
+        const a = read(x, column);
+        const b = read(y, column);
+        if (a === b) continue;
+        if (a === null) return ascending ? 1 : -1;
+        if (b === null) return ascending ? -1 : 1;
+        const cmp = typeof a === "number" && typeof b === "number" ? a - b : String(a).localeCompare(String(b));
+        if (cmp !== 0) return ascending ? cmp : -cmp;
+      }
+      return 0;
+    });
   }
   limit(n: number) {
     this.max = n;
@@ -221,7 +241,7 @@ class Query implements PromiseLike<Result> {
       for (const row of out) this.rows.splice(this.rows.indexOf(row), 1);
       if (!this.returning) return { data: null, error: null };
     } else {
-      out = matches();
+      out = this.sorted(matches());
     }
     const data = json(this.max === undefined ? out : out.slice(0, this.max));
     if (!this.one) return { data, error: null };

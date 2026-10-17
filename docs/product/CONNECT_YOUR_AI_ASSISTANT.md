@@ -92,13 +92,16 @@ days. Braventa shows it once. Revoke it when you stop using the tool. Developer 
   new one.
 - **Settings → Integrations** shows when each key and connected app was last used. **Disconnect** an app or
   **Revoke** a key you no longer use, or right away if you think someone else has it. You can have up to 5 active
-  personal keys and 10 service keys.
+  personal keys and 10 active service keys. Expired service keys don't count; you can still revoke them to tidy the
+  list.
 
 ## Troubleshooting
 
 | What you see | What to do |
 |---|---|
 | The Braventa window says the app isn't registered or the return address isn't recognized | Remove the connector in your app and add it again. |
+| The Braventa window says the app sent a request it can't accept, with a "Return to …" button | Select the button to go back to the app and connect again. If it keeps happening, send the details shown to the app's developer. |
+| Approve is grayed out for a moment | It turns on after a moment once the Braventa window is in front. Click inside the window if it stays gray. |
 | The sign-in window opens but nothing happens after Approve | Make sure JavaScript is on, then try again from your app. |
 | Your app says it was disconnected or asks you to sign in again | Someone selected Disconnect in Braventa, the connection wasn't used for 30 days, or the sign-in was reused from another device. Connect again from the app. |
 | Braventa doesn't appear in Claude Desktop (key setup) | Check that Node.js is installed, the config file is valid JSON, and that you fully quit and reopened Claude Desktop. |

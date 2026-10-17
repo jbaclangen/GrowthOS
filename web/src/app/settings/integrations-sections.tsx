@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SCOPES, type Scope } from "@/lib/oauth/scopes";
+import { hasExpired, listServiceKeys } from "@/lib/mcp/service-keys";
 import { disconnectApp, revokeServiceKey } from "./integrations-actions";
 import { ServiceKeyForm } from "./service-key-form";
 
@@ -8,7 +9,6 @@ import { ServiceKeyForm } from "./service-key-form";
 
 const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" });
 const fmt = (d: string) => dateFormat.format(new Date(d));
-const hasExpired = (d: string | null) => Boolean(d && new Date(d).getTime() <= Date.now());
 const scopeLabel = (s: string) => (s in SCOPES ? SCOPES[s as Scope].label : s);
 
 type Grant = { id: string; organization_id: string; user_id: string; client_name: string; scopes: string[]; created_at: string; last_used_at: string | null };
@@ -80,9 +80,8 @@ export async function ConnectedApps({ userId, orgNames, ownerOf }: { userId: str
   );
 }
 
-type ServiceKey = { id: string; name: string; key_prefix: string; created_at: string; last_used_at: string | null; revoked_at: string | null; expires_at: string | null };
-
-export async function ServiceKeys({ isOwner, serverUrl }: { isOwner: boolean; serverUrl: string }) {
+// The service keys of the business being managed (RLS alone would also return other businesses the user owns).
+export async function ServiceKeys({ organizationId, isOwner, serverUrl }: { organizationId: string; isOwner: boolean; serverUrl: string }) {
   if (!isOwner) {
     return (
       <section id="service-keys" className="card mt-6 scroll-mt-20" aria-labelledby="service-keys-heading">
@@ -93,13 +92,7 @@ export async function ServiceKeys({ isOwner, serverUrl }: { isOwner: boolean; se
       </section>
     );
   }
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
-    .from("mcp_access_keys")
-    .select("id, name, key_prefix, created_at, last_used_at, revoked_at, expires_at")
-    .eq("kind", "service")
-    .order("created_at", { ascending: false });
-  const keys = (data ?? []) as ServiceKey[];
+  const keys = await listServiceKeys(await createSupabaseServerClient(), organizationId);
 
   return (
     <section id="service-keys" className="card mt-6 scroll-mt-20" aria-labelledby="service-keys-heading">
@@ -131,7 +124,8 @@ export async function ServiceKeys({ isOwner, serverUrl }: { isOwner: boolean; se
                         : `${k.last_used_at ? `Last used ${fmt(k.last_used_at)}` : "Not used yet"} · ${k.expires_at ? `Expires ${fmt(k.expires_at)}` : "Doesn't expire"}`}
                   </p>
                 </div>
-                {!k.revoked_at && !expired && (
+                {/* Expired keys can be revoked too, to tidy the list; they don't count toward the limit. */}
+                {!k.revoked_at && (
                   <form action={revokeServiceKey.bind(null, k.id)}>
                     <button type="submit" className="btn-secondary">
                       Revoke

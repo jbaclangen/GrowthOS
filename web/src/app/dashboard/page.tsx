@@ -22,8 +22,8 @@ export default function DashboardPage() {
 }
 
 async function Dashboard() {
-  await requireUser();
-  const org = await getCurrentOrg();
+  const user = await requireUser();
+  const org = await getCurrentOrg(user.id);
   const supabase = await createSupabaseServerClient();
   if (org) await failStaleJobs(org.id);
 

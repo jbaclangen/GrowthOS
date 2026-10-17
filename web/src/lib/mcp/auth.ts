@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { bearerFromHeader, classifyBearer, sha256Hex } from "@/lib/oauth/tokens";
-import { resolveAccessToken, type ResolvedPrincipal } from "./principal";
+import { AUTH_MESSAGES, resolveAccessToken, type ResolvedPrincipal } from "./principal";
 
 // Resolves the bearer credential on an /api/mcp request: a personal access key (brv_…), a service key (brv_sk_…) or
 // an OAuth access token (brv_at_…). Uses the service client; the result's organizationId is the only organization
@@ -13,7 +13,7 @@ export async function authenticateMcp(db: SupabaseClient, header: string | null,
   const value = bearerFromHeader(header);
   if (!value) return { ok: false, reason: "missing" };
   const kind = classifyBearer(value);
-  if (!kind) return { ok: false, reason: "invalid", message: "This Braventa credential isn't valid." };
+  if (!kind) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.malformed };
   const hash = sha256Hex(value);
 
   if (kind === "personal" || kind === "service") {
@@ -23,10 +23,10 @@ export async function authenticateMcp(db: SupabaseClient, header: string | null,
       .eq("key_hash", hash)
       .maybeSingle();
     if (!row || row.kind !== kind || row.revoked_at) {
-      return { ok: false, reason: "invalid", message: "This Braventa key isn't valid or was revoked. Create a new one in Braventa → Settings → Integrations." };
+      return { ok: false, reason: "invalid", message: AUTH_MESSAGES.keyInvalid };
     }
     if (row.expires_at && new Date(row.expires_at as string).getTime() <= now.getTime()) {
-      return { ok: false, reason: "invalid", message: "This Braventa service key has expired. Create a new one in Braventa → Settings → Integrations." };
+      return { ok: false, reason: "invalid", message: AUTH_MESSAGES.serviceKeyExpired };
     }
     if (kind === "personal") {
       // The key's owner must still belong to the organization.
@@ -36,7 +36,7 @@ export async function authenticateMcp(db: SupabaseClient, header: string | null,
         .eq("organization_id", row.organization_id)
         .eq("user_id", row.user_id)
         .maybeSingle();
-      if (!membership) return { ok: false, reason: "invalid", message: "This access key's account no longer has access to the business." };
+      if (!membership) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.keyOwnerLeft };
     }
     await db.from("mcp_access_keys").update({ last_used_at: now.toISOString() }).eq("id", row.id);
     return {
@@ -69,7 +69,7 @@ export async function authenticateMcp(db: SupabaseClient, header: string | null,
   if (!resolved.ok) return resolved;
 
   const { data: org } = await db.from("organizations").select("plan, trial_ends_at").eq("id", resolved.principal.organizationId).maybeSingle();
-  if (!org) return { ok: false, reason: "invalid", message: "This business no longer exists in Braventa." };
+  if (!org) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.orgGone };
   await Promise.all([
     db.from("oauth_tokens").update({ last_used_at: now.toISOString() }).eq("id", token!.id),
     db.from("oauth_grants").update({ last_used_at: now.toISOString() }).eq("id", resolved.principal.grantId),

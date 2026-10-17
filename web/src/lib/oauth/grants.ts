@@ -4,6 +4,7 @@ import { narrowScopes, scopeString, type Scope } from "./scopes";
 import {
   ACCESS_TOKEN_TTL_SECONDS,
   CODE_TTL_SECONDS,
+  REFRESH_REUSE_GRACE_SECONDS,
   REFRESH_TOKEN_TTL_SECONDS,
   generateSecret,
   isSecretOfKind,
@@ -15,9 +16,16 @@ import {
 //
 // Rules (OAuth 2.1, MCP authorization spec 2025-06-18):
 // - codes are one-time, 10 minutes, bound to client + redirect URI + PKCE challenge + user + organization + scopes
-//   + resource. A code used twice revokes everything issued from it.
+//   + resource. A code used twice revokes everything issued from it, even when the replay races the first exchange.
 // - refresh tokens rotate: each use revokes the old one and issues a new pair. Presenting a refresh token that was
-//   already used revokes the whole grant (reuse detection), because one of the two holders is an attacker.
+//   already rotated revokes the whole grant (reuse detection), because one of the two holders is an attacker.
+//   Exception, the reuse grace window: within 60 seconds of the rotation, and while the token it was rotated into is
+//   still unused, the same client gets a fresh pair instead. Clients send the same refresh token twice when two
+//   requests hit an expired access token at once, or when a refresh response is lost; without the window both
+//   requests would fail and the owner would have to connect again.
+// - a token revoked by Disconnect or the revocation endpoint is invalid, but that isn't reuse.
+// - everything the client can correct (client, resource, scope) is checked before a refresh token is used, so a
+//   rejected request keeps the token (RFC 6749 §6).
 // - every exchange re-checks that the user still belongs to the organization.
 
 export type CodeRow = {
@@ -57,21 +65,31 @@ export type TokenRow = {
   resource: string;
   expires_at: string;
   revoked_at: string | null;
+  // Refresh tokens only: when it was exchanged for a new pair, and the refresh token issued in that exchange.
+  rotated_at: string | null;
+  successor_id: string | null;
 };
 
-export type NewToken = Omit<TokenRow, "id" | "revoked_at">;
+export type NewToken = Omit<TokenRow, "revoked_at" | "rotated_at" | "successor_id">;
+export type GrantReason = "user" | "refresh_reuse" | "code_reuse" | "membership";
 
 export interface OAuthStore {
   insertCode(row: Omit<CodeRow, "used_at">): Promise<void>;
   // Atomically marks the code used. firstUse is false when it had already been used.
   consumeCode(codeHash: string, now: Date): Promise<{ code: CodeRow; firstUse: boolean } | null>;
-  createGrant(row: Omit<GrantRow, "revoked_at">): Promise<void>;
+  // Inserts the grant. Returns false when a grant with this id already exists: a replay of the code got there first
+  // and left a revoked record (see revokeGrant's tombstone).
+  createGrant(row: Omit<GrantRow, "revoked_at">): Promise<boolean>;
   findGrant(id: string): Promise<GrantRow | null>;
-  revokeGrant(id: string, reason: "user" | "refresh_reuse" | "code_reuse" | "membership", now: Date): Promise<void>;
+  // Revokes the grant and every token in it. With a tombstone, first records the grant as revoked if it doesn't exist
+  // yet, so an exchange still in progress can't create it afterwards.
+  revokeGrant(id: string, reason: GrantReason, now: Date, tombstone?: Omit<GrantRow, "revoked_at">): Promise<void>;
   insertTokens(rows: NewToken[]): Promise<void>;
   findToken(tokenHash: string): Promise<TokenRow | null>;
-  // Atomically revokes an active refresh token. firstUse is false when it had already been revoked.
-  consumeRefreshToken(tokenHash: string, now: Date): Promise<{ firstUse: boolean } | null>;
+  findTokenById(id: string): Promise<TokenRow | null>;
+  // Atomically rotates an active refresh token: revokes it and records when and into which refresh token. When it
+  // was already revoked, returns its current row instead.
+  consumeRefreshToken(tokenHash: string, successorId: string, now: Date): Promise<{ firstUse: true } | { firstUse: false; token: TokenRow } | null>;
   revokeToken(tokenHash: string, now: Date): Promise<void>;
   isMember(organizationId: string, userId: string): Promise<boolean>;
 }
@@ -94,6 +112,8 @@ export class OAuthError extends Error {
 }
 
 const later = (now: Date, seconds: number) => new Date(now.getTime() + seconds * 1000).toISOString();
+const CODE_USED = "The authorization code was already used.";
+const DISCONNECTED = "This connection was disconnected in Braventa. Sign in again.";
 
 export async function issueCode(
   store: OAuthStore,
@@ -116,12 +136,17 @@ export async function issueCode(
   return code;
 }
 
-async function issueTokens(store: OAuthStore, base: Omit<NewToken, "kind" | "token_hash" | "expires_at">, now: Date): Promise<TokenResponse> {
+async function issueTokens(
+  store: OAuthStore,
+  base: Omit<NewToken, "id" | "kind" | "token_hash" | "expires_at">,
+  now: Date,
+  refreshId: string = randomUUID(),
+): Promise<TokenResponse> {
   const access = generateSecret("access");
   const refresh = generateSecret("refresh");
   await store.insertTokens([
-    { ...base, kind: "access", token_hash: sha256Hex(access), expires_at: later(now, ACCESS_TOKEN_TTL_SECONDS) },
-    { ...base, kind: "refresh", token_hash: sha256Hex(refresh), expires_at: later(now, REFRESH_TOKEN_TTL_SECONDS) },
+    { ...base, id: randomUUID(), kind: "access", token_hash: sha256Hex(access), expires_at: later(now, ACCESS_TOKEN_TTL_SECONDS) },
+    { ...base, id: refreshId, kind: "refresh", token_hash: sha256Hex(refresh), expires_at: later(now, REFRESH_TOKEN_TTL_SECONDS) },
   ]);
   return { access_token: access, token_type: "Bearer", expires_in: ACCESS_TOKEN_TTL_SECONDS, refresh_token: refresh, scope: scopeString(base.scopes) };
 }
@@ -135,10 +160,20 @@ export async function exchangeCode(
   const consumed = await store.consumeCode(sha256Hex(p.code), now);
   if (!consumed) throw new OAuthError("invalid_grant", "The authorization code is invalid.");
   const { code, firstUse } = consumed;
+  const grant = {
+    id: code.grant_id,
+    organization_id: code.organization_id,
+    user_id: code.user_id,
+    client_id: code.client_id,
+    client_name: p.clientName,
+    scopes: code.scopes,
+    resource: code.resource,
+  };
   if (!firstUse) {
-    // RFC 6749 §4.1.2 / OAuth 2.1 §4.1.3: a reused code revokes the tokens it issued.
-    await store.revokeGrant(code.grant_id, "code_reuse", now);
-    throw new OAuthError("invalid_grant", "The authorization code was already used.");
+    // RFC 6749 §4.1.2 / OAuth 2.1 §4.1.3: a reused code revokes the tokens it issued. The tombstone covers a replay
+    // that arrives while the first exchange is still running: its createGrant then fails instead of going live.
+    await store.revokeGrant(code.grant_id, "code_reuse", now, grant);
+    throw new OAuthError("invalid_grant", CODE_USED);
   }
   if (new Date(code.expires_at).getTime() <= now.getTime()) throw new OAuthError("invalid_grant", "The authorization code expired.");
   if (code.client_id !== p.clientId) throw new OAuthError("invalid_grant", "The authorization code was issued to another client.");
@@ -147,20 +182,27 @@ export async function exchangeCode(
   if (p.resource !== null && p.resource !== code.resource) throw new OAuthError("invalid_target", "resource doesn't match the authorization request.");
   if (!(await store.isMember(code.organization_id, code.user_id))) throw new OAuthError("invalid_grant", "The account no longer has access to this business.");
 
-  await store.createGrant({
-    id: code.grant_id,
-    organization_id: code.organization_id,
-    user_id: code.user_id,
-    client_id: code.client_id,
-    client_name: p.clientName,
-    scopes: code.scopes,
-    resource: code.resource,
-  });
-  return issueTokens(
+  if (!(await store.createGrant(grant))) throw new OAuthError("invalid_grant", CODE_USED);
+  const tokens = await issueTokens(
     store,
     { organization_id: code.organization_id, user_id: code.user_id, client_id: code.client_id, grant_id: code.grant_id, scopes: code.scopes, resource: code.resource },
     now,
   );
+  // A replay that arrived after createGrant revoked the grant; tokens inserted after that belong to a revoked grant,
+  // which /api/mcp and refresh both refuse. Answer the same way here.
+  const after = await store.findGrant(code.grant_id);
+  if (!after || after.revoked_at) throw new OAuthError("invalid_grant", CODE_USED);
+  return tokens;
+}
+
+// Within the grace window, from the same client, while the token it was rotated into hasn't been used yet.
+async function inReuseGrace(store: OAuthStore, token: TokenRow, now: Date) {
+  if (!token.rotated_at) return false;
+  if (now.getTime() - new Date(token.rotated_at).getTime() > REFRESH_REUSE_GRACE_SECONDS * 1000) return false;
+  if (!token.successor_id) return true;
+  // Missing: the first request is still issuing it.
+  const successor = await store.findTokenById(token.successor_id);
+  return !successor || (!successor.rotated_at && !successor.revoked_at);
 }
 
 export async function refreshTokens(
@@ -172,31 +214,40 @@ export async function refreshTokens(
   const hash = sha256Hex(p.refreshToken);
   const token = await store.findToken(hash);
   if (!token || token.kind !== "refresh") throw new OAuthError("invalid_grant", "The refresh token is invalid.");
-  // Checked before consuming, so a token presented by the wrong client doesn't burn the real client's token.
+  // Checked before the token is used, so a request the client can correct doesn't burn it, and a token presented by
+  // the wrong client doesn't burn the real client's token.
   if (token.client_id !== p.clientId) throw new OAuthError("invalid_grant", "The refresh token was issued to another client.");
-
-  const consumed = await store.consumeRefreshToken(hash, now);
-  if (!consumed) throw new OAuthError("invalid_grant", "The refresh token is invalid.");
-  if (!consumed.firstUse) {
-    await store.revokeGrant(token.grant_id, "refresh_reuse", now);
-    throw new OAuthError("invalid_grant", "The refresh token was already used. Sign in to Braventa again.");
-  }
+  if (p.resource !== null && p.resource !== token.resource) throw new OAuthError("invalid_target", "resource doesn't match this grant.");
+  const scopes = narrowScopes(p.scope, token.scopes);
+  if (!scopes) throw new OAuthError("invalid_scope", "Ask for scopes this connection was granted, or leave scope out.");
   if (new Date(token.expires_at).getTime() <= now.getTime()) throw new OAuthError("invalid_grant", "The refresh token expired. Sign in to Braventa again.");
 
+  const successorId = randomUUID();
+  const consumed = await store.consumeRefreshToken(hash, successorId, now);
+  if (!consumed) throw new OAuthError("invalid_grant", "The refresh token is invalid.");
+  if (!consumed.firstUse) {
+    const current = consumed.token;
+    // Revoked without being rotated: Disconnect, the revocation endpoint, or the grant ended. Not reuse.
+    if (!current.rotated_at) throw new OAuthError("invalid_grant", DISCONNECTED);
+    if (!(await inReuseGrace(store, current, now))) {
+      await store.revokeGrant(token.grant_id, "refresh_reuse", now);
+      throw new OAuthError("invalid_grant", "The refresh token was already used. Sign in to Braventa again.");
+    }
+  }
+
   const grant = await store.findGrant(token.grant_id);
-  if (!grant || grant.revoked_at) throw new OAuthError("invalid_grant", "This connection was disconnected in Braventa. Sign in again.");
+  if (!grant || grant.revoked_at) throw new OAuthError("invalid_grant", DISCONNECTED);
   if (!(await store.isMember(token.organization_id, token.user_id))) {
     await store.revokeGrant(token.grant_id, "membership", now);
     throw new OAuthError("invalid_grant", "The account no longer has access to this business.");
   }
-  if (p.resource !== null && p.resource !== token.resource) throw new OAuthError("invalid_target", "resource doesn't match this grant.");
-  const scopes = narrowScopes(p.scope, token.scopes);
-  if (!scopes) throw new OAuthError("invalid_scope", "A refresh can't add scopes that weren't granted.");
 
   return issueTokens(
     store,
     { organization_id: token.organization_id, user_id: token.user_id, client_id: token.client_id, grant_id: token.grant_id, scopes, resource: token.resource },
     now,
+    // A grace reissue isn't linked: the rotated token's successor stays the first pair.
+    consumed.firstUse ? successorId : undefined,
   );
 }
 

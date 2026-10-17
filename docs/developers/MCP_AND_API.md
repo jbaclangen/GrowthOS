@@ -51,7 +51,9 @@ MCP clients do this automatically. For your own client:
    ```
    Redirect URIs must be https, or http on `localhost` / `127.0.0.1` / `[::1]` (any port at authorization time).
    Send `"token_endpoint_auth_method":"client_secret_post"` (or `client_secret_basic`) to get a `client_secret`
-   (shown once). Limit: 10 registrations per IP per hour.
+   (shown once). Limits: 10 registrations per IP per hour (IPv6: per /64). From a browser, only localhost (such as
+   MCP Inspector), Braventa and the supported AI clients may register; other origins get 403. A client that hasn't
+   connected within 7 days is deleted, so register again if you get "isn't registered".
 5. Send the user's browser to:
    ```
    https://app.braventa.io/oauth/authorize?response_type=code&client_id=brv_client_…
@@ -71,13 +73,18 @@ MCP clients do this automatically. For your own client:
    ```
 7. Refresh before or after expiry. Every refresh returns a **new** refresh token; store it and discard the old one.
    Presenting an old refresh token again disconnects the app (reuse detection) and the user must approve again.
+   Exception: within 60 seconds of a refresh, and while the new refresh token is unused, the same client can send
+   the old one again and gets another fresh pair (for two requests refreshing at once, or a lost response). A
+   refresh refused for `invalid_scope` or `invalid_target` keeps the token. `scope` on a refresh may narrow the
+   grant; scopes it wasn't granted are dropped, and the response's `scope` says what you got.
    ```bash
    curl -s https://app.braventa.io/oauth/token -d grant_type=refresh_token -d client_id=brv_client_… -d refresh_token=brv_rt_…
    ```
 8. Revoke on sign-out (RFC 7009): `POST /oauth/revoke` with `token` and `client_id`. A refresh token ends the whole
    connection.
 
-Token errors follow RFC 6749 §5.2: `invalid_client` (401), `invalid_grant`, `invalid_scope`, `invalid_target`,
+Token errors follow RFC 6749 §5.2: `invalid_client` (401, also for a malformed HTTP Basic header), `invalid_grant`,
+`invalid_scope` (none of the requested scopes were granted), `invalid_target`,
 `unsupported_grant_type`, `invalid_request` (400). Not supported: implicit and password grants, client credentials,
 `plain` PKCE, CIMD client IDs, OpenID Connect.
 
@@ -121,14 +128,14 @@ Braventa never publishes anything, and the owner confirms the diagnosis and appr
 | HTTP | When | Body / header |
 |---|---|---|
 | 401 | No credential | JSON-RPC error; `WWW-Authenticate: Bearer resource_metadata="…"` |
-| 401 | Bad, revoked or expired credential; token for another resource; user left the business | Same, plus `error="invalid_token"` and a description |
+| 401 | Bad, revoked or expired credential; token for another resource; user left the business | Same, plus `error="invalid_token"` and an ASCII `error_description`; the JSON-RPC body has the full message |
 | 403 | Browser `Origin` not allowed (only claude.ai, claude.com, chatgpt.com, chat.openai.com and Braventa itself) | JSON-RPC error |
 | 400 | Invalid JSON, not JSON-RPC 2.0, unsupported `MCP-Protocol-Version` | JSON-RPC error (-32700 / -32600) |
 | 413 | Body over 64 KB | JSON-RPC error |
 | 200 + `isError` | Trial ended without a plan; rate limit; tool validation | Message in `content[0].text` |
 
 Rate limits: 30 tool calls per minute and 300 per hour per key or per OAuth connection; 10 new analyses or re-runs
-per business per 24 hours (same as the app); 10 client registrations per IP per hour. Access: every plan during the
+per business per 24 hours (same as the app); 10 client registrations per IP (IPv6: per /64) per hour. Access: every plan during the
 14-day trial, then Basic, Pro or Premium (D-036). `tools/list` keeps working while paused.
 
 ## 5. Testing
