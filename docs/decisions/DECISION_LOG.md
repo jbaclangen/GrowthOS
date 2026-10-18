@@ -182,6 +182,8 @@ available for short marketing section heads.
   `now()`), never by the client. Every other status — including `scheduled` and `published` — can only be
   set by server code using the secret key. Migration `20261010121043_content_approval_guard.sql`.
 Revisit when multi-user organizations add roles (who may approve) or when publishing ships (D-013).
+Who may approve is answered by D-046 and D-047 (planned, 2026-10-18); the database-set approver stands.
+
 ## D-019 — Product vision adopted as planning context
 **Status:** Founder (2026-10-10: founder supplied the document, instructed that the existing baseline stays
 and approved the documentation updates from the assessment). The founder's
@@ -454,7 +456,8 @@ private test with about 3 invited accounts.
 - Needs Stripe and transactional email, neither built yet. Detail: PRICING_PROPOSAL.md §5.
 
 ## D-041 — Pro integrations: connect during discovery, act with approval
-**Status:** Founder (2026-10-12, in chat). Planned, build from the weekend of 2026-10-17.
+**Status:** Founder (2026-10-12, in chat). Planned, build from the weekend of 2026-10-17. Amended by D-049 for
+publishing only: an in-app scheduler runs it, not n8n.
 - Discovery asks Pro owners (and the Pro trial) to connect their tools: Google Search Console (live), GA4, HubSpot
   (read-only for analysis), Canva, HeyGen, Higgsfield, social accounts and Google Business Profile. Read scopes first;
   write and publish scopes only when the owner enables an action.
@@ -544,3 +547,127 @@ phase 1"); the founder confirms or overrides it before it goes live. Built, not 
   confirm the diagnosis, accept plan items, approve drafts or publish.
 - Resolves the OAuth half of Q-039. Spec: [MCP_SERVER.md](../architecture/MCP_SERVER.md) §3, §7 and §10; developer
   guide: [MCP_AND_API.md](../developers/MCP_AND_API.md).
+
+## D-045 — Account types: Brand or Agency/Organization
+**Status:** Founder (2026-10-18, in chat). Planned, not built.
+- Basic / Pro / Premium stay the feature tiers (D-030 and D-039 unchanged). Each organization also gets an account
+  type: **Brand** (one business) or **Agency/Organization** (many businesses, priced per extra brand).
+- Why: renaming the tiers would supersede D-030's naming and need a fourth price; an account type needs one column and
+  no copy changes. It is in line with the provisional defaults of Q-001 and Q-003.
+- Changes: one planned column, `organizations.account_type`. No copy changes now.
+- Open: the per-brand price. The research example (+$59 / +$149 per brand by tier) is unvalidated and not decided.
+  Q-001 (owner or agency as the first buyer) stays open; the account type supports both, so ask the testers.
+- Source: [SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §4;
+  [research README](../research/README.md) §2, decision 1.
+
+## D-046 — Team seats: eight fixed roles and seat allowances
+**Status:** Founder (2026-10-18, in chat). Planned, not built. Today `member_role` has only owner, admin and member.
+- **Roles:** Owner, Admin, Marketing manager, Social media manager, Copywriter, Content creator, Analyst and Client
+  approver, with fixed permissions. No custom roles in v1.
+- **Approval:** no one approves their own work except the Owner, so a one-person business still works; every approval
+  is recorded. The database still sets the approver (D-018); this matrix answers D-018's "who may approve".
+- **Integrations:** connect and disconnect stay Owner-only, as in code today; Admins don't connect by default.
+- **Seats:** 2 / 5 / 10 full seats included on Basic / Pro / Premium; an extra full seat is $29 / $39 / quoted (target
+  $35). Analyst seats free up to 5 / 10 / unlimited; client approvers free up to 3 / 10 / unlimited (D-047). As with
+  D-039, seat prices stay off the site until checkout exists.
+- **Needs:** invitations need transactional email (Q-010); charging for seats needs Stripe.
+- **Changes:** ROADMAP.md Next item 8. Team access no longer waits for agencies to prove a buying segment.
+- Source: [SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §0–§3;
+  [research README](../research/README.md) §2, decision 2.
+
+## D-047 — Client approvers on every tier
+**Status:** Founder (2026-10-18, in chat). Planned, not built.
+- Outside client approvers are free on Basic up to 3, Pro up to 10 and Premium unlimited (option A).
+- Why: client sign-off is core to D-013. Most tools sell it on middle or upper tiers, so this is a deliberate
+  difference.
+- The approval link is single-use and signed, its token is stored only as a hash, it expires after 7 days, and every
+  action through it is logged.
+- Depends on D-045 and D-046. Approval notifications need transactional email (Q-010).
+- Source: [SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §1, §3;
+  [SOCIAL_PLANNER_2026-10-17.md](../research/SOCIAL_PLANNER_2026-10-17.md) §1, §3 ("Client approval link");
+  [research README](../research/README.md) §2, decision 3.
+
+## D-048 — First CRM: HubSpot, read-only
+**Status:** Founder (2026-10-18, in chat). Planned, not built. Resolves Q-011.
+- HubSpot read-only comes first (the owner's own portal; unrelated to D-034's contact pipeline), over direct REST with
+  per-tenant OAuth, not vendor MCP servers. It ships as an unlisted marketplace app on platform 2026.09, API version
+  `2026-09` (up to 25 installs, no review). Keeps D-041's order: HubSpot is step 4.
+- GoHighLevel is the alternate if the testers turn out to be agency-managed; ask them before building. Salesforce and
+  Keap ingestion are deferred.
+- Zero-build path for Claude users: connect Claude to both Braventa's MCP server and the vendor's official server.
+- `forms` and `content` are dropped from the planned read scopes: neither is read-only.
+- Build: widen the `integration_connections` provider check (Search Console only today), OAuth start and callback
+  routes, a CRM snapshot table and a `tiers.ts` gate entry.
+- CRM data is personal data. Before the feature launches: Privacy Policy and sub-processor updates, retention rules,
+  and deletion on disconnect.
+- Source: [CRM_MCP_AND_DATA_MODEL_2026-10-17.md](../research/CRM_MCP_AND_DATA_MODEL_2026-10-17.md) §A1–§A3;
+  [research README](../research/README.md) §2, decision 4.
+
+## D-049 — Social publishing: plan in Braventa, publish through a vendor
+**Status:** Founder (2026-10-18, in chat). Planned, not built. Amends D-041 for publishing.
+- Braventa builds the planner, calendar, approvals, revisions and audit trail. Publishing is bought from Outstand after
+  a one-week spike, behind a `Publisher` interface, with Zernio and Ayrshare as fallbacks. High-volume networks move
+  to direct connectors later.
+- Launch networks: Facebook Pages, Instagram, Google Business Profile and LinkedIn. X is skipped. TikTok, YouTube
+  Shorts, Pinterest, Threads and Bluesky come later. Google Business Profile approval must not block the launch.
+- Scheduler: in-app (Supabase `pg_cron` calling a dispatch route), not n8n. This amends D-041's "executed by n8n" for
+  publishing only; other D-041 actions are unchanged, and n8n can take over later.
+- Publishing is a Pro feature (D-030, D-041). A variant publishes only if its approved revision is current (D-013,
+  enforced in the database). Tokens encrypted (as Search Console's are today, `secret-box.ts`), minimal scopes,
+  revocation; an idempotency key guards against double posts.
+- Publishing stays out of the MVP (MVP_SCOPE.md §4); until it ships, copy must not claim it. Touches Q-031 (execution
+  model) and Q-006 (n8n host).
+- Source: [SOCIAL_PLANNER_2026-10-17.md](../research/SOCIAL_PLANNER_2026-10-17.md);
+  [research README](../research/README.md) §2, decision 5.
+
+## D-050 — Public API: read-only v1
+**Status:** Founder (2026-10-18, in chat). Planned, not built. Answers Q-039.
+- v1 is read-only: objects GET, search and properties over existing tables, with the same handlers exposed as MCP
+  tools. Each tool declares its scope; the default is deny.
+- API and MCP clients may create drafts and request approval. Approval and publishing happen only in the app;
+  `content.publish` is never offered. `guard_content_item_write` doesn't bind `service_role`, so handlers must refuse
+  `approved`, `scheduled` and `published` in code.
+- Auth phase 1: generalize `mcp_access_keys` into `api_keys` with `scopes text[]`, storing only a hash and a short
+  prefix. New `api_keys` and `api_audit_log` tables, with per-key rate limits.
+- Q-039: read-only plan and draft tools, yes, as part of v1.
+- Open: path versioning (`/api/v1` or date-based, such as `/api/2026-11/`).
+- Source: [CRM_MCP_AND_DATA_MODEL_2026-10-17.md](../research/CRM_MCP_AND_DATA_MODEL_2026-10-17.md) §B1–§B4;
+  [research README](../research/README.md) §2, decision 6.
+
+## D-051 — Feature modules, and Search visibility as the first new one
+**Status:** Founder (2026-10-18, in chat). Planned, not built.
+- A module registry (`web/src/lib/modules/registry.ts`), `organization_modules` and `module_runs` tables, and
+  `module_id` on findings and plan items.
+- The growth score becomes a renormalized weighted mean of the enabled modules that have evidence, stored with
+  `score_version` and the modules used. Scores show "based on N modules".
+- Six-step path: steps 1–5 change no behavior. Step 6 adds the first new module, Search visibility: Search Console
+  data in the diagnosis. Search Console connects and syncs for Pro today, but its data doesn't reach the diagnosis
+  (`searchConsoleSummaryForPrompt` has no callers).
+- Module-to-tier map. Basic: business intelligence, website and technical SEO, conversion and messaging, content
+  studio. Pro: search visibility, local SEO, social media, search ads, email marketing, video, CRM intelligence,
+  analytics, automation. Premium: custom integrations. Module names stay descriptive (D-010).
+- D-035's growth score explanation must change once more modules feed the score; not yet.
+- Source: [SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §0, §5, §6;
+  [research README](../research/README.md) §2, decision 7.
+
+## D-052 — Research before building
+**Status:** Founder (2026-10-18, in chat). A working rule; nothing to build.
+- Any change that adds an integration, a paid vendor, a table, a price or a public claim follows the eight steps in
+  the Seats doc §7: brief, read the repo, look outside, options, decide, spec, build, review after launch. Smaller
+  changes don't need it.
+- Why: applied to every change, the process slows work; the threshold keeps the effort in proportion.
+- Also added to CLAUDE.md's working rules. The three 2026-10-17 research docs are its first use.
+- Source: [SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §7;
+  [research README](../research/README.md) §2, decision 8.
+
+## D-053 — Provider applications under Pixel Marketing Design
+**Status:** Founder (2026-10-18, in chat). Planned.
+- Apply now under Pixel Marketing Design rather than wait for the US LLC, to start Meta Business Verification and the
+  LinkedIn Community Management API review; both need a registered legal organization.
+- Before each application, check the provider's rules for moving an app to another business. Plan to transfer the
+  apps to the Braventa LLC once it's registered.
+- Also start the steps that need no entity: the Google Business Profile API access request, the HubSpot developer app
+  (unlisted, platform 2026.09) and a TikTok app shell.
+- Why: provider reviews drive the timeline more than code does, and these steps are needed under every option.
+- Open: who builds which connector when (build order in the research README §4).
+- Source: [research README](../research/README.md) §3.

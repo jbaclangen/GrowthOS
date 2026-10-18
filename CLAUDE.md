@@ -35,10 +35,13 @@ decision. Never describe the product as doing something the code doesn't do, wha
   lets Claude Code/Desktop fill in onboarding with a personal access key; a read-only in-app assistant ("Ask Braventa"
   in the header, `/api/assistant`, D-043) answers how the app works and about the user's latest report — its knowledge
   base `web/src/lib/assistant/knowledge.ts` must stay true to the code (`npm run help:doc` regenerates
-  `docs/help/APP_GUIDE.md`); 14-day Pro
-  trial then Basic (D-030; Pro features are Coming soon). No CRM, publishing,
+  `docs/help/APP_GUIDE.md`); Pro owners can connect Google Search Console (read-only; data stored and shown, not yet
+  used in the diagnosis); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon). No CRM, publishing,
   email sending, automation, analytics, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
+- Research before building (D-052): a change that adds an integration, a paid vendor, a table, a price or a public claim
+  follows the eight steps in `docs/research/SEATS_ROLES_MODULES_2026-10-17.md` §7 (brief, read the repo, look outside,
+  options, decide, spec, build, review after launch). Smaller changes don't need it.
 - Style only with design tokens and shared primitives: semantic Tailwind roles (`bg-surface`, `text-muted`,
   `bg-accent`, …), `.btn-primary/.btn-secondary/.input/.card/.chip/.eyebrow`, `<Logo />`. No HEX in components,
   no `dark:` colour overrides. Change values only in `design-system/tokens.json`, then `npm run tokens`.

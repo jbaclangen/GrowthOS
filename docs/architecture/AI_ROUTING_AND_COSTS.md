@@ -186,9 +186,9 @@ from the sites (a 2007 founding date, a 1992–2020 copyright), not invented one
 
 **Chosen lineup and expected cost:** profile Sonnet, opportunities (now diagnosis and plan) Opus, plan Sonnet, drafts Sonnet (Opus when
 regulated) — about **$0.23 per analysis, about $0.32 for regulated businesses** (end-to-end run on
-thebenefitlink.com 2026-10-10: profile $0.041, opportunities $0.070, plan $0.071, drafts $0.142 — plus $0.167 for
-a cut-off first draft attempt, which the higher ceiling now prevents). Revisit when Haiku-class quality is
-re-tested on more sites, or when cost per customer matters more than depth.
+thebenefitlink.com 2026-10-10, when the crawl read up to 6 pages: profile $0.041, opportunities $0.070, plan $0.071,
+drafts $0.142 — plus $0.167 for a cut-off first draft attempt, which the higher ceiling now prevents). Revisit when
+Haiku-class quality is re-tested on more sites, or when cost per customer matters more than depth.
 
 ## 5. Budget enforcement and usage logging
 
@@ -225,8 +225,8 @@ Known limitations:
 | Reuse business knowledge; cache | **Not implemented** | Crawled pages are stored in `knowledge_documents` but re-runs re-crawl and re-prompt from scratch; no prompt or response cache; no embeddings |
 | Track model, tokens, latency, failures, cost | Implemented | Per call in `ai_usage`: model, tokens, cost, `latency_ms`, `status`, `error` (2026-10-10) |
 | Configurable fallbacks | Implemented (code-level) | Chains in `router.ts`; changing them requires a deploy. No per-org or per-worker override |
-| Evaluate quality before moving to cheaper models | **Not implemented** | No eval set, no QA scoring, no record of which model produced which artefact beyond `ai_usage.model` |
-| Minimise customer data sent to models | Partial | Inputs are bounded (20k-char site digest, 6 pages); no redaction; full profile JSON is re-sent to each later step |
+| Evaluate quality before moving to cheaper models | **Not implemented** | No eval set, no QA scoring, no record of which model produced which artifact beyond `ai_usage.model` |
+| Minimize customer data sent to models | Partial | Inputs are bounded (20k-char site digest from up to 25 pages); no redaction; full profile JSON is re-sent to each later step |
 | Never expose provider keys in browser code | Implemented | `OPENROUTER_API_KEY` read only via `server-only` `env.ts` |
 | Keep model selection configurable | Implemented in code | Not configurable at runtime (no env or DB override) |
 

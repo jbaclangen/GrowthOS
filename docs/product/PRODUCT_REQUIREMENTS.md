@@ -118,7 +118,7 @@ Builds and maintains the structured business profile used by every other module.
 | CS-9 | Automated quality check before approval (`qa_reviewer` worker): brand fit, claims, length per channel | Next phase | Not started (worker defined, never called) |
 | CS-10 | Long-form formats: blog/article drafts, email campaigns, video scripts, creative briefs | Next phase | Not started (plan may include such channels; drafts are short-form) |
 | CS-11 | Repurposing one asset into several channel versions | Future vision | Not started |
-| CS-12 | Scheduling and publishing through connected tools | Future vision (depends on F) | Not started |
+| CS-12 | Scheduling and publishing through connected tools | Next phase, Pro (D-049: social planner first, then publishing through Outstand) | Not started |
 | CS-13 | Team approval workflows (reviewer roles, comments) | Future vision | Not started |
 
 **MVP acceptance criteria**
@@ -133,11 +133,11 @@ Builds and maintains the structured business profile used by every other module.
 | ID | Requirement | Class | Status |
 |---|---|---|---|
 | WI-1 | Collect technical signals: HTTPS, meta description, H1 count, contact form, phone number, schema markup, images missing alt text, social links | MVP | **Live** (stored in the report; not displayed individually) |
-| WI-2 | Google PageSpeed (mobile): performance, SEO, accessibility, best practices | MVP | **Live** (three shown; best practices used in score only) |
-| WI-3 | Website, SEO, and conversion opportunities within the five opportunities | MVP | **Live** |
+| WI-2 | Google PageSpeed (mobile and desktop, D-038): performance, SEO, accessibility, best practices; the score uses mobile | MVP | **Live** (three shown; best practices used in score only) |
+| WI-3 | Website, SEO, and conversion findings in the diagnosis and the growth plan | MVP | **Live** |
 | WI-4 | Show the measured signals as a checklist with pass/fail and why it matters | Next phase | Not started |
 | WI-5 | Dedicated prioritised website improvement plan (SEO, content quality, CRO, UX) using `seo_analyst` | Next phase | Not started |
-| WI-6 | Desktop PageSpeed, Search Console, and GA4 data | Next phase / Future | Not started (API client supports desktop strategy) |
+| WI-6 | Desktop PageSpeed, Search Console, and GA4 data | Next phase / Future | **Partial**: desktop PageSpeed runs alongside mobile (D-038; the growth score uses mobile only); the Google Search Console connection is live for Pro, but using its data in the diagnosis is not started; GA4 not started |
 | WI-7 | Page-level recommendations and rewrite suggestions | Future vision | Not started |
 
 **MVP acceptance criteria:** the assessment is produced even if PageSpeed fails; crawl failures on
@@ -149,7 +149,7 @@ HubSpot is the first CRM (brief §3E). Braventa works with the CRM; it does not 
 
 | ID | Requirement | Class | Status |
 |---|---|---|---|
-| CRM-1 | Connect HubSpot via OAuth with read-only scopes; tokens stored in Supabase Vault (`integrations.vault_secret_id`) | Next phase | Not started (table exists; health check reports "needs a HubSpot public app") |
+| CRM-1 | Connect HubSpot via OAuth with read-only scopes (first CRM, D-048); tokens encrypted in `integration_connections` (`secret-box.ts`), owner-only connect | Next phase | Not started (table exists; health check reports "needs a HubSpot public app") |
 | CRM-2 | Lead and pipeline summary: counts by stage, stale deals, lead sources | Next phase | Not started (`crm_analyst` worker defined, unused) |
 | CRM-3 | Data quality observations: missing owners, missing lifecycle stage, duplicates | Next phase | Not started |
 | CRM-4 | Follow-up recommendations listing specific records | Next phase | Not started |

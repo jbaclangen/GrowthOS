@@ -8,7 +8,9 @@ of capabilities that delivers measurable value; when in doubt, a feature is out 
 
 **Status / last reviewed: 2026-10-10.** "Live" items verified in code on `main` (`17ab57a` plus
 working-tree changes). Items marked **Provisional** are recommendations awaiting founder confirmation;
-record confirmation in [DECISION_LOG.md](../decisions/DECISION_LOG.md).
+record confirmation in [DECISION_LOG.md](../decisions/DECISION_LOG.md). **Updated 2026-10-18:** stale facts fixed
+(crawl, PageSpeed, AI mode, token storage, Search Console), and §3 and §4 point to the decisions of that day for work
+after the MVP (D-045 to D-051); the MVP scope itself is unchanged.
 
 ---
 
@@ -42,8 +44,8 @@ All paths relative to the repository root.
 | Start an analysis | Website URL plus optional business name; creates an onboarding session, queues the `website_evidence` job (crawl, PageSpeed, business profile) and sends the owner to discovery while it runs (ON-4) | `web/src/app/onboarding/page.tsx`, `web/src/app/onboarding/start-form.tsx`, `startAnalysis` in `web/src/app/analysis/actions.ts` |
 | Guided onboarding questions | Optional main goal, service area and current tools at onboarding; stored as Customer-provided, used by every pipeline step, shown and editable in a "From you" panel on the results page (BI-12, D-021) | `web/src/components/owner-questions.tsx`, `web/src/lib/owner-inputs.ts`, `saveOwnerInputs` in `web/src/app/analysis/actions.ts`, `web/src/app/analysis/[id]/owner-panel.tsx` |
 | Pain-point discovery | Versioned catalog of 10 categories and 43 pain points with solution availability (ON-1); owner picks pain points and/or describes the problem in their own words; the extractor model maps the words to catalog IDs, keeps the original wording, and the owner confirms suggestions and ranks a top three (ON-2, ON-3); skippable. Then up to 4 follow-up questions about the top three in two rounds of 2, chosen by the extractor model from a typed question bank using earlier answers; any can be skipped or marked "Doesn't apply" (ON-5). Every step is saved, and the results page, dashboard and each step send the owner back to where they left off (ON-6). The plan starts only when discovery is finished and the evidence job has succeeded; priorities 1–3 are addressed first in the opportunities and plan, and shown on the results page as "What you told us" (D-028) | `web/src/lib/onboarding/`, `web/src/app/onboarding/[sessionId]/` (incl. `questions/`), `onboarding_sessions`, `onboarding_responses`, `onboarding_follow_ups` |
-| Website reading | Home page plus up to 5 priority pages; homepage technical signals | `web/src/lib/integrations/crawler.ts` |
-| PageSpeed | Google PageSpeed mobile scores; failure is tolerated | `web/src/lib/integrations/google.ts` |
+| Website reading | Up to 25 pages, home page included; robots.txt respected; homepage technical signals | `web/src/lib/integrations/crawler.ts` (`MAX_PAGES`), `web/src/lib/integrations/robots.ts` |
+| PageSpeed | Google PageSpeed mobile and desktop scores; the growth score uses mobile; failure is tolerated | `web/src/lib/integrations/google.ts`, `web/src/lib/pipeline/website-intel.ts` |
 | Business profile | AI-generated structured profile and brand voice | `profileStep` (step `profiling`) in `web/src/lib/pipeline/website-intel.ts` |
 | Growth score, diagnosis and growth plan | Deterministic growth score from measured and assessed dimensions. One Opus call returns a diagnosis (summary, 3–6 findings each tagged Verified / From you / Inferred with a confidence level, up to 4 open questions) and one plan of 5–7 actions that replaces the five opportunities: pain points addressed, why, first step, dependencies, success metric, Braventa capability (available or not yet, with a manual alternative), impact, urgency, effort, confidence. Four separate priorities: the owner's, the model's rank, a score computed in code ((impact × urgency × confidence) ÷ effort; the owner's urgency answer overrides the model's) and the final order the owner confirms (owner priorities first). The owner marks findings right or wrong with a correction; corrections re-run only the diagnosis step. Confirming sets the plan (ON-7, ON-8, D-029) | `computeGrowthScore`, `diagnose` / `storeDiagnosis` / `reviseDiagnosis` in `website-intel.ts`, `web/src/lib/plan/priority.ts`, `web/src/app/analysis/plan-actions.ts`, `web/src/app/analysis/[id]/plan-section.tsx`; tables `diagnoses`, `diagnosis_findings`, `growth_plan_items` |
 | 30-day plan | Strategy (goal, audience, pillars, channels) and 20–30 dated items | `content_strategist` step in `website-intel.ts` |
@@ -66,7 +68,8 @@ recorded only the successful run's 4 calls: failed calls and latency are not log
 
 **AI assistant connection (D-036, phase 1):** an MCP server at `/api/mcp` lets Claude Code or Claude Desktop fill in
 onboarding with a personal access key from Settings → AI assistant access. See
-[MCP_SERVER.md](../architecture/MCP_SERVER.md). claude.ai and ChatGPT connectors are not built (Q-039).
+[MCP_SERVER.md](../architecture/MCP_SERVER.md). Phase 2 (D-044) adds OAuth sign-in for claude.ai, Claude
+Code and ChatGPT connectors and service keys; it is deployed, and a live connector test is pending.
 
 **In-app AI assistant (D-043):** "Ask Braventa…" in the header (`web/src/components/assistant.tsx`) opens a dialog
 that answers how Braventa works and questions about the user's own businesses and latest report. Read-only; same
@@ -95,7 +98,7 @@ sequence.
 | 5 | **Draft the next batch** | CS-8 | A 30-day plan with only five drafts delivers about one week of value; the next batch is the reason to return weekly (and the natural usage unit for pricing). | Small |
 | 6 | **Provenance labels on the results page** | BI-6, MS-2 | Trust: mark assessed scores and profile fields as inferred, measured values with source and date. Labels only; per-field storage can follow. | Small |
 | 7 | **Password reset** | PL-5 | Paying customers will lose passwords; without it, support is manual. | Small |
-| 8 | **Paid AI mode for paying customers** | NFR performance | Free models take about 3–4 minutes and are rate-limited (~50 requests/day). A paying customer needs reliable runs; switching is a configuration change (`AI_MODE=paid`) plus a per-run cost estimate. | Config |
+| 8 | **Paid AI mode for paying customers** | NFR performance | Free models take about 3–4 minutes and are rate-limited (~50 requests/day). A paying customer needs reliable runs; switching is a configuration change (`AI_MODE=paid`) plus a per-run cost estimate. | Config — paid is the production default (D-037); the per-run cost estimate is not built |
 | 9 | **User-facing brand rename completion** | D-003 | Done 2026-10-10 for page titles, header logo, metadata, login/onboarding copy, crawler User-Agent, and OpenRouter title. Remaining: transactional email templates in Supabase Auth settings (configured in the Supabase dashboard, not in code). | Small |
 
 **Added by founder decision (2026-10-10):**
@@ -110,28 +113,36 @@ sequence.
 assistant over uploaded documents still needs knowledge-base retrieval (BI-8) and stays in the Next phase.
 
 **Considered and deferred: HubSpot read-only summary (CRM-1, CRM-2).** It is the strongest
-differentiator and the founder's area of experience, but it needs a HubSpot public app, OAuth, token
-storage in Vault, and data-handling decisions, and it only helps customers who use HubSpot. Recommended
-as the **first Next-phase item**, built for two or three design partners who use HubSpot, rather than
-as an MVP blocker. Revisit if early customers are predominantly HubSpot users (see
-[OPEN_QUESTIONS.md](../decisions/OPEN_QUESTIONS.md)).
+differentiator and the founder's area of experience, but it needs a HubSpot public app, OAuth, tokens
+encrypted in `integration_connections` (`web/src/lib/integrations/secret-box.ts`, as Search Console's are), and
+data-handling decisions, and it only helps customers who use HubSpot. Planned for
+the **Next phase** as step 4 of the Pro integrations order, after Search Console and GA4 (D-041,
+[INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) §5), built for two or three design partners who use
+HubSpot, rather than as an MVP blocker. HubSpot read-only as the first CRM is decided (D-048, resolves Q-011);
+GoHighLevel is the alternate if the testers turn out to be agency-managed.
 
 ## 4. Explicitly out of scope for the MVP
 
 Do not build these without a decision recorded in [DECISION_LOG.md](../decisions/DECISION_LOG.md).
 
-- Publishing or scheduling to any social network, Google Business Profile, WordPress, or email tool.
+- Publishing or scheduling to any social network, Google Business Profile, WordPress, or email tool. Social
+  publishing is decided for after the MVP, as a Pro feature (D-049); until it ships, copy must not claim it.
 - Any n8n workflow triggered by the app; trigger-based or scheduled automations.
 - CRM connections of any kind (HubSpot is Next phase).
-- Analytics integrations (GA4, Search Console) and performance reporting.
-- Billing and Stripe (prices undecided, Q-029). The trial clock and tier checks are in (D-030); paying is not.
-- Team invitations, roles UI, organization switching, client portals for agencies.
+- Analytics integrations (GA4) and performance reporting. The Google Search Console connection is live for Pro, outside
+  the MVP (read-only, shown on `/search`); using its data in the diagnosis is planned as the first new module, Search
+  visibility (D-051).
+- Billing and Stripe (prices decided in D-039, not built; Q-010). The trial clock and tier checks are in (D-030);
+  paying is not.
+- Team invitations, roles UI, organization switching, client portals for agencies. Seats, roles, client approvers and
+  account types are decided for after the MVP (D-045, D-046, D-047).
 - Long-form content (blogs, email campaigns, video scripts), repurposing, image generation.
 - Automated QA reviewer step (manual approval is the MVP quality gate).
 - Knowledge-base embeddings and document upload (the read-only in-app assistant shipped without them — D-043).
 - Campaign objects and campaign planning.
 - Dedicated website audit report beyond the assessment.
-- Admin console, white-labelling, public API, mobile apps.
+- Admin console, white-labelling, public API, mobile apps. A read-only public API v1 is decided for after the MVP
+  (D-050).
 - Marketing site (braventa.io) and support site (support.braventa.io) — planned in this repo (D-031), not built yet.
 
 ## 5. Success metrics for validation with paying customers

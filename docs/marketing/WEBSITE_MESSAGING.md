@@ -40,7 +40,7 @@ connect is described as such in its copy. Badges come from `StatusBadge` in `sit
 | Business Intelligence (profile, guided discovery) | Live | `web/src/lib/pipeline/website-intel.ts`, `web/src/lib/onboarding/*` |
 | Marketing Strategy (growth score, diagnosis, one growth plan) | Live | `computeGrowthScore`, `diagnosisPrompt`, `web/src/lib/plan/priority.ts` |
 | Content Studio (30-day plan, five drafts, approve/reject) | Live, gaps named (rest of plan stays as topics; no editing or publishing) | `website-intel.ts`, `setContentStatus` |
-| Website Intelligence | Limited (up to 6 pages, mobile PageSpeed, crawl signals) | `web/src/lib/integrations/crawler.ts`, `google.ts` |
+| Website Intelligence | Limited (up to 25 pages, robots.txt respected; PageSpeed mobile and desktop; crawl signals) | `web/src/lib/integrations/crawler.ts`, `google.ts` |
 | CRM Intelligence, Automation, Analytics | Coming soon | nothing user-facing |
 | Connect your AI assistant (MCP) — Claude Desktop and Claude Code | Live once the MCP PR merges; every plan during the trial, then any subscribed plan | MCP phase 1 (`/api/mcp`); claude.ai and ChatGPT connectors Coming soon |
 | In-app AI assistant ("Ask Braventa" in the app header) | Live (D-043) once its migration is applied and the PR merges; every plan during the trial, then any subscribed plan | `/api/assistant`, `web/src/lib/assistant/*`; read-only |
@@ -70,7 +70,7 @@ actions done. Not true: a free-form chat, AI-written questions, reordering plan 
   PageSpeed mobile scores (performance 15%, SEO 12%, accessibility 4%, best practices 4%). Public copy says "about
   two-thirds / about a third".
 - Without PageSpeed the score is the assessment alone, and the report says PageSpeed wasn't available.
-- It reflects the website (up to six pages) and the owner's answers. Never say it measures overall business health or
+- It reflects the website (up to 25 pages) and the owner's answers. Never say it measures overall business health or
   predicts revenue, leads or rankings.
 
 ### Operational claims

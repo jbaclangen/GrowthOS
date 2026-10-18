@@ -1,7 +1,9 @@
 # Research index and founder decisions (2026-10-17)
 
-**Status:** research for founder decisions. Nothing in this folder is built, and no recommendation here is a decision
-until the founder makes it and it is recorded in [DECISION_LOG.md](../decisions/DECISION_LOG.md).
+**Status:** the founder made decisions 1 to 8 (§2) on 2026-10-18, recorded as D-045 to D-052 in
+[DECISION_LOG.md](../decisions/DECISION_LOG.md), and chose Pixel Marketing Design as the applying entity for the
+provider applications (§3, D-053). Nothing in this folder is built. The docs stay as the research record; where they
+differ from a decision, the decision wins.
 
 On 2026-10-17 the founder asked for:
 - CRM integrations through an API or MCP;
@@ -366,6 +368,10 @@ Public launch is planned for the end of October 2026 (D-040). It needs Stripe, t
 Once step 4 is in, steps 5, 6 and 8 can run in parallel. The order shown follows D-041 (CRM before social).
 
 ## 5. Stale docs
+
+**Fixed on 2026-10-18:** the stale docs in the first two lists below were corrected, except
+`WEBSITE_INTELLIGENCE_GAP_REPORT.md`, which stays a dated snapshot (its update note says which sections describe the
+earlier state).
 
 Found by the research:
 - **Crawl page count.** These say the crawl covers 6 pages; the code (`crawler.ts:86`, `MAX_PAGES = 25`) and D-038 say
