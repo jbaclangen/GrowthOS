@@ -1,6 +1,7 @@
 import { FEATURES, TIERS, TRIAL_DAYS, type Tier } from "@/lib/plans/tiers";
 import { PROVENANCE_LABEL } from "@/lib/plan/priority";
 import { VIEWS } from "@/app/analysis/[id]/views";
+import { TOOLS } from "@/lib/integrations/tool-catalog";
 import { ASSISTANT_LIMITS } from "./access";
 
 // The in-app assistant's help knowledge base ("Ask Braventa", D-043). THIS FILE IS THE SOURCE: docs/help/APP_GUIDE.md
@@ -9,7 +10,11 @@ import { ASSISTANT_LIMITS } from "./access";
 // can't drift. Keep every sentence true of the current code: never describe a planned feature as live.
 // Links are relative app routes; the assistant repeats them as markdown links.
 
-export const KNOWLEDGE_VERSION = "2026-10-17";
+export const KNOWLEDGE_VERSION = "2026-10-18";
+
+// The tools on "Connect your tools" that can't be connected yet, from the same catalog the page uses.
+const COMING_SOON_TOOLS = TOOLS.filter((t) => t.status === "coming_soon").map((t) => t.name);
+const comingSoonToolList = `${COMING_SOON_TOOLS.slice(0, -1).join(", ")} and ${COMING_SOON_TOOLS.at(-1)}`;
 
 export type RouteEntry = {
   // The filesystem route (folders under web/src/app that contain a page.tsx), e.g. "/analysis/[id]".
@@ -42,30 +47,37 @@ export const APP_ROUTES: RouteEntry[] = [
   },
   {
     route: "/onboarding",
-    title: "Analyze your business (step 1 of 4)",
+    title: "Analyze your business (step 1 of 5)",
     purpose:
       "Enter a website address and, optionally, the business name, your main goal for the next few months, where you serve customers and the tools you already use. Braventa starts reading the website and opens discovery.",
     howToGetThere: "Select Analyze a website on the dashboard.",
   },
   {
     route: "/onboarding/[sessionId]",
-    title: "Discovery (step 2 of 4)",
+    title: "Discovery (step 2 of 5)",
     purpose:
       "Pick what's making it hardest for the business to grow right now from a list of common problems, and describe it in your own words if you like. The website analysis keeps running in the background.",
     howToGetThere: "Comes right after step 1. To resume an unfinished setup, open the business from the dashboard and select the continue button.",
   },
   {
     route: "/onboarding/[sessionId]/review",
-    title: "Confirm your priorities (step 3 of 4)",
+    title: "Confirm your priorities (step 3 of 5)",
     purpose: "Check the problems Braventa understood, keep the ones that apply and put your top three in order.",
     howToGetThere: "Comes after discovery.",
   },
   {
+    route: "/onboarding/[sessionId]/connect",
+    title: "Connect your tools (step 4 of 5)",
+    purpose: `Optional. Today only Google Search Console can be connected here, as in Settings: it's a Pro feature included in the Pro trial, and only the business owner can connect it. On Basic it shows as paused. Its data appears on Search performance; it isn't used in your diagnosis yet. Other tools are marked Coming soon, with nothing to connect yet: ${comingSoonToolList}. Tools that fit your answers are marked Suggested, with the reason. Select **Continue** to go on, whether or not you connected anything, or **Change your priorities** to go back.`,
+    howToGetThere:
+      "Comes after confirming your priorities. To resume an unfinished setup, open the business from the dashboard and select the continue button. An AI assistant connected to Braventa skips this step: only the owner can connect tools, in Braventa.",
+  },
+  {
     route: "/onboarding/[sessionId]/questions",
-    title: "A few more questions (step 4 of 4)",
+    title: "A few more questions (step 5 of 5)",
     purpose:
       "Up to four short follow-up questions about your top priorities, such as how soon something needs attention. You can skip any of them. When you finish, Braventa builds your plan.",
-    howToGetThere: "Comes after confirming your priorities.",
+    howToGetThere: "Comes after Connect your tools.",
   },
   {
     route: "/analysis/[id]",
@@ -85,14 +97,14 @@ export const APP_ROUTES: RouteEntry[] = [
     route: "/search",
     title: "Search performance",
     purpose:
-      "Read-only Google Search Console data for your website: clicks, impressions, top search queries and pages, and Google's indexing verdicts. Empty until Search Console is connected in Settings.",
+      "Read-only Google Search Console data for your website: clicks, impressions, top search queries and pages, and Google's indexing verdicts. Empty until Search Console is connected (in Settings or on the Connect your tools setup step).",
     howToGetThere: "Settings → Connections → Google Search Console, once connected.",
   },
   {
     route: "/settings",
     title: "Settings",
     purpose:
-      "Integrations: connect Claude or ChatGPT to Braventa (step-by-step setup with the server URL, or a personal access key instead), Connected apps (see and disconnect apps approved with Sign in with Braventa), Service keys for automation tools (owners only) and Google Search Console.",
+      "Integrations: connect Claude or ChatGPT to Braventa (step-by-step setup with the server URL, or a personal access key instead), Connected apps (see and disconnect apps approved with Sign in with Braventa), Service keys for automation tools (owners only) and Google Search Console, followed by the tools that are coming soon.",
     howToGetThere:
       "Select Settings in the header. Direct sections: /settings#ai-assistant, /settings#connected-apps, /settings#service-keys and /settings#connections.",
   },
@@ -168,7 +180,8 @@ export function knowledgeSections(): Section[] {
       body: `1. On the [dashboard](/dashboard), select **Analyze a website** ([start here](/onboarding)). Enter the website and, optionally, your goal, service area and tools.
 2. **Discovery:** pick the problems holding the business back, or describe them in your own words.
 3. **Confirm your priorities:** keep what applies and choose your top three in order.
-4. **A few more questions:** up to four follow-ups. Skip any you like.
+4. **Connect your tools** (optional): the business owner can connect Google Search Console on Pro or Premium, or during the trial; other tools are coming soon. Select **Continue** whether or not you connect anything.
+5. **A few more questions:** up to four follow-ups. Skip any you like.
 Braventa reads the website while you answer. Once you finish and the website analysis is done, it builds the plan (about 3–4 minutes). The report then opens with Do this first. You can leave and come back; an unfinished setup can be resumed from the business's tile on the dashboard.
 To change your goal, service area or tools later, open the report's **What you told us** section, select **Edit answers**, save, then select **Re-run analysis**.`,
     },
@@ -191,7 +204,7 @@ Each app then opens a Braventa window ([Connect an app](/oauth/authorize)): sign
 
 **Use an access key instead** (Claude Desktop config file or Claude Code, for example when the app can't open a browser): in Settings, open **Use an access key instead**, choose Claude Desktop or Claude Code, name the key and select **Create key**. The key is shown once, already placed in the setup you need; copy it before leaving the page. Claude Desktop (needs Node.js): Settings → Developer → Edit config, add the setup Braventa showed, save, then fully quit and reopen Claude Desktop. Claude Code: paste the command Braventa showed into a terminal, start Claude Code and type /mcp to see Braventa listed. Then ask Claude "Check my Braventa status" and select **Check connection** in Settings. claude.ai and ChatGPT don't take keys: use sign-in.
 
-**Then ask your assistant** to set up your business from what it knows. It can start the analysis, answer discovery and follow-up questions, confirm priorities and report your growth score. It can't confirm the diagnosis, accept plan items, approve drafts or publish.
+**Then ask your assistant** to set up your business from what it knows. It can start the analysis, answer discovery and follow-up questions, confirm priorities and report your growth score. It can't confirm the diagnosis, accept plan items, approve drafts, publish or connect your tools: only the owner can connect tools, in Braventa, so the assistant skips the Connect your tools step.
 
 **Connected apps** in Settings lists each app approved with Sign in with Braventa, the business, and when it was last used. **Disconnect** stops an app right away; the person who connected it or the business owner can do it. An app that isn't used for 30 days shows Signed out: connect it again from the app.
 Access keys work like a password: up to 5 active keys per person; revoke one in Settings if you no longer use it or think someone else has it. Braventa stores only a one-way hash of each key. Available to everyone during the trial, then on any plan; after a trial ends without a plan the connection pauses (connections, keys and data are kept). Limits: 30 requests a minute and 300 an hour per key or connected app.`,
@@ -208,7 +221,7 @@ A service key belongs to the business, not to a person: it keeps working if the 
     {
       id: "search-console",
       title: "Connect Google Search Console",
-      body: `A Pro feature (included in the ${TRIAL_DAYS}-day Pro trial). Open [Settings → Connections](/settings#connections) and select **Connect Google Search Console**, then sign in with the Google account that manages your website in Search Console and choose the property. Only the business owner can connect it. Access is read-only. Braventa then shows clicks, impressions, top search queries and pages on [Search performance](/search). Using this data in your diagnosis is coming soon. On Basic the connection is paused: data already fetched is kept, nothing new is fetched, and it resumes on Pro or Premium. If Settings says the connection isn't set up yet, the Braventa team hasn't turned it on for the app yet. Analyze a website first so Braventa knows which website to match.`,
+      body: `A Pro feature (included in the ${TRIAL_DAYS}-day Pro trial). Open [Settings → Connections](/settings#connections) and select **Connect Google Search Console**, then sign in with the Google account that manages your website in Search Console and choose the property. You can also connect it during setup, on the optional **Connect your tools** step. Only the business owner can connect it. Access is read-only. Braventa then shows clicks, impressions, top search queries and pages on [Search performance](/search). Using this data in your diagnosis is coming soon. On Basic the connection is paused: data already fetched is kept, nothing new is fetched, and it resumes on Pro or Premium. If Settings says the connection isn't set up yet, the Braventa team hasn't turned it on for the app yet. Analyze a website first so Braventa knows which website to match.`,
     },
     {
       id: "plans",

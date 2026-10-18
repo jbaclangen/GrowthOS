@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseDiscoveryForm, parseReviewForm } from "@/lib/onboarding/discovery";
 import { parseFollowUpForm } from "@/lib/onboarding/followups";
-import { isOpen, onboardingPath } from "@/lib/onboarding/steps";
+import { followUpPath, followUpStep, isOpen, onboardingPath } from "@/lib/onboarding/steps";
 import * as onboarding from "@/lib/onboarding/service";
 
 export type FormState = { error?: string } | undefined;
@@ -64,6 +64,22 @@ export async function submitReview(sessionId: string, _: FormState, formData: Fo
 
   const saved = await onboarding.saveReview(supabase, session, candidates, parsed.data);
   if ("error" in saved) return { error: saved.error };
+  // Next is the optional "Connect your tools" step; its Continue asks the follow-up questions (continueAfterConnect).
+  redirect(`/onboarding/${session.id}/connect`);
+}
+
+// "Continue" on "Connect your tools" (D-041), whether or not anything was connected: generates the next round of
+// follow-up questions, or builds the plan when there is nothing worth asking.
+export async function continueAfterConnect(sessionId: string) {
+  await requireUser();
+  const { supabase, session } = await loadSession(sessionId);
+  if (!session) redirect("/dashboard");
+  if (session.status !== "following_up") redirect(onboardingPath(session));
+  // A repeat after a round was generated (the back button, or a second tab later) goes to the questions instead of
+  // generating another round. Two truly concurrent submits can still both pass this check (as with submitReview);
+  // the button is disabled while pending, and addNextRound caps the rounds and the total.
+  const pending = await onboarding.pendingFollowUps(supabase, session);
+  if (followUpStep(pending.length) === "questions") redirect(followUpPath(session.id, pending.length));
   return continueFollowUps(supabase, session);
 }
 

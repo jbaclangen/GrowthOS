@@ -36,7 +36,8 @@ decision. Never describe the product as doing something the code doesn't do, wha
   in the header, `/api/assistant`, D-043) answers how the app works and about the user's latest report — its knowledge
   base `web/src/lib/assistant/knowledge.ts` must stay true to the code (`npm run help:doc` regenerates
   `docs/help/APP_GUIDE.md`); Pro owners can connect Google Search Console (read-only; data stored and shown, not yet
-  used in the diagnosis); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon). No CRM, publishing,
+  used in the diagnosis) in Settings or on the optional "Connect your tools" onboarding step (other tools there are
+  Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon). No CRM, publishing,
   email sending, automation, analytics, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
 - Research before building (D-052): a change that adds an integration, a paid vendor, a table, a price or a public claim
@@ -87,8 +88,10 @@ decision. Never describe the product as doing something the code doesn't do, wha
 login → `/onboarding` (website URL + optional goal, service area, tools — BI-12) → `startAnalysis` creates an
 `onboarding_sessions` row and queues a `website_evidence` job (robots.txt-respecting crawl of up to 25 pages + PageSpeed
 mobile/desktop + deterministic checks → `audit_runs`/`audit_findings` → business profile) via `after()` →
-`/onboarding/[sessionId]` discovery (pain points + free text, D-028) → `/review` (confirm, top three) → `/questions` (up to 4
-adaptive follow-ups, ON-5) → `startPlanIfReady`
+`/onboarding/[sessionId]` discovery (pain points + free text, D-028) → `/review` (confirm, top three) → `/connect` (optional
+"Connect your tools", D-041: Search Console for Pro and the trial, owner only; Basic sees it paused; other tools Coming soon;
+no session status of its own: `following_up` with nothing pending, and `/questions` forwards there; MCP skips it; its
+Continue generates the follow-ups) → `/questions` (up to 4 adaptive follow-ups, ON-5) → `startPlanIfReady`
 queues one `website_plan` job once discovery is done and evidence succeeded → `/analysis/[id]` polls until done.
 Plan: growth score + diagnosis + growth plan (`diagnoses`, `diagnosis_findings`, `growth_plan_items`) → 30-day plan → 5
 drafted posts (status `needs_approval`). Owner corrections queue a `diagnosis_update` job (diagnosis step only).

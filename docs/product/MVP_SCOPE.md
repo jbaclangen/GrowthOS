@@ -130,8 +130,9 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
 - Any n8n workflow triggered by the app; trigger-based or scheduled automations.
 - CRM connections of any kind (HubSpot is Next phase).
 - Analytics integrations (GA4) and performance reporting. The Google Search Console connection is live for Pro, outside
-  the MVP (read-only, shown on `/search`); using its data in the diagnosis is planned as the first new module, Search
-  visibility (D-051).
+  the MVP (read-only, shown on `/search`; connected in Settings, and also offered during setup on the optional
+  "Connect your tools" step, D-054); its data isn't used in the diagnosis yet: that is planned as the first new
+  module, Search visibility (D-051).
 - Billing and Stripe (prices decided in D-039, not built; Q-010). The trial clock and tier checks are in (D-030);
   paying is not.
 - Team invitations, roles UI, organization switching, client portals for agencies. Seats, roles, client approvers and

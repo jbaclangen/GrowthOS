@@ -4,7 +4,10 @@
 2026-10-18: HubSpot read-only is the first CRM (D-048), publishing runs through a vendor and an in-app scheduler
 (D-049), Search Console data reaches the diagnosis as the first new module (D-051), and provider applications start
 now (D-053). Only the Google Search Console connection is live (PR #23), and its data isn't used in the diagnosis yet;
-everything else here is **Coming soon** and must stay labeled that way in the app and on braventa.io until it ships.
+the onboarding step "Connect your tools" (§2) is built (2026-10-18, `feat/connect-your-tools`, D-054) with Search
+Console as its only connectable tool. Everything else here is **Coming soon** and must stay labeled that way in the app
+and on braventa.io until it ships. Meta (Facebook, Instagram), LinkedIn, Google Business Profile and HubSpot are parked
+until the provider registrations are done (founder, 2026-10-18): Coming soon cards only.
 
 ## 1. What the founder wants
 
@@ -99,7 +102,15 @@ Braventa publishes. Publishing is a Pro feature (D-030, D-041).
 
 ## 5. Suggested order (from the weekend of 2026-10-17)
 
-1. Discovery step "Connect your tools" with Search Console (already built) and the Pro gate.
+1. Discovery step "Connect your tools" with Search Console (already built) and the Pro gate. **Built (2026-10-18,
+   `feat/connect-your-tools`, D-054):** `/onboarding/[sessionId]/connect`, between confirming priorities and the
+   follow-up questions, optional (Continue with nothing connected still builds the plan). Search Console is
+   connectable for Pro and the trial, owner only, and shown paused on Basic; GA4, Google Business Profile, HubSpot,
+   Facebook and Instagram, LinkedIn, Canva and HeyGen are Coming soon cards with no connect action. Suggestions come
+   from the confirmed pain points and the BI-12 tools field (`lib/integrations/tool-catalog.ts`, no AI call). The
+   same Search Console card and Coming soon list are in Settings → Connections. Google's consent screen returns to
+   the step through an exact `returnTo` allowlist (`lib/integrations/return-to.ts`). MCP skips the step (§2 item 5
+   unchanged: a matching MCP tool comes later). Its data still isn't used in the diagnosis: that is step 2.
 2. Search visibility, the first new module (D-051): Search Console data in the diagnosis
    (`searchConsoleSummaryForPrompt`, written but not yet called). The module registry comes first (D-051 steps 1–5,
    no change in behavior), so this isn't written twice.

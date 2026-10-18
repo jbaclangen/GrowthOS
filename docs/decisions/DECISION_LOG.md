@@ -457,7 +457,9 @@ private test with about 3 invited accounts.
 
 ## D-041 — Pro integrations: connect during discovery, act with approval
 **Status:** Founder (2026-10-12, in chat). Planned, build from the weekend of 2026-10-17. Amended by D-049 for
-publishing only: an in-app scheduler runs it, not n8n.
+publishing only: an in-app scheduler runs it, not n8n. Step 1 (the "Connect your tools" discovery step) built
+2026-10-18 (D-054). Meta (Facebook, Instagram), LinkedIn, Google Business Profile and HubSpot are parked until the
+provider registrations are done (founder, 2026-10-18): Coming soon cards only.
 - Discovery asks Pro owners (and the Pro trial) to connect their tools: Google Search Console (live), GA4, HubSpot
   (read-only for analysis), Canva, HeyGen, Higgsfield, social accounts and Google Business Profile. Read scopes first;
   write and publish scopes only when the owner enables an action.
@@ -671,3 +673,26 @@ phase 1"); the founder confirms or overrides it before it goes live. Built, not 
 - Why: provider reviews drive the timeline more than code does, and these steps are needed under every option.
 - Open: who builds which connector when (build order in the research README §4).
 - Source: [research README](../research/README.md) §3.
+
+## D-054 — "Connect your tools": an onboarding step without a status of its own
+**Status:** Provisional (team, branch `feat/connect-your-tools`, 2026-10-18). Implements step 1 of D-041
+([INTEGRATIONS_ROADMAP.md](../product/INTEGRATIONS_ROADMAP.md) §2, §5).
+- `/onboarding/[sessionId]/connect` sits between confirming priorities and the follow-up questions (step 4 of 5). It
+  is optional: Continue with nothing connected still builds the plan. Only Google Search Console can be connected
+  (Pro and the Pro trial, owner only; Basic sees it paused). GA4, Google Business Profile, HubSpot, Facebook and
+  Instagram, LinkedIn, Canva and HeyGen are Coming soon cards with no connect action; suggestions come from the
+  confirmed pain points and the BI-12 tools, without an AI call. Its data still isn't used in the diagnosis (D-051).
+- **No new status, table or column (D-052).** `onboarding_sessions.status` stays as it is: `following_up` with no
+  pending follow-up means the connect step comes next, and `/questions` forwards there. Submitting the review now only
+  saves it; the step's Continue generates the follow-up round (or builds the plan when nothing is worth asking).
+  `onboardingPath` is unchanged; `followUpStep` (`lib/onboarding/steps.ts`, unit-tested) decides connect or questions
+  for the questions page, Continue and `braventa_get_status`. The report's resume button says Continue setup, which is
+  true for both pages.
+- **MCP skips the step.** `braventa_confirm_priorities` still generates the questions itself. For a session confirmed in
+  the web app and continued by an assistant, `braventa_get_follow_up_questions` and `braventa_get_status` say to call
+  `braventa_answer_follow_up_questions` with no answers. Connections are authorized only in Braventa.
+- **Return after Google's consent screen.** The start route, callback and Settings actions return to an exact
+  allowlist (`lib/integrations/return-to.ts`): `/settings` or `/onboarding/<lowercase uuid>/connect`, checked again when
+  read from the sealed state cookie. Anything else returns to Settings, so there is no open redirect.
+- The Search Console card is shared with Settings → Connections, which also lists the Coming soon tools.
+- Open: connecting for a business that isn't the user's first membership (Q-047).

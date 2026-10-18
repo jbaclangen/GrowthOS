@@ -276,6 +276,30 @@ describe("knowledge base", () => {
     }
   });
 
+  it("quotes only labels the Connect your tools step really has", () => {
+    const step = [
+      source("../../app/onboarding/[sessionId]/connect/page.tsx"),
+      source("../../app/onboarding/[sessionId]/connect/continue-button.tsx"),
+    ].join("\n");
+    const card = source("../../components/connections/search-console-card.tsx");
+    for (const label of ["Continue", "Change your priorities", "Connect your tools"]) expect(step, label).toContain(label);
+    expect(card).toContain("Connect Google Search Console");
+    expect(section("search-console")).toContain("**Connect Google Search Console**");
+
+    // Every bold label in the step's route entry and in getting-started step 4 is on the page or its card.
+    const route = APP_ROUTES.find((r) => r.route === "/onboarding/[sessionId]/connect")!;
+    const step4 = section("getting-started").split("\n").find((l) => l.startsWith("4. "))!;
+    expect(step4).toContain("**Connect your tools**");
+    const quoted = [...`${route.purpose}\n${step4}`.matchAll(/\*\*(.+?)\*\*/g)].map((m) => m[1]);
+    expect(quoted.length).toBeGreaterThan(1);
+    for (const label of quoted) expect(`${step}\n${card}`, label).toContain(label);
+
+    // Only Search Console is live; every other tool is named as coming soon, and nothing claims the diagnosis uses it.
+    expect(route.purpose).toMatch(/isn't used in your diagnosis yet/);
+    expect(route.purpose).toMatch(/Coming soon[^.]*: Google Analytics 4, .*HubSpot.* and HeyGen\./);
+    expect(route.howToGetThere).toMatch(/AI assistant connected to Braventa skips this step/);
+  });
+
   it("says the goal, service area and tools can be edited, and doesn't call the business profile uneditable as a whole", () => {
     expect(section("getting-started")).toMatch(/What you told us[\s\S]*Edit answers[\s\S]*Re-run analysis/);
     expect(section("features")).not.toMatch(/editing the business profile,/);

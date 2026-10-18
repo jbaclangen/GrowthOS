@@ -120,12 +120,15 @@ can't set it).
 | `braventa_get_discovery_questions` | The pain-point catalog by category, plus the free-text question. |
 | `braventa_submit_discovery` | Chosen pain point IDs + the owner's description. Returns candidates, including AI matches for the description (Haiku "extractor"). Unknown IDs are reported and ignored. |
 | `braventa_confirm_priorities` | Kept candidates + top 1–3 priorities in order. Returns the first follow-up round, or finishes. |
-| `braventa_get_follow_up_questions` | Pending follow-up questions (choice values or text). |
+| `braventa_get_follow_up_questions` | Pending follow-up questions (choice values or text). When none is waiting, a `next_step` saying how to continue (below). |
 | `braventa_answer_follow_up_questions` | Answers (or `not_applicable`); `finish: true` skips the rest. Returns the next round or "completed" (the plan starts). |
 | `braventa_get_status` | Where the session stands; when ready: growth score (with what it measures), top 3 plan items with first steps, report link. |
 
 The server's `instructions` tell the assistant to use only what the owner said, skip rather than guess, and check
-the priorities with the owner before confirming them. Input and output schemas: [MCP_AND_API.md](../developers/MCP_AND_API.md).
+the priorities with the owner before confirming them. A session confirmed in the web app waits on Connect your tools
+(D-054) with no follow-up questions generated yet. The assistant can't connect tools (only the owner can, in Braventa),
+so `braventa_get_status` and `braventa_get_follow_up_questions` tell it to call `braventa_answer_follow_up_questions`
+with no answers, which generates the next round or builds the plan. Input and output schemas: [MCP_AND_API.md](../developers/MCP_AND_API.md).
 
 ## 6. Who can use it (D-036)
 

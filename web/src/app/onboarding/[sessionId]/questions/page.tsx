@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPainPoint } from "@/lib/onboarding/catalog";
 import { getQuestion, MAX_FOLLOW_UPS } from "@/lib/onboarding/followups";
-import { onboardingPath } from "@/lib/onboarding/steps";
+import { ONBOARDING_STEP_COUNT, followUpPath, followUpStep, onboardingPath } from "@/lib/onboarding/steps";
 import { EvidenceStatus } from "../evidence-status";
 import { FollowUpForm, type AskedQuestion } from "./follow-up-form";
 
@@ -48,6 +48,10 @@ async function Questions({ params }: PageProps<"/onboarding/[sessionId]/question
       .eq("session_id", session.id)
       .not("customer_priority", "is", null),
   ]);
+  // Nothing pending: the next round hasn't been generated yet, so "Connect your tools" comes first. Its Continue
+  // generates the round (or builds the plan). This is also where a resumed session lands.
+  const pendingCount = (rows ?? []).filter((r) => r.status === "pending").length;
+  if (followUpStep(pendingCount) === "connect") redirect(followUpPath(session.id, pendingCount));
   const rankOf = new Map((priorities ?? []).map((p) => [p.pain_point_id, p.customer_priority as number]));
 
   const asked: AskedQuestion[] = (rows ?? [])
@@ -63,7 +67,9 @@ async function Questions({ params }: PageProps<"/onboarding/[sessionId]/question
 
   return (
     <>
-      <p className="eyebrow">Step 4 of 4</p>
+      <p className="eyebrow">
+        Step {ONBOARDING_STEP_COUNT} of {ONBOARDING_STEP_COUNT}
+      </p>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">A few more questions</h1>
       <p className="mt-2 text-sm text-muted">
         About your top priorities, so the plan fits how your business works. At most {MAX_FOLLOW_UPS} in total

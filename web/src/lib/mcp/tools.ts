@@ -5,7 +5,7 @@ import type { Scope } from "@/lib/oauth/scopes";
 import { CATEGORIES, getPainPoint, painPointsInCategory } from "@/lib/onboarding/catalog";
 import { MAX_SELECTED, MAX_STATEMENT, validateDiscovery, validateReview } from "@/lib/onboarding/discovery";
 import { MAX_ANSWER, getQuestion, validateFollowUps } from "@/lib/onboarding/followups";
-import { isOpen } from "@/lib/onboarding/steps";
+import { followUpStep, isOpen } from "@/lib/onboarding/steps";
 import * as onboarding from "@/lib/onboarding/service";
 import { createOnboarding } from "@/lib/onboarding/start";
 import { normalizeUrl } from "@/lib/integrations/crawler";
@@ -70,6 +70,12 @@ async function followUpQuestions(ctx: ToolContext, session: onboarding.Session) 
     ];
   });
 }
+
+// A session whose priorities were confirmed in the web app waits on its "Connect your tools" step (D-041): it is
+// following_up with no question generated yet. The assistant can't connect tools (only the owner can, in Braventa),
+// so it skips the step by asking for the next round. One string for both tools that report it, so they can't drift.
+const NO_QUESTIONS_YET =
+  "No questions are waiting yet. Call braventa_answer_follow_up_questions with no answers to get the next questions, or with finish: true to build the plan.";
 
 function nextFromFollowUps(ctx: ToolContext, session: onboarding.Session, next: "questions" | "completed", questions: unknown[]) {
   return next === "questions"
@@ -308,7 +314,8 @@ export const TOOLS: Tool[] = [
       if (session.status !== "following_up") {
         return { status: session.status, questions: [], next_step: "There are no follow-up questions right now. Use braventa_get_status." };
       }
-      return { status: session.status, questions: await followUpQuestions(ctx, session) };
+      const questions = await followUpQuestions(ctx, session);
+      return questions.length ? { status: session.status, questions } : { status: session.status, questions, next_step: NO_QUESTIONS_YET };
     },
   },
   {
@@ -398,7 +405,9 @@ export const TOOLS: Tool[] = [
             ? "Discovery questions are waiting: braventa_get_discovery_questions."
             : session.status === "reviewing"
               ? "The owner's priorities need confirming: braventa_confirm_priorities."
-              : "Follow-up questions are waiting: braventa_get_follow_up_questions.";
+              : followUpStep((await onboarding.pendingFollowUps(ctx.db, session)).length) === "questions"
+                ? "Follow-up questions are waiting: braventa_get_follow_up_questions."
+                : NO_QUESTIONS_YET;
         return { ...base, status: session.status, next_step: step };
       }
       if (report.job?.status === "failed") {

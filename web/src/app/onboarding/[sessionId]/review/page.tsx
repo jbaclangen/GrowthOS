@@ -4,14 +4,11 @@ import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { categoryLabel, getPainPoint } from "@/lib/onboarding/catalog";
-import { isOpen, onboardingPath } from "@/lib/onboarding/steps";
+import { ONBOARDING_STEP_COUNT, isOpen, onboardingPath } from "@/lib/onboarding/steps";
 import { EvidenceStatus } from "../evidence-status";
 import { ReviewForm, type Candidate } from "./review-form";
 
 export const metadata: Metadata = { title: "Confirm your priorities" };
-// Analysis steps run in their own invocations (D-042). Actions here call the extractor model (up to 2 x 120 s)
-// and hand the plan's first step on in after(). 300 s is the Vercel Hobby maximum.
-export const maxDuration = 300;
 
 export default function ReviewPage(props: PageProps<"/onboarding/[sessionId]/review">) {
   return (
@@ -61,10 +58,11 @@ async function Review({ params }: PageProps<"/onboarding/[sessionId]/review">) {
 
   return (
     <>
-      <p className="eyebrow">Step 3 of 4</p>
+      <p className="eyebrow">Step 3 of {ONBOARDING_STEP_COUNT}</p>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">Confirm your priorities</h1>
       <p className="mt-2 text-sm text-muted">
-        Keep the issues that apply and choose what matters most. Your top three come first in your plan; next, a few short questions about them.
+        Keep the issues that apply and choose what matters most. Your top three come first in your plan. Next, you can
+        connect your tools and answer a few short questions.
       </p>
       <EvidenceStatus jobId={session.evidence_job_id} />
 
