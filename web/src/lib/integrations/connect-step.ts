@@ -1,7 +1,9 @@
 import { effectiveAccess } from "@/lib/plans/tiers";
+import { can } from "@/lib/team/roles";
 
 // Rules for the Search Console card (Settings → Connections and the onboarding step "Connect your tools", D-041) and
-// the plan line above it. Pure logic, unit-tested, so the owner, Pro, trial and Basic rules aren't buried in JSX.
+// the plan line above it. Pure logic, unit-tested, so the role, Pro, trial and Basic rules aren't buried in JSX.
+// Who may connect is the integrations.connect permission (owner only, D-046; lib/team/roles.ts).
 
 export type SearchConsoleCardState =
   // The Google OAuth client or the encryption key isn't configured for this deployment.
@@ -21,7 +23,8 @@ export function searchConsoleCardState(input: {
   configured: boolean;
   hasBusiness: boolean;
   canConnectHere: boolean;
-  isOwner: boolean;
+  // The user's role in the business (memberships.role), or null without a membership.
+  role: string | null | undefined;
   // searchConsoleAccess(org).allowed: Pro, Premium and an active trial.
   allowed: boolean;
   connection: { status: string } | null;
@@ -32,7 +35,7 @@ export function searchConsoleCardState(input: {
   const connected = Boolean(input.connection && input.connection.status !== "revoked");
   if (!input.allowed) return connected ? "paused-connected" : "paused-not-connected";
   if (connected) return "connected";
-  return input.isOwner ? "connectable" : "owner-only";
+  return can(input.role, "integrations.connect") ? "connectable" : "owner-only";
 }
 
 export const OTHER_BUSINESS_LINE = "Tools for this business can't be connected from this account yet. You can continue without them.";
@@ -49,7 +52,7 @@ export function canConnectSearchConsole(input: {
   configured: boolean;
   hasBusiness: boolean;
   canConnectHere: boolean;
-  isOwner: boolean;
+  role: string | null | undefined;
   allowed: boolean;
 }): boolean {
   return searchConsoleCardState({ ...input, connection: null }) === "connectable";
@@ -61,13 +64,13 @@ export function canConnectSearchConsole(input: {
 export function connectPlanLine(input: {
   configured: boolean;
   canConnectHere: boolean;
-  isOwner: boolean;
+  role: string | null | undefined;
   org: { plan: string; trial_ends_at: string | Date } | null;
   now?: Date;
 }): string | null {
   if (!input.configured) return null;
   if (!input.canConnectHere) return OTHER_BUSINESS_LINE;
-  if (!input.isOwner) return NON_OWNER_LINE;
+  if (!can(input.role, "integrations.connect")) return NON_OWNER_LINE;
   const trial = input.org ? effectiveAccess(input.org, input.now).trial : null;
   return trial?.active ? trialLine(trial.daysLeft) : null;
 }

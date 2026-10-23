@@ -90,7 +90,10 @@ only in the PR that ships it (§4). Detail: [DECISION_LOG.md](../decisions/DECIS
   [SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §2).
 - No one approves their own work except the Owner, and every approval is recorded (D-013, D-018).
 - Connecting and disconnecting integrations stays Owner-only, as in code today.
-- Today `member_role` has only owner, admin and member, and there are no invitations or seat limits.
+- Built 2026-10-23: the eight roles in `member_role`, the permission matrix (`web/src/lib/team/roles.ts` and
+  `has_permission()`), the owner-only gates and the approval rule go through it, and Settings shows the user's role
+  ([ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md)). There are still no invitations, role
+  changes or seat limits, so every member today is the owner who created the business.
 
 | | Basic | Pro | Premium |
 |---|---|---|---|

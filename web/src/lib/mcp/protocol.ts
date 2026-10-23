@@ -1,6 +1,8 @@
 import "server-only";
 import { z } from "zod";
 import { hasScope } from "@/lib/oauth/scopes";
+import { deniedMessage } from "@/lib/team/roles";
+import { principalCan } from "./principal";
 import { TOOLS, ToolError, findTool, type ToolContext } from "./tools";
 
 // A minimal MCP server over Streamable HTTP (stateless, JSON responses only, no server-sent events): enough for
@@ -37,6 +39,8 @@ export type CallLog = (tool: string, ok: boolean, error?: string) => Promise<voi
 
 // Handles one JSON-RPC message. Returns null for notifications (no id), which get no response body.
 // `scopes` are what the caller's key or OAuth grant allows: tools outside them are neither listed nor callable.
+// A tool that writes also needs its permission from the caller's role (ctx.actor, D-046); it stays listed, and a
+// call gets the same refusal the web action gives.
 export async function handleMessage(
   msg: JsonRpcRequest,
   ctx: ToolContext,
@@ -82,6 +86,11 @@ export async function handleMessage(
       if (!tool) return rpcError(id, ERR.invalidParams, `Unknown tool: ${params.data.name}`);
       if (!hasScope(scopes, tool.scope)) {
         const message = `This connection isn't allowed to use ${tool.name} (needs the "${tool.scope}" scope). Reconnect Braventa and approve that access.`;
+        await log(tool.name, false, message);
+        return { jsonrpc: "2.0", id: id ?? null, result: { content: [{ type: "text", text: message }], isError: true } };
+      }
+      if (tool.permission && !principalCan(ctx.actor, tool.permission)) {
+        const message = deniedMessage(tool.permission);
         await log(tool.name, false, message);
         return { jsonrpc: "2.0", id: id ?? null, result: { content: [{ type: "text", text: message }], isError: true } };
       }

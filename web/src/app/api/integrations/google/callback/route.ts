@@ -16,6 +16,7 @@ import {
 import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
 import { saveConnection, syncSearchConsole } from "@/lib/integrations/search-console";
 import { SETTINGS_RETURN, connectionOutcomeUrl } from "@/lib/integrations/return-to";
+import { can } from "@/lib/team/roles";
 
 // Google redirects here after the consent screen. Needs the same signed-in session that started the flow
 // (proxy.ts redirects signed-out requests to /login). Verifies the encrypted state cookie (random value + user +
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
   const user = await getUser();
   if (!user) return NextResponse.redirect(new URL("/login?next=/settings", request.url), 303);
   const org = await getCurrentOrg(user.id);
-  if (!org || org.role !== "owner") return toOutcome(request, SETTINGS_RETURN, "owner-only");
+  if (!org || !can(org.role, "integrations.connect")) return toOutcome(request, SETTINGS_RETURN, "owner-only");
   if (!stateMatches(saved, params.get("state"), user.id, org.id) || !saved) return toOutcome(request, SETTINGS_RETURN, "expired");
   // The state is verified from here on, so every outcome returns to the page the flow started from.
   const back = saved.returnTo;

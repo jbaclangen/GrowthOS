@@ -182,7 +182,8 @@ available for short marketing section heads.
   `now()`), never by the client. Every other status — including `scheduled` and `published` — can only be
   set by server code using the secret key. Migration `20261010121043_content_approval_guard.sql`.
 Revisit when multi-user organizations add roles (who may approve) or when publishing ships (D-013).
-Who may approve is answered by D-046 and D-047 (planned, 2026-10-18); the database-set approver stands.
+Who may approve is answered by D-046 and D-047; since 2026-10-23 the same trigger enforces it (`content.approve`,
+own drafts `content.approve_own`) and records the author; the database-set approver stands.
 
 ## D-019 — Product vision adopted as planning context
 **Status:** Founder (2026-10-10: founder supplied the document, instructed that the existing baseline stays
@@ -566,7 +567,22 @@ phase 1"); the founder confirms or overrides it before it goes live. Built, not 
   [research README](../research/README.md) §2, decision 1.
 
 ## D-046 — Team seats: eight fixed roles and seat allowances
-**Status:** Founder (2026-10-18, in chat). Planned, not built. Today `member_role` has only owner, admin and member.
+**Status:** Founder (2026-10-18, in chat). Foundation built 2026-10-23 (research README §4 step 4); seats,
+invitations and the role UI are not.
+- **Built:** `member_role` holds the eight roles (the old `member` value became `analyst`, the least privilege; 0
+  rows in production were affected: 2 owners, nothing else); the permission matrix as pure, unit-tested code in
+  `web/src/lib/team/roles.ts` (`can(role, permission)`) and as `has_permission(org, perm)` in the database, with a
+  test proving the two equal; every owner-only check goes through `integrations.connect` (Search Console) or
+  `keys.manage_any` (service keys, disconnecting another person's app), so nothing changed for owners; the write
+  actions check `analysis.run`, `profile.edit`, `diagnosis.correct` and `plan_items.update_any`; draft approval
+  needs `content.approve`, and approving one's own draft `content.approve_own` (owner only), in the action and in
+  the `content_items` trigger, which also records `created_by`; the MCP connection acts with the key's user's role
+  (service keys keep their rule, D-044); Settings shows the user's role. Spec and open items:
+  [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md).
+- **Remains:** invitations (Q-010), seat limits and charging (Stripe), a role UI and audit log, client approvers
+  (D-047), `keys.manage_own` on personal keys, `plan_items.update_own` (needs an assignee), RLS write policies per
+  permission. Matrix cells that differ from the research (Admin and keys, client approver, Admin and integrations)
+  are listed there for the founder to confirm or widen (Q-049).
 - **Roles:** Owner, Admin, Marketing manager, Social media manager, Copywriter, Content creator, Analyst and Client
   approver, with fixed permissions. No custom roles in v1.
 - **Approval:** no one approves their own work except the Owner, so a one-person business still works; every approval

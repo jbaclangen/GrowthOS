@@ -74,7 +74,14 @@ export async function POST(request: Request) {
   }
 
   const access = mcpAccess(principal.org);
-  const ctx = { db, organizationId: principal.organizationId, userId: principal.userId, appUrl: origin };
+  const ctx = {
+    db,
+    organizationId: principal.organizationId,
+    userId: principal.userId,
+    appUrl: origin,
+    // A personal key or sign-in acts with its user's role; a service key keeps its rule (lib/mcp/principal.ts).
+    actor: { kind: principal.kind, role: principal.role },
+  };
   // Calls are logged against the key or the OAuth grant; rate limits count the same column.
   const subject = principal.grantId ? { column: "oauth_grant_id", id: principal.grantId } : { column: "key_id", id: principal.keyId! };
   const log = async (tool: string, ok: boolean, error?: string) => {

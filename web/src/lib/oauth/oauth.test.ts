@@ -555,16 +555,16 @@ describe("credentials on /api/mcp", () => {
   const token = { kind: "access", organization_id: "org-1", user_id: "user-1", grant_id: "g1", scopes: ["onboarding"], resource: RESOURCE, expires_at: "2026-10-17T11:00:00Z", revoked_at: null };
   const now = new Date("2026-10-17T10:30:00Z");
   it("accepts a live access token for this resource", () => {
-    expect(resolveAccessToken(token, { revoked_at: null }, true, RESOURCE, now)).toMatchObject({ ok: true, principal: { organizationId: "org-1", grantId: "g1" } });
+    expect(resolveAccessToken(token, { revoked_at: null }, { role: "owner" }, RESOURCE, now)).toMatchObject({ ok: true, principal: { organizationId: "org-1", grantId: "g1" } });
   });
   it("refuses expired, revoked, disconnected, wrong-audience and ex-member tokens", () => {
-    expect(resolveAccessToken(token, { revoked_at: null }, true, RESOURCE, new Date("2026-10-17T11:00:01Z")).ok).toBe(false);
-    expect(resolveAccessToken({ ...token, revoked_at: "x" }, { revoked_at: null }, true, RESOURCE, now).ok).toBe(false);
-    expect(resolveAccessToken(token, { revoked_at: "x" }, true, RESOURCE, now).ok).toBe(false);
-    expect(resolveAccessToken(token, null, true, RESOURCE, now).ok).toBe(false);
-    expect(resolveAccessToken(token, { revoked_at: null }, true, "https://other.example/api/mcp", now).ok).toBe(false);
-    expect(resolveAccessToken(token, { revoked_at: null }, false, RESOURCE, now).ok).toBe(false);
-    expect(resolveAccessToken({ ...token, kind: "refresh" }, { revoked_at: null }, true, RESOURCE, now).ok).toBe(false);
+    expect(resolveAccessToken(token, { revoked_at: null }, { role: "owner" }, RESOURCE, new Date("2026-10-17T11:00:01Z")).ok).toBe(false);
+    expect(resolveAccessToken({ ...token, revoked_at: "x" }, { revoked_at: null }, { role: "owner" }, RESOURCE, now).ok).toBe(false);
+    expect(resolveAccessToken(token, { revoked_at: "x" }, { role: "owner" }, RESOURCE, now).ok).toBe(false);
+    expect(resolveAccessToken(token, null, { role: "owner" }, RESOURCE, now).ok).toBe(false);
+    expect(resolveAccessToken(token, { revoked_at: null }, { role: "owner" }, "https://other.example/api/mcp", now).ok).toBe(false);
+    expect(resolveAccessToken(token, { revoked_at: null }, null, RESOURCE, now).ok).toBe(false);
+    expect(resolveAccessToken({ ...token, kind: "refresh" }, { revoked_at: null }, { role: "owner" }, RESOURCE, now).ok).toBe(false);
   });
 
   it("points unauthenticated clients at the resource metadata", () => {

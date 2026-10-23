@@ -43,6 +43,19 @@ did not approve.
   Applied to the remote project 2026-10-10 and verified there in a rolled-back test as a real member:
   forged approver/time replaced, approve/undo/reject work, `published` (update or insert) and
   `brief`→`approved` blocked, `service_role` unrestricted. Security advisors report nothing new.
+  Since 2026-10-23 (D-046, [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md)) the same trigger records the
+  author (`created_by = auth.uid()` on client inserts, unchanged afterwards) and applies the approval rule with
+  `has_permission()`: a status change needs `content.approve`, and approving one's own draft needs
+  `content.approve_own`, which only the owner holds. `setContentStatus` checks the same rule first with `can()`.
+- **Role checks (D-046)** are made in server code with `can(role, permission)` from `web/src/lib/team/roles.ts`
+  (the eight fixed roles and their permission matrix) and in SQL with `has_permission(org, perm)`, which holds the
+  same matrix (a unit test parses the migration and compares them). Gated today: Search Console connect, property
+  choice and disconnect (`integrations.connect`, owner only), service keys and disconnecting another person's app
+  (`keys.manage_any`, owner only), starting or re-running an analysis (`analysis.run`), the discovery and profile
+  answers (`profile.edit`), diagnosis verdicts, updates and confirmation (`diagnosis.correct`), plan item statuses
+  (`plan_items.update_any`) and draft approval (`content.approve`, `content.approve_own`). The MCP server applies
+  the same permissions with the key's user's role; service keys keep their rule. `has_permission()` has no
+  platform-staff bypass.
 
 Current gaps:
 - **Members can still write the other M-all tables directly** through the Supabase Data API with the
@@ -50,8 +63,9 @@ Current gaps:
   `content_items` text fields (including text of an approved item, without resetting approval). Since D-042 a
   member could also rewrite a pending analysis step's stored inputs (e.g. the page digest), which the next step
   feeds to a model: same organization only, and that text is already treated as untrusted. Harmless
-  while one user = one org; must be tightened (role checks, or moving writes behind server actions only)
-  before multi-user organizations or any real publishing.
+  while one user = one org; must be tightened before multi-user organizations or any real publishing: the RLS
+  write policies still say "member", and `has_permission()` exists so they can be rewritten per permission
+  (not done yet; the server actions already check roles).
 - **Platform admins see every tenant** through RLS. There is no audit of their access.
 - No automated RLS tests. Recommended: a SQL test (pgTAP or a script) that signs in as two users and asserts
   zero cross-tenant reads/writes for every table, run after each migration.
@@ -251,10 +265,13 @@ Founder decision D-013 (and `CLAUDE.md`): nothing is published or sent on a clie
 human approval, unless the client has explicitly configured an authorised automation.
 
 - Implemented: drafts are created as `needs_approval`; `setContentStatus` records `approved_by` /
-  `approved_at`; the UI says "Nothing is published until you approve it."
+  `approved_at`; the UI says "Nothing is published until you approve it." Who may approve (D-046): roles with
+  `content.approve` (owner, admin, marketing manager), and no one approves their own draft except the owner
+  (`content.approve_own`); enforced in the action and in the database trigger
+  ([ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §4).
 - Not implemented: any publishing, scheduling or sending — so approval currently gates nothing downstream.
   Before the first publishing integration: approval must be enforced server-side at publish time (status
-  check + approver is a member with sufficient role), approvals must be audit-logged, and editing an approved
+  check + the approver's permission), approvals must be audit-logged, and editing an approved
   item must reset it to `needs_approval`.
 
 ## 9. Data sent to model providers

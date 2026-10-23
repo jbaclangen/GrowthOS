@@ -5,8 +5,11 @@ import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateSecret, sha256Hex } from "@/lib/oauth/tokens";
 import { MAX_ACTIVE_SERVICE_KEYS, countActiveServiceKeys } from "@/lib/mcp/service-keys";
+import { can } from "@/lib/team/roles";
+import { memberRole } from "@/lib/team/server";
 
-// Settings → Integrations: service keys (owner-only, through RLS) and disconnecting OAuth-connected apps.
+// Settings → Integrations: service keys and disconnecting OAuth-connected apps. Both need keys.manage_any (owner only,
+// D-044 and D-046; lib/team/roles.ts); RLS on service keys (is_org_owner) says the same.
 
 const EXPIRY_DAYS = new Set([30, 90, 365]);
 
@@ -19,7 +22,7 @@ export async function createServiceKey(_: CreateServiceKeyState, formData: FormD
   const user = await requireUser();
   const org = await getCurrentOrg(user.id);
   if (!org) return { error: "Set up your business first." };
-  if (org.role !== "owner") return { error: "Only the business owner can create service keys." };
+  if (!can(org.role, "keys.manage_any")) return { error: "Only the business owner can create service keys." };
 
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: 'Name the key after what uses it, for example "n8n onboarding workflow".' };
@@ -64,21 +67,15 @@ export async function revokeServiceKey(keyId: string) {
 }
 
 // Disconnects an app that signed in with OAuth: revokes the grant and every token in it. The person who connected
-// it, or an owner of the business, may disconnect. The grant is read through RLS first; the service client then
-// writes only rows of that grant and organization.
+// it, or someone with keys.manage_any in the business (its owner), may disconnect. The grant is read through RLS
+// first; the service client then writes only rows of that grant and organization.
 export async function disconnectApp(grantId: string) {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
   const { data: grant } = await supabase.from("oauth_grants").select("id, organization_id, user_id").eq("id", grantId).maybeSingle();
   if (!grant) throw new Error("That connection wasn't found.");
-  if (grant.user_id !== user.id) {
-    const { data: membership } = await supabase
-      .from("memberships")
-      .select("role")
-      .eq("organization_id", grant.organization_id)
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (membership?.role !== "owner") throw new Error("Only the person who connected this app or the business owner can disconnect it.");
+  if (grant.user_id !== user.id && !can(await memberRole(supabase, grant.organization_id, user.id), "keys.manage_any")) {
+    throw new Error("Only the person who connected this app or the business owner can disconnect it.");
   }
   const at = new Date().toISOString();
   const admin = createSupabaseAdminClient();

@@ -7,7 +7,7 @@ const days = (n: number) => new Date(now.getTime() + n * 86_400_000).toISOString
 const trial = (n: number) => ({ plan: "trial", trial_ends_at: days(n) });
 const allowed = (org: { plan: string; trial_ends_at: string }) => searchConsoleAccess(org, now).allowed;
 
-const base = { configured: true, hasBusiness: true, canConnectHere: true, isOwner: true, allowed: true, connection: null };
+const base = { configured: true, hasBusiness: true, canConnectHere: true, role: "owner", allowed: true, connection: null };
 const active = { status: "active" };
 
 describe("searchConsoleCardState", () => {
@@ -28,14 +28,14 @@ describe("searchConsoleCardState", () => {
   it("lets a Pro or trial owner connect, and asks members to ask the owner", () => {
     for (const org of [trial(5), { plan: "pro", trial_ends_at: days(-30) }, { plan: "premium", trial_ends_at: days(-30) }]) {
       expect(searchConsoleCardState({ ...base, allowed: allowed(org) }), org.plan).toBe("connectable");
-      expect(searchConsoleCardState({ ...base, allowed: allowed(org), isOwner: false }), org.plan).toBe("owner-only");
+      expect(searchConsoleCardState({ ...base, allowed: allowed(org), role: "admin" }), org.plan).toBe("owner-only");
     }
   });
 
   it("pauses on Basic, including an ended trial", () => {
     for (const org of [{ plan: "basic", trial_ends_at: days(5) }, trial(-1)]) {
       expect(searchConsoleCardState({ ...base, allowed: allowed(org) }), org.plan).toBe("paused-not-connected");
-      expect(searchConsoleCardState({ ...base, allowed: allowed(org), isOwner: false }), org.plan).toBe("paused-not-connected");
+      expect(searchConsoleCardState({ ...base, allowed: allowed(org), role: "admin" }), org.plan).toBe("paused-not-connected");
       expect(searchConsoleCardState({ ...base, allowed: allowed(org), connection: active }), org.plan).toBe("paused-connected");
     }
   });
@@ -43,14 +43,14 @@ describe("searchConsoleCardState", () => {
   it("shows a live connection, and treats a revoked one as none", () => {
     expect(searchConsoleCardState({ ...base, connection: active })).toBe("connected");
     expect(searchConsoleCardState({ ...base, connection: { status: "error" } })).toBe("connected");
-    expect(searchConsoleCardState({ ...base, isOwner: false, connection: active })).toBe("connected");
+    expect(searchConsoleCardState({ ...base, role: "analyst", connection: active })).toBe("connected");
     expect(searchConsoleCardState({ ...base, connection: { status: "revoked" } })).toBe("connectable");
     expect(searchConsoleCardState({ ...base, allowed: false, connection: { status: "revoked" } })).toBe("paused-not-connected");
   });
 });
 
 describe("connectPlanLine", () => {
-  const owner = { configured: true, canConnectHere: true, isOwner: true, now };
+  const owner = { configured: true, canConnectHere: true, role: "owner", now };
 
   it("tells a trial owner how long connecting is included, and what happens on Basic", () => {
     expect(connectPlanLine({ ...owner, org: trial(5) })).toBe(
@@ -66,23 +66,23 @@ describe("connectPlanLine", () => {
   });
 
   it("tells a member that only the owner can connect", () => {
-    expect(connectPlanLine({ ...owner, isOwner: false, org: trial(5) })).toBe(NON_OWNER_LINE);
+    expect(connectPlanLine({ ...owner, role: "admin", org: trial(5) })).toBe(NON_OWNER_LINE);
   });
 
   it("explains another business's session first", () => {
-    expect(connectPlanLine({ configured: true, canConnectHere: false, isOwner: false, org: trial(5), now })).toBe(OTHER_BUSINESS_LINE);
+    expect(connectPlanLine({ configured: true, canConnectHere: false, role: "owner", org: trial(5), now })).toBe(OTHER_BUSINESS_LINE);
     expect(OTHER_BUSINESS_LINE).not.toMatch(/owner's account/);
   });
 
   it("says nothing about connecting when the connection isn't set up for this deployment", () => {
     expect(connectPlanLine({ ...owner, configured: false, org: trial(5) })).toBeNull();
-    expect(connectPlanLine({ ...owner, configured: false, isOwner: false, org: trial(5) })).toBeNull();
-    expect(connectPlanLine({ configured: false, canConnectHere: false, isOwner: false, org: trial(5), now })).toBeNull();
+    expect(connectPlanLine({ ...owner, configured: false, role: "admin", org: trial(5) })).toBeNull();
+    expect(connectPlanLine({ configured: false, canConnectHere: false, role: null, org: trial(5), now })).toBeNull();
   });
 });
 
 describe("canConnectSearchConsole", () => {
-  const input = { configured: true, hasBusiness: true, canConnectHere: true, isOwner: true, allowed: true };
+  const input = { configured: true, hasBusiness: true, canConnectHere: true, role: "owner", allowed: true };
 
   it("is true only for a Pro or trial owner on a configured deployment", () => {
     expect(canConnectSearchConsole(input)).toBe(true);
@@ -92,8 +92,8 @@ describe("canConnectSearchConsole", () => {
   it("is false on Basic, for a member, on another business's session, or when not set up", () => {
     expect(canConnectSearchConsole({ ...input, allowed: allowed({ plan: "basic", trial_ends_at: days(-30) }) })).toBe(false);
     expect(canConnectSearchConsole({ ...input, allowed: allowed(trial(-1)) })).toBe(false);
-    expect(canConnectSearchConsole({ ...input, isOwner: false })).toBe(false);
-    expect(canConnectSearchConsole({ ...input, canConnectHere: false, isOwner: false })).toBe(false);
+    expect(canConnectSearchConsole({ ...input, role: "admin" })).toBe(false);
+    expect(canConnectSearchConsole({ ...input, canConnectHere: false, role: null })).toBe(false);
     expect(canConnectSearchConsole({ ...input, configured: false })).toBe(false);
     expect(canConnectSearchConsole({ ...input, hasBusiness: false })).toBe(false);
   });

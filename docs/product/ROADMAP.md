@@ -76,8 +76,10 @@ the growth score as the Search visibility module). Ordered by recommended priori
 6. **Website checklist and improvement plan** (WI-4, WI-5).
 7. **Customer-facing usage view** and weekly summary (AN-3, AN-4).
 8. **Team access (decided, D-046, D-047):** eight fixed roles with fixed permissions, no custom roles in v1; no one
-   approves their own work except the Owner; connecting integrations stays Owner-only. First the roles and
-   permissions foundation, then invitations, seat limits and organization switching (PL-6), and client approvers
+   approves their own work except the Owner; connecting integrations stays Owner-only. The roles and permissions
+   foundation is built (2026-10-23: `member_role`, `web/src/lib/team/roles.ts`, `has_permission()`, the gates and
+   the approval rule; [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md)). Next: invitations, seat
+   limits and organization switching (PL-6), and client approvers
    (free up to a cap per tier) with a single-use, signed approval link. Invitations need transactional email
    (Q-010); charging for extra seats needs Stripe (item 2). Each organization also gets an account type, Brand or
    Agency/Organization (D-045).

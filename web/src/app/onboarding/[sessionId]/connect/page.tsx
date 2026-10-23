@@ -62,16 +62,17 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
   // The OAuth routes and actions act on the user's first membership, so connecting is offered only when that is the
   // business this session belongs to.
   const canConnectHere = membership?.id === session.organization_id;
-  const isOwner = canConnectHere && membership?.role === "owner";
+  // The user's role there decides who may connect (integrations.connect, lib/team/roles.ts).
+  const role = canConnectHere ? membership?.role : null;
   // A deployment without the Google OAuth client or encryption key can't connect anything (the card says so), so the
   // intro, heading and plan line don't claim Search Console is live there.
   const configured = searchConsoleConfigured();
-  const planLine = connectPlanLine({ configured, canConnectHere, isOwner, org: orgRow });
+  const planLine = connectPlanLine({ configured, canConnectHere, role, org: orgRow });
   const canConnect = canConnectSearchConsole({
     configured,
     hasBusiness: Boolean(membership),
     canConnectHere,
-    isOwner,
+    role,
     allowed: Boolean(orgRow && searchConsoleAccess(orgRow).allowed),
   });
 

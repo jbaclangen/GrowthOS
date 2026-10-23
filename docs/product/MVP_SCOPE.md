@@ -51,13 +51,14 @@ All paths relative to the repository root.
 | 30-day plan | Strategy (goal, audience, pillars, channels) and 20–30 dated items | `content_strategist` step in `website-intel.ts` |
 | First five drafts | Drafted in brand voice with CTA, hashtags, image idea; status `needs_approval` | `content_writer` step in `website-intel.ts` |
 | Progress and results page | Live step list while running; failure message; full results when done | `web/src/app/analysis/[id]/page.tsx`, `auto-refresh.tsx` |
-| Approve / reject / undo | Per draft; records approver and time | `setContentStatus` in `web/src/app/analysis/actions.ts`; `web/src/app/analysis/[id]/controls.tsx` |
+| Approve / reject / undo | Per draft; records approver and time. Needs the `content.approve` permission (owner, admin, marketing manager); no one approves their own draft except the owner (D-046; today every draft is the pipeline's, so this only bites once a person writes one) | `setContentStatus` in `web/src/app/analysis/actions.ts`; `web/src/app/analysis/[id]/controls.tsx`; trigger `guard_content_item_write` |
 | Re-run analysis | Runs the whole pipeline again; page shows the latest results | `rerunAnalysis` in `web/src/app/analysis/actions.ts` |
 | Dashboard | Latest analyzed business as an infographic, then all businesses with score and latest status (D-032) | `web/src/app/dashboard/page.tsx` |
 | Infographic report | One-screen summary tiles (score ring, score bars, findings by evidence type, plan progress, answers, profile, content plan, drafts); each opens the full section in a dialog via `?view=` (D-032) | `web/src/app/analysis/[id]/infographic.tsx`, `report-dialog.tsx`, `report-sections.tsx`, `report-data.ts` |
 | Tiers and trial | 14-day Pro trial from organization creation, then Basic; plan chip in the header; `/plans` compares Basic, Pro and Premium with Live / Coming soon labels and a "Talk to us" request; owners can't change plan, trial or AI budget (D-030) | `web/src/lib/plans/`, `web/src/app/plans/`, `upgrade_requests` |
 | AI routing, budget, usage log | Logical workers mapped to models; free/paid modes; monthly budget check; per-call usage log | `web/src/lib/ai/router.ts`, `ai_usage`, `ai_spend_mtd` |
 | Tenant isolation | RLS on every tenant table via `is_member()` | both files in `supabase/migrations/` |
+| Roles and permissions foundation | Eight fixed roles (`member_role`) with a fixed permission matrix, checked in server actions with `can()` and in the database with `has_permission()`; the owner-only gates (connect tools, service keys) and the new write gates (run analysis, edit answers, correct the diagnosis, update plan items, approve drafts) go through it; the MCP connection acts with the key's user's role; Settings shows the user's role. No invitations, role changes or seat limits (D-046, out of the MVP) | `web/src/lib/team/roles.ts`, `supabase/migrations/20261023120000_roles_and_permissions.sql`, [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) |
 | Integration health check (developer tool) | Checks Supabase, OpenRouter, n8n, PageSpeed; disabled in production | `web/src/app/api/health/integrations/route.ts` |
 
 **Observed in real use (2026-10-10):** 2 analysis runs — 1 succeeded in 129 s with 5 drafts saved; 1
@@ -136,8 +137,9 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9).
 - Billing and Stripe (prices decided in D-039, not built; Q-010). The trial clock and tier checks are in (D-030);
   paying is not.
-- Team invitations, roles UI, organization switching, client portals for agencies. Seats, roles, client approvers and
-  account types are decided for after the MVP (D-045, D-046, D-047).
+- Team invitations, a roles UI, seat limits, organization switching, client portals for agencies. The roles and
+  permissions foundation is built (D-046, 2026-10-23: the eight roles, the matrix, `has_permission()`); invitations,
+  seats, client approvers and account types stay for after the MVP (D-045, D-046, D-047).
 - Long-form content (blogs, email campaigns, video scripts), repurposing, image generation.
 - Automated QA reviewer step (manual approval is the MVP quality gate).
 - Knowledge-base embeddings and document upload (the read-only in-app assistant shipped without them — D-043).

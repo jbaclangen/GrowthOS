@@ -1,3 +1,5 @@
+import { can, isRole, type Permission, type Role } from "@/lib/team/roles";
+
 // Who is calling /api/mcp, and the rules for accepting an OAuth access token. Pure, unit-tested.
 
 export type Principal = {
@@ -5,6 +7,9 @@ export type Principal = {
   organizationId: string;
   // null for service keys: they belong to the organization, not a person.
   userId: string | null;
+  // The user's role in the organization (D-046): a key or sign-in acts with its user's permissions. null for service
+  // keys, and for a membership whose role the app doesn't know (which then holds no permission).
+  role: Role | null;
   keyId: string | null;
   grantId: string | null;
   scopes: string[];
@@ -46,10 +51,22 @@ export const AUTH_MESSAGES = {
   orgGone: "This business no longer exists in Braventa.",
 } as const;
 
+// The role a membership row gives a principal: one of the eight roles, or null.
+export function roleOf(membership: { role: unknown } | null): Role | null {
+  return membership && isRole(membership.role) ? membership.role : null;
+}
+
+// Whether the caller may use a tool that needs `permission`. Service keys belong to the business, not a person
+// (D-044), and keep their rule: every onboarding tool. A personal key or sign-in acts with its user's role.
+export function principalCan(actor: { kind: Principal["kind"]; role: Role | null }, permission: Permission): boolean {
+  return actor.kind === "service" || can(actor.role, permission);
+}
+
 export function resolveAccessToken(
   token: TokenRow | null,
   grant: { revoked_at: string | null } | null,
-  isMember: boolean,
+  // The user's membership in the token's organization, or null when they left it.
+  membership: { role: unknown } | null,
   resource: string,
   now = new Date(),
 ): Rejected | { ok: true; principal: Omit<Principal, "org"> } {
@@ -60,13 +77,14 @@ export function resolveAccessToken(
   if (new Date(token.expires_at).getTime() <= now.getTime()) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.tokenExpired };
   // RFC 8707 audience check: a token issued for another resource isn't accepted here.
   if (token.resource !== resource) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.wrongResource };
-  if (!isMember) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.notMember };
+  if (!membership) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.notMember };
   return {
     ok: true,
     principal: {
       kind: "access",
       organizationId: token.organization_id,
       userId: token.user_id,
+      role: roleOf(membership),
       keyId: null,
       grantId: token.grant_id,
       scopes: token.scopes,
