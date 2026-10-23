@@ -26,5 +26,9 @@
   "publish": false,
   "sync": false,
   "editor-status": true,
-  "starred": false
+  "starred": false,
+  "footnotes": false,
+  "slash-command": false,
+  "bases": true,
+  "webviewer": false
 }
