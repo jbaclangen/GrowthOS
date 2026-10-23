@@ -46,8 +46,8 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
     name: "Website Intelligence",
     status: "partial",
     summary: "Speed, SEO basics, and conversion gaps from your own site.",
-    today: ["Google PageSpeed mobile scores", "Signals such as contact forms, phone numbers, meta descriptions and image alt text"],
-    notYet: "Reads the home page and up to five more pages, and tests mobile only. No traffic, search ranking or Search Console data yet.",
+    today: ["Google PageSpeed mobile and desktop scores", "Signals such as contact forms, phone numbers, meta descriptions and image alt text", "On Pro: your Google Search Console data in the diagnosis and the growth score"],
+    notYet: "Reads the home page and up to 24 more pages. No traffic data, and no search data without Search Console connected.",
     why: "Your website is often your first salesperson. Fix what's costing you inquiries first.",
   },
   {

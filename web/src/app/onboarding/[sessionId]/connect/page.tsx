@@ -18,7 +18,7 @@ import { ContinueButton, ContinuePendingNote } from "./continue-button";
 
 // "Connect your tools" (D-041, INTEGRATIONS_ROADMAP §2): an optional step between confirming priorities and the
 // follow-up questions. Only Google Search Console can be connected (Pro and the Pro trial, owner only; paused on
-// Basic); every other tool is Coming soon. Its data isn't used in the diagnosis yet (D-051), so nothing here says so.
+// Basic); every other tool is Coming soon. Its data feeds the diagnosis and the growth score (D-051 step 6).
 // The AI assistant connection (MCP) skips this step: connections are authorized only in Braventa.
 
 export const metadata: Metadata = { title: "Connect your tools" };
@@ -94,7 +94,7 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
       <p className="mt-2 text-sm text-muted">
         Optional. Connect the tools your business already uses.{" "}
         {configured
-          ? "Today that's Google Search Console: Braventa shows your clicks, impressions, top searches and pages on Search performance. More tools are coming soon."
+          ? "Today that's Google Search Console: Braventa shows your clicks, impressions, top searches and pages on Search performance and uses them in your diagnosis and growth score. More tools are coming soon."
           : "None can be connected here yet."}{" "}
         {canConnect ? "You can skip this step and connect Search Console later in Settings." : "You can skip this step."}
       </p>

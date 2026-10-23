@@ -14,9 +14,18 @@ import {
   type CoverageSummary,
 } from "@/lib/audit/checks";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import { moduleForArea, moduleForFinding } from "@/lib/modules/registry";
-import { SCORE_VERSION, computeGrowthScore, conversionEvidence, scoreEvidence, subScore, websiteSeoEvidence } from "@/lib/modules/score";
-import { enabledModules, recordModuleRuns } from "@/lib/modules/server";
+import { moduleForArea, moduleForFinding, type ModuleId } from "@/lib/modules/registry";
+import {
+  SCORE_VERSION,
+  computeGrowthScore,
+  conversionEvidence,
+  scoreEvidence,
+  searchVisibilityEvidence,
+  subScore,
+  websiteSeoEvidence,
+} from "@/lib/modules/score";
+import { enabledModules, recordModuleRuns, type ModuleRun } from "@/lib/modules/server";
+import { searchConsoleSummaryForPrompt, type SearchConsoleSummary } from "@/lib/integrations/search-console";
 import { fromProfileRow, type OwnerInputs } from "@/lib/owner-inputs";
 import { startPlanIfReady } from "@/lib/onboarding/orchestrate";
 import { claimStep, ownedUpdate } from "./claims";
@@ -417,6 +426,14 @@ export async function loadDiscovery(
   };
 }
 
+// The organization's Google Search Console summary for the diagnosis and the score (the search visibility module,
+// D-051 step 6): only when its enabled modules include the module (Pro, Premium or the trial, not switched off).
+// The summary itself is null unless the connection is active and a snapshot exists; nothing is fetched from Google
+// here. Read with the admin client, scoped to the job's organization like `enabledModules`.
+async function searchConsoleEvidence(ctx: Ctx, enabled: ReadonlySet<ModuleId>): Promise<SearchConsoleSummary | null> {
+  return enabled.has("search_visibility") ? searchConsoleSummaryForPrompt(ctx.db, ctx.org) : null;
+}
+
 // ON-7/ON-8: one call on the strongest tier returns the scores, the diagnosis and the plan.
 function diagnose(
   ctx: Ctx,
@@ -424,6 +441,7 @@ function diagnose(
   intel: BusinessIntel,
   discovery: DiscoveryContext | null,
   corrections: Corrections | null,
+  searchConsole: SearchConsoleSummary | null,
 ) {
   return runWorkerJson(
     {
@@ -443,6 +461,7 @@ function diagnose(
             discovery,
             corrections,
             audit: evidence.audit ?? null,
+            searchConsole,
           }),
         },
       ],
@@ -465,12 +484,22 @@ async function storeDiagnosis(
   ctx: Ctx,
   raw: Diagnosis,
   discovery: DiscoveryContext | null,
-  opts: { reportId: string | null; evidence: Evidence; revises?: { id: string; version: number } },
+  opts: {
+    reportId: string | null;
+    evidence: Evidence;
+    searchConsole: SearchConsoleSummary | null;
+    revises?: { id: string; version: number };
+  },
 ) {
   const { db, org } = ctx;
   const facts = discoveryFacts(discovery);
-  // Only refs that exist in this run count as citations; uncited website/PageSpeed findings become inferred.
-  const findings = toFindings(raw.findings, facts, citableRefs({ ...opts.evidence, audit: opts.evidence.audit ?? null }));
+  // Only refs that exist in this run count as citations; uncited website, PageSpeed and Search Console findings
+  // become inferred.
+  const findings = toFindings(
+    raw.findings,
+    facts,
+    citableRefs({ ...opts.evidence, audit: opts.evidence.audit ?? null, searchConsole: opts.searchConsole }),
+  );
   const items = orderPlan(toPlanItems(raw.plan, findings, facts));
 
   const { data: diagnosis, error } = await db
@@ -551,11 +580,15 @@ async function reviseDiagnosis(ctx: Ctx, diagnosisId: string) {
       .map((f) => ({ statement: f.statement, note: f.owner_note })),
   };
   const discovery = await loadDiscovery(db, org, ctx.businessProfileId);
+  // The same Search Console evidence as the analysis (its latest snapshot), so a corrected diagnosis keeps its
+  // Search Console findings. The score isn't recomputed here.
+  const searchConsole = await searchConsoleEvidence(ctx, await enabledModules(db, org));
 
-  const raw = await diagnose(ctx, evidence, intel.data, discovery, corrections);
+  const raw = await diagnose(ctx, evidence, intel.data, discovery, corrections, searchConsole);
   const { diagnosisId: revisedId } = await storeDiagnosis(ctx, raw, discovery, {
     reportId: previous.report_id,
     evidence,
+    searchConsole,
     revises: { id: previous.id, version: previous.version },
   });
   await db.from("diagnoses").update({ status: "superseded" }).eq("id", previous.id).eq("organization_id", org);
@@ -587,10 +620,15 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
   const discovery = await loadDiscovery(db, org, ctx.businessProfileId, input.sessionId);
 
   // The modules whose evidence feeds the score: the live modules the organization's tier includes, minus its
-  // overrides (D-051). Read before the model call, so a failed read doesn't waste one.
+  // overrides (D-051). Read before the model call, so a failed read doesn't waste one. The Search Console summary
+  // (search visibility, D-051 step 6) goes to the model as evidence and into the score.
   const enabled = await enabledModules(db, org);
-  const raw = await diagnose(ctx, evidence, intel, discovery, null);
-  const scored = computeGrowthScore(scoreEvidence({ psi: evidence.psi, ai: raw.scores }), enabled);
+  const searchConsole = await searchConsoleEvidence(ctx, enabled);
+  const raw = await diagnose(ctx, evidence, intel, discovery, null, searchConsole);
+  const scored = computeGrowthScore(
+    scoreEvidence({ psi: evidence.psi, ai: raw.scores, searchConsole, crawledPages: evidence.pages.length }),
+    enabled,
+  );
   if (!scored) throw new Error("No enabled module has evidence for the growth score.");
   const growthScore = scored.score;
 
@@ -621,6 +659,11 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
         signals: evidence.signals,
         pages: evidence.pages,
         audit_run_id: evidence.audit?.runId ?? null,
+        // Which Search Console snapshot the diagnosis and score used, or null (no Pro access, nothing connected,
+        // no snapshot, or the module switched off).
+        search_console: searchConsole
+          ? { property: searchConsole.property, period: searchConsole.period, fetched_at: searchConsole.fetched_at, little_data: searchConsole.little_data }
+          : null,
         discovery_priorities: [...(discovery?.painPoints ?? [])]
           .filter((p) => p.priority)
           .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0))
@@ -630,10 +673,12 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
     .select("id")
     .single();
 
-  const { items: planItems } = await storeDiagnosis(ctx, raw, discovery, { reportId: report?.id ?? null, evidence });
+  const { items: planItems } = await storeDiagnosis(ctx, raw, discovery, { reportId: report?.id ?? null, evidence, searchConsole });
 
-  // The conversion and messaging module ran here: its sub-score is the assessed part of the growth score.
-  await recordModuleRuns(db, [
+  // The modules that ran here: conversion and messaging (its sub-score is the assessed part of the growth score)
+  // and, for an organization that can use it, search visibility: completed when a Search Console summary was used
+  // (sub-score null when the window was empty), partial when there was none to use.
+  const runs: ModuleRun[] = [
     {
       organization_id: org,
       job_id: ctx.jobId,
@@ -644,7 +689,26 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
       rules_version: 1,
       details: { score_version: scored.version, score_modules: scored.modules, enabled: [...enabled] },
     },
-  ]);
+  ];
+  if (enabled.has("search_visibility")) {
+    runs.push({
+      organization_id: org,
+      job_id: ctx.jobId,
+      module_id: "search_visibility",
+      status: searchConsole ? "completed" : "partial",
+      sub_score: subScore(searchVisibilityEvidence(searchConsole, evidence.pages.length).parts),
+      report_id: report?.id ?? null,
+      rules_version: 1,
+      details: {
+        score_version: scored.version,
+        snapshot: Boolean(searchConsole),
+        property: searchConsole?.property ?? null,
+        period: searchConsole?.period ?? null,
+        little_data: searchConsole?.little_data ?? null,
+      },
+    });
+  }
+  await recordModuleRuns(db, runs);
 
   return {
     artifacts: {

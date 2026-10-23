@@ -3,9 +3,9 @@
 **Status:** plan (founder, 2026-10-12, D-041). Build starts the weekend of 2026-10-17. Amended by the founder on
 2026-10-18: HubSpot read-only is the first CRM (D-048), publishing runs through a vendor and an in-app scheduler
 (D-049), Search Console data reaches the diagnosis as the first new module (D-051), and provider applications start
-now (D-053). Only the Google Search Console connection is live (PR #23), and its data isn't used in the diagnosis yet;
-the onboarding step "Connect your tools" (§2) is built (2026-10-18, `feat/connect-your-tools`, D-054) with Search
-Console as its only connectable tool. Everything else here is **Coming soon** and must stay labeled that way in the app
+now (D-053). Only the Google Search Console connection is live (PR #23); since 2026-10-23 its data feeds the diagnosis
+and the growth score as the Search visibility module (§5 item 2); the onboarding step "Connect your tools" (§2) is
+built (2026-10-18, `feat/connect-your-tools`, D-054) with Search Console as its only connectable tool. Everything else here is **Coming soon** and must stay labeled that way in the app
 and on braventa.io until it ships. Meta (Facebook, Instagram), LinkedIn, Google Business Profile and HubSpot are parked
 until the provider registrations are done (founder, 2026-10-18): Coming soon cards only.
 
@@ -110,14 +110,16 @@ Braventa publishes. Publishing is a Pro feature (D-030, D-041).
    from the confirmed pain points and the BI-12 tools field (`lib/integrations/tool-catalog.ts`, no AI call). The
    same Search Console card and Coming soon list are in Settings → Connections. Google's consent screen returns to
    the step through an exact `returnTo` allowlist (`lib/integrations/return-to.ts`). MCP skips the step (§2 item 5
-   unchanged: a matching MCP tool comes later). Its data still isn't used in the diagnosis: that is step 2.
-2. Search visibility, the first new module (D-051): Search Console data in the diagnosis
-   (`searchConsoleSummaryForPrompt`, written but not yet called). The module registry came first (D-051 steps 1–5,
-   built 2026-10-23 with no change in behavior: `web/src/lib/modules/`, the `organization_modules` and `module_runs`
-   tables, `module_id` on findings and plan items, the score tile's "based on N modules";
-   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)), so this isn't written twice. Step 6 adds the module to
-   the registry, extends the `module_id` domain, feeds the Search Console summary to the diagnosis and gives the
-   module a score weight (which bumps `SCORE_VERSION`).
+   unchanged: a matching MCP tool comes later). Its data reaches the diagnosis through step 2.
+2. Search visibility, the first new module (D-051): Search Console data in the diagnosis. **Built (2026-10-23):**
+   the module registry came first (D-051 steps 1–5, no change in behavior: `web/src/lib/modules/`, the
+   `organization_modules` and `module_runs` tables, `module_id` on findings and plan items, the score tile's "based
+   on N modules"); step 6 then wired `searchConsoleSummaryForPrompt` into the scoring step for Pro, Premium and trial
+   organizations: the summary is a fenced evidence block (ref `G1`) in the diagnosis prompt, findings that cite it
+   are Verified and carry `module_id` `search_visibility`, and the module adds 0.10 to the score from five parts
+   (`SCORE_VERSION` 2; scores without Search Console evidence are unchanged). Spec and sub-score definition:
+   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9; the `module_id` domain already listed the module, so
+   no migration was needed.
 3. GA4 (same Google client; add the scope and verification).
 4. HubSpot read-only (D-048): the unlisted HubSpot app, a wider `integration_connections` provider check, OAuth start
    and callback routes, a CRM snapshot table and a `tiers.ts` gate entry. GoHighLevel replaces it if the testers turn

@@ -6,7 +6,7 @@ import { PAIN_POINTS, getPainPoint, isActivePainPointId } from "@/lib/onboarding
 // tools they named at the start (BI-12, business_profiles.current_tools), without an AI call. Pure logic, unit-tested.
 //
 // Claim rule (VOICE_AND_MESSAGING §5): present tense means it works today, so every coming-soon "helps" line starts
-// with "Planned:". Search Console data isn't used in the diagnosis yet (D-051), so no line may say it is.
+// with "Planned:". Search Console data feeds the diagnosis and the growth score (D-051 step 6), so its line may say so.
 
 export type ToolId =
   | "search_console"
@@ -36,7 +36,7 @@ export const TOOLS: Tool[] = [
     id: "search_console",
     name: "Google Search Console",
     status: "live",
-    helps: "See how people find your website on Google Search: clicks, impressions, top searches and pages.",
+    helps: "See how people find your website on Google Search: clicks, impressions, top searches and pages, used in your diagnosis and growth score.",
     painPoints: ["website.search_visibility", "leads.too_few", "strategy.unclear_priorities", "reporting.no_clear_picture"],
     names: ["search console"],
   },

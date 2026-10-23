@@ -294,8 +294,9 @@ describe("knowledge base", () => {
     expect(quoted.length).toBeGreaterThan(1);
     for (const label of quoted) expect(`${step}\n${card}`, label).toContain(label);
 
-    // Only Search Console is live; every other tool is named as coming soon, and nothing claims the diagnosis uses it.
-    expect(route.purpose).toMatch(/isn't used in your diagnosis yet/);
+    // Only Search Console is live and its data feeds the diagnosis and the score (D-051 step 6); every other tool
+    // is named as coming soon.
+    expect(route.purpose).toMatch(/goes into your diagnosis and growth score/);
     expect(route.purpose).toMatch(/Coming soon[^.]*: Google Analytics 4, .*HubSpot.* and HeyGen\./);
     expect(route.howToGetThere).toMatch(/AI assistant connected to Braventa skips this step/);
   });

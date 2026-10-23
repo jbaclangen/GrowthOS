@@ -65,10 +65,15 @@ fixed question bank based on goal, priorities and earlier answers, each with a r
 findings right or wrong with a note, which rebuilds the diagnosis and plan; confirm the plan; accept, dismiss or mark
 actions done. Not true: a free-form chat, AI-written questions, reordering plan items (Q-027).
 
-### Growth score (verified against `computeGrowthScore` and the report UI)
-- 0–100. Braventa's AI assessment (content clarity 25%, conversion readiness 25%, online presence 15%) and Google
-  PageSpeed mobile scores (performance 15%, SEO 12%, accessibility 4%, best practices 4%). Public copy says "about
-  two-thirds / about a third".
+### Growth score (verified against `computeGrowthScore` in `web/src/lib/modules/score.ts` and the report UI)
+- 0–100, a renormalized mean over the feature modules that have evidence (D-051); the report names them. Braventa's
+  AI assessment (content clarity 0.25, conversion readiness 0.25, online presence 0.15) and Google PageSpeed mobile
+  scores (performance 0.15, SEO 0.12, accessibility 0.04, best practices 0.04). Public copy says "about two-thirds /
+  about a third".
+- On Pro, Premium and the trial, with Google Search Console connected and at least 10 impressions in the last 28
+  days, Search visibility adds 0.10 (about a tenth): average position, click-through rate, the trend in clicks, pages
+  Google serves, home page indexed (D-051 step 6, 2026-10-23). Say "a third, smaller part"; never a share of
+  traffic or a ranking.
 - Without PageSpeed the score is the assessment alone, and the report says PageSpeed wasn't available.
 - It reflects the website (up to 25 pages) and the owner's answers. Never say it measures overall business health or
   predicts revenue, leads or rankings.
