@@ -26,7 +26,10 @@ describe("the roles_and_permissions migration", () => {
     expect(code).toMatch(/alter type public\.member_role rename to member_role_v1/);
     expect(code).toMatch(/using \(case role::text when 'member' then 'analyst' else role::text end\)::public\.member_role/);
     expect(code).toMatch(/alter column role set default 'analyst'/);
-    expect(code).toMatch(/drop type public\.member_role_v1/);
+    // The old type's drop is a separate statement (the Supabase MCP tool refuses it inside the block); the file
+    // records it as pending rather than claiming it ran.
+    expect(code).not.toMatch(/drop type public\.member_role_v1/);
+    expect(sql).toMatch(/drop type public\.member_role_v1;/);
   });
 
   it("encodes the same matrix in has_permission() as can() does", () => {

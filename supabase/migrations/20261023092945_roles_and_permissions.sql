@@ -1,7 +1,8 @@
 -- Roles and permissions foundation (founder decision D-046; docs/architecture/ROLES_AND_PERMISSIONS.md).
 --
 -- 1. member_role gets the eight fixed roles. Postgres can't drop an enum value, so the type is replaced: the old type
---    is renamed, the column converted (member becomes analyst, the least privilege) and the old type dropped.
+--    is renamed, the column converted (member becomes analyst, the least privilege) and the old type dropped in the
+--    next migration (the Supabase MCP tool refuses a drop inside a larger statement block).
 --    is_member(), is_org_admin() (owner or admin) and is_org_owner() keep working: their bodies compare role text.
 -- 2. has_permission(org, perm): the matrix web/src/lib/team/roles.ts holds, for triggers and later RLS write
 --    policies. Security definer with a pinned search_path and execute for authenticated only, like is_member(), and
@@ -9,6 +10,10 @@
 -- 3. content_items.created_by: the author, set by the approval guard on client inserts. The guard now also enforces
 --    who may approve (D-046): content.approve for a status change, content.approve_own (owner only) for one's own
 --    draft. The approver stays database-set (D-018).
+--
+-- Applied to the Supabase project 2026-10-23 as version 20261023092945. The follow-up statement
+-- `drop type public.member_role_v1;` was refused by the tool's destructive-statement guard and is still pending:
+-- run it from the SQL editor (the type is unused; nothing depends on it).
 
 -- 1. Roles -------------------------------------------------------------------------------------------------------
 alter type public.member_role rename to member_role_v1;
@@ -20,7 +25,6 @@ alter table public.memberships
   alter column role type public.member_role
   using (case role::text when 'member' then 'analyst' else role::text end)::public.member_role;
 alter table public.memberships alter column role set default 'analyst';
-drop type public.member_role_v1;
 
 -- 2. has_permission ----------------------------------------------------------------------------------------------
 create or replace function public.has_permission(org uuid, perm text)
