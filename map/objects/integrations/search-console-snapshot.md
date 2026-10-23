@@ -3,8 +3,8 @@ type: object
 cluster: integrations
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: supabase/migrations/20261011161133_search_console.sql
 ---
 
@@ -22,8 +22,8 @@ Google's data lags and is quota-limited, so Braventa stores a fetch instead of q
 - RLS "members read", select-only grant — `:68-72`
 - Insert: `syncSearchConsole` `web/src/lib/integrations/search-console.ts:463-473`
 - Delete: Google account changed `:385-387`, disconnect `:543`, prune `:491-505`
-- Read: `latestSnapshot` `:560-569`; `/search` `web/src/app/search/page.tsx:38-44`; card `web/src/components/connections/search-console-card.tsx:64-70`
-- Into the model and score: `summarizeSnapshot` `:254` ← `searchConsoleSummaryForPrompt` `:575-583` ← `searchConsoleEvidence` `web/src/lib/pipeline/website-intel.ts:433-435` (only when `search_visibility` is enabled); score parts `searchVisibilityEvidence` `web/src/lib/modules/score.ts:75-80`; the report records which snapshot was used `web/src/lib/pipeline/website-intel.ts:664-666`
+- Read: `latestSnapshot` `:560-569`; `/search` `web/src/app/search/page.tsx:38-44`; card `web/src/components/connections/search-console-card.tsx:65-71`
+- Into the model and score: `summarizeSnapshot` `search-console.ts:254` ← `searchConsoleSummaryForPrompt` `:575-583` ← `searchConsoleEvidence` `web/src/lib/pipeline/website-intel.ts:433-435` (only when `search_visibility` is enabled); score parts `searchVisibilityEvidence` `web/src/lib/modules/score.ts:75-92`; the report records which snapshot was used `web/src/lib/pipeline/website-intel.ts:664-666`
 - Prompt ref `G1` `web/src/lib/modules/registry.ts:280`; findings citing it map to `search_visibility` `:286-289`
 
 Citations: `supabase/migrations/20261011161133_search_console.sql:47-72`, `web/src/lib/integrations/search-console.ts:412-505`
@@ -47,7 +47,7 @@ Citations: `supabase/migrations/20261011161133_search_console.sql:47-72`, `web/s
 | `syncSearchConsole` (callback, Settings refresh, property choice) | writes |
 | `/search`, Settings card, connect step | reads |
 | scoring and diagnosis_update steps | reads (latest row) |
-| `disconnectSearchConsole` | deletes |
+| `disconnectSearchConsole` (from `disconnectSearchConsoleAction`, owner only through `integrations.connect`, `web/src/app/settings/connections-actions.ts:52`) | deletes |
 
 ## See
 

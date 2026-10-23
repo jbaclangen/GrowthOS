@@ -3,8 +3,8 @@ type: object
 cluster: tenancy
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: web/src/lib/plans/tiers.ts
 ---
 
@@ -14,7 +14,7 @@ The tier an organization has right now — Basic, Pro or Premium — computed in
 
 ## Why this shape
 
-The founder decided tiers and the trial before billing exists, so the trial clock and tier checks live in pure, unit-tested code and the Braventa team changes `plan` by hand (`web/src/lib/plans/tiers.ts:1-6`, `docs/decisions/DECISION_LOG.md:324-327`, D-030). Every feature carries its real status so the UI never presents a planned feature as live (`web/src/lib/plans/tiers.ts:5-6,76-80`).
+The founder decided tiers and the trial before billing exists, so the trial clock and tier checks live in pure, unit-tested code and the Braventa team changes `plan` by hand (`web/src/lib/plans/tiers.ts:1-6`, `docs/decisions/DECISION_LOG.md:326-329`, D-030). Every feature carries its real status so the UI never presents a planned feature as live (`web/src/lib/plans/tiers.ts:5-6,76-80`).
 
 ## Shape
 
@@ -36,9 +36,9 @@ Citations: `web/src/lib/plans/tiers.ts:1-27,48-107`; `supabase/migrations/202610
 ## If you change this
 
 - **Hits:** every gate above; the `/plans` page; the module registry test that ties a live module to a live feature (`web/src/lib/modules/registry.ts:38-39`); `docs/product/PLANS_AND_TIERS.md`.
-- **Does not hit:** [member-role](member-role.md) checks (owner-only stays owner-only on every tier); [subscription](subscription.md).
+- **Does not hit:** [member-role](member-role.md) permissions — `can()` reads the role, not the tier, and the OAuth start route checks `integrations.connect` before the tier (`web/src/app/api/integrations/google/start/route.ts:36-40`); [subscription](subscription.md).
 
-Ghost: Stripe billing and plan limits — `docs/product/ROADMAP.md:62-63`; seat prices — `docs/decisions/DECISION_LOG.md:575-578` (D-046).
+Ghost: Stripe billing and plan limits — `docs/product/ROADMAP.md:62-63`; seat prices — `docs/decisions/DECISION_LOG.md:592-595` (D-046); `billing.manage` (change the plan) is in the role matrix but not enforced — `docs/architecture/ROLES_AND_PERMISSIONS.md:57`.
 
 ## Surfaces
 
