@@ -38,6 +38,7 @@ Do not rewrite history.
 | D-025 | 2026-10-10 | Founder approval of the brand system (messaging, palette, US English) | Founder |
 | D-026 | 2026-10-10 | New logo: **Monolith** symbol + **Syncopate Bold** uppercase wordmark | Superseded by D-027 |
 | D-027 | 2026-10-10 | Logo from the founder's reference: heavy **B** on a rounded tile with a **Violet dot**; **BRAVENTA.IO** in Quicksand Medium | Founder |
+| D-055 | 2026-10-23 | Repo organized with ICM: a `map/` system map, the root as an Obsidian vault, graphify graph | Founder |
 | D-028 | 2026-10-10 | AI-assisted onboarding: discovery runs alongside the website analysis; one diagnosis plan replaces the "5 opportunities"; MVP value test is a confirmed diagnosis and plan plus take-away content | Founder |
 
 ---
@@ -725,3 +726,31 @@ sub-score definition: the addendum below).
   read from the sealed state cookie. Anything else returns to Settings, so there is no open redirect.
 - The Search Console card is shared with Settings → Connections, which also lists the Coming soon tools.
 - Open: connecting for a business that isn't the user's first membership (Q-047).
+
+## D-055 — Organize the repo with ICM: a system map, an Obsidian vault and a graphify graph
+**Status:** Founder (2026-10-23, "install obsidian + graphify and follow the ICM file organization"; branch
+`icm-system-map`). ICM is the Interpretable Context Methodology (Jake Van Clief; `github.com/RinDig/icm-architect`,
+arXiv:2603.16021): folders carry sequencing, hierarchy carries context, plain files carry state.
+- **Form: System map, not a restructure.** The inventory (ICM restructure mode, step 1) found every file under
+  `docs/`, `design-system/` and the app trees with live referrers (README, code comments, `assistant.test.ts` reading
+  `docs/help/APP_GUIDE.md`, the `help:doc` and `tokens` generators, Vercel root directories). Moving them would buy
+  nothing and risk breakage, so the subject tree stays as it is and the map sits beside it in `map/`.
+- **What `map/` holds.** `CLAUDE.md` (catalog and routing, under 60 lines; `AGENTS.md` and `routing.md` are generated
+  copies), `CONTEXT.md` (universes live / leftover / ghost and the product-word vs code-name collisions),
+  `_meta/schema.md`, `_templates/`, `objects/<cluster>/*.md` (one card per noun, clusters tenancy, onboarding,
+  pipeline, report, modules, integrations, access, config), `processes/*.md` (one card per movement that runs, each
+  with its human gate) and `effects/CONTEXT.md` (change-impact index plus inbound consumers such as Vercel, pg_cron,
+  Google OAuth and MCP clients). Cards cite `path:line` at a commit and are `verified` only with a date, a commit and
+  checked citations; planned features are `ghost`, never `live`.
+- **Tooling.** Obsidian 1.14 opens the repo root as a vault (`.obsidian/app.json` ignores `node_modules/`, `.next/`,
+  worktrees and generated brand assets; `workspace.json` is per machine and gitignored). graphify 0.9 (`uv tool
+  install graphifyy`, skill in `~/.claude/skills/graphify`) builds `graphify-out/` from the AST of `web/`, `site/` and
+  the SQL migrations plus a semantic pass over the docs; `GRAPH_REPORT.md` is committed, `graph.html` and
+  `graph.json` are rebuilt locally. Cards win over the graph when they disagree.
+- **Maintenance.** A PR that adds or renames a table, enum, module, route or job updates the matching card and
+  `effects/CONTEXT.md`, then runs `npm run map:sync` (`map:check` fails when the generated files are stale). Cards
+  older than the cited commit are re-verified when touched, not on a schedule (Q-049).
+- **Drive mirror.** The Google Drive backup gains a `10 Map` folder with the map as Google Docs and raw `.md` copies
+  in the dated backup, following the existing `99 Backups/<date> (<commit>)` convention.
+- Not changed: `docs/` layout, `CLAUDE.md`'s working rules (slimming it toward a pure routing file is a later step),
+  any code path, any user-facing copy.
