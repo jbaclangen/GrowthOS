@@ -35,9 +35,9 @@ No code compares a role to a literal such as `"owner"`.
 
 The old `member` value (owner, admin, member before 2026-10-23) was mapped to `analyst`, the least privilege: in the
 production database that touched 0 rows (2 owners, nothing else). The column's default is `analyst`; nothing inserts a
-membership today except `create_organization()`, which sets `owner`. The previous enum type is still in the database
-as the unused `member_role_v1`: the MCP tool refused its `drop type` as a destructive statement, so it waits for one
-statement from the SQL editor (§7).
+membership today except `create_organization()`, which sets `owner`. The previous enum type (renamed `member_role_v1`
+by the migration) was dropped from the SQL editor the same day, because the MCP tool refuses destructive statements;
+that drop isn't a recorded migration.
 
 `is_member()` (any role, or platform staff) and `is_org_admin()` (owner or admin, or platform staff) keep working as
 before and still carry every RLS policy. `is_org_owner()` keeps the service-key policies. `has_permission()` has no
@@ -136,8 +136,6 @@ is no way to change a role, invite anyone or see other members in the app.
 
 ## 7. Open
 
-- **`drop type public.member_role_v1;`** is still to be run on the Supabase project (SQL editor). The type is unused;
-  nothing depends on it.
 - **Personal keys and `keys.manage_own`:** every member can still create a personal key. Applying the permission
   would take it from copywriters, content creators and analysts. Apply it with invitations, when such members can
   exist, or have the founder widen the matrix.
