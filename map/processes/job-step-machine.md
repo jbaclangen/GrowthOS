@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 consumes: ["[[ai-job]]", "[[job-step]]", "[[business-profile]]"]
 produces: ["[[ai-job]]", "[[job-step]]", "[[job-dispatch]]"]
 ---
@@ -18,7 +18,7 @@ A queued `ai_jobs` row holds `output.{step, step_state, step_started_at, claim}`
 
 ## Why this shape
 
-Vercel Hobby stops an invocation at 300 s with no cleanup; a full analysis took longer (D-042, `docs/decisions/DECISION_LOG.md:473`; `CLAUDE.md:106`). A deployment that POSTs to itself in a chain gets HTTP 508 after a few hops, so production never calls itself: Postgres sends the POST. The conditional claim makes a repeated or late POST harmless, which is what lets the sweeper and the report page re-send freely.
+Vercel Hobby stops an invocation at 300 s with no cleanup; a full analysis took longer (D-042, `docs/decisions/DECISION_LOG.md:475-477`; `CLAUDE.md:117-118`). A deployment that POSTs to itself in a chain gets HTTP 508 after a few hops, so production never calls itself: Postgres sends the POST. The conditional claim makes a repeated or late POST harmless, which is what lets the sweeper and the report page re-send freely.
 
 ## Steps
 
@@ -26,7 +26,7 @@ Vercel Hobby stops an invocation at 300 s with no cleanup; a full analysis took 
 2. Hand-off: `handOff` → `dispatchStep`, failure → `failPendingStep` with `HANDOFF_ERROR` — `web/src/lib/pipeline/handoff.ts:18-26`; `startJob` wraps it in `after()` — `:32-34`.
 3. `dispatchMode`: `JOB_DISPATCH` wins, else `database` on Vercel / production https, else `direct` — `web/src/lib/pipeline/dispatch.ts:32-40`; env schema `web/src/lib/env.ts:32`. Why the two modes — `web/src/lib/pipeline/dispatch.ts:11-19`.
 4. Direct: `postStep` POSTs `{jobId, step, token}`, 3 attempts, 15 s, expects 202 — `web/src/lib/pipeline/dispatch.ts:103-136`.
-5. Database: `recordDispatch` inserts `job_dispatches` (23505 = already recorded) — `web/src/lib/pipeline/dispatch.ts:152-178`; table and checks `supabase/migrations/20261017110000_job_dispatches.sql:63-70`; insert trigger `job_dispatches_send` → `post_job_dispatch` → `net.http_post` — `:89-130`.
+5. Database: `recordDispatch` inserts `job_dispatches` (23505 = already recorded) — `web/src/lib/pipeline/dispatch.ts:152-178`; table and checks `supabase/migrations/20261017110000_job_dispatches.sql:63-77`; insert trigger `job_dispatches_send` → `post_job_dispatch` → `net.http_post` — `:89-130`.
 6. Token: key from `JOB_CONTINUE_SECRET` else HKDF of `SUPABASE_SECRET_KEY` — `web/src/lib/pipeline/continue-token.ts:11-19`; sign `:21-23`; verify with `timingSafeEqual` `:25-30`.
 7. Route: `maxDuration = 300` — `web/src/app/api/jobs/continue/route.ts:13`; zod body `:15-19`; 400 / 500 / 401 — `:21-37`; `after(runAnalysisJob)` + 202 — `:38-39`.
 8. `runAnalysisJob` never throws — `web/src/lib/pipeline/website-intel.ts:875-881`. `runClaimedStep`: load, skip unless active, `canClaim` — `:883-895`; `claimStep` — `:898-901`, conditional UPDATE at `web/src/lib/pipeline/claims.ts:17-35`.

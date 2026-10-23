@@ -3,8 +3,8 @@ type: object
 cluster: onboarding
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -14,16 +14,16 @@ The brand voice the profiling step extracts for a business — one new row per a
 
 ## Why this shape
 
-The foundation schema gave brand voice its own table beside the business profile so later features (visual guidelines, messaging pillars) had a home (`supabase/migrations/20261010061028_foundation.sql:97-107`). Today the writer prompt takes the voice from `business_profiles.intelligence`, so this table is write-only (`docs/architecture/DATA_MODEL.md:75`).
+The foundation schema gave brand voice its own table beside the business profile so later features (visual guidelines, messaging pillars) had a home (`supabase/migrations/20261010061028_foundation.sql:97-107`). Today the writer prompt takes the voice from `business_profiles.intelligence` (`web/src/lib/pipeline/prompts.ts:373`), so this table is write-only (`docs/architecture/DATA_MODEL.md:79`).
 
 ## Shape
 
 - Columns: `business_profile_id` (FK, cascade), `voice`, `tone_rules[]`, `messaging_pillars[]`, `visual_guidelines` jsonb, timestamps — `supabase/migrations/20261010061028_foundation.sql:97-107`; index on the profile FK — `supabase/migrations/20261010061126_advisor_fixes.sql:23`.
 - RLS "members all" — `supabase/migrations/20261010061028_foundation.sql:301-307`; `touch_updated_at` trigger — `:337`.
 - The one writer: the profiling step inserts `voice` and `tone_rules` from the business analyst's output — `web/src/lib/pipeline/website-intel.ts:324-329`. `messaging_pillars` and `visual_guidelines` are never set.
-- No reader in `web/src` (grep at this commit); no uniqueness, so re-runs append — `docs/architecture/DATA_MODEL.md:192`.
+- No reader in `web/src` (grep at this commit); no uniqueness, so re-runs append — `docs/architecture/DATA_MODEL.md:197`.
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:97-107,301-307,337`; `supabase/migrations/20261010061126_advisor_fixes.sql:23`; `web/src/lib/pipeline/website-intel.ts:324-329`; `docs/architecture/DATA_MODEL.md:75,192`
+Citations: `supabase/migrations/20261010061028_foundation.sql:97-107,301-307,337`; `supabase/migrations/20261010061126_advisor_fixes.sql:23`; `web/src/lib/pipeline/website-intel.ts:319,324-329`; `web/src/lib/pipeline/prompts.ts:373`; `docs/architecture/DATA_MODEL.md:79,197`
 
 ## Connected to
 
@@ -34,7 +34,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:97-107,301-307,337
 
 ## If you change this
 
-- **Hits:** `profileStep`'s insert only; `docs/architecture/DATA_MODEL.md:75`.
+- **Hits:** `profileStep`'s insert only; `docs/architecture/DATA_MODEL.md:79`.
 - **Does not hit:** the content writer or any prompt — they read [business-profile](business-profile.md), not this table.
 
 ## Surfaces

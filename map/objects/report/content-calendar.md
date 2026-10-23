@@ -3,8 +3,8 @@ type: object
 cluster: report
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -29,13 +29,13 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:165-175`, `web/src
 
 - **owns:** [content-item](content-item.md) (`calendar_id`, set null on delete `foundation.sql:183`).
 - **owned-by:** [organization](../tenancy/organization.md).
-- **joins:** [business-profile](../onboarding/business-profile.md) by jsonb key only (`:759`); [campaign](campaign.md) (`:168`, ghost); [module-run](../modules/module-run.md) `content_studio` (`website-intel.ts:837-848`).
+- **joins:** [business-profile](../onboarding/business-profile.md) by jsonb key only (`website-intel.ts:759`); [campaign](campaign.md) (`foundation.sql:168`, ghost); [module-run](../modules/module-run.md) `content_studio` (`website-intel.ts:837-848`).
 - **looks-like-but-is-not:** [growth-plan-item](growth-plan-item.md), the growth plan's actions; [report](report.md), which does not hold the calendar.
 
 ## If you change this
 
-- **Hits:** the insert `website-intel.ts:754-765`; the loader select `report-data.ts:104-110`; `context.ts:113-120`; the writing step's lookup `:795-799`; `planSchema` / `planPrompt` in `web/src/lib/pipeline/prompts.ts` (used at `:745-747`).
-- **Does not hit:** the diagnosis and plan items (the planning step receives only their titles, `:737`); the `content_status` enum.
+- **Hits:** the insert `website-intel.ts:754-765`; the loader select `report-data.ts:104-110`; `context.ts:113-120`; the writing step's lookup `website-intel.ts:795-799`; `planSchema` / `planPrompt` in `web/src/lib/pipeline/prompts.ts` (used at `website-intel.ts:745-747`).
+- **Does not hit:** the diagnosis and plan items (the planning step receives only their titles, `website-intel.ts:737`); the `content_status` enum.
 
 ## Surfaces
 
@@ -48,4 +48,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:165-175`, `web/src
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:79`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:83`)

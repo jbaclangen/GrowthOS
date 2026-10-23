@@ -3,8 +3,8 @@ type: object
 cluster: modules
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: web/src/lib/modules/registry.ts
 ---
 
@@ -38,7 +38,7 @@ Citations: `web/src/lib/modules/registry.ts:4-13,15-53,58-118,124-230,233-300`; 
 - **Hits:** the `module_id` domain (a new id needs a migration replacing the constraint, `supabase/migrations/20261023063253_feature_modules.sql:27`); `migration.test.ts` and `registry.test.ts`; `SCORE_VERSION` if a weight or part moves (`web/src/lib/modules/score.ts:16-19`); `enabledModules`; `moduleForFinding`/`moduleForArea` and so every new finding and plan item; the report's module names; `docs/architecture/FEATURE_MODULES.md`.
 - **Does not hit:** [plan-tier](../tenancy/plan-tier.md)'s `FEATURES` list — a module's `live` flag does not flip a feature's status (the test only requires they agree, `web/src/lib/modules/registry.ts:38-39`).
 
-Ghost: a module switch in the app and who may use it (roles, D-046) — `docs/architecture/FEATURE_MODULES.md:125`; per-module report sections, `audit_findings.module_id`, prompt fragments — `docs/decisions/DECISION_LOG.md:664-667`.
+Ghost: a module switch in the app and the permission that would gate it (the D-046 roles foundation has no module permission yet, [member-role](../tenancy/member-role.md)) — `docs/architecture/FEATURE_MODULES.md:125`, `docs/architecture/ROLES_AND_PERMISSIONS.md:156`; per-module report sections, `audit_findings.module_id`, prompt fragments — `docs/decisions/DECISION_LOG.md:681-684`.
 
 ## Surfaces
 

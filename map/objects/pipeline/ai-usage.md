@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
