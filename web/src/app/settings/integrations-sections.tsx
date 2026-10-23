@@ -13,7 +13,8 @@ const scopeLabel = (s: string) => (s in SCOPES ? SCOPES[s as Scope].label : s);
 
 type Grant = { id: string; organization_id: string; user_id: string; client_name: string; scopes: string[]; created_at: string; last_used_at: string | null };
 
-export async function ConnectedApps({ userId, orgNames, ownerOf }: { userId: string; orgNames: Map<string, string>; ownerOf: Set<string> }) {
+// managesKeysOf: the businesses where the user holds keys.manage_any, so they may disconnect anyone's app there.
+export async function ConnectedApps({ userId, orgNames, managesKeysOf }: { userId: string; orgNames: Map<string, string>; managesKeysOf: Set<string> }) {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("oauth_grants")
@@ -48,7 +49,7 @@ export async function ConnectedApps({ userId, orgNames, ownerOf }: { userId: str
       ) : (
         <ul className="mt-4 divide-y divide-border text-sm">
           {grants.map((g) => {
-            const canDisconnect = g.user_id === userId || ownerOf.has(g.organization_id);
+            const canDisconnect = g.user_id === userId || managesKeysOf.has(g.organization_id);
             return (
               <li key={g.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <div className="min-w-0">
@@ -81,8 +82,9 @@ export async function ConnectedApps({ userId, orgNames, ownerOf }: { userId: str
 }
 
 // The service keys of the business being managed (RLS alone would also return other businesses the user owns).
-export async function ServiceKeys({ organizationId, isOwner, serverUrl }: { organizationId: string; isOwner: boolean; serverUrl: string }) {
-  if (!isOwner) {
+// canManage: the user holds keys.manage_any there (owner only today, lib/team/roles.ts).
+export async function ServiceKeys({ organizationId, canManage, serverUrl }: { organizationId: string; canManage: boolean; serverUrl: string }) {
+  if (!canManage) {
     return (
       <section id="service-keys" className="card mt-6 scroll-mt-20" aria-labelledby="service-keys-heading">
         <h3 id="service-keys-heading" className="text-lg font-semibold">

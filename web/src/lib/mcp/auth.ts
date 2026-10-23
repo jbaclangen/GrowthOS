@@ -1,11 +1,12 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { bearerFromHeader, classifyBearer, sha256Hex } from "@/lib/oauth/tokens";
-import { AUTH_MESSAGES, resolveAccessToken, type ResolvedPrincipal } from "./principal";
+import { AUTH_MESSAGES, resolveAccessToken, roleOf, type ResolvedPrincipal } from "./principal";
 
 // Resolves the bearer credential on an /api/mcp request: a personal access key (brv_…), a service key (brv_sk_…) or
 // an OAuth access token (brv_at_…). Uses the service client; the result's organizationId is the only organization
-// the request may touch. Pure rules live in ./principal.ts (unit-tested).
+// the request may touch, and a personal key or sign-in carries its user's role there (D-046). Pure rules live in
+// ./principal.ts (unit-tested).
 
 export type Org = { plan: string; trial_ends_at: string };
 
@@ -28,15 +29,17 @@ export async function authenticateMcp(db: SupabaseClient, header: string | null,
     if (row.expires_at && new Date(row.expires_at as string).getTime() <= now.getTime()) {
       return { ok: false, reason: "invalid", message: AUTH_MESSAGES.serviceKeyExpired };
     }
+    let role = null;
     if (kind === "personal") {
-      // The key's owner must still belong to the organization.
+      // The key's owner must still belong to the organization; the key acts with their role.
       const { data: membership } = await db
         .from("memberships")
-        .select("user_id")
+        .select("user_id, role")
         .eq("organization_id", row.organization_id)
         .eq("user_id", row.user_id)
         .maybeSingle();
       if (!membership) return { ok: false, reason: "invalid", message: AUTH_MESSAGES.keyOwnerLeft };
+      role = roleOf(membership);
     }
     await db.from("mcp_access_keys").update({ last_used_at: now.toISOString() }).eq("id", row.id);
     return {
@@ -45,6 +48,7 @@ export async function authenticateMcp(db: SupabaseClient, header: string | null,
         kind,
         organizationId: row.organization_id as string,
         userId: (row.user_id as string | null) ?? null,
+        role,
         keyId: row.id as string,
         grantId: null,
         scopes: row.scopes as string[],
@@ -63,9 +67,9 @@ export async function authenticateMcp(db: SupabaseClient, header: string | null,
     ? await db.from("oauth_grants").select("id, revoked_at").eq("id", token.grant_id).maybeSingle()
     : { data: null };
   const { data: membership } = token
-    ? await db.from("memberships").select("user_id").eq("organization_id", token.organization_id).eq("user_id", token.user_id).maybeSingle()
+    ? await db.from("memberships").select("user_id, role").eq("organization_id", token.organization_id).eq("user_id", token.user_id).maybeSingle()
     : { data: null };
-  const resolved = resolveAccessToken(token, grant, Boolean(membership), resource, now);
+  const resolved = resolveAccessToken(token, grant, membership, resource, now);
   if (!resolved.ok) return resolved;
 
   const { data: org } = await db.from("organizations").select("plan, trial_ends_at").eq("id", resolved.principal.organizationId).maybeSingle();

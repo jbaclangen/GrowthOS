@@ -1,7 +1,7 @@
 <!-- GENERATED from web/src/lib/assistant/knowledge.ts by `npm run help:doc` (in web/). Do not edit by hand. -->
 # Braventa app guide
 
-**Audience:** business owners using app.braventa.io. **Version:** 2026-10-18. The in-app assistant
+**Audience:** business owners using app.braventa.io. **Version:** 2026-10-23. The in-app assistant
 ("Ask Braventa") answers from the same content. Links are app routes (relative to app.braventa.io).
 
 - [What Braventa is](#about)
@@ -14,6 +14,7 @@
 - [Connect Google Search Console](#search-console)
 - [Plans and the trial](#plans)
 - [What's live and what's coming soon](#features)
+- [Roles: who can do what](#roles)
 - [Troubleshooting](#troubleshooting)
 - [Privacy basics](#privacy)
 
@@ -38,7 +39,7 @@ Braventa is a business growth system for small and mid-sized service businesses.
 - **Report (growth assessment)** — `/analysis/[id]`. The full report for one business: Do this first, the growth score, the diagnosis to confirm or correct, the growth plan, technical checks, your answers, the business profile, the 30-day content plan and the drafted posts. Each tile opens its section; Re-run analysis starts a fresh analysis. How to get there: Select a business on the dashboard, or Open full report under the latest report.
 - **Plans** — `/plans`. Compares Basic, Pro and Premium with each feature marked Live or Coming soon, shows your current plan or trial, and has Talk to us buttons to ask the Braventa team about a plan. How to get there: Select the plan chip in the header (for example Pro trial · 9 days left).
 - **Search performance** — `/search`. Read-only Google Search Console data for your website: clicks, impressions, top search queries and pages, and Google's indexing verdicts. Empty until Search Console is connected (in Settings or on the Connect your tools setup step). How to get there: Settings → Connections → Google Search Console, once connected.
-- **Settings** — `/settings`. Integrations: connect Claude or ChatGPT to Braventa (step-by-step setup with the server URL, or a personal access key instead), Connected apps (see and disconnect apps approved with Sign in with Braventa), Service keys for automation tools (owners only) and Google Search Console, followed by the tools that are coming soon. How to get there: Select Settings in the header. Direct sections: /settings#ai-assistant, /settings#connected-apps, /settings#service-keys and /settings#connections.
+- **Settings** — `/settings`. Your role in the business (one line under the title), then Integrations: connect Claude or ChatGPT to Braventa (step-by-step setup with the server URL, or a personal access key instead), Connected apps (see and disconnect apps approved with Sign in with Braventa), Service keys for automation tools (owners only) and Google Search Console, followed by the tools that are coming soon. How to get there: Select Settings in the header. Direct sections: /settings#ai-assistant, /settings#connected-apps, /settings#service-keys and /settings#connections.
 - **Connect an app (Sign in with Braventa)** — `/oauth/authorize`. The approval screen an AI app (claude.ai, Claude Desktop, Claude Code or ChatGPT) opens when you connect it to Braventa. It shows the app's name, where you go back to after approving, and what the app can and can't do. Choose the business, then select Approve, or Cancel. How to get there: Your AI app opens it when you connect Braventa; you don't open it yourself. Start from the setup steps in Settings → Integrations.
 
 <a id="getting-started"></a>
@@ -156,6 +157,12 @@ Every new account starts with a 14-day Pro trial. When it ends, the account has 
 - Custom integrations (Coming soon): E-commerce platforms, QuickBooks, Xero and other systems, scoped with you.
 
 Not available today on any plan: CRM connections, publishing or scheduling posts, sending email, automations, analytics reports from GA4, billing in the app, team invitations, editing or regenerating drafts, editing the business profile Braventa wrote from your website (services, customers, strengths, gaps and brand voice) or the business name, password reset in the app, and a REST API (automation tools can use Braventa's MCP server with a service key instead). Your main goal, service area and tools can be changed: see What you told us in the report.
+
+<a id="roles"></a>
+
+## Roles: who can do what
+
+Each person in a business account has one role, shown under the title in [Settings](/settings). The person who set up the business is its **owner**. The other roles are admin, marketing manager, social media manager, copywriter, content creator, analyst and client approver, but there's no way to invite people or change roles in the app yet, so today every account has its owner only. What the roles mean: only the owner can connect or disconnect tools (Google Search Console), create service keys and disconnect other people's apps. Owners, admins and marketing managers can start analyses, change the answers, confirm or correct the diagnosis, update plan items and approve or reject drafts. No one approves a draft they wrote themselves, except the owner; today every draft is written by Braventa, so this doesn't come up yet. If an action says your role can't do something, ask the business owner.
 
 <a id="troubleshooting"></a>
 

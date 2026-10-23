@@ -109,7 +109,12 @@ development, from the request (any localhost port).
 
 Unknown or not-yet-live scopes in a request are dropped (the app still connects with `onboarding`); a refresh drops
 scopes the connection wasn't granted the same way, and refuses only when none are left. Each tool
-declares its scope in `lib/mcp/tools.ts`. Personal keys and service keys carry `onboarding` (column default; clients
+declares its scope in `lib/mcp/tools.ts`, and each tool that writes declares the permission the matching web action
+checks (D-046, [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §5): `braventa_start_onboarding` needs
+`analysis.run`; `braventa_submit_discovery`, `braventa_confirm_priorities` and `braventa_answer_follow_up_questions`
+need `profile.edit`. A personal key or OAuth sign-in acts with its user's role in the business (read with the
+membership at every call); a service key belongs to the business and keeps its rule, every onboarding tool. A refused
+call stays listed and gets the web action's refusal text. Personal keys and service keys carry `onboarding` (column default; clients
 can't set it).
 
 ## 5. Tools

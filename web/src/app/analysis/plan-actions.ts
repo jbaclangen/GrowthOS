@@ -7,9 +7,13 @@ import { failStaleJobs } from "@/lib/pipeline/jobs";
 import { startJob } from "@/lib/pipeline/handoff";
 import { initialState } from "@/lib/pipeline/steps";
 import { finalPriorities } from "@/lib/plan/priority";
+import { deniedMessage } from "@/lib/team/roles";
+import { hasPermission } from "@/lib/team/server";
 
 // Owner actions on the diagnosis and growth plan (ON-7, ON-8, MS-5). All go through the signed-in user's
-// client: RLS limits them to the user's organization, and column grants to the review and status fields.
+// client: RLS limits them to the user's organization, and column grants to the review and status fields. Which
+// members may (D-046, lib/team/roles.ts): diagnosis.correct for verdicts, the update and confirming;
+// plan_items.update_any for plan item statuses (plan_items.update_own waits on an assignee).
 
 export type ActionResult = { error?: string };
 
@@ -22,12 +26,15 @@ export async function setFindingVerdict(
   verdict: (typeof VERDICTS)[number],
   note: string | null,
 ): Promise<ActionResult> {
-  await requireUser();
+  const user = await requireUser();
   if (!VERDICTS.includes(verdict)) return { error: "That isn't a valid choice." };
   const cleanNote = note?.trim() || null;
   if (cleanNote && cleanNote.length > MAX_NOTE) return { error: `Keep your correction under ${MAX_NOTE} characters.` };
 
   const supabase = await createSupabaseServerClient();
+  const { data: finding } = await supabase.from("diagnosis_findings").select("organization_id").eq("id", findingId).maybeSingle();
+  if (!finding) return { error: "This finding wasn't found." };
+  if (!(await hasPermission(supabase, finding.organization_id, user.id, "diagnosis.correct"))) return { error: deniedMessage("diagnosis.correct") };
   const { data, error } = await supabase
     .from("diagnosis_findings")
     .update({ owner_verdict: verdict, owner_note: verdict === "rejected" ? cleanNote : null })
@@ -53,6 +60,7 @@ export async function confirmDiagnosis(diagnosisId: string): Promise<ActionResul
   const user = await requireUser();
   const { supabase, diagnosis } = await loadDiagnosis(diagnosisId);
   if (!diagnosis) return { error: "This diagnosis wasn't found." };
+  if (!(await hasPermission(supabase, diagnosis.organization_id, user.id, "diagnosis.correct"))) return { error: deniedMessage("diagnosis.correct") };
   if (diagnosis.status !== "proposed") return { error: "This diagnosis has already been confirmed or replaced." };
 
   const [{ data: findings }, { data: items }] = await Promise.all([
@@ -97,6 +105,7 @@ export async function requestDiagnosisUpdate(diagnosisId: string): Promise<Actio
   const user = await requireUser();
   const { supabase, diagnosis } = await loadDiagnosis(diagnosisId);
   if (!diagnosis) return { error: "This diagnosis wasn't found." };
+  if (!(await hasPermission(supabase, diagnosis.organization_id, user.id, "diagnosis.correct"))) return { error: deniedMessage("diagnosis.correct") };
   if (diagnosis.status !== "proposed") return { error: "This diagnosis has already been confirmed or replaced." };
 
   const { data: corrected } = await supabase
@@ -144,6 +153,9 @@ export async function setPlanItemStatus(itemId: string, status: (typeof ITEM_STA
   const user = await requireUser();
   if (!ITEM_STATUSES.includes(status)) return { error: "That isn't a valid choice." };
   const supabase = await createSupabaseServerClient();
+  const { data: item } = await supabase.from("growth_plan_items").select("organization_id").eq("id", itemId).maybeSingle();
+  if (!item) return { error: "This plan item wasn't found." };
+  if (!(await hasPermission(supabase, item.organization_id, user.id, "plan_items.update_any"))) return { error: deniedMessage("plan_items.update_any") };
   const { data, error } = await supabase
     .from("growth_plan_items")
     .update({

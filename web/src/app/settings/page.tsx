@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { mcpAccess } from "@/lib/mcp/access";
 import { MCP_PATH } from "@/lib/oauth/server-metadata";
 import { originFromHeaders } from "@/lib/oauth/request-origin";
+import { can, roleSentence } from "@/lib/team/roles";
 import { revokeAccessKey } from "./actions";
 import { KeyForm } from "./key-form";
 import { ConnectionsSection } from "./connections-section";
@@ -46,11 +47,15 @@ async function Settings() {
   const active = (keys ?? []).filter((k) => !k.revoked_at);
   const orgs = (memberships ?? []).map((m) => ({ role: m.role as string, org: m.organizations as unknown as { id: string; name: string } }));
   const orgNames = new Map(orgs.map((m) => [m.org.id, m.org.name]));
-  const ownerOf = new Set(orgs.filter((m) => m.role === "owner").map((m) => m.org.id));
+  // Businesses where the user may disconnect anyone's app (keys.manage_any, owner only: lib/team/roles.ts).
+  const managesKeysOf = new Set(orgs.filter((m) => can(m.role, "keys.manage_any")).map((m) => m.org.id));
+  // The user's role in words (D-046). No role can be changed in the app yet.
+  const role = org ? roleSentence(org.role, org.name) : null;
 
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+      {role && <p className="mt-1 text-sm text-muted">{role}</p>}
 
       <div id="integrations" className="mt-8 scroll-mt-20">
         <h2 className="text-xl font-semibold">Integrations</h2>
@@ -136,8 +141,8 @@ async function Settings() {
           </details>
         </section>
 
-        <ConnectedApps userId={user.id} orgNames={orgNames} ownerOf={ownerOf} />
-        {org && <ServiceKeys organizationId={org.id} isOwner={org.role === "owner"} serverUrl={serverUrl} />}
+        <ConnectedApps userId={user.id} orgNames={orgNames} managesKeysOf={managesKeysOf} />
+        {org && <ServiceKeys organizationId={org.id} canManage={can(org.role, "keys.manage_any")} serverUrl={serverUrl} />}
         <ConnectionsSection userId={user.id} />
       </div>
     </>

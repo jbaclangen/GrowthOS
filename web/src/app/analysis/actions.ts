@@ -9,6 +9,12 @@ import { failStaleJobs } from "@/lib/pipeline/jobs";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { analysesInLastDay, createOnboarding, MAX_ANALYSES_PER_DAY, queueJob, RATE_LIMIT_MESSAGE } from "@/lib/onboarding/start";
 import { parseOwnerInputs, toProfileColumns } from "@/lib/owner-inputs";
+import { approvalAllowed, can, deniedMessage } from "@/lib/team/roles";
+import { hasPermission, memberRole } from "@/lib/team/server";
+
+// Role checks (D-046, lib/team/roles.ts): starting or re-running an analysis needs analysis.run, changing the
+// owner's answers needs profile.edit, and a draft's status needs content.approve (own drafts: content.approve_own).
+// The AI assistant connection's tools check the same permissions (lib/mcp/tools.ts).
 
 export type StartState = { error?: string } | undefined;
 
@@ -40,11 +46,13 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
     const name = parsed.data.businessName || new URL(websiteUrl).hostname.replace(/^www\./, "");
     const { data: orgId, error } = await supabase.rpc("create_organization", { org_name: name });
     if (error) return { error: error.message };
+    // create_organization makes the caller the owner.
     org = { id: orgId as string, name, role: "owner" };
     // The header (root layout) shows the plan chip and the assistant only once an organization exists; refresh it so
     // the redirect below re-renders the layout instead of keeping "Analyze a website first" from before.
     refresh();
   }
+  if (!can(org.role, "analysis.run")) return { error: deniedMessage("analysis.run") };
 
   // Discovery runs alongside the website analysis (D-028): open a session, start the evidence job now,
   // and send the owner to the discovery questions while it runs.
@@ -70,6 +78,7 @@ export async function rerunAnalysis(businessProfileId: string): Promise<RerunSta
     .eq("id", businessProfileId)
     .maybeSingle();
   if (!profile?.website_url) return { error: "This business wasn't found." };
+  if (!(await hasPermission(supabase, profile.organization_id, user.id, "analysis.run"))) return { error: deniedMessage("analysis.run") };
 
   // One analysis at a time per business: a queued or running job (any phase) blocks a re-run. Jobs cut off by the
   // hosting time limit are cleared first so they don't block forever.
@@ -95,9 +104,24 @@ export async function rerunAnalysis(businessProfileId: string): Promise<RerunSta
   return {};
 }
 
-export async function setContentStatus(itemId: string, status: "approved" | "rejected" | "needs_approval") {
+export type ContentStatusState = { error?: string };
+
+// Approve, reject or undo a draft (D-013). Who may: content.approve, and content.approve_own for a draft the
+// approver wrote (owner only, D-046). The database trigger guard_content_item_write applies the same rule and sets
+// approved_by / approved_at itself (D-018); the values sent here are ignored by it.
+export async function setContentStatus(itemId: string, status: "approved" | "rejected" | "needs_approval"): Promise<ContentStatusState> {
   const user = await requireUser();
   const supabase = await createSupabaseServerClient();
+  const { data: item } = await supabase.from("content_items").select("organization_id, created_by").eq("id", itemId).maybeSingle();
+  if (!item) return { error: "This draft wasn't found." };
+  const allowed = approvalAllowed({
+    role: await memberRole(supabase, item.organization_id, user.id),
+    status,
+    authorId: (item.created_by as string | null) ?? null,
+    approverId: user.id,
+  });
+  if (!allowed.ok) return { error: allowed.error };
+
   const { error } = await supabase
     .from("content_items")
     .update({
@@ -106,23 +130,28 @@ export async function setContentStatus(itemId: string, status: "approved" | "rej
       approved_at: status === "approved" ? new Date().toISOString() : null,
     })
     .eq("id", itemId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: "Your change wasn't saved. Try again." };
   refresh();
+  return {};
 }
 
 export type OwnerInputsState = { error?: string; saved?: boolean } | undefined;
 
-// Saves the guided onboarding answers (Customer-provided). RLS limits the update to the user's own org.
+// Saves the guided onboarding answers (Customer-provided). RLS limits the update to the user's own org; profile.edit
+// decides which members may.
 export async function saveOwnerInputs(
   businessProfileId: string,
   _: OwnerInputsState,
   formData: FormData,
 ): Promise<OwnerInputsState> {
-  await requireUser();
+  const user = await requireUser();
   const owner = parseOwnerInputs(formData);
   if ("error" in owner) return { error: owner.error };
 
   const supabase = await createSupabaseServerClient();
+  const { data: profile } = await supabase.from("business_profiles").select("organization_id").eq("id", businessProfileId).maybeSingle();
+  if (!profile) return { error: "This business wasn't found." };
+  if (!(await hasPermission(supabase, profile.organization_id, user.id, "profile.edit"))) return { error: deniedMessage("profile.edit") };
   const { data, error } = await supabase
     .from("business_profiles")
     .update(toProfileColumns(owner.data))

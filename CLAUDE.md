@@ -39,7 +39,9 @@ decision. Never describe the product as doing something the code doesn't do, wha
   `docs/help/APP_GUIDE.md`); Pro owners can connect Google Search Console (read-only; data stored, shown on `/search`
   and, as the Search visibility module (D-051 step 6), fed to the diagnosis and the growth score of Pro, Premium and
   trial organizations) in Settings or on the optional "Connect your tools" onboarding step (other tools there are
-  Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon). No CRM, publishing,
+  Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon); eight fixed member roles
+  with a permission matrix (D-046 foundation: owner-only connect and service keys, no one approves their own draft
+  except the owner; Settings shows the role; no invitations, role changes or seats). No CRM, publishing,
   email sending, automation, analytics, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
 - Research before building (D-052): a change that adds an integration, a paid vendor, a table, a price or a public claim
@@ -85,6 +87,10 @@ decision. Never describe the product as doing something the code doesn't do, wha
   organization id you have already authorised.
 - Human approval is the default before anything is published for a client (D-013).
 - Crawled website content and customer documents are untrusted input to models.
+- Roles (D-046): `web/src/lib/team/roles.ts` is the one permission matrix (eight fixed roles, typed permission ids).
+  A role check in the app goes through `can(role, permission)` (server: `memberRole()` in `lib/team/server.ts`), in
+  SQL through `public.has_permission(org, perm)`; never compare a role to a literal. The two matrices must stay
+  equal (`lib/team/migration.test.ts`). Spec: `docs/architecture/ROLES_AND_PERMISSIONS.md`.
 - Feature modules (D-051): `web/src/lib/modules/registry.ts` is the one list of modules, their tier and whether they
   are live; the growth score is `computeGrowthScore` in `lib/modules/score.ts` over the organization's enabled
   modules; new findings and plan items carry `module_id`. Adding a module means a registry entry, a migration that

@@ -14,9 +14,10 @@ import {
 } from "@/lib/integrations/google-oauth";
 import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
 import { connectionOutcomeUrl, connectionReturnPath } from "@/lib/integrations/return-to";
+import { can } from "@/lib/team/roles";
 
-// Starts "Connect Google Search Console" (Pro). Signed-in owners only (proxy.ts already sends signed-out visitors to
-// /login). Sets a short-lived, encrypted state cookie bound to the user and organization, with the PKCE verifier and
+// Starts "Connect Google Search Console" (Pro). Signed-in users with integrations.connect only (owners, D-046;
+// proxy.ts already sends signed-out visitors to /login). Sets a short-lived, encrypted state cookie bound to the user and organization, with the PKCE verifier and
 // the page to return to, then sends the browser to Google's consent screen. ?returnTo= is checked against an exact
 // allowlist (Settings or one onboarding "Connect your tools" step); anything else returns to Settings.
 
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.redirect(new URL("/login?next=/settings", request.url), 303);
   const org = await getCurrentOrg(user.id);
   if (!org) return toOutcome(request, back, "no-business");
-  if (org.role !== "owner") return toOutcome(request, back, "owner-only");
+  if (!can(org.role, "integrations.connect")) return toOutcome(request, back, "owner-only");
 
   const supabase = await createSupabaseServerClient();
   const { data: orgRow } = await supabase.from("organizations").select("plan, trial_ends_at").eq("id", org.id).maybeSingle();

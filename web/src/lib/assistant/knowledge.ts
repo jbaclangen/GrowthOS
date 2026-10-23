@@ -10,7 +10,7 @@ import { ASSISTANT_LIMITS } from "./access";
 // can't drift. Keep every sentence true of the current code: never describe a planned feature as live.
 // Links are relative app routes; the assistant repeats them as markdown links.
 
-export const KNOWLEDGE_VERSION = "2026-10-18";
+export const KNOWLEDGE_VERSION = "2026-10-23";
 
 // The tools on "Connect your tools" that can't be connected yet, from the same catalog the page uses.
 const COMING_SOON_TOOLS = TOOLS.filter((t) => t.status === "coming_soon").map((t) => t.name);
@@ -104,7 +104,7 @@ export const APP_ROUTES: RouteEntry[] = [
     route: "/settings",
     title: "Settings",
     purpose:
-      "Integrations: connect Claude or ChatGPT to Braventa (step-by-step setup with the server URL, or a personal access key instead), Connected apps (see and disconnect apps approved with Sign in with Braventa), Service keys for automation tools (owners only) and Google Search Console, followed by the tools that are coming soon.",
+      "Your role in the business (one line under the title), then Integrations: connect Claude or ChatGPT to Braventa (step-by-step setup with the server URL, or a personal access key instead), Connected apps (see and disconnect apps approved with Sign in with Braventa), Service keys for automation tools (owners only) and Google Search Console, followed by the tools that are coming soon.",
     howToGetThere:
       "Select Settings in the header. Direct sections: /settings#ai-assistant, /settings#connected-apps, /settings#service-keys and /settings#connections.",
   },
@@ -229,6 +229,11 @@ A service key belongs to the business, not to a person: it keeps working if the 
       body: `Every new account starts with a ${TRIAL_DAYS}-day Pro trial. When it ends, the account has Basic features; nothing is deleted. There's no billing in the app yet and prices aren't shown in the app: to choose or change a plan, use **Talk to us** on [Plans](/plans) and the Braventa team follows up. You can't change the plan or trial yourself. The plan chip in the header shows your plan and the days left in a trial. Features marked Coming soon aren't available on any plan yet.`,
     },
     { id: "features", title: "What's live and what's coming soon", body: featuresSection() },
+    {
+      id: "roles",
+      title: "Roles: who can do what",
+      body: `Each person in a business account has one role, shown under the title in [Settings](/settings). The person who set up the business is its **owner**. The other roles are admin, marketing manager, social media manager, copywriter, content creator, analyst and client approver, but there's no way to invite people or change roles in the app yet, so today every account has its owner only. What the roles mean: only the owner can connect or disconnect tools (Google Search Console), create service keys and disconnect other people's apps. Owners, admins and marketing managers can start analyses, change the answers, confirm or correct the diagnosis, update plan items and approve or reject drafts. No one approves a draft they wrote themselves, except the owner; today every draft is written by Braventa, so this doesn't come up yet. If an action says your role can't do something, ask the business owner.`,
+    },
     {
       id: "troubleshooting",
       title: "Troubleshooting",

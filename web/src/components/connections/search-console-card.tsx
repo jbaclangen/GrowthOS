@@ -7,6 +7,7 @@ import { searchConsoleCardState, type SearchConsoleCardState } from "@/lib/integ
 import { searchConsoleStartHref } from "@/lib/integrations/return-to";
 import { formatChange, formatDateTime, formatInt } from "@/app/search/format";
 import { chooseSearchConsoleProperty, refreshSearchConsole } from "@/app/settings/connections-actions";
+import { can } from "@/lib/team/roles";
 import { ConnectionNotice } from "./connection-notice";
 import { DisconnectButton } from "./disconnect-button";
 import { SubmitButton } from "./submit-button";
@@ -72,12 +73,13 @@ export async function SearchConsoleCard({
       : [{ data: null }, { data: null }, { data: null }];
 
   const connection = conn && (conn as Connection).status !== "revoked" ? (conn as Connection) : null;
-  const isOwner = org?.role === "owner";
+  // Connecting, choosing the property, reconnecting and disconnecting need integrations.connect (owner only, D-046).
+  const canConnect = can(org?.role, "integrations.connect");
   const state = searchConsoleCardState({
     configured,
     hasBusiness: Boolean(org),
     canConnectHere,
-    isOwner,
+    role: org?.role,
     allowed: Boolean(orgRow && searchConsoleAccess(orgRow).allowed),
     connection,
   });
@@ -115,7 +117,7 @@ export async function SearchConsoleCard({
           connection={connection!}
           latest={snap as Latest | null}
           allowed={state === "connected"}
-          isOwner={isOwner}
+          canConnect={canConnect}
           returnTo={returnTo}
         />
       ) : (
@@ -229,13 +231,13 @@ function Connected({
   connection,
   latest,
   allowed,
-  isOwner,
+  canConnect,
   returnTo,
 }: {
   connection: Connection;
   latest: Latest | null;
   allowed: boolean;
-  isOwner: boolean;
+  canConnect: boolean;
   returnTo: string;
 }) {
   const choices = connection.available_properties;
@@ -271,7 +273,7 @@ function Connected({
         </div>
       )}
 
-      {isOwner && choices.length > 0 && (choices.length > 1 || !connection.selected_property) && (
+      {canConnect && choices.length > 0 && (choices.length > 1 || !connection.selected_property) && (
         <form action={chooseSearchConsoleProperty} className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
           <input type="hidden" name="returnTo" value={returnTo} />
           <label className="block flex-1 text-sm">
@@ -298,12 +300,12 @@ function Connected({
             <SubmitButton label="Refresh Search Console data" pendingLabel="Refreshing…" />
           </form>
         )}
-        {isOwner && connection.status === "error" && allowed && (
+        {canConnect && connection.status === "error" && allowed && (
           <a href={searchConsoleStartHref(returnTo)} className="btn-secondary">
             Reconnect
           </a>
         )}
-        {isOwner && <DisconnectButton returnTo={returnTo} />}
+        {canConnect && <DisconnectButton returnTo={returnTo} />}
       </div>
       <p className="mt-3 text-xs text-muted">
         Read-only access. Braventa can&apos;t change anything in Google. Disconnecting deletes the Search Console data Braventa
