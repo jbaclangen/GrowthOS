@@ -15,6 +15,7 @@ Phase: MVP proof of concept, not yet charging customers.
 | Data, AI, integrations, security | `docs/architecture/*.md` |
 | Marketing site, emails, campaigns | `docs/marketing/*.md` |
 | Why something is the way it is | `docs/decisions/DECISION_LOG.md`, `docs/decisions/OPEN_QUESTIONS.md` |
+| What a table, job, module or route is, and what else moves if you change it | `map/CLAUDE.md` (ICM system map, D-055): `map/effects/CONTEXT.md` before editing, `map/objects/_index.md` for a noun, `map/CONTEXT.md` for universes and name collisions |
 | Roadmap, scope, or architecture direction | `docs/product/GrowthOS_Product_Vision_and_Planning_Context.md` (strategic context, non-binding), `docs/product/ROADMAP.md` |
 
 ## Source-of-truth hierarchy
@@ -67,6 +68,11 @@ decision. Never describe the product as doing something the code doesn't do, wha
 - `n8n/` — exported n8n workflow JSON (instance: n8nautomations.pixelmarketingdesign.com; none exported yet; host is Q-006).
 - `design-system/` — `tokens.json` (single token source), docs, brand asset generator.
 - `docs/` — brand, product, architecture, marketing, decisions.
+- `map/` — ICM system map of this tree (D-055): object and process cards citing `path:line`, the change-impact index,
+  universes (live / leftover / ghost). Hand-edit `map/CLAUDE.md` and the cards; `node map/_meta/build-index.mjs`
+  (`npm run map:sync` in `web/`) regenerates `map/objects/_index.md`, `map/AGENTS.md`, `map/routing.md`. The repo root
+  is an Obsidian vault (`.obsidian/`, per-machine workspace files ignored); `graphify-out/GRAPH_REPORT.md` is the
+  graphify knowledge graph (`graph.html`/`graph.json` ignored; rebuild with `/graphify . --update`).
 
 ## Architecture rules (do not break)
 - Supabase is the system of record. n8n only executes workflows and calls back to `/api/n8n/*` (planned — those

@@ -1,0 +1,17 @@
+{
+  "userIgnoreFilters": [
+    "node_modules/",
+    ".next/",
+    ".git/",
+    ".claude/worktrees/",
+    "web/public/brand/",
+    "site/public/brand/",
+    "graphify-out/graph.html",
+    "graphify-out/graph.json"
+  ],
+  "newLinkFormat": "relative",
+  "useMarkdownLinks": true,
+  "showFrontmatter": true,
+  "strictLineBreaks": false,
+  "attachmentFolderPath": "map/_meta/attachments"
+}

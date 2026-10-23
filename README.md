@@ -28,6 +28,9 @@ Not built yet: CRM (HubSpot) connection, publishing, email sending, automation, 
 | `docs/architecture/` | System, data model, AI routing and costs, integrations, security |
 | `docs/marketing/` | Website messaging, email templates, campaigns, community |
 | `docs/decisions/` | Founder brief, decision log, open questions, handover reports |
+| `map/` | ICM system map: object and process cards with `path:line` citations, change-impact index, universes (D-055) |
+| `graphify-out/` | graphify knowledge graph of the tree (`GRAPH_REPORT.md` committed; `graph.html`, `graph.json` rebuilt locally) |
+| `.obsidian/` | Obsidian vault settings for browsing `map/` and `docs/` as a graph (workspace files stay local) |
 | `CLAUDE.md` | Rules for Claude Code sessions working in this repo |
 
 Start with [`docs/brand/BRAND_BIBLE.md`](docs/brand/BRAND_BIBLE.md) for the brand and
