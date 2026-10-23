@@ -58,10 +58,12 @@ function setup(worker = "website_intel", extra: Record<string, Row[]> = {}) {
       },
     ],
     business_profiles: [{ id: PROFILE, organization_id: ORG, goals: null, service_area: null, current_tools: null }],
+    organizations: [{ id: ORG, plan: "trial", trial_ends_at: new Date(Date.now() + 7 * 86_400_000).toISOString() }],
     ...extra,
   }, { ai_jobs: { status: "queued", output: null, started_at: null } });
   return fake.current;
 }
+const moduleRuns = () => fake.current!.tables.module_runs ?? [];
 const jobRow = (id = JOB) => fake.current!.tables.ai_jobs.find((r) => r.id === id)!;
 const isAdvance = (w: Write) => w.table === "ai_jobs" && (w.values as { output?: { step?: string } }).output?.step === "scoring";
 
@@ -82,6 +84,26 @@ describe("runAnalysisJob", () => {
     expect(dispatchStep).toHaveBeenCalledWith(REF, "scoring", expect.anything());
     expect(jobRow()).toMatchObject({ status: "running", output: { step: "scoring", step_state: "pending", claim: null, evidence: EVIDENCE } });
     expect((jobRow().output as JobState).digest).toBeUndefined();
+  });
+
+  it("records the modules that ran in the evidence phase, scoped to the job's organization (D-051)", async () => {
+    setup();
+    await runAnalysisJob(JOB, "profiling");
+    expect(moduleRuns()).toHaveLength(2);
+    expect(moduleRuns()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ organization_id: ORG, job_id: JOB, module_id: "business_intel", status: "completed", sub_score: null }),
+        // No PageSpeed in this evidence: the website module ran, but has nothing to score.
+        expect.objectContaining({ organization_id: ORG, job_id: JOB, module_id: "website_seo", status: "partial", sub_score: null, audit_run_id: null }),
+      ]),
+    );
+  });
+
+  it("continues when a module run can't be recorded: the rows are a record, not an input", async () => {
+    setup().failWrites(1, (w) => w.table === "module_runs");
+    await runAnalysisJob(JOB, "profiling");
+    expect(moduleRuns()).toHaveLength(0);
+    expect(jobRow().output).toMatchObject({ step: "scoring", step_state: "pending" });
   });
 
   it("ignores a continuation for a step that isn't the pending one", async () => {

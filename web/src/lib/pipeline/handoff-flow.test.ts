@@ -59,6 +59,8 @@ function setup() {
         },
       ],
       business_profiles: [{ id: PROFILE, organization_id: ORG, goals: null, service_area: null, current_tools: null }],
+      // The scoring step reads the organization's tier for its enabled modules (D-051) before calling the model.
+      organizations: [{ id: ORG, plan: "trial", trial_ends_at: new Date(Date.now() + 7 * 86_400_000).toISOString() }],
       job_dispatches: [],
     },
     { job_dispatches: { attempts: 1 } },

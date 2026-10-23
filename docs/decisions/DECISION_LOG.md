@@ -637,14 +637,26 @@ phase 1"); the founder confirms or overrides it before it goes live. Built, not 
   [research README](../research/README.md) §2, decision 6.
 
 ## D-051 — Feature modules, and Search visibility as the first new one
-**Status:** Founder (2026-10-18, in chat). Planned, not built.
+**Status:** Founder (2026-10-18, in chat). Steps 1–5 built 2026-10-23 (team; spec in
+[FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)); step 6 not started.
 - A module registry (`web/src/lib/modules/registry.ts`), `organization_modules` and `module_runs` tables, and
-  `module_id` on findings and plan items.
+  `module_id` on findings and plan items. **Built:** registry with the fourteen modules, their tier, display name,
+  score weight and live flag (four live: business intelligence, website and technical SEO, conversion and messaging,
+  content studio); migration `feature_modules` (domain `module_id`, both tables, both columns, backfill of existing
+  findings by provenance and plan items by area); the pipeline records a `module_runs` row per module that ran.
 - The growth score becomes a renormalized weighted mean of the enabled modules that have evidence, stored with
-  `score_version` and the modules used. Scores show "based on N modules".
+  `score_version` and the modules used. Scores show "based on N modules". **Built:** `lib/modules/score.ts`; the
+  assessed scores are the conversion and messaging module's parts (0.65) and PageSpeed mobile the website and
+  technical SEO module's (0.35), summed in the pre-module order, so with today's modules every score is unchanged
+  (`score.test.ts` proves it against the old formula on every stored report, a 78,125-case grid and 20,000 random
+  inputs). `SCORE_VERSION` stays 1 because the formula didn't change. The report's score tile says "Based on N
+  modules" with their names; nothing else in the UI changed.
 - Six-step path: steps 1–5 change no behavior. Step 6 adds the first new module, Search visibility: Search Console
   data in the diagnosis. Search Console connects and syncs for Pro today, but its data doesn't reach the diagnosis
-  (`searchConsoleSummaryForPrompt` has no callers).
+  (`searchConsoleSummaryForPrompt` has no callers). Not built in steps 1–5: `audit_findings.module_id` (every audit
+  finding is website and technical SEO today), splitting `prompts.ts` into module fragments (the research sketch's
+  step 4) and looping the evidence job over enabled modules (step 5): all without effect until a second module
+  produces evidence, so they come with step 6.
 - Module-to-tier map. Basic: business intelligence, website and technical SEO, conversion and messaging, content
   studio. Pro: search visibility, local SEO, social media, search ads, email marketing, video, CRM intelligence,
   analytics, automation. Premium: custom integrations. Module names stay descriptive (D-010).
