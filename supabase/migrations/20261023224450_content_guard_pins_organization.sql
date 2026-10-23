@@ -6,6 +6,8 @@
 -- content.approve could move a draft into their own business, approve it there and move it back. No app path changes
 -- content_items.organization_id and the pipeline writes with the service role (unaffected: the guard returns early), so
 -- a client change of organization_id is refused outright. Otherwise the function is unchanged.
+--
+-- Applied to the Supabase project 2026-10-24 as version 20261023224450.
 
 create or replace function public.guard_content_item_write()
 returns trigger

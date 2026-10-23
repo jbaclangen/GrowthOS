@@ -123,8 +123,7 @@ D-046: no one approves their own work except the Owner, and every approval is re
   `guard_content_item_write` checks both again with `has_permission()`, so a direct Data API call can't get around the
   action. Rejecting and undoing need `content.approve` too.
 - The trigger refuses a client change of `organization_id` (migration
-  `20261024000000_content_guard_pins_organization.sql`, written 2026-10-24 and not yet applied to the database; the
-  file takes the recorded version's name once it is). Without it, the `members all` policy would let a member
+  `20261023224450_content_guard_pins_organization.sql`, applied 2026-10-24). Without it, the `members all` policy would let a member
   without `content.approve` move a draft into a business they own (anyone can create one), approve it there and move
   it back. No app path moves content between businesses.
 - The approver stays database-set: `approved_by = auth.uid()`, `approved_at = now()` on approval, cleared otherwise
