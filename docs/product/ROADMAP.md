@@ -62,9 +62,9 @@ diagnosis yet). Ordered by recommended priority.
 2. **Billing and plan limits:** Stripe subscriptions using the `subscriptions` table (PL-7); limits
    enforced from the pricing framework once decided.
 3. **Connected tools and modules, read-only first (Pro, D-041, D-051, D-048):** the Google Search Console
-   connection is live; next, a "Connect your tools" step in discovery with the Pro gate; then the module registry
-   (D-051 steps 1–5, no change in behavior); then Search visibility, the first new module: Search Console data in the
-   diagnosis, with scores that say "based on N modules"; then GA4 (WI-6); then a HubSpot read-only CRM summary:
+   connection is live; next, a "Connect your tools" step in discovery with the Pro gate; the module registry
+   (D-051 steps 1–5, no change in behavior) is built, and scores say "Based on N modules"; then Search visibility, the
+   first new module: Search Console data in the diagnosis; then GA4 (WI-6); then a HubSpot read-only CRM summary:
    connect, pipeline summary, data quality, follow-up recommendations (CRM-1 – CRM-4), over HubSpot's REST API with
    per-tenant OAuth as an unlisted HubSpot app (D-048). GoHighLevel replaces HubSpot if the testers turn out to be
    agency-managed; ask them first. Built first with design partners who use these tools. Order:

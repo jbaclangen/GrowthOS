@@ -14,6 +14,9 @@ import {
   type CoverageSummary,
 } from "@/lib/audit/checks";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { moduleForArea, moduleForFinding } from "@/lib/modules/registry";
+import { SCORE_VERSION, computeGrowthScore, conversionEvidence, scoreEvidence, subScore, websiteSeoEvidence } from "@/lib/modules/score";
+import { enabledModules, recordModuleRuns } from "@/lib/modules/server";
 import { fromProfileRow, type OwnerInputs } from "@/lib/owner-inputs";
 import { startPlanIfReady } from "@/lib/onboarding/orchestrate";
 import { claimStep, ownedUpdate } from "./claims";
@@ -66,22 +69,9 @@ export const STEPS = [
 
 export type StepKey = (typeof STEPS)[number]["key"] | "evidence_done";
 
-// Growth score: deterministic blend of measured (PageSpeed) and assessed (AI) dimensions.
-export function computeGrowthScore(
-  psi: { performance: number; seo: number; accessibility: number; bestPractices: number } | null,
-  ai: { content_clarity: number; conversion_readiness: number; online_presence: number },
-) {
-  const parts: [number, number][] = [
-    [ai.content_clarity, 0.25],
-    [ai.conversion_readiness, 0.25],
-    [ai.online_presence, 0.15],
-  ];
-  if (psi) {
-    parts.push([psi.performance, 0.15], [psi.seo, 0.12], [psi.accessibility, 0.04], [psi.bestPractices, 0.04]);
-  }
-  const weight = parts.reduce((s, [, w]) => s + w, 0);
-  return Math.round(parts.reduce((s, [v, w]) => s + v * w, 0) / weight);
-}
+// Growth score: a deterministic blend of measured (PageSpeed) and assessed (AI) dimensions, computed over the
+// organization's enabled feature modules (D-051; lib/modules/score.ts). The modules that ran are recorded in
+// module_runs, and new findings and plan items carry the module they belong to (lib/modules/registry.ts).
 
 // What the plan phase needs from the evidence phase; stored in the evidence job's output.
 type Evidence = {
@@ -329,6 +319,30 @@ async function profileStep(ctx: Ctx, state: JobState, worker: string): Promise<S
     tone_rules: intel.brand_voice.traits,
   });
 
+  // The modules that ran in the evidence phase: the profile (business intelligence) and the crawl, checks and
+  // PageSpeed (website and technical SEO, partial without PageSpeed).
+  await recordModuleRuns(db, [
+    {
+      organization_id: org,
+      job_id: ctx.jobId,
+      module_id: "business_intel",
+      status: "completed",
+      sub_score: null,
+      rules_version: 1,
+      details: { pages: evidence.pages.length },
+    },
+    {
+      organization_id: org,
+      job_id: ctx.jobId,
+      module_id: "website_seo",
+      status: evidence.psi ? "completed" : "partial",
+      sub_score: subScore(websiteSeoEvidence(evidence.psi).parts),
+      audit_run_id: evidence.audit?.runId ?? null,
+      rules_version: AUDIT_VERSION,
+      details: { pagespeed: Boolean(evidence.psi), home_blocked: evidence.signals === null, score_version: SCORE_VERSION },
+    },
+  ]);
+
   // The evidence job ends here; the plan job reads its evidence from this output, as before.
   if (worker === "website_evidence") return { final: { step: "evidence_done", evidence } };
   return { artifacts: { digest: undefined } };
@@ -475,15 +489,18 @@ async function storeDiagnosis(
     .single();
   if (error || !diagnosis) throw new Error(`saving the diagnosis failed: ${error?.message}`);
 
+  // Each row carries the module it belongs to (D-051): findings by where their evidence comes from, plan items by
+  // their area; null where that isn't derivable.
   const scoped = { organization_id: org, diagnosis_id: diagnosis.id };
   const [{ error: fErr }, { error: iErr }] = await Promise.all([
-    db.from("diagnosis_findings").insert(findings.map((f) => ({ ...scoped, ...f }))),
+    db.from("diagnosis_findings").insert(findings.map((f) => ({ ...scoped, ...f, module_id: moduleForFinding(f) }))),
     db.from("growth_plan_items").insert(
       items.map(({ title, area, pain_point_ids, finding_positions, why, evidence, first_action, dependencies, success_metric, solution_ids, manual_alternative, impact, urgency, urgency_from_owner, effort, confidence, customer_priority, ai_priority, calculated_priority }) => ({
         ...scoped,
         title, area, pain_point_ids, finding_positions, why, evidence, first_action, dependencies, success_metric,
         solution_ids, manual_alternative, impact, urgency, urgency_from_owner, effort, confidence,
         customer_priority, ai_priority, calculated_priority,
+        module_id: moduleForArea(area),
       })),
     ),
   ]);
@@ -569,8 +586,13 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
   // A plan job uses its own onboarding session; a re-run (no session) uses the latest completed one.
   const discovery = await loadDiscovery(db, org, ctx.businessProfileId, input.sessionId);
 
+  // The modules whose evidence feeds the score: the live modules the organization's tier includes, minus its
+  // overrides (D-051). Read before the model call, so a failed read doesn't waste one.
+  const enabled = await enabledModules(db, org);
   const raw = await diagnose(ctx, evidence, intel, discovery, null);
-  const growthScore = computeGrowthScore(evidence.psi, raw.scores);
+  const scored = computeGrowthScore(scoreEvidence({ psi: evidence.psi, ai: raw.scores }), enabled);
+  if (!scored) throw new Error("No enabled module has evidence for the growth score.");
+  const growthScore = scored.score;
 
   await db
     .from("business_profiles")
@@ -588,6 +610,11 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
       data: {
         business_profile_id: ctx.businessProfileId,
         growth_score: growthScore,
+        // The formula version and the modules the score is based on, so a later change in either isn't read as
+        // the business improving (D-051).
+        score_version: scored.version,
+        score_modules: scored.modules,
+        module_scores: scored.moduleScores,
         scores: raw.scores,
         pagespeed: evidence.psi,
         pagespeed_error: evidence.psiError,
@@ -604,6 +631,20 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
     .single();
 
   const { items: planItems } = await storeDiagnosis(ctx, raw, discovery, { reportId: report?.id ?? null, evidence });
+
+  // The conversion and messaging module ran here: its sub-score is the assessed part of the growth score.
+  await recordModuleRuns(db, [
+    {
+      organization_id: org,
+      job_id: ctx.jobId,
+      module_id: "conversion",
+      status: "completed",
+      sub_score: subScore(conversionEvidence(raw.scores).parts),
+      report_id: report?.id ?? null,
+      rules_version: 1,
+      details: { score_version: scored.version, score_modules: scored.modules, enabled: [...enabled] },
+    },
+  ]);
 
   return {
     artifacts: {
@@ -727,6 +768,20 @@ async function writeStep(ctx: Ctx, state: JobState): Promise<StepResult> {
       .eq("id", target.id)
       .eq("organization_id", org);
   }
+
+  // The content studio module ran here: the 30-day plan (previous step) and the first drafts.
+  await recordModuleRuns(db, [
+    {
+      organization_id: org,
+      job_id: jobId,
+      module_id: "content_studio",
+      status: "completed",
+      sub_score: null,
+      report_id: typeof state.report_id === "string" ? state.report_id : null,
+      rules_version: 1,
+      details: { calendar_id: calendarId, drafts: written.items.length },
+    },
+  ]);
 
   return {
     final: { step: "done", report_id: state.report_id ?? null, calendar_id: calendarId, growth_score: state.growth_score ?? null },

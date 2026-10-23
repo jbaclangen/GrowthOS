@@ -112,8 +112,12 @@ Braventa publishes. Publishing is a Pro feature (D-030, D-041).
    the step through an exact `returnTo` allowlist (`lib/integrations/return-to.ts`). MCP skips the step (§2 item 5
    unchanged: a matching MCP tool comes later). Its data still isn't used in the diagnosis: that is step 2.
 2. Search visibility, the first new module (D-051): Search Console data in the diagnosis
-   (`searchConsoleSummaryForPrompt`, written but not yet called). The module registry comes first (D-051 steps 1–5,
-   no change in behavior), so this isn't written twice.
+   (`searchConsoleSummaryForPrompt`, written but not yet called). The module registry came first (D-051 steps 1–5,
+   built 2026-10-23 with no change in behavior: `web/src/lib/modules/`, the `organization_modules` and `module_runs`
+   tables, `module_id` on findings and plan items, the score tile's "based on N modules";
+   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)), so this isn't written twice. Step 6 adds the module to
+   the registry, extends the `module_id` domain, feeds the Search Console summary to the diagnosis and gives the
+   module a score weight (which bumps `SCORE_VERSION`).
 3. GA4 (same Google client; add the scope and verification).
 4. HubSpot read-only (D-048): the unlisted HubSpot app, a wider `integration_connections` provider check, OAuth start
    and callback routes, a CRM snapshot table and a `tiers.ts` gate entry. GoHighLevel replaces it if the testers turn

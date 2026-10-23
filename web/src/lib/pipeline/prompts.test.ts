@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { computeGrowthScore } from "./website-intel";
 import { citableRefs, diagnosisPrompt, profilePrompt, profileSchema, siteDigest } from "./prompts";
 import { parseJsonLoose } from "@/lib/ai/router";
 
@@ -11,20 +10,7 @@ const intel = profileSchema.parse({
   brand_voice: { tone: "Friendly", traits: [] },
 });
 
-describe("computeGrowthScore", () => {
-  const ai = { content_clarity: 60, conversion_readiness: 40, online_presence: 50 };
-
-  it("uses only assessed dimensions when PageSpeed is unavailable", () => {
-    // (60*.25 + 40*.25 + 50*.15) / .65
-    expect(computeGrowthScore(null, ai)).toBe(50);
-  });
-
-  it("blends measured PageSpeed scores with the documented weights", () => {
-    const psi = { performance: 90, seo: 100, accessibility: 80, bestPractices: 70 };
-    const expected = Math.round(60 * 0.25 + 40 * 0.25 + 50 * 0.15 + 90 * 0.15 + 100 * 0.12 + 80 * 0.04 + 70 * 0.04);
-    expect(computeGrowthScore(psi, ai)).toBe(expected);
-  });
-});
+// The growth score's tests are in lib/modules/score.test.ts (D-051).
 
 describe("prompts", () => {
   it("fences crawled text as untrusted website content", () => {

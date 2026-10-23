@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getPainPoint } from "@/lib/onboarding/catalog";
 import { PROVENANCE_LABEL, type Provenance } from "@/lib/plan/priority";
 import { PRIORITY_LABEL_TEXT, type PriorityLabel } from "@/lib/audit/checks";
+import { moduleLabel } from "@/lib/modules/registry";
+import { modulesUsed } from "@/lib/modules/score";
 import { scoreTone } from "@/components/score-badge";
 import { sortedPlan } from "./plan-section";
 import type { Report } from "./report-data";
@@ -174,6 +176,9 @@ export function ReportInfographic({ report, href }: { report: Report; href: stri
       : []),
   ];
 
+  // The feature modules the score is based on (D-051): the stored list, or derived for older reports.
+  const modules = modulesUsed(data);
+
   const confirmed = diagnosis?.status === "confirmed";
   const plan = diagnosis ? sortedPlan(planItems, confirmed) : [];
   const done = planItems.filter((i) => i.status === "done").length;
@@ -194,6 +199,9 @@ export function ReportInfographic({ report, href }: { report: Report; href: stri
           <p className={`text-sm font-medium ${scoreTone(data.growth_score)}`}>
             {data.growth_score >= 70 ? "Strong" : data.growth_score >= 45 ? "Room to grow" : "Needs attention"}
             <span className="mt-1 block text-xs font-normal text-muted">Measured site quality and assessed marketing readiness</span>
+            <span className="mt-1 block text-xs font-normal text-muted">
+              Based on {modules.length} {modules.length === 1 ? "module" : "modules"}: {modules.map(moduleLabel).join(", ")}
+            </span>
           </p>
         </div>
         <div className="mt-4">

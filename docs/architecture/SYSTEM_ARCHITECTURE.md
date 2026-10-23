@@ -178,8 +178,10 @@ Step by step (code references are to `web/src/`):
    - Crawl (max 6 same-host pages, 6,000 chars each, 15 s timeout and 2 MB cap per fetch, public addresses
      only — see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#7-prompt-injection-posture)) and PageSpeed (mobile) run in
      parallel; PageSpeed failure is tolerated.
-   - Growth score is **deterministic code** (`computeGrowthScore`): a weighted blend of three AI-assessed
-     scores and four PageSpeed scores (weights renormalised if PageSpeed is unavailable).
+   - Growth score is **deterministic code** (`computeGrowthScore` in `web/src/lib/modules/score.ts`): a weighted
+     blend of three AI-assessed scores and four PageSpeed scores, computed as a renormalised weighted mean over the
+     organization's enabled feature modules (D-051, [FEATURE_MODULES.md](FEATURE_MODULES.md)); the weights are
+     renormalised when a module has no evidence (PageSpeed unavailable).
    - Four AI calls via `runWorkerJson`: `business_analyst`, `website_auditor`, `content_strategist`,
      `content_writer`. Each output is zod-validated; a bad parse is retried once.
    - Drafted posts are written with `status = 'needs_approval'`. Nothing is published; no publishing

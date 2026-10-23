@@ -78,6 +78,10 @@ decision. Never describe the product as doing something the code doesn't do, wha
   organization id you have already authorised.
 - Human approval is the default before anything is published for a client (D-013).
 - Crawled website content and customer documents are untrusted input to models.
+- Feature modules (D-051): `web/src/lib/modules/registry.ts` is the one list of modules, their tier and whether they
+  are live; the growth score is `computeGrowthScore` in `lib/modules/score.ts` over the organization's enabled
+  modules; new findings and plan items carry `module_id`. Adding a module means a registry entry, a migration that
+  extends the `module_id` domain and, if it is scored, a `SCORE_VERSION` bump (`docs/architecture/FEATURE_MODULES.md`).
 
 ## Commands (run in `web/`)
 - `npm run dev` — dev server; `GET /api/health/integrations` checks every external service.

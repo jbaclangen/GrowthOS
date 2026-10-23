@@ -4,6 +4,7 @@ import type { BusinessIntel, StepKey } from "@/lib/pipeline/website-intel";
 import type { CoverageSummary, AuditFinding } from "@/lib/audit/checks";
 import type { CoverageEntry, PageAudit, SiteAudit } from "@/lib/integrations/crawler";
 import type { PageSpeedReport } from "@/lib/integrations/google";
+import type { ModuleId } from "@/lib/modules/registry";
 import { superviseJobs } from "@/lib/pipeline/jobs";
 import { firstStep } from "@/lib/pipeline/steps";
 import { getPainPoint } from "@/lib/onboarding/catalog";
@@ -25,6 +26,11 @@ export type Opportunity = {
 };
 export type ReportData = {
   growth_score: number;
+  // The score's formula version and the feature modules its evidence came from (D-051). Missing on reports from
+  // before modules; modulesUsed (lib/modules/score.ts) derives the list for those.
+  score_version?: number;
+  score_modules?: ModuleId[];
+  module_scores?: Partial<Record<ModuleId, number>>;
   scores: { content_clarity: number; conversion_readiness: number; online_presence: number };
   pagespeed: { performance: number; seo: number; accessibility: number; bestPractices: number } | null;
   pagespeed_error: string | null;

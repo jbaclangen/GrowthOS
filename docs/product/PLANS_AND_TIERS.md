@@ -116,8 +116,10 @@ only in the PR that ships it (§4). Detail: [DECISION_LOG.md](../decisions/DECIS
 
 ### Modules by tier (D-051)
 
-Planned: a module registry, with the growth score a weighted mean of the enabled modules that have evidence, shown as
-"based on N modules". Today the analysis runs as one pipeline, not as modules.
+Built (2026-10-23, D-051 steps 1–5): the module registry (`web/src/lib/modules/registry.ts`), with the growth score a
+renormalized weighted mean of the enabled modules that have evidence, shown as "Based on N modules" on the report's
+score tile. Only the four Basic modules are live; the score is unchanged, since the same parts feed it
+([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)). Modules can't be switched on or off from the app yet.
 
 | Lowest tier | Modules |
 |---|---|
