@@ -40,9 +40,12 @@ function walk(dir) {
   return files.sort();
 }
 
+// Git stores the map with LF; a Windows checkout (core.autocrlf) may hold CRLF, so compare without CRs.
+const lf = (text) => text.replace(/\r\n/g, "\n");
+
 function emit(path, content) {
   const current = (() => { try { return readFileSync(path, "utf8"); } catch { return null; } })();
-  if (current === content) return;
+  if (current !== null && lf(current) === content) return;
   if (check) { console.error(`out of date: ${relative(root, path)}`); stale++; return; }
   writeFileSync(path, content);
   console.log(`wrote ${relative(root, path)}`);
@@ -67,7 +70,7 @@ for (const r of rows) {
 emit(join(objectsDir, "_index.md"), index);
 
 // 2. AGENTS.md and routing.md copies of CLAUDE.md
-const entry = readFileSync(join(mapDir, "CLAUDE.md"), "utf8");
+const entry = lf(readFileSync(join(mapDir, "CLAUDE.md"), "utf8"));
 const banner = "<!-- Generated copy of map/CLAUDE.md by map/_meta/build-index.mjs. Edit CLAUDE.md, then run the script. -->\n";
 emit(join(mapDir, "AGENTS.md"), banner + entry);
 emit(join(mapDir, "routing.md"), banner + entry);
