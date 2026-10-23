@@ -5,3 +5,16 @@ node_modules/
 supabase/.temp/
 supabase/.branches/
 .claude/settings.local.json
+
+# Obsidian vault (repo root): per-machine workspace state stays local
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/plugins/
+
+# graphify: commit the report, not the rendered graph
+graphify-out/graph.html
+graphify-out/graph.json
+.graphify/
+graphify-out/cache/
+graphify-out/.graphify_*
+graphify-out/cost.json
