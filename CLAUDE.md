@@ -35,8 +35,9 @@ decision. Never describe the product as doing something the code doesn't do, wha
   lets Claude Code/Desktop fill in onboarding with a personal access key; a read-only in-app assistant ("Ask Braventa"
   in the header, `/api/assistant`, D-043) answers how the app works and about the user's latest report — its knowledge
   base `web/src/lib/assistant/knowledge.ts` must stay true to the code (`npm run help:doc` regenerates
-  `docs/help/APP_GUIDE.md`); Pro owners can connect Google Search Console (read-only; data stored and shown, not yet
-  used in the diagnosis) in Settings or on the optional "Connect your tools" onboarding step (other tools there are
+  `docs/help/APP_GUIDE.md`); Pro owners can connect Google Search Console (read-only; data stored, shown on `/search`
+  and, as the Search visibility module (D-051 step 6), fed to the diagnosis and the growth score of Pro, Premium and
+  trial organizations) in Settings or on the optional "Connect your tools" onboarding step (other tools there are
   Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon). No CRM, publishing,
   email sending, automation, analytics, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.

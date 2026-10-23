@@ -19,12 +19,17 @@ describe("tool catalog", () => {
     for (const t of TOOLS) for (const p of t.painPoints) expect(isActivePainPointId(p), `${t.id}: ${p}`).toBe(true);
   });
 
-  it("labels every coming-soon line as planned, and no line claims the diagnosis uses the data", () => {
+  it("labels every coming-soon line as planned, and only a live tool's line may say the diagnosis uses its data", () => {
     for (const t of TOOLS) {
-      if (t.status === "coming_soon") expect(t.helps, t.id).toMatch(/^Planned: /);
-      else expect(t.helps, t.id).not.toMatch(/^Planned/);
-      expect(t.helps, t.id).not.toMatch(/diagnos/i);
+      if (t.status === "coming_soon") {
+        expect(t.helps, t.id).toMatch(/^Planned: /);
+        expect(t.helps, t.id).not.toMatch(/diagnos/i);
+      } else {
+        expect(t.helps, t.id).not.toMatch(/^Planned/);
+      }
     }
+    // Search Console data feeds the diagnosis and the growth score (D-051 step 6).
+    expect(TOOLS.find((t) => t.id === "search_console")?.helps).toMatch(/diagnosis and growth score/);
   });
 });
 

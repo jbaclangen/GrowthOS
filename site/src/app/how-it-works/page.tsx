@@ -36,15 +36,18 @@ const ANALYSIS = [
   "Drafting your first posts",
 ];
 
-// computeGrowthScore() in web/src/lib/pipeline/website-intel.ts: Braventa's three assessed scores carry 65% of the
-// weight and Google's four PageSpeed scores 35%; without PageSpeed the assessed scores carry it all.
+// computeGrowthScore() in web/src/lib/modules/score.ts (D-051): a renormalized mean over the feature modules that
+// have evidence. Braventa's three assessed scores carry 0.65 and Google's four PageSpeed scores 0.35; without
+// PageSpeed the assessed scores carry it all. On Pro, with Google Search Console connected, Search visibility adds
+// 0.10 (about a tenth of the score; FEATURE_MODULES.md §9). The report names the modules the score is based on.
 const MEASURED = ["Mobile speed", "SEO basics", "Accessibility", "Best practices"];
 const ASSESSED = ["Content clarity", "Conversion readiness", "Online presence"];
 const SCORE_LIMITS = [
   "If Google PageSpeed doesn't respond, the report says so and the score is based on Braventa's assessment alone.",
-  "It reflects your website (the home page and up to five more public pages) and what you tell Braventa. It doesn't measure your whole business, your finances or your reputation.",
+  "On Pro, with Google Search Console connected, your real search data joins the score as a third, smaller part (about a tenth): average position, click-through rate, the trend in clicks, how many of your pages Google serves and whether your home page is indexed. The report says which modules your score is based on.",
+  "It reflects your website (the home page and up to 24 more public pages) and what you tell Braventa. It doesn't measure your whole business, your finances or your reputation.",
   "It isn't a prediction of revenue, leads or rankings. Use it to see where you stand and what to fix first.",
-  "Google's SEO basics score is Lighthouse's automated check of one page's technical basics. It isn't a Google ranking score and doesn't include Search Console data.",
+  "Google's SEO basics score is Lighthouse's automated check of one page's technical basics. It isn't a Google ranking score and isn't Search Console data.",
   "Braventa's part is an AI assessment and can be wrong. Findings show their evidence so you can check them.",
 ];
 
@@ -139,8 +142,9 @@ export default function HowItWorks() {
 
       <Band labelledBy="score-title">
         <SectionIntro head="The growth score" title="What the score measures, and what it doesn't." id="score-title">
-          A score from 0 to 100 for how ready your website is to win business. It blends two kinds of input, and the
-          report labels which is which.
+          A score from 0 to 100 for how ready your website is to win business. It is based on the modules that have
+          evidence for your business, and the report says which. On every plan that is two kinds of input, labelled
+          in the report.
         </SectionIntro>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           <section className="card" aria-labelledby="score-measured">

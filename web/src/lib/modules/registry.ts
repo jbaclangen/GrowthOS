@@ -6,11 +6,11 @@ import type { Provenance } from "@/lib/plan/priority";
 // unit-tested, like tiers.ts.
 //
 // D-051 steps 1–5 (this registry, the organization_modules and module_runs tables, module_id on findings and plan
-// items, the growth score computed over modules in lib/modules/score.ts) change no result an owner sees. Today's
-// pipeline is four live modules, all in Basic. Every other module stays "coming soon" until the PR that ships it
-// sets `live` (CLAUDE.md: never present a planned feature as live). The first new one is Search visibility
-// (D-051 step 6). Adding a module also means a migration that extends the module_id domain in the database
-// (migration.test.ts checks that the two lists agree).
+// items, the growth score computed over modules in lib/modules/score.ts) change no result an owner sees. The
+// pipeline is four live modules in Basic, plus Search visibility (D-051 step 6, Pro: Google Search Console data in
+// the diagnosis and the score; FEATURE_MODULES.md §9). Every other module stays "coming soon" until the PR that
+// ships it sets `live` (CLAUDE.md: never present a planned feature as live). Adding a module also means a migration
+// that extends the module_id domain in the database (migration.test.ts checks that the two lists agree).
 
 export type ModuleId =
   | "business_intel"
@@ -108,11 +108,14 @@ export const MODULES: readonly ModuleDef[] = [
   {
     id: "search_visibility",
     label: "Search visibility",
-    summary: "Real search demand from Google Search Console in the diagnosis.",
+    summary: "Real search demand from Google Search Console: clicks, impressions, average position and the pages Google shows, in the diagnosis and the growth score.",
     tier: "pro",
     featureId: "search_console",
-    live: false,
-    scoreWeight: null,
+    live: true,
+    // Average position 0.04, click-through rate 0.02, clicks against the previous 28 days 0.02, pages with
+    // impressions 0.01, home page indexed 0.01 (FEATURE_MODULES.md §9, provisional). Nothing without a snapshot or
+    // with fewer than 10 impressions.
+    scoreWeight: 0.1,
     subScore: "Search visibility",
     findingCategories: [],
     planAreas: [],
@@ -253,9 +256,10 @@ export type ModuleOverride = { module_id: string; enabled: boolean };
 
 // The modules whose evidence feeds an organization's growth score: the live modules its tier includes, minus any it
 // switched off (organization_modules, enabled = false). An override can't switch on a module that isn't live or
-// that the tier doesn't include. Nothing writes overrides yet, so today this is the four live modules for everyone.
-// Overrides affect the score and nothing else: the analysis steps still run, because no module can be switched
-// off from the app yet.
+// that the tier doesn't include. Nothing writes overrides yet, so today this is the four Basic modules for everyone,
+// plus Search visibility on Pro, Premium and the trial. Overrides affect the score and the Search Console evidence
+// in the diagnosis, and nothing else: the analysis steps still run, because no module can be switched off from the
+// app yet.
 export function enabledModuleIds(tier: Tier, overrides: readonly ModuleOverride[] = []): Set<ModuleId> {
   const off = new Set(overrides.filter((o) => !o.enabled).map((o) => o.module_id));
   return new Set(MODULES.filter((m) => m.live && RANK[tier] >= RANK[m.tier] && !off.has(m.id)).map((m) => m.id));
@@ -271,13 +275,18 @@ export function moduleForArea(area: string): ModuleId | null {
   return MODULES.find((m) => m.planAreas.includes(first))?.id ?? null;
 }
 
-// The module a diagnosis finding belongs to, from where its evidence comes from: a verified finding cites the
-// website checks or PageSpeed (website and technical SEO); one the owner provided belongs to business intelligence;
-// an inferred one is the model's reasoning and belongs to no module. Same rule as the migration's backfill.
-export function moduleForFinding(finding: { provenance: Provenance }): ModuleId | null {
+// The ref the diagnosis prompt gives the Google Search Console summary (lib/pipeline/prompts.ts). The prompt
+// reserves it for findings whose source is Search Console, so a finding that cites it rests on that data.
+export const SEARCH_CONSOLE_REF = "G1";
+
+// The module a diagnosis finding belongs to, from where its evidence comes from: a verified finding that cites the
+// Search Console summary belongs to search visibility, any other verified finding cites the website checks or
+// PageSpeed (website and technical SEO); one the owner provided belongs to business intelligence; an inferred one
+// is the model's reasoning and belongs to no module. Without refs this is the migration's backfill rule.
+export function moduleForFinding(finding: { provenance: Provenance; audit_refs?: readonly string[] }): ModuleId | null {
   switch (finding.provenance) {
     case "verified":
-      return "website_seo";
+      return finding.audit_refs?.includes(SEARCH_CONSOLE_REF) ? "search_visibility" : "website_seo";
     case "customer_provided":
       return "business_intel";
     case "inferred":

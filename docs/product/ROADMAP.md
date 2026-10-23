@@ -50,8 +50,8 @@ first-run journey ([USER_JOURNEYS.md](USER_JOURNEYS.md)) without help.
 ## 2. Next — validation with paying customers
 
 **Goal:** prove that service businesses pay for and keep using Braventa; put connected tools to work in the
-diagnosis (the first, Google Search Console, is already connected for Pro, but its data doesn't reach the
-diagnosis yet). Ordered by recommended priority.
+diagnosis (the first, Google Search Console, is connected for Pro and, since 2026-10-23, feeds the diagnosis and
+the growth score as the Search visibility module). Ordered by recommended priority.
 
 > **Tiers and build order (D-030, D-041):** the items below that connect tools or act for the owner are **Pro** features. They follow D-041's order ([INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) §5) as amended by the founder decisions of 2026-10-18 (D-045 – D-053), in the sequence of the [research README](../research/README.md) §4: the "Connect your tools" step, then the module registry and Search visibility (item 3); then roles and permissions (item 8); then HubSpot read-only (item 3), the social planner and publishing (item 9) and the read-only public API (item 10), which can run in parallel once roles are in. GA4, Canva and HeyGen slot in per D-041. Where the proposed Pro order in [PLANS_AND_TIERS.md](PLANS_AND_TIERS.md) §5 differs from D-041, this roadmap follows D-041. The public sites follow [SITEMAP.md](../marketing/SITEMAP.md) and [SUPPORT_SITE.md](SUPPORT_SITE.md) (D-031).
 
@@ -62,9 +62,10 @@ diagnosis yet). Ordered by recommended priority.
 2. **Billing and plan limits:** Stripe subscriptions using the `subscriptions` table (PL-7); limits
    enforced from the pricing framework once decided.
 3. **Connected tools and modules, read-only first (Pro, D-041, D-051, D-048):** the Google Search Console
-   connection is live; next, a "Connect your tools" step in discovery with the Pro gate; the module registry
-   (D-051 steps 1–5, no change in behavior) is built, and scores say "Based on N modules"; then Search visibility, the
-   first new module: Search Console data in the diagnosis; then GA4 (WI-6); then a HubSpot read-only CRM summary:
+   connection is live, the "Connect your tools" step in discovery with the Pro gate is built (D-054), the module
+   registry (D-051 steps 1–5) is built and scores say "Based on N modules", and Search visibility, the first new
+   module, is live (D-051 step 6, 2026-10-23: Search Console data in the diagnosis and the score,
+   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9); next GA4 (WI-6); then a HubSpot read-only CRM summary:
    connect, pipeline summary, data quality, follow-up recommendations (CRM-1 – CRM-4), over HubSpot's REST API with
    per-tenant OAuth as an unlisted HubSpot app (D-048). GoHighLevel replaces HubSpot if the testers turn out to be
    agency-managed; ask them first. Built first with design partners who use these tools. Order:

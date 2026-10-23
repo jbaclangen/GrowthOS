@@ -131,8 +131,9 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
 - CRM connections of any kind (HubSpot is Next phase).
 - Analytics integrations (GA4) and performance reporting. The Google Search Console connection is live for Pro, outside
   the MVP (read-only, shown on `/search`; connected in Settings, and also offered during setup on the optional
-  "Connect your tools" step, D-054); its data isn't used in the diagnosis yet: that is planned as the first new
-  module, Search visibility (D-051).
+  "Connect your tools" step, D-054), and since 2026-10-23 its latest snapshot feeds the diagnosis and the growth score
+  of Pro, Premium and trial organizations as the Search visibility module (D-051 step 6,
+  [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9).
 - Billing and Stripe (prices decided in D-039, not built; Q-010). The trial clock and tier checks are in (D-030);
   paying is not.
 - Team invitations, roles UI, organization switching, client portals for agencies. Seats, roles, client approvers and

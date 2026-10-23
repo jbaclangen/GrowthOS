@@ -83,6 +83,8 @@ function FindingBasis({ provenance, refs }: { provenance: Provenance; refs: stri
   if (refs.some((r) => r.startsWith("P"))) parts.push("Google PageSpeed");
   if (refs.includes("S1")) parts.push("home page signals");
   if (refs.includes("C1")) parts.push("crawl coverage");
+  // The Search Console summary (the search visibility module, D-051 step 6).
+  if (refs.includes("G1")) parts.push("Google Search Console");
   return (
     <p className="mt-1 text-xs text-muted">
       Based on measured data:{" "}

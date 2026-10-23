@@ -393,7 +393,10 @@ Basic; Basic after the trial is a paid subscription.
   the gaps named), **Coming soon**. Replaces "Live in part" and "Coming next" on the site.
 - **Growth score:** public copy explains the two inputs (Google PageSpeed, about a third; Braventa's AI assessment,
   about two-thirds), what happens when PageSpeed is missing, and that it isn't a measure of the whole business or a
-  prediction of revenue.
+  prediction of revenue. *Amended 2026-10-23 (D-051 step 6):* the copy now says the score is based on the feature
+  modules that have evidence for the business, named on the report; PageSpeed and the assessment keep their
+  about-a-third / about-two-thirds split of what they cover, and on Pro, with Google Search Console connected, its
+  data joins as a small third part (about a tenth).
 - **Time claims:** no fixed analysis time on the site ("usually a few minutes"); the 3–4 minute figure comes from
   `AI_MODE=free` runs only.
 - Copy: [WEBSITE_MESSAGING.md](../marketing/WEBSITE_MESSAGING.md) §0. Open items: Q-034–Q-037.
@@ -638,7 +641,8 @@ phase 1"); the founder confirms or overrides it before it goes live. Built, not 
 
 ## D-051 — Feature modules, and Search visibility as the first new one
 **Status:** Founder (2026-10-18, in chat). Steps 1–5 built 2026-10-23 (team; spec in
-[FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)); step 6 not started.
+[FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)); step 6 built 2026-10-23 (team, with a provisional
+sub-score definition: the addendum below).
 - A module registry (`web/src/lib/modules/registry.ts`), `organization_modules` and `module_runs` tables, and
   `module_id` on findings and plan items. **Built:** registry with the fourteen modules, their tier, display name,
   score weight and live flag (four live: business intelligence, website and technical SEO, conversion and messaging,
@@ -652,15 +656,28 @@ phase 1"); the founder confirms or overrides it before it goes live. Built, not 
   inputs). `SCORE_VERSION` stays 1 because the formula didn't change. The report's score tile says "Based on N
   modules" with their names; nothing else in the UI changed.
 - Six-step path: steps 1–5 change no behavior. Step 6 adds the first new module, Search visibility: Search Console
-  data in the diagnosis. Search Console connects and syncs for Pro today, but its data doesn't reach the diagnosis
-  (`searchConsoleSummaryForPrompt` has no callers). Not built in steps 1–5: `audit_findings.module_id` (every audit
-  finding is website and technical SEO today), splitting `prompts.ts` into module fragments (the research sketch's
-  step 4) and looping the evidence job over enabled modules (step 5): all without effect until a second module
-  produces evidence, so they come with step 6.
+  data in the diagnosis. **Built (2026-10-23):** the scoring step calls `searchConsoleSummaryForPrompt` for
+  organizations whose enabled modules include Search visibility (Pro, Premium and the trial) and gives the summary
+  to the diagnosis model as one fenced block with the ref `G1`, marked as third-party data; a finding that cites it
+  is Verified and carries `module_id` `search_visibility`; a correction re-runs the diagnosis with the same summary.
+  `module_runs` gets a `search_visibility` row whenever the module is enabled (`completed` with a summary, `partial`
+  without). Not built: `audit_findings.module_id` (every audit finding is still website and technical SEO), splitting
+  `prompts.ts` into module fragments and looping the evidence job over enabled modules (Search Console is synced
+  outside the evidence job, so no second module collects evidence there yet), per-module report sections and a module
+  switch in the app (FEATURE_MODULES.md §8).
+- **Addendum, provisional (team, 2026-10-23): the Search visibility sub-score and weight.** The research §5 names
+  the sub-score without a formula, so this one is proposed and reviewed after launch (D-052). Five parts from the
+  latest snapshot (28 days against the 28 before): average position 0.04 (3 or better = 100, 30 or worse = 0),
+  click-through rate 0.02 (5% = 100), clicks against the previous window 0.02 (unchanged = 50, doubled = 100),
+  pages with impressions as a share of the crawled pages 0.01, the home page's Google index verdict 0.01. Weight
+  0.10 against the Basic modules' 1.00, so about 9% of a full score; a window with fewer than 10 impressions scores
+  nothing. `SCORE_VERSION` is 2; an organization without Search Console evidence gets exactly the version 1 score
+  (`score.test.ts` proves it). Definition: [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9.
 - Module-to-tier map. Basic: business intelligence, website and technical SEO, conversion and messaging, content
   studio. Pro: search visibility, local SEO, social media, search ads, email marketing, video, CRM intelligence,
   analytics, automation. Premium: custom integrations. Module names stay descriptive (D-010).
-- D-035's growth score explanation must change once more modules feed the score; not yet.
+- D-035's growth score explanation changed with step 6: the public copy says the score is based on the modules that
+  have evidence for the business, named on the report, with Search Console data a small third part on Pro.
 - Source: [SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §0, §5, §6;
   [research README](../research/README.md) §2, decision 7.
 

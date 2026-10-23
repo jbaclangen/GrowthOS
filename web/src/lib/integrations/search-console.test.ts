@@ -16,6 +16,7 @@ import {
   stateMatches,
 } from "./google-oauth";
 import { SEARCH_CONSOLE_PAUSED_MESSAGE, searchConsoleAccess } from "./search-console-access";
+import { searchVisibilityEvidence, subScore } from "@/lib/modules/score";
 import {
 
   SearchConsoleApiError,
@@ -242,6 +243,13 @@ describe("response normalization", () => {
     expect(s.top_queries[0]).toEqual({ key: "plumber near me", clicks: 40, impressions: 900, ctr: 4.4, position: 6.3 });
     expect(s.home_page_index).toEqual({ verdict: "PASS", coverage: "Submitted and indexed" });
     expect(s.little_data).toBe(false);
+    expect(s.pages_with_impressions).toBe(0);
     expect(JSON.stringify(s)).not.toMatch(/token|@/i);
+    // The same summary is the search visibility module's scored evidence (lib/modules/score.ts): position 14.3 → 58,
+    // 2.5% click-through → 50, clicks +20% → 60, no page rows → 0 of the 10 crawled pages, home page indexed → 100.
+    expect(subScore(searchVisibilityEvidence(s, 10).parts)).toBe(Math.round((58 * 0.04 + 50 * 0.02 + 60 * 0.02 + 0 * 0.01 + 100 * 0.01) / 0.1));
+    const empty: Snapshot = { ...snap, totals: { ...snap.totals, current: normalizeTotals(fixture.empty), previous: normalizeTotals(fixture.empty) } };
+    expect(summarizeSnapshot(empty).little_data).toBe(true);
+    expect(searchVisibilityEvidence(summarizeSnapshot(empty), 10).parts).toEqual([]);
   });
 });

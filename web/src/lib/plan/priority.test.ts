@@ -94,6 +94,14 @@ describe("toFindings", () => {
     expect(out.map((f) => f.audit_refs)).toEqual([[], [], ["T1"], []]);
   });
 
+  it("treats a Search Console finding as verified only when it cites the summary's ref (D-051 step 6)", () => {
+    const cited = toFindings([finding({ source: "search_console", evidence_refs: ["g1", "T1"] })], facts, new Set(["G1", "T1"]));
+    expect(cited[0]).toMatchObject({ provenance: "verified", audit_refs: ["G1", "T1"] });
+    // No summary in this run: the ref doesn't exist, so the finding is the model's reasoning.
+    const uncited = toFindings([finding({ source: "search_console", evidence_refs: ["G1"] })], facts, new Set(["T1"]));
+    expect(uncited[0]).toMatchObject({ provenance: "inferred", audit_refs: [] });
+  });
+
   it("caps the number of findings", () => {
     expect(toFindings(Array.from({ length: 9 }, () => finding()), facts)).toHaveLength(MAX_FINDINGS);
   });

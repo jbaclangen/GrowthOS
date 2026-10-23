@@ -30,10 +30,11 @@ describe("the module registry", () => {
     expect(byTier("premium")).toEqual(["custom_integrations"]);
   });
 
-  it("marks live only what the current pipeline does, and never a module beyond Basic", () => {
-    expect(liveModules().map((m) => m.id)).toEqual(["business_intel", "website_seo", "conversion", "content_studio"]);
-    for (const m of liveModules()) expect(m.tier).toBe("basic");
-    expect(getModule("search_visibility").live).toBe(false);
+  it("marks live only what the current pipeline does: the four Basic modules and Search visibility (D-051 step 6)", () => {
+    expect(liveModules().map((m) => m.id)).toEqual(["business_intel", "website_seo", "conversion", "content_studio", "search_visibility"]);
+    for (const m of liveModules()) expect(m.tier, m.id).toBe(m.id === "search_visibility" ? "pro" : "basic");
+    expect(getModule("search_visibility")).toMatchObject({ live: true, tier: "pro", featureId: "search_console" });
+    expect(getModule("local_seo").live).toBe(false);
   });
 
   it("agrees with the plans page: a module's feature has its tier, and a live module's feature is live", () => {
@@ -55,11 +56,16 @@ describe("the module registry", () => {
         expect(m.scoreWeight).toBeGreaterThan(0);
       }
     }
-    // The two scored modules carry the whole score: PageSpeed about a third, the assessment about two-thirds (D-035).
-    const total = MODULES.reduce((s, m) => s + (m.scoreWeight ?? 0), 0);
-    expect(total).toBeCloseTo(1, 10);
+    // The Basic modules carry the whole score on Basic: PageSpeed about a third, the assessment about two-thirds
+    // (D-035). Search visibility adds a modest 0.10 for an organization with Search Console evidence
+    // (FEATURE_MODULES.md §9), about 9% of a full score once renormalized.
+    const basic = MODULES.filter((m) => m.tier === "basic").reduce((s, m) => s + (m.scoreWeight ?? 0), 0);
+    expect(basic).toBeCloseTo(1, 10);
     expect(getModule("website_seo").scoreWeight).toBeCloseTo(0.35, 10);
     expect(getModule("conversion").scoreWeight).toBeCloseTo(0.65, 10);
+    expect(getModule("search_visibility").scoreWeight).toBeCloseTo(0.1, 10);
+    const total = MODULES.reduce((s, m) => s + (m.scoreWeight ?? 0), 0);
+    expect(total).toBeCloseTo(1.1, 10);
   });
 
   it("recognises ids and labels them", () => {
@@ -71,11 +77,11 @@ describe("the module registry", () => {
 });
 
 describe("enabledModuleIds", () => {
-  it("gives every tier the four live modules today", () => {
+  it("gives every tier the four Basic modules, and Pro and Premium Search visibility as well", () => {
     const basic = enabledModuleIds("basic");
     expect([...basic]).toEqual(["business_intel", "website_seo", "conversion", "content_studio"]);
-    expect(enabledModuleIds("pro")).toEqual(basic);
-    expect(enabledModuleIds("premium")).toEqual(basic);
+    expect([...enabledModuleIds("pro")]).toEqual([...basic, "search_visibility"]);
+    expect(enabledModuleIds("premium")).toEqual(enabledModuleIds("pro"));
   });
 
   it("applies an organization's overrides, but can't switch on what isn't live or included", () => {
@@ -85,7 +91,8 @@ describe("enabledModuleIds", () => {
       { module_id: "no_such_module", enabled: false },
     ]);
     expect([...enabled]).toEqual(["business_intel", "conversion", "content_studio"]);
-    expect(enabledModuleIds("pro", [{ module_id: "search_visibility", enabled: true }]).has("search_visibility")).toBe(false);
+    expect(enabledModuleIds("pro", [{ module_id: "local_seo", enabled: true }]).has("local_seo")).toBe(false);
+    expect(enabledModuleIds("pro", [{ module_id: "search_visibility", enabled: false }]).has("search_visibility")).toBe(false);
   });
 });
 
@@ -117,7 +124,15 @@ describe("moduleForArea", () => {
 describe("moduleForFinding", () => {
   it("attributes findings by where their evidence comes from", () => {
     expect(moduleForFinding({ provenance: "verified" })).toBe("website_seo");
+    expect(moduleForFinding({ provenance: "verified", audit_refs: ["T1", "P1"] })).toBe("website_seo");
     expect(moduleForFinding({ provenance: "customer_provided" })).toBe("business_intel");
     expect(moduleForFinding({ provenance: "inferred" })).toBeNull();
+  });
+
+  it("gives a verified finding that cites the Search Console summary to Search visibility", () => {
+    expect(moduleForFinding({ provenance: "verified", audit_refs: ["G1"] })).toBe("search_visibility");
+    expect(moduleForFinding({ provenance: "verified", audit_refs: ["T3", "G1"] })).toBe("search_visibility");
+    // An inferred finding is the model's reasoning even when it mentions the ref: the parser drops uncited refs.
+    expect(moduleForFinding({ provenance: "inferred", audit_refs: ["G1"] })).toBeNull();
   });
 });

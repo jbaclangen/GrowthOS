@@ -186,3 +186,175 @@ describe("runAnalysisJob", () => {
     expect(plan).toMatchObject({ output: { step: "scoring", step_state: "pending", claim: null } });
   });
 });
+
+// --- Step "scoring": the diagnosis, the growth score and the Search Console evidence (D-051 step 6) -------------
+
+// A stored business profile the scoring step can load (profileSchema), and a diagnosis as the model returns it.
+const PROFILE_INTEL = {
+  company_name: "Example Plumbing",
+  industry: "Plumbing",
+  summary: "Plumbers in Austin.",
+  target_customers: "Homeowners",
+  brand_voice: { tone: "Friendly", traits: ["plain"] },
+};
+const DIAGNOSIS = {
+  scores: { content_clarity: 60, conversion_readiness: 40, online_presence: 50 },
+  summary: "A steady local plumber that is barely found on Google.",
+  findings: [
+    // Rests on the Search Console summary (G1): verified and Search visibility's when the summary was in the prompt.
+    { statement: "The site is barely found on Google", evidence: "Search Console: 120 clicks in 28 days", source: "search_console", confidence: "high", pain_point_ids: [], evidence_refs: ["G1"] },
+    { statement: "There is no sitemap", evidence: "Technical check T1", source: "website", confidence: "high", pain_point_ids: [], evidence_refs: ["T1"] },
+  ],
+  missing_info: [],
+  plan: [
+    { title: "Submit a sitemap", area: "seo", pain_point_ids: [], finding_refs: [2], why: "w", first_action: "a", dependencies: "", success_metric: "m", solution_ids: [], manual_alternative: "", impact: 3, urgency: 3, effort: 2, confidence: "high" },
+  ],
+};
+// Three crawled pages and one technical check; no PageSpeed, so the growth score is the assessed parts plus, on
+// Pro with a snapshot, Search visibility.
+const SCORING_EVIDENCE = {
+  signals: null,
+  psi: null,
+  psiError: null,
+  pages: [{ url: "https://example.com/", title: "Home" }, { url: "https://example.com/services", title: "Services" }, { url: "https://example.com/contact", title: "Contact" }],
+  audit: { coverage: "3 of 3 pages scanned", homeBlocked: false, findings: "T1 [Monitor; low severity; high confidence; crawler_observation] site-wide: no sitemap", desktop: null, runId: null },
+};
+// The latest Search Console snapshot: position 14.3 → 58, 2.5% click-through → 50, clicks +20% → 60, all 3 crawled
+// pages served → 100, home page indexed → 100: sub-score (2.32 + 1 + 1.2 + 1 + 1) / 0.1 = 65. With the assessed
+// parts (60, 40, 50 at 0.25, 0.25, 0.15) the growth score is (32.5 + 6.52) / 0.75 = 52; without it, 50.
+const SNAPSHOT = {
+  organization_id: ORG,
+  connection_id: "conn-1",
+  property: "sc-domain:example.com",
+  date_range_start: "2026-09-11",
+  date_range_end: "2026-10-08",
+  dimensions: ["query", "page", "device"],
+  totals: {
+    current: { clicks: 120, impressions: 4800, ctr: 0.025, position: 14.3 },
+    previous: { clicks: 100, impressions: 5000, ctr: 0.02, position: 16 },
+    previousRange: { start: "2026-08-14", end: "2026-09-10" },
+  },
+  rows: {
+    queries: [{ key: "plumber near me", clicks: 40, impressions: 900, ctr: 0.044, position: 6.3 }],
+    pages: [
+      { key: "https://example.com/", clicks: 100, impressions: 4000, ctr: 0.025, position: 12 },
+      { key: "https://example.com/services", clicks: 15, impressions: 600, ctr: 0.025, position: 18 },
+      { key: "https://example.com/contact", clicks: 5, impressions: 200, ctr: 0.025, position: 22 },
+    ],
+    devices: [],
+    sitemaps: null,
+    inspection: { url: "https://example.com/", verdict: "PASS", coverageState: "Submitted and indexed", indexingState: null, pageFetchState: null, robotsTxtState: null, lastCrawlTime: null, googleCanonical: null, link: null },
+    notes: [],
+  },
+  fetched_at: "2026-10-11T15:00:00Z",
+};
+const CONNECTED: Record<string, Row[]> = {
+  integration_connections: [{ id: "conn-1", organization_id: ORG, provider: "google_search_console", status: "active" }],
+  search_console_snapshots: [SNAPSHOT],
+};
+
+function scoringSetup(plan: string, extra: Record<string, Row[]> = {}) {
+  fake.current = fakeSupabase({
+    ai_jobs: [
+      {
+        id: JOB,
+        organization_id: ORG,
+        worker: "website_intel",
+        status: "running",
+        input: { businessProfileId: PROFILE, websiteUrl: "https://example.com", sessionId: SESSION },
+        output: { ...initialState("website_intel"), step: "scoring", evidence: SCORING_EVIDENCE },
+        created_at: new Date().toISOString(),
+        started_at: new Date().toISOString(),
+      },
+    ],
+    business_profiles: [{ id: PROFILE, organization_id: ORG, goals: null, service_area: null, current_tools: null, intelligence: PROFILE_INTEL }],
+    organizations: [{ id: ORG, plan, trial_ends_at: new Date(Date.now() + 7 * 86_400_000).toISOString() }],
+    ...extra,
+  }, { ai_jobs: { status: "queued", output: null, started_at: null } });
+  runWorkerJson.mockResolvedValue(DIAGNOSIS);
+  return fake.current;
+}
+const prompt = () => (runWorkerJson.mock.calls[0][0] as { messages: { content: string }[] }).messages[0].content;
+const findings = () => fake.current!.tables.diagnosis_findings ?? [];
+const reportData = () => fake.current!.tables.reports?.[0]?.data as Record<string, unknown>;
+
+describe("the scoring step with Search Console (the search visibility module, D-051 step 6)", () => {
+  it("feeds the summary to the diagnosis, scores it, tags its findings and records the module run on Pro", async () => {
+    scoringSetup("trial", CONNECTED);
+    await runAnalysisJob(JOB, "scoring");
+    expect(jobRow().output).toMatchObject({ step: "planning", step_state: "pending", growth_score: 52 });
+    expect(runWorkerJson).toHaveBeenCalledTimes(1);
+    expect(prompt()).toContain("G1 GOOGLE SEARCH CONSOLE (measured by Google for the property sc-domain:example.com, 2026-09-11 to 2026-10-08");
+    expect(prompt()).toContain("<search_console>");
+    expect(reportData()).toMatchObject({
+      growth_score: 52,
+      score_version: 2,
+      score_modules: ["conversion", "search_visibility"],
+      module_scores: { conversion: 50, search_visibility: 65 },
+      search_console: { property: "sc-domain:example.com", period: { start: "2026-09-11", end: "2026-10-08" }, little_data: false },
+    });
+    expect(fake.current!.tables.business_profiles[0].growth_score).toBe(52);
+    expect(findings().map((f) => [f.provenance, f.audit_refs, f.module_id])).toEqual([
+      ["verified", ["G1"], "search_visibility"],
+      ["verified", ["T1"], "website_seo"],
+    ]);
+    expect(moduleRuns()).toHaveLength(2);
+    expect(moduleRuns()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ organization_id: ORG, job_id: JOB, module_id: "conversion", status: "completed", sub_score: 50 }),
+        expect.objectContaining({
+          organization_id: ORG,
+          job_id: JOB,
+          module_id: "search_visibility",
+          status: "completed",
+          sub_score: 65,
+          details: expect.objectContaining({ snapshot: true, property: "sc-domain:example.com", little_data: false, score_version: 2 }),
+        }),
+      ]),
+    );
+  });
+
+  it("runs the module as partial, with the prompt and the score unchanged, when nothing is connected", async () => {
+    scoringSetup("trial");
+    await runAnalysisJob(JOB, "scoring");
+    expect(prompt()).not.toContain("search_console");
+    expect(prompt()).not.toContain("G1");
+    expect(reportData()).toMatchObject({ growth_score: 50, score_version: 2, score_modules: ["conversion"], search_console: null });
+    // The model cited G1 with no summary in the prompt: the finding is inferred and belongs to no module.
+    expect(findings()[0]).toMatchObject({ provenance: "inferred", audit_refs: [], module_id: null });
+    expect(moduleRuns().find((r) => r.module_id === "search_visibility")).toMatchObject({
+      status: "partial",
+      sub_score: null,
+      details: expect.objectContaining({ snapshot: false, property: null }),
+    });
+  });
+
+  it("records a completed run without a sub-score when the window has too little data", async () => {
+    const empty = { ...SNAPSHOT, totals: { ...SNAPSHOT.totals, current: { clicks: 1, impressions: 6, ctr: 0.17, position: 9 } } };
+    scoringSetup("trial", { ...CONNECTED, search_console_snapshots: [empty] });
+    await runAnalysisJob(JOB, "scoring");
+    expect(prompt()).toContain("Fewer than 10 impressions in the window");
+    expect(reportData()).toMatchObject({ growth_score: 50, score_modules: ["conversion"], search_console: { little_data: true } });
+    expect(moduleRuns().find((r) => r.module_id === "search_visibility")).toMatchObject({
+      status: "completed",
+      sub_score: null,
+      details: expect.objectContaining({ snapshot: true, little_data: true }),
+    });
+  });
+
+  it("records no Search visibility run and reads no snapshot for a Basic organization, even with a connection", async () => {
+    scoringSetup("basic", CONNECTED);
+    await runAnalysisJob(JOB, "scoring");
+    expect(prompt()).not.toContain("search_console");
+    expect(reportData()).toMatchObject({ growth_score: 50, score_modules: ["conversion"], search_console: null });
+    expect(moduleRuns().map((r) => r.module_id)).toEqual(["conversion"]);
+  });
+
+  it("leaves the module out when the organization switched it off", async () => {
+    scoringSetup("trial", { ...CONNECTED, organization_modules: [{ organization_id: ORG, module_id: "search_visibility", enabled: false }] });
+    await runAnalysisJob(JOB, "scoring");
+    expect(prompt()).not.toContain("search_console");
+    expect(reportData()).toMatchObject({ growth_score: 50, score_modules: ["conversion"] });
+    expect(moduleRuns().map((r) => r.module_id)).toEqual(["conversion"]);
+  });
+});

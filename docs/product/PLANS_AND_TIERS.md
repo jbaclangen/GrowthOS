@@ -37,7 +37,7 @@ public page (CLAUDE.md: never present planned features as live).
 | In-app AI assistant ("Ask Braventa" in the header): answers how Braventa works and about the business's latest report; read-only | Basic | Live (D-043) — every plan during the trial; paused after it until the business is on a plan (same rule as the MCP connection, gated by `assistantAccess`, not the tier); 40 questions per organization a day |
 | Connect your AI assistant (MCP): Claude fills in onboarding (D-036) | Basic | Live — every plan during the trial; paused after it until the business is on a plan |
 | Full marketing audit (SEO, search ads, social, email, video) | Pro | Coming soon |
-| Google Search Console connection: read-only clicks, impressions, top queries and pages, shown on `/search` | Pro | Live (founder decision 2026-10-11) — the first live Pro feature; set up in production and first connected and synced on 2026-10-11 ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)). Paused after the trial on Basic: data kept, nothing new fetched, resumes on Pro/Premium. Connected in Settings, and also offered during setup on the optional "Connect your tools" step (owner only; Basic sees it paused; D-054). Its data isn't used in the diagnosis yet: coming soon, as the Search visibility module (D-051, §6) |
+| Google Search Console connection: read-only clicks, impressions, top queries and pages, shown on `/search` | Pro | Live (founder decision 2026-10-11) — the first live Pro feature; set up in production and first connected and synced on 2026-10-11 ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)). Paused after the trial on Basic: data kept, nothing new fetched, resumes on Pro/Premium. Connected in Settings, and also offered during setup on the optional "Connect your tools" step (owner only; Basic sees it paused; D-054). Since 2026-10-23 its latest snapshot feeds the diagnosis and the growth score as the Search visibility module (D-051 step 6, §6) |
 | Analytics connections: GA4, Tag Manager | Pro | Coming soon |
 | Creative tool connections: Canva, HeyGen, Higgsfield | Pro | Coming soon |
 | Website and social connections: WordPress, social accounts | Pro | Coming soon |
@@ -116,10 +116,11 @@ only in the PR that ships it (§4). Detail: [DECISION_LOG.md](../decisions/DECIS
 
 ### Modules by tier (D-051)
 
-Built (2026-10-23, D-051 steps 1–5): the module registry (`web/src/lib/modules/registry.ts`), with the growth score a
+Built (2026-10-23, D-051 steps 1–6): the module registry (`web/src/lib/modules/registry.ts`), with the growth score a
 renormalized weighted mean of the enabled modules that have evidence, shown as "Based on N modules" on the report's
-score tile. Only the four Basic modules are live; the score is unchanged, since the same parts feed it
-([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)). Modules can't be switched on or off from the app yet.
+score tile. The four Basic modules and Search visibility are live; a score without Search Console evidence is
+unchanged, since the same parts feed it ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)). Modules can't be
+switched on or off from the app yet.
 
 | Lowest tier | Modules |
 |---|---|
@@ -127,7 +128,9 @@ score tile. Only the four Basic modules are live; the score is unchanged, since 
 | Pro | Search visibility; local SEO; social media; search ads; email marketing; video; CRM intelligence; analytics; automation |
 | Premium | Custom integrations |
 
-- The first new module is Search visibility: Search Console data in the diagnosis. The connection is live for Pro
-  (§3), but its data isn't used in the diagnosis yet.
-- Module names stay descriptive (D-010). The public growth score explanation (D-035) changes only once more modules
-  feed the score.
+- The first new module, Search visibility, is live (2026-10-23): the latest Search Console snapshot goes to the
+  diagnosis and adds a modest 0.10 to the growth score (about a tenth) for Pro, Premium and trial organizations with
+  the connection active and data in the window ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9). Basic
+  keeps the connection paused and its score as it was.
+- Module names stay descriptive (D-010). The public growth score explanation (D-035) now says the score is based on
+  the modules with evidence, named on the report.

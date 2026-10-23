@@ -9,6 +9,8 @@ import { searchConsoleAccess } from "./search-console-access";
 // home page. Every function that touches the database takes an organization id the caller has already authorised;
 // `db` is the service client (it reads the encrypted refresh token, which clients can't).
 // Search Console doesn't report every query (Google omits anonymized and rare queries) and its data lags a few days.
+// The latest snapshot also feeds the diagnosis and the growth score as the search visibility module (D-051 step 6,
+// FEATURE_MODULES.md §9): summarizeSnapshot and searchConsoleSummaryForPrompt below.
 
 export const PROVIDER = "google_search_console";
 const API = "https://www.googleapis.com/webmasters/v3";
@@ -268,6 +270,9 @@ export function summarizeSnapshot(s: Snapshot) {
     little_data: hasLittleData(s.totals),
     top_queries: s.rows.queries.slice(0, 10).map(row),
     top_pages: s.rows.pages.slice(0, 10).map(row),
+    // Google returns a page row only for a page it served at least once (up to 25 rows): the search visibility
+    // sub-score reads this against the crawled page count (lib/modules/score.ts).
+    pages_with_impressions: s.rows.pages.length,
     devices: s.rows.devices.map((d) => ({ device: d.key, clicks: d.clicks, impressions: d.impressions })),
     sitemaps: s.rows.sitemaps?.map((m) => ({ path: m.path, errors: m.errors, warnings: m.warnings, submitted: m.submitted })) ?? null,
     home_page_index: s.rows.inspection
@@ -277,6 +282,8 @@ export function summarizeSnapshot(s: Snapshot) {
     fetched_at: s.fetched_at,
   };
 }
+
+export type SearchConsoleSummary = ReturnType<typeof summarizeSnapshot>;
 
 // --- Google API calls --------------------------------------------------------------------------------------------
 
@@ -561,9 +568,11 @@ export async function latestSnapshot(db: SupabaseClient, organizationId: string)
   return (data as Snapshot | null) ?? null;
 }
 
-// For the diagnosis prompt (wired in a later change). Null unless the connection is active, the organization has
-// Pro access and a snapshot exists. Never includes tokens or the Google account email.
-export async function searchConsoleSummaryForPrompt(db: Db, organizationId: string) {
+// For the diagnosis prompt and the growth score (the search visibility module, D-051 step 6; called by the
+// pipeline's scoring and diagnosis-update steps for organizations whose enabled modules include it). Null unless the
+// connection is active, the organization has Pro access and a snapshot exists. Never includes tokens or the Google
+// account email.
+export async function searchConsoleSummaryForPrompt(db: Db, organizationId: string): Promise<SearchConsoleSummary | null> {
   const [{ data: conn }, { data: org }] = await Promise.all([
     db.from("integration_connections").select("status").eq("organization_id", organizationId).eq("provider", PROVIDER).maybeSingle(),
     db.from("organizations").select("plan, trial_ends_at").eq("id", organizationId).maybeSingle(),
