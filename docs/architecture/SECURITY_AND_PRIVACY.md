@@ -47,6 +47,9 @@ did not approve.
   author (`created_by = auth.uid()` on client inserts, unchanged afterwards) and applies the approval rule with
   `has_permission()`: a status change needs `content.approve`, and approving one's own draft needs
   `content.approve_own`, which only the owner holds. `setContentStatus` checks the same rule first with `can()`.
+  The trigger also refuses a client change of `organization_id` (migration
+  `20261024000000_content_guard_pins_organization.sql`, not yet applied): the `members all` policy would otherwise let a member move
+  a draft into a business they own, approve it there and move it back.
 - **Role checks (D-046)** are made in server code with `can(role, permission)` from `web/src/lib/team/roles.ts`
   (the eight fixed roles and their permission matrix) and in SQL with `has_permission(org, perm)`, which holds the
   same matrix (a unit test parses the migration and compares them). Gated today: Search Console connect, property

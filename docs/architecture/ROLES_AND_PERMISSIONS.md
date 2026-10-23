@@ -13,10 +13,13 @@ Two places hold the same matrix and a unit test proves they agree:
   user's role with `memberRole()` in `web/src/lib/team/server.ts`.
 - `public.has_permission(org uuid, perm text)` in the database (migration `20261023092945_roles_and_permissions.sql`,
   applied 2026-10-23): the same matrix for triggers and, later, RLS write policies. `migration.test.ts` in
-  `web/src/lib/team/` parses the SQL and compares every role and permission with `can()`.
+  `web/src/lib/team/` parses the SQL and compares every role and permission with `can()`, and checks the approval
+  rule in the newest definition of the `content_items` guard.
 
 Rule (CLAUDE.md): a role check in the app goes through `can()`; a role check in SQL goes through `has_permission()`.
-No code compares a role to a literal such as `"owner"`.
+No app code compares a role to a literal such as `"owner"`. In SQL, `is_org_admin()`, `is_org_owner()` and
+`memberships_owner_guard` still compare role text: they predate the matrix and carry the `memberships` and
+service-key policies, so a matrix change doesn't reach them until they move to `has_permission()`.
 
 ## 1. Roles
 
@@ -119,6 +122,11 @@ D-046: no one approves their own work except the Owner, and every approval is re
   `setContentStatus` checks both with `can()` and `approvalAllowed()` before writing, and the trigger
   `guard_content_item_write` checks both again with `has_permission()`, so a direct Data API call can't get around the
   action. Rejecting and undoing need `content.approve` too.
+- The trigger refuses a client change of `organization_id` (migration
+  `20261024000000_content_guard_pins_organization.sql`, written 2026-10-24 and not yet applied to the database; the
+  file takes the recorded version's name once it is). Without it, the `members all` policy would let a member
+  without `content.approve` move a draft into a business they own (anyone can create one), approve it there and move
+  it back. No app path moves content between businesses.
 - The approver stays database-set: `approved_by = auth.uid()`, `approved_at = now()` on approval, cleared otherwise
   (D-018). Server code with the secret key is not restricted, as before.
 

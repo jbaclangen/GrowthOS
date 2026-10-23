@@ -555,7 +555,10 @@ describe("credentials on /api/mcp", () => {
   const token = { kind: "access", organization_id: "org-1", user_id: "user-1", grant_id: "g1", scopes: ["onboarding"], resource: RESOURCE, expires_at: "2026-10-17T11:00:00Z", revoked_at: null };
   const now = new Date("2026-10-17T10:30:00Z");
   it("accepts a live access token for this resource", () => {
-    expect(resolveAccessToken(token, { revoked_at: null }, { role: "owner" }, RESOURCE, now)).toMatchObject({ ok: true, principal: { organizationId: "org-1", grantId: "g1" } });
+    expect(resolveAccessToken(token, { revoked_at: null }, { role: "owner" }, RESOURCE, now)).toMatchObject({ ok: true, principal: { organizationId: "org-1", grantId: "g1", role: "owner" } });
+    // The token acts with its user's role (D-046); a role outside the eight holds nothing.
+    expect(resolveAccessToken(token, { revoked_at: null }, { role: "analyst" }, RESOURCE, now)).toMatchObject({ ok: true, principal: { role: "analyst" } });
+    expect(resolveAccessToken(token, { revoked_at: null }, { role: "member" }, RESOURCE, now)).toMatchObject({ ok: true, principal: { role: null } });
   });
   it("refuses expired, revoked, disconnected, wrong-audience and ex-member tokens", () => {
     expect(resolveAccessToken(token, { revoked_at: null }, { role: "owner" }, RESOURCE, new Date("2026-10-17T11:00:01Z")).ok).toBe(false);

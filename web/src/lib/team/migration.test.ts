@@ -26,8 +26,8 @@ describe("the roles_and_permissions migration", () => {
     expect(code).toMatch(/alter type public\.member_role rename to member_role_v1/);
     expect(code).toMatch(/using \(case role::text when 'member' then 'analyst' else role::text end\)::public\.member_role/);
     expect(code).toMatch(/alter column role set default 'analyst'/);
-    // The old type's drop is a separate statement (the Supabase MCP tool refuses it inside the block); the file
-    // records it as pending rather than claiming it ran.
+    // The old type's drop isn't a statement here: the Supabase MCP tool refused it and the founder ran it from the SQL
+    // editor, so it may appear only in the header comment, never as executable SQL.
     expect(code).not.toMatch(/drop type public\.member_role_v1/);
     expect(sql).toMatch(/drop type public\.member_role_v1;/);
   });
@@ -60,14 +60,30 @@ describe("the roles_and_permissions migration", () => {
     expect(code).not.toMatch(/grant execute on function public\.has_permission\(uuid, text\) to (anon|public)/);
   });
 
-  it("records the author of client-written drafts and applies the approval rule in the guard", () => {
+  it("adds the author column to content_items", () => {
     expect(code).toMatch(/alter table public\.content_items add column created_by uuid references auth\.users\(id\) on delete set null/);
-    const guard = code.match(/create or replace function public\.guard_content_item_write\(\)([\s\S]*?)\$\$;/);
+  });
+});
+
+// guard_content_item_write is replaced by later migrations (create or replace), so the rules are checked against the
+// newest definition: the one the database runs.
+const guardFiles = readdirSync(dir)
+  .filter((f) => f.endsWith(".sql"))
+  .sort()
+  .filter((f) => /create or replace function public\.guard_content_item_write\(\)/.test(readFileSync(dir + f, "utf8")));
+const latestGuard = guardFiles.length ? readFileSync(dir + guardFiles[guardFiles.length - 1], "utf8").replace(/--.*$/gm, "") : "";
+
+describe("the newest content approval guard", () => {
+  it("records the author of client-written drafts, pins the business and applies the approval rule", () => {
+    expect(guardFiles.length).toBeGreaterThan(0);
+    const guard = latestGuard.match(/create or replace function public\.guard_content_item_write\(\)([\s\S]*?)\$\$;/);
     expect(guard).toBeTruthy();
     const body = guard![1];
     expect(body).toMatch(/if current_user <> 'authenticated' then\s+return new;/);
     expect(body).toMatch(/new\.created_by := \(select auth\.uid\(\)\);/);
     expect(body).toMatch(/new\.created_by := old\.created_by;/);
+    // A client can't move content to a business where it holds content.approve, approve it there and move it back.
+    expect(body).toMatch(/if new\.organization_id is distinct from old\.organization_id then\s+raise exception/);
     expect(body).toMatch(/public\.has_permission\(old\.organization_id, 'content\.approve'\)/);
     expect(body).toMatch(/new\.status = 'approved' and old\.created_by is not null and old\.created_by = \(select auth\.uid\(\)\)\s+and not public\.has_permission\(old\.organization_id, 'content\.approve_own'\)/);
     // The approver is still set by the database (D-018).

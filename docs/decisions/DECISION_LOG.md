@@ -572,7 +572,7 @@ invitations and the role UI are not.
 - **Built:** `member_role` holds the eight roles (the old `member` value became `analyst`, the least privilege; 0
   rows in production were affected: 2 owners, nothing else); the permission matrix as pure, unit-tested code in
   `web/src/lib/team/roles.ts` (`can(role, permission)`) and as `has_permission(org, perm)` in the database, with a
-  test proving the two equal; every owner-only check goes through `integrations.connect` (Search Console) or
+  test proving the two equal; every owner-only check in the app goes through `integrations.connect` (Search Console) or
   `keys.manage_any` (service keys, disconnecting another person's app), so nothing changed for owners; the write
   actions check `analysis.run`, `profile.edit`, `diagnosis.correct` and `plan_items.update_any`; draft approval
   needs `content.approve`, and approving one's own draft `content.approve_own` (owner only), in the action and in
@@ -582,7 +582,7 @@ invitations and the role UI are not.
 - **Remains:** invitations (Q-010), seat limits and charging (Stripe), a role UI and audit log, client approvers
   (D-047), `keys.manage_own` on personal keys, `plan_items.update_own` (needs an assignee), RLS write policies per
   permission. Matrix cells that differ from the research (Admin and keys, client approver, Admin and integrations)
-  are listed there for the founder to confirm or widen (Q-049).
+  are listed there for the founder to confirm or widen (Q-050).
 - **Roles:** Owner, Admin, Marketing manager, Social media manager, Copywriter, Content creator, Analyst and Client
   approver, with fixed permissions. No custom roles in v1.
 - **Approval:** no one approves their own work except the Owner, so a one-person business still works; every approval
