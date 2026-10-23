@@ -1,0 +1,28 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color": false,
+  "colorGroups": [
+    { "query": "path:map/objects", "color": { "a": 1, "rgb": 8089087 } },
+    { "query": "path:map/processes", "color": { "a": 1, "rgb": 16745472 } },
+    { "query": "path:map/effects", "color": { "a": 1, "rgb": 16733525 } },
+    { "query": "path:docs/decisions", "color": { "a": 1, "rgb": 5296496 } },
+    { "query": "path:docs", "color": { "a": 1, "rgb": 11184810 } }
+  ],
+  "collapse-display": false,
+  "showArrow": true,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": false,
+  "centerStrength": 0.5,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 1,
+  "close": false
+}
