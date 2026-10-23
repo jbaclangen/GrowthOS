@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 7a91d84
 consumes: ["[[ai-job]]", "[[job-step]]", "[[job-dispatch]]"]
 produces: ["[[ai-job]]", "[[job-dispatch]]"]
 ---
@@ -18,25 +18,25 @@ A job sits with a step `pending` (its POST never ran) or `running` past its limi
 
 ## Why this shape
 
-The platform kills an invocation at 300 s with no cleanup, so a job could stay `running` forever: the report would poll indefinitely and re-runs would be blocked. The app only learns about a lost hand-off when someone loads the report, so the sweeper exists for production where the route answers Postgres, not the app. Re-sending is safe only because the step claim is conditional ([job-step-machine](job-step-machine.md)).
+The platform kills an invocation at 300 s with no cleanup, so a job could stay `running` forever: the report would poll indefinitely and re-runs would be blocked (`web/src/lib/pipeline/jobs.ts:11-15`). The app only learns about a lost hand-off when someone loads the report, so the sweeper exists for production where the route answers Postgres, not the app. Re-sending is safe only because the step claim is conditional ([job-step-machine](job-step-machine.md)).
 
 ## Steps
 
 1. Report loader calls `superviseJobs` for the business's organization — `web/src/app/analysis/[id]/report-data.ts:87`; the page mounts `AutoRefresh` while running — `web/src/app/analysis/[id]/page.tsx:103`, 4 s interval `web/src/app/analysis/[id]/auto-refresh.tsx:7-12`.
 2. `superviseJobs`: `failStaleJobs`, then `resendDue`, then `handOff(..., {resend: true})` in `after()` — `web/src/lib/pipeline/jobs.ts:68-76`.
-3. `failStaleJobs`: active jobs matching `staleFilter(cutoff)` become `failed` with `STALE_JOB_ERROR`, `output: null` — `web/src/lib/pipeline/jobs.ts:16-27`; `STALE_JOB_MS` and the filter — `web/src/lib/pipeline/steps.ts:85`, `:89-91`. Other callers: `web/src/app/analysis/actions.ts:76`, `web/src/app/analysis/plan-actions.ts:115`, `web/src/app/dashboard/page.tsx:28`.
+3. `failStaleJobs`: active jobs matching `staleFilter(cutoff)` become `failed` with `STALE_JOB_ERROR`, `output: null` — `web/src/lib/pipeline/jobs.ts:16-27`; `STALE_JOB_MS` and the filter — `web/src/lib/pipeline/steps.ts:85`, `:89-91`. Other callers: `web/src/app/analysis/actions.ts:85`, `web/src/app/analysis/plan-actions.ts:124`, `web/src/app/dashboard/page.tsx:28`.
 4. `resendDue`: `RESEND_AFTER_MS` — `web/src/lib/pipeline/jobs.ts:32`; selects pending steps older than the cutoff (max 5), skips ones re-sent within the window, `markResent` — `:36-63`; `markResent` conditional UPDATE on `resent_at` — `web/src/lib/pipeline/claims.ts:69-83`.
 5. Database-mode re-send: `resend_job_dispatch` RPC answers `posted` / `not_pending` / `failed` / `missing` — `web/src/lib/pipeline/dispatch.ts:189-216`; SQL `supabase/migrations/20261017110000_job_dispatches.sql:212-244`.
 6. `job_dispatch_failed`: 202 = ok; null / 408 / 429 / 5xx = failed only at 4 attempts; anything else = failed — `supabase/migrations/20261017110000_job_dispatches.sql:136-153`.
-7. `sweep_job_dispatches`: active jobs still pending on that step; re-post when attempts < 4 and last post > 60 s ago, else fail the job with "couldn't continue" (mirrors `failPendingStep`) — `supabase/migrations/20261017110000_job_dispatches.sql:158-204`.
+7. `sweep_job_dispatches`: active jobs still pending on that step; fail the job with "couldn't continue" when `job_dispatch_failed` says so (mirrors `failPendingStep`), else re-post when attempts < 4 and the last post is > 60 s old — `supabase/migrations/20261017110000_job_dispatches.sql:158-204`.
 8. `cleanup_job_dispatches` deletes dispatches older than a day — `supabase/migrations/20261017110000_job_dispatches.sql:247-259`.
 9. Schedules: sweeper `* * * * *`, cleanup `7 * * * *` — `supabase/migrations/20261017110000_job_dispatches.sql:339-340`.
 10. `job_dispatch_health()` (service role only) — `supabase/migrations/20261017110000_job_dispatches.sql:271`, `:335-336`; read by `web/src/app/api/health/integrations/route.ts:97`, assessed by `assessDispatchHealth` — `web/src/lib/pipeline/dispatch-health.ts:29`, `SWEEPER_STALE_MS` `:23`.
-11. Local runner hands the first step off with `--origin` (direct) — `web/scripts/run-pipeline-local.mts:63`.
+11. Local runner hands the first step off through `dispatchStep`: direct with `--origin`, else by `JOB_DISPATCH` — `web/scripts/run-pipeline-local.mts:62-63`.
 
 ## Human gate
 
-None. The owner only sees the failure message and the Re-run button ([rerun-analysis](rerun-analysis.md)).
+None. The report shows the failure message and the Re-run button; the re-run's permission check lives in [rerun-analysis](rerun-analysis.md).
 
 ## If you change this
 

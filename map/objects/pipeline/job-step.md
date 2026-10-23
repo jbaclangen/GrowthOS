@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 7a91d84
 entity: web/src/lib/pipeline/steps.ts
 ---
 
@@ -37,7 +37,7 @@ Citations: `web/src/lib/pipeline/steps.ts:9-91`, `web/src/lib/pipeline/claims.ts
 
 ## If you change this
 
-- **Hits:** every filter on `output->>step` / `output->>step_state` in `claims.ts`; the SQL mirror of the state in `job_dispatches.sql:172-174`, `:187-196`, `:229-237`; `resendDue` `jobs.ts:36-63`; `failStaleJobs` `jobs.ts:18-27`; the local runner `web/scripts/run-pipeline-local.mts:63-68`; the report's progress list (`website-intel.ts:70-77`).
+- **Hits:** every filter on `output->>step` / `output->>step_state` in `claims.ts`; the SQL mirror of the state in `job_dispatches.sql:172-174`, `:187-196`, `:229-237`; `resendDue` `jobs.ts:36-63`; `failStaleJobs` `jobs.ts:18-27`; the local runner `web/scripts/run-pipeline-local.mts:55`, `:63-65`, `:73-80`; the report's progress list (`website-intel.ts:70-77`).
 - **Does not hit:** the continue route's body schema (`web/src/app/api/jobs/continue/route.ts:15-19` accepts any step string); the prompts in `web/src/lib/pipeline/prompts.ts`.
 
 ## Surfaces

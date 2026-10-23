@@ -2,9 +2,9 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
-consumes: ["[[integration-connection]]", "[[organization]]", "[[plan-tier]]", "[[business-profile]]", "[[module-registry]]"]
+verified: 2026-10-24
+commit: 7a91d84
+consumes: ["[[integration-connection]]", "[[organization]]", "[[plan-tier]]", "[[business-profile]]", "[[module-registry]]", "[[member-role]]"]
 produces: ["[[search-console-snapshot]]", "[[report]]", "[[growth-score]]", "[[module-run]]"]
 ---
 
@@ -29,10 +29,10 @@ The pipeline never calls Google: it reads the latest stored row, so a slow or fa
 5. List verified properties; keep the selected one or `pickProperty` from the business website; none → `needs-property` — `:452-461`.
 6. `fetchSnapshot` (28-day ranges, top 25 queries and pages, devices, sitemaps, URL Inspection) — `:462`, `:324-330`.
 7. Insert the snapshot, prune to `KEEP_SNAPSHOTS`, mark the connection `active` with `last_synced_at` — `:463-483`, `:491-505`; errors → `describeError` → status + `last_error` — `:484-488`.
-8. Callers: callback (`skipGuard`) `web/src/app/api/integrations/google/callback/route.ts:104`; Settings refresh (any member) `web/src/app/settings/connections-actions.ts:28-33`; choose property (owner; a first choice skips the guard) `:35-45`; `selectProperty` `search-console.ts:509-525`.
+8. Callers: callback (`skipGuard`) `web/src/app/api/integrations/google/callback/route.ts:105`; Settings refresh (any member, no permission) `web/src/app/settings/connections-actions.ts:31-36`; choose property (a first choice skips the guard) `:38-48`, needs `integrations.connect` (owner only) `:40`; `selectProperty` `search-console.ts:509-525`.
 9. Into scoring: `searchConsoleEvidence` only when `search_visibility` is enabled → `searchConsoleSummaryForPrompt` (active connection, plan access, latest snapshot) → `summarizeSnapshot` — `web/src/lib/pipeline/website-intel.ts:433-435,625-627`; `search-console.ts:575-583,254`; the prompt cites it as `G1` — `web/src/lib/pipeline/prompts.ts:149`, `web/src/lib/modules/registry.ts:280`.
-10. Score parts from position, CTR and click change — `web/src/lib/modules/score.ts:75-80`; the report records property, period and `fetched_at` — `website-intel.ts:664-666`; the diagnosis-update step reads the same evidence without recomputing the score — `:583-585`.
-11. Disconnect: revoke at Google, delete every snapshot, blank the row to `revoked` — `search-console.ts:528-558`; action `connections-actions.ts:47-56`.
+10. Score parts from the summary (`searchVisibilityEvidence`) — `web/src/lib/modules/score.ts:75-92`; the report records property, period and `fetched_at` — `website-intel.ts:664-666`; the diagnosis-update step reads the same evidence without recomputing the score — `:583-585`.
+11. Disconnect: revoke at Google, delete every snapshot, blank the row to `revoked` — `search-console.ts:528-558`; action `connections-actions.ts:50-59`, needs `integrations.connect` `:52`; matrix row `web/src/lib/team/roles.ts:86`.
 
 ## Human gate
 
@@ -54,5 +54,5 @@ None inside the sync. The owner chooses a property when `pickProperty` finds no 
 
 ## See
 
-- Objects: [[search-console-snapshot]], [[integration-connection]], [[growth-score]], [[report]]
+- Objects: [search-console-snapshot](../objects/integrations/search-console-snapshot.md), [integration-connection](../objects/integrations/integration-connection.md), [growth-score](../objects/report/growth-score.md), [report](../objects/report/report.md), [member-role](../objects/tenancy/member-role.md)
 - Source: `web/src/lib/integrations/search-console.ts`

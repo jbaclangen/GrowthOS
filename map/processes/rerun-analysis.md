@@ -2,9 +2,9 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
-consumes: ["[[business-profile]]", "[[ai-job]]", "[[onboarding-session]]"]
+verified: 2026-10-24
+commit: 7a91d84
+consumes: ["[[business-profile]]", "[[ai-job]]", "[[onboarding-session]]", "[[member-role]]"]
 produces: ["[[ai-job]]", "[[job-step]]", "[[job-dispatch]]"]
 ---
 
@@ -14,7 +14,7 @@ Starts a full five-step analysis again for an existing business, reusing the lat
 
 ## Input → Movement → Output
 
-The owner clicks "Re-run analysis" on a finished report. The action loads the business, clears stale jobs, refuses while any job for that business is queued or running, applies the 24 h cap, and queues a `website_intel` job at its first step. The job crawls, profiles, scores, plans and writes as one chain; scoring picks the latest `completed` onboarding session for the business, or none.
+A member whose role holds `analysis.run` clicks "Re-run analysis" on a finished report. The action loads the business, checks that permission, clears stale jobs, refuses while any job for that business is queued or running, applies the 24 h cap, and queues a `website_intel` job at its first step. The job crawls, profiles, scores, plans and writes as one chain; scoring picks the latest `completed` onboarding session for the business, or none.
 
 ## Why this shape
 
@@ -23,18 +23,18 @@ One analysis at a time per business keeps two chains from writing the same profi
 ## Steps
 
 1. Button calls `rerunAnalysis(businessProfileId)` — `web/src/app/analysis/[id]/controls.tsx:17`; hidden while running, updating or discovery open — `web/src/app/analysis/[id]/page.tsx:52`; flags computed at `web/src/app/analysis/[id]/report-data.ts:197-209`.
-2. Load the profile by id (user's client; RLS) — `web/src/app/analysis/actions.ts:67-72`.
-3. `failStaleJobs(org)` — `web/src/app/analysis/actions.ts:76`; reaper at `web/src/lib/pipeline/jobs.ts:18-27`.
-4. Active-job check with org filter and `input->>businessProfileId` — `web/src/app/analysis/actions.ts:77-84`.
-5. 24 h limit via `analysesInLastDay` — `web/src/app/analysis/actions.ts:85`; counts `website_evidence` + `website_intel` — `web/src/lib/onboarding/start.ts:21-31`, `MAX_ANALYSES_PER_DAY` `:18`.
-6. `queueJob('website_intel')` inserts the job and `startJob` hands `crawling` off — `web/src/app/analysis/actions.ts:87-93`; `web/src/lib/onboarding/start.ts:35-50`.
-7. `refresh()` so the report shows progress — `web/src/app/analysis/actions.ts:94`.
+2. Load the profile by id (user's client; RLS) — `web/src/app/analysis/actions.ts:75-80`; refuse without `analysis.run` (`hasPermission`) — `:81` ([member-role](../objects/tenancy/member-role.md)).
+3. `failStaleJobs(org)` — `web/src/app/analysis/actions.ts:85`; reaper at `web/src/lib/pipeline/jobs.ts:18-27`.
+4. Active-job check with org filter and `input->>businessProfileId` — `web/src/app/analysis/actions.ts:86-93`.
+5. 24 h limit via `analysesInLastDay` — `web/src/app/analysis/actions.ts:94`; counts `website_evidence` + `website_intel` — `web/src/lib/onboarding/start.ts:21-31`, `MAX_ANALYSES_PER_DAY` `:18`.
+6. `queueJob('website_intel')` inserts the job and `startJob` hands `crawling` off — `web/src/app/analysis/actions.ts:96-102`; `web/src/lib/onboarding/start.ts:35-50`.
+7. `refresh()` so the report shows progress — `web/src/app/analysis/actions.ts:103`.
 8. Sequence: all five steps — `web/src/lib/pipeline/steps.ts:20`; intent in `web/src/lib/pipeline/website-intel.ts:64`.
 9. Scoring without a session id: `loadDiscovery` takes the latest `completed` session; a `skipped` one yields null — `web/src/lib/pipeline/website-intel.ts:619-620`, `:385-387`.
 
 ## Human gate
 
-The owner clicks Re-run. No other gate until the new diagnosis waits in [confirm-diagnosis-and-plan](confirm-diagnosis-and-plan.md).
+A member with `analysis.run` clicks Re-run (the button shows for every member; the action refuses the others). No other gate until the new diagnosis waits in [confirm-diagnosis-and-plan](confirm-diagnosis-and-plan.md).
 
 ## If you change this
 
@@ -46,7 +46,7 @@ The owner clicks Re-run. No other gate until the new diagnosis waits in [confirm
 | Surface | Role |
 |---|---|
 | `/analysis/[id]` header button | Visible only when idle |
-| `rerunAnalysis` server action | Guards + `queueJob` |
+| `rerunAnalysis` server action | `analysis.run`, guards + `queueJob` |
 | `website_intel` job | Full chain, latest completed discovery |
 
 ## See

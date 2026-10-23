@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: ghost
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 7a91d84
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -14,17 +14,17 @@ An embedded slice of a knowledge document and the similarity search over it. The
 
 ## Why this shape
 
-The foundation schema laid out retrieval for an AI marketing assistant before any feature used it: `supabase/migrations/20261010061028_foundation.sql:4`, `:136`. The MVP scope lists it as "not a feature": `docs/product/MVP_SCOPE.md:80-81`.
+The foundation schema laid out retrieval for an AI marketing assistant before any feature used it: `supabase/migrations/20261010061028_foundation.sql:4`, `:136`. The MVP scope lists it as "not a feature": `docs/product/MVP_SCOPE.md:81-82`.
 
 ## Shape
 
 - Table `supabase/migrations/20261010061028_foundation.sql:123-131`: `document_id` cascade `:126`, `chunk_index`, `content`, `embedding vector(1536)` `:129`; HNSW cosine index `:133-134`; document index `supabase/migrations/20261010061126_advisor_fixes.sql:20`.
-- `match_knowledge(org, query_embedding, match_count)` `:137-148`, invoker rights (RLS applies). No revoke or grant follows it, unlike `create_organization` `:71-72` (`docs/architecture/DATA_MODEL.md:133`).
-- RLS "members all" `:300-309`.
+- `match_knowledge(org, query_embedding, match_count)` `foundation.sql:137-148`, invoker rights (RLS applies). No revoke or grant follows it, unlike `create_organization` `:71-72` (`docs/architecture/DATA_MODEL.md:138`).
+- RLS "members all" `foundation.sql:300-309`.
 - No reference to `knowledge_chunks` or `match_knowledge` anywhere in `web/src` or `web/scripts`.
 - Planned use: knowledge-base retrieval for the assistant (BI-8, BI-11) `docs/product/ROADMAP.md:73-74`.
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:123-148`, `docs/product/MVP_SCOPE.md:80-81`, `docs/product/ROADMAP.md:73-74`.
+Citations: `supabase/migrations/20261010061028_foundation.sql:123-148`, `docs/product/MVP_SCOPE.md:81-82`, `docs/product/ROADMAP.md:73-74`.
 
 ## Connected to
 
@@ -47,4 +47,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:123-148`, `docs/pr
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/product/MVP_SCOPE.md` (`:80-81`)
+- As built: `docs/product/MVP_SCOPE.md` (`:81-82`)

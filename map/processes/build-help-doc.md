@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 7a91d84
 consumes: ["[[assistant-knowledge]]", "[[app-routes]]"]
 produces: ["[[assistant-knowledge]]"]
 ---
@@ -29,7 +29,7 @@ checkable.
 
 ## Steps
 
-1. Edit `web/src/lib/assistant/knowledge.ts` (`APP_ROUTES` `:27`; `knowledgeSections()` `:165`; `renderGuide()` `:267`).
+1. Edit `web/src/lib/assistant/knowledge.ts` (`APP_ROUTES` `:27`; `knowledgeSections()` `:165`; `renderGuide()` `:272`).
    Parts come straight from code (`FEATURES`, `VIEWS`, provenance labels, `:9`), so a change there moves the guide too.
 2. In `web/`, run `npm run help:doc` (`web/package.json:15`): `web/scripts/build-help-doc.mts:8-9,24-25` writes
    `docs/help/APP_GUIDE.md`, whose first line marks it generated (`docs/help/APP_GUIDE.md:1`).
@@ -39,8 +39,9 @@ checkable.
    `APP_ROUTES` entry no longer exists (`web/src/lib/assistant/assistant.test.ts:216-242`).
 5. Commit `knowledge.ts` and `docs/help/APP_GUIDE.md` together.
 
-Must run after: any edit to `knowledge.ts`; adding, moving or removing a page under `web/src/app`; a change to
-`FEATURES` in `web/src/lib/plans/tiers.ts` or the report `VIEWS` the file reads.
+Must run after: any edit to `knowledge.ts`; adding, moving or removing a page under `web/src/app`; a change to any
+value the file imports (`web/src/lib/assistant/knowledge.ts:1-5`: tiers, provenance labels, the report `VIEWS`, the
+tool catalog, the assistant limits).
 
 ## Human gate
 
@@ -59,9 +60,9 @@ reviewed by whoever edits `knowledge.ts` (`CLAUDE.md:38-39`).
 | Developer in `web/` | runs `help:doc`, commits both files |
 | `web/scripts/build-help-doc.mts` | renders and checks |
 | `web/src/lib/assistant/assistant.test.ts:216-242,316-318` | refuses drift |
-| `GET /api/assistant` | serves the same sections to users |
+| `POST /api/assistant` (`web/src/app/api/assistant/route.ts:34`) | answers users from the same sections (`knowledgeForPrompt()`, `web/src/lib/assistant/knowledge.ts:265`) |
 
 ## See
 
-- Objects: [[assistant-knowledge]], [[app-routes]], [[generators]]
+- Objects: [assistant-knowledge](../objects/access/assistant-knowledge.md), [app-routes](../objects/config/app-routes.md), [generators](../objects/config/generators.md)
 - Source: `web/scripts/build-help-doc.mts`

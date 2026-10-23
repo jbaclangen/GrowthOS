@@ -3,8 +3,8 @@ type: object
 cluster: modules
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 7a91d84
 entity: supabase/migrations/20261023063253_feature_modules.sql
 ---
 
@@ -20,11 +20,11 @@ D-051 wanted the growth score to be computable over "the organization's enabled 
 
 - PK (`organization_id`, `module_id` domain), `enabled` default true, `config` jsonb, timestamps — `supabase/migrations/20261023063253_feature_modules.sql:29-39`.
 - RLS "members read"; insert/update/delete revoked from clients — `supabase/migrations/20261023063253_feature_modules.sql:71-76`; `touch_updated_at` `:78-79`.
-- The one reader: `enabledModules` reads the tier and the overrides with the admin client and throws if either read fails (a failed read fails the scoring step) — `web/src/lib/modules/server.ts:11-19`; the rule is `enabledModuleIds` — `web/src/lib/modules/registry.ts:263-266`; called before the diagnosis model call — `web/src/lib/pipeline/website-intel.ts:622-626`.
-- No writer in the repo: `supabase/migrations/20261023063253_feature_modules.sql:9,105`; `docs/architecture/DATA_MODEL.md:95`; `docs/architecture/FEATURE_MODULES.md:45-48`.
+- The one reader: `enabledModules` reads the tier and the overrides with the admin client and throws if either read fails — `web/src/lib/modules/server.ts:11-19`; the rule is `enabledModuleIds` — `web/src/lib/modules/registry.ts:263-266`; called before the diagnosis model call in the scoring step — `web/src/lib/pipeline/website-intel.ts:622-626` — and in `reviseDiagnosis` (a correction, for the Search Console summary only) — `:583-585`.
+- No writer in the repo: `supabase/migrations/20261023063253_feature_modules.sql:9,105`; `docs/architecture/DATA_MODEL.md:99`; `docs/architecture/FEATURE_MODULES.md:45-48`.
 - Effect of a row with `enabled = false`: the module leaves the score and (for Search visibility) its summary leaves the diagnosis; the analysis steps still run — `web/src/lib/modules/registry.ts:260-262`, `docs/architecture/FEATURE_MODULES.md:46-48`.
 
-Citations: `supabase/migrations/20261023063253_feature_modules.sql:8-11,29-39,71-79,105`; `web/src/lib/modules/server.ts:11-19`; `web/src/lib/modules/registry.ts:257-266`; `web/src/lib/pipeline/website-intel.ts:622-626`
+Citations: `supabase/migrations/20261023063253_feature_modules.sql:8-11,29-39,71-79,105`; `web/src/lib/modules/server.ts:11-19`; `web/src/lib/modules/registry.ts:257-266`; `web/src/lib/pipeline/website-intel.ts:583-585,622-626,693`
 
 ## Connected to
 
@@ -35,16 +35,16 @@ Citations: `supabase/migrations/20261023063253_feature_modules.sql:8-11,29-39,71
 
 ## If you change this
 
-- **Hits:** `enabledModules` (its failure fails the scoring step), `enabledModuleIds`, the growth score and whether the Search Console summary reaches the diagnosis; `docs/architecture/DATA_MODEL.md:95`, `docs/architecture/FEATURE_MODULES.md` §3.
-- **Does not hit:** [module-run](module-run.md) rows — the profiling and writing steps record their modules regardless of overrides; the `website_evidence` steps, which do not read overrides.
+- **Hits:** `enabledModules` (its failure fails the scoring step or the correction), `enabledModuleIds`, the growth score, whether the Search Console summary reaches the diagnosis and its corrections, and whether the scoring step records a `search_visibility` [module-run](module-run.md) (`web/src/lib/pipeline/website-intel.ts:693`); `docs/architecture/DATA_MODEL.md:99`, `docs/architecture/FEATURE_MODULES.md` §3.
+- **Does not hit:** the other [module-run](module-run.md) rows — the profiling and writing steps and the scoring step's `conversion` row are recorded regardless of overrides; the `website_evidence` steps, which do not read overrides.
 
-Ghost: the switch UI and the role allowed to use it — `docs/architecture/FEATURE_MODULES.md:125`, `docs/decisions/DECISION_LOG.md:568-582` (D-046).
+Ghost: the switch UI and the permission that would gate it (the D-046 roles foundation has no module permission yet, [member-role](../tenancy/member-role.md)) — `docs/architecture/FEATURE_MODULES.md:125`, `docs/architecture/ROLES_AND_PERMISSIONS.md:156`, `docs/decisions/DECISION_LOG.md:570-598` (D-046).
 
 ## Surfaces
 
 | Surface | Role |
 |---|---|
-| Scoring step via `enabledModules` (`web/src/lib/modules/server.ts:14`) | reads |
+| Scoring step and `reviseDiagnosis` via `enabledModules` (`web/src/lib/modules/server.ts:14`) | reads |
 | App pages, Settings, MCP | none |
 | Server (service role) | may write; no code path does yet |
 
