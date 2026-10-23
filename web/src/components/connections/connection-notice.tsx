@@ -2,7 +2,8 @@
 
 import { useSearchParams } from "next/navigation";
 
-// Explains the outcome of a Search Console action or the Google consent screen (/settings?gsc=<code>).
+// Explains the outcome of a Search Console action or the Google consent screen (?gsc=<code>), on Settings or on the
+// onboarding step "Connect your tools". Codes come from the start and callback routes and connections-actions.ts.
 const NOTICES: Record<string, { tone: "success" | "info" | "warning" | "danger"; text: string }> = {
   connected: { tone: "success", text: "Search Console is connected and the first data is in." },
   "choose-property": { tone: "info", text: "Search Console is connected. Choose which property belongs to your website." },

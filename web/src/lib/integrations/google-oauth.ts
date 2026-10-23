@@ -74,7 +74,17 @@ export function buildAuthUrl(p: { clientId: string; redirectUri: string; state: 
   return `${GOOGLE_AUTH_URL}?${params}`;
 }
 
-export type OAuthState = { state: string; verifier: string; userId: string; orgId: string; redirectUri: string; expiresAt: number };
+// returnTo: where the owner lands afterwards (Settings or the onboarding "Connect your tools" step). It is checked
+// again against the allowlist when read (lib/integrations/return-to.ts), so the cookie alone never picks a target.
+export type OAuthState = {
+  state: string;
+  verifier: string;
+  userId: string;
+  orgId: string;
+  redirectUri: string;
+  expiresAt: number;
+  returnTo?: string;
+};
 
 // The state cookie is encrypted (AES-GCM), so it can't be read or forged, and binds the flow to user + org.
 export const sealState = (s: OAuthState) => encryptSecret(JSON.stringify(s));

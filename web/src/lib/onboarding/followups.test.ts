@@ -12,7 +12,7 @@ import {
   questionsFor,
   sanitizeSelection,
 } from "./followups";
-import { onboardingPath } from "./steps";
+import { continueLabel, followUpPath, followUpStep, onboardingPath } from "./steps";
 
 const form = (entries: [string, string][]) => {
   const fd = new FormData();
@@ -146,5 +146,27 @@ describe("onboardingPath", () => {
     expect(onboardingPath({ ...s, status: "reviewing" })).toBe("/onboarding/s1/review");
     expect(onboardingPath({ ...s, status: "following_up" })).toBe("/onboarding/s1/questions");
     expect(onboardingPath({ ...s, status: "completed" })).toBe("/analysis/p1");
+  });
+});
+
+describe("followUpStep (D-054)", () => {
+  it("shows Connect your tools until a round of follow-up questions is waiting", () => {
+    expect(followUpStep(0)).toBe("connect");
+    expect(followUpPath("s1", 0)).toBe("/onboarding/s1/connect");
+  });
+
+  it("sends a waiting round to the questions, so Continue never generates another round on top of it", () => {
+    for (const n of [1, 2, 4]) {
+      expect(followUpStep(n)).toBe("questions");
+      expect(followUpPath("s1", n)).toBe("/onboarding/s1/questions");
+    }
+  });
+});
+
+describe("continueLabel", () => {
+  it("names a step that is true wherever following_up resumes (connect or questions)", () => {
+    expect(continueLabel("reviewing")).toBe("Confirm your priorities");
+    expect(continueLabel("following_up")).toBe("Continue setup");
+    expect(continueLabel("discovering")).toBe("Answer the questions");
   });
 });

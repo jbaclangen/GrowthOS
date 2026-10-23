@@ -137,7 +137,7 @@ Builds and maintains the structured business profile used by every other module.
 | WI-3 | Website, SEO, and conversion findings in the diagnosis and the growth plan | MVP | **Live** |
 | WI-4 | Show the measured signals as a checklist with pass/fail and why it matters | Next phase | Not started |
 | WI-5 | Dedicated prioritised website improvement plan (SEO, content quality, CRO, UX) using `seo_analyst` | Next phase | Not started |
-| WI-6 | Desktop PageSpeed, Search Console, and GA4 data | Next phase / Future | **Partial**: desktop PageSpeed runs alongside mobile (D-038; the growth score uses mobile only); the Google Search Console connection is live for Pro, but using its data in the diagnosis is not started; GA4 not started |
+| WI-6 | Desktop PageSpeed, Search Console, and GA4 data | Next phase / Future | **Partial**: desktop PageSpeed runs alongside mobile (D-038; the growth score uses mobile only); the Google Search Console connection is live for Pro (in Settings and on the optional "Connect your tools" onboarding step, D-054), but using its data in the diagnosis is not started; GA4 not started |
 | WI-7 | Page-level recommendations and rewrite suggestions | Future vision | Not started |
 
 **MVP acceptance criteria:** the assessment is produced even if PageSpeed fails; crawl failures on

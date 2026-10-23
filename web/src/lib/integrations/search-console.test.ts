@@ -111,6 +111,16 @@ describe("OAuth helpers", () => {
     expect(openState(undefined)).toBeNull();
   });
 
+  it("keeps the page to return to in the sealed state, and still opens a state without one", () => {
+    const s = { state: "abc", verifier: "v", userId: "u1", orgId: "o1", redirectUri: "r", expiresAt: Date.now() + 60_000 };
+    const returnTo = "/onboarding/0b5e3c1a-7f2d-4e8b-9a6c-1d2e3f4a5b6c/connect";
+    const sealed = sealState({ ...s, returnTo });
+    expect(sealed).not.toContain("onboarding");
+    expect(openState(sealed)?.returnTo).toBe(returnTo);
+    expect(openState(sealState(s))).toEqual(s);
+    expect(openState(sealState(s))?.returnTo).toBeUndefined();
+  });
+
   it("reads the email from an id_token payload", () => {
     const payload = Buffer.from(JSON.stringify({ email: "owner@example.com", sub: "1" })).toString("base64url");
     expect(emailFromIdToken(`h.${payload}.sig`)).toBe("owner@example.com");
