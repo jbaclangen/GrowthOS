@@ -422,6 +422,8 @@ export async function syncAnalytics(db: Db, organizationId: string, opts: { skip
     const available = options.map((o) => o.id);
     const labels = Object.fromEntries(options.map((o) => [o.id, o.label]));
     if (!property || !available.includes(property)) {
+      // The chosen property is gone from the account: its data no longer matches what is connected.
+      if (property) await db.from("analytics_snapshots").delete().eq("organization_id", organizationId);
       const websiteUrl = await websiteFor(db, organizationId);
       property = websiteUrl && options.length ? pickProperty(websiteUrl, await streamsFor(token, options)) : null;
     }
@@ -478,8 +480,9 @@ async function pruneSnapshots(db: Db, organizationId: string) {
 }
 
 // Owner chose a property in Settings. Only properties the connected account can read are accepted.
-// Returns "first" when no property was chosen before (the first fetch may then skip the 10-minute guard).
-export async function selectProperty(db: Db, organizationId: string, property: string): Promise<"invalid" | "first" | "changed"> {
+// Returns "first" when no property was chosen before and "changed" for another one (both fetch at once, skipping the
+// 10-minute guard: there is no data for the property yet), "same" when it was already chosen.
+export async function selectProperty(db: Db, organizationId: string, property: string): Promise<"invalid" | "first" | "changed" | "same"> {
   if (!isPropertyId(property)) return "invalid";
   const { data: conn } = await db
     .from("integration_connections")
@@ -489,7 +492,8 @@ export async function selectProperty(db: Db, organizationId: string, property: s
     .maybeSingle();
   if (!conn || conn.status === "revoked") return "invalid";
   if (!(conn.available_properties as string[]).includes(property)) return "invalid";
-  if (conn.selected_property && conn.selected_property !== property) {
+  if (conn.selected_property === property) return "same";
+  if (conn.selected_property) {
     // Another property means other data.
     await db.from("analytics_snapshots").delete().eq("organization_id", organizationId);
   }

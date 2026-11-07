@@ -230,12 +230,12 @@ export function describeError(e: unknown, property?: string | null): { status: "
       status: "error",
       message:
         e.code === "invalid_grant"
-          ? "Google access expired or was removed in your Google account. Reconnect Search Console."
-          : "Google didn't accept Braventa's access. Reconnect Search Console.",
+          ? "Google access expired or was removed in your Google account. Reconnect Google."
+          : "Google didn't accept Braventa's access. Reconnect Google.",
     };
   }
   if (e instanceof SearchConsoleApiError) {
-    if (e.status === 401) return { status: "error", message: "Google access expired. Reconnect Search Console." };
+    if (e.status === 401) return { status: "error", message: "Google access expired. Reconnect Google." };
     if (e.status === 403)
       return {
         status: "error",
@@ -405,7 +405,7 @@ export async function syncSearchConsole(
     try {
       refreshToken = decryptSecret(conn.refresh_token_ciphertext);
     } catch {
-      const message = "The stored Search Console connection can't be read. Reconnect Search Console.";
+      const message = "The stored Google connection can't be read. Reconnect Google.";
       await update({ status: "error", last_error: message });
       return { ok: false, reason: "error", message };
     }

@@ -71,8 +71,8 @@ export async function chooseAnalyticsProperty(formData: FormData) {
   const db = createSupabaseAdminClient();
   const selected = property ? await selectAnalyticsProperty(db, org.id, property) : "invalid";
   if (selected === "invalid") redirect(connectionOutcomeUrl(back, "ga-property-invalid"));
-  // Any change of property fetches at once: the old property's data was just deleted.
-  const result = await syncAnalytics(db, org.id, { skipGuard: true });
+  // A new property fetches at once (the old property's data was just deleted); the same one respects the guard.
+  const result = await syncAnalytics(db, org.id, { skipGuard: selected !== "same" });
   redirect(connectionOutcomeUrl(back, result.ok ? "ga-refreshed" : GA_SYNC_CODES[result.reason]));
 }
 

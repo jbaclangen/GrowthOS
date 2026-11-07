@@ -18,8 +18,9 @@ import { EvidenceStatus } from "../evidence-status";
 import { ContinueButton, ContinuePendingNote } from "./continue-button";
 
 // "Connect your tools" (D-041, INTEGRATIONS_ROADMAP §2): an optional step between confirming priorities and the
-// follow-up questions. Only Google Search Console can be connected (Pro and the Pro trial, owner only; paused on
-// Basic); every other tool is Coming soon. Its data feeds the diagnosis and the growth score (D-051 step 6).
+// follow-up questions. Only Google can be connected: one sign-in covers Search Console and Google Analytics 4 (Pro
+// and the Pro trial, owner only; paused on Basic); every other tool is Coming soon. Their data feeds the diagnosis and
+// the growth score (D-051 step 6; the Analytics module, D-056).
 // The AI assistant connection (MCP) skips this step: connections are authorized only in Braventa.
 
 export const metadata: Metadata = { title: "Connect your tools" };

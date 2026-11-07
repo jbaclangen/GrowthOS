@@ -1,3 +1,4 @@
+import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { fakeSupabase } from "../../../test/fake-supabase";
 import { GoogleOAuthError } from "./google-oauth";
@@ -116,6 +117,8 @@ describe("GA4 properties", () => {
     expect(await selectProperty(db as never, "o", "properties/999")).toBe("invalid");
     expect(await selectProperty(db as never, "o", "not-a-property")).toBe("invalid");
     expect(await selectProperty(db as never, "o", "properties/111")).toBe("first");
+    // Choosing it again changes nothing, so the refresh guard still applies.
+    expect(await selectProperty(db as never, "o", "properties/111")).toBe("same");
   });
 });
 
@@ -174,5 +177,24 @@ describe("GA4 summary and errors", () => {
     expect(googleAnalyticsAccess({ plan: "trial", trial_ends_at: soon }).allowed).toBe(true);
     expect(googleAnalyticsAccess({ plan: "pro", trial_ends_at: soon }).allowed).toBe(true);
     expect(googleAnalyticsAccess({ plan: "basic", trial_ends_at: soon }).allowed).toBe(false);
+  });
+});
+
+describe("the google_analytics migration", () => {
+  const dir = new URL("../../../../supabase/migrations/", import.meta.url);
+  const sql = () => {
+    const file = readdirSync(dir).find((f) => f.endsWith("_google_analytics.sql"));
+    expect(file).toBeTruthy();
+    return readFileSync(new URL(file!, dir), "utf8");
+  };
+
+  it("allows both Google products and keeps snapshots server-written and member-readable", () => {
+    const s = sql();
+    expect(s).toMatch(/check \(provider in \('google_search_console', 'google_analytics'\)\)/);
+    expect(s).toMatch(/grant select \(property_labels\) on public\.integration_connections to authenticated/);
+    expect(s).toMatch(/alter table public\.analytics_snapshots enable row level security/);
+    expect(s).toMatch(/using \(public\.is_member\(organization_id\)\)/);
+    expect(s).toMatch(/revoke all on public\.analytics_snapshots from authenticated, anon/);
+    expect(s).toMatch(/references public\.integration_connections\(id, organization_id\) on delete cascade/);
   });
 });

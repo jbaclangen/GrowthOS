@@ -34,8 +34,9 @@ async function revokeStored(ciphertexts: (string | null | undefined)[]) {
 }
 
 // Stores the connection after the OAuth callback: one row per granted product, replacing what was there, and the
-// products the owner didn't grant this time are cleared (their old token is revoked below, so they'd stop working
-// anyway). Old tokens are revoked once each; the new one is never revoked here.
+// products the owner didn't grant this time are cleared. Old tokens are revoked only when they belong to another
+// Google account: Google keeps one grant per account and client, so revoking an old token of the same account could
+// also end the new one (the old token is overwritten instead, and Google retires old refresh tokens itself).
 export async function saveGoogleConnection(
   db: Db,
   c: { organizationId: string; userId: string; email: string | null; scopes: string[]; refreshToken: string; granted: GoogleProvider[] },
@@ -46,7 +47,7 @@ export async function saveGoogleConnection(
     .eq("organization_id", c.organizationId)
     .in("provider", GOOGLE_PROVIDERS as GoogleProvider[]);
   const rows = (existing ?? []) as { id: string; provider: GoogleProvider; refresh_token_ciphertext: string | null; google_account_email: string | null }[];
-  await revokeStored(rows.map((r) => r.refresh_token_ciphertext));
+  await revokeStored(rows.filter((r) => r.google_account_email && r.google_account_email !== c.email).map((r) => r.refresh_token_ciphertext));
 
   for (const provider of GOOGLE_PROVIDERS) {
     const old = rows.find((r) => r.provider === provider);
