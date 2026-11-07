@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-08
-commit: c507e16
+commit: 6de4da0
 entity: site/src/app/sitemap.ts
 ---
 
@@ -22,7 +22,7 @@ mirrors, and the pricing page imports the tier list the app enforces instead of 
 
 ## Shape
 
-- Sitemap `PATHS`: `site/src/app/sitemap.ts:4-19`; `SITE_URL` `site/src/lib/site.ts:4`. Scripts (dev on port 3001,
+- Sitemap `PATHS`: `site/src/app/sitemap.ts:4-23`; `SITE_URL` `site/src/lib/site.ts:4`. Scripts (dev on port 3001,
   build, start, lint only): `site/package.json:6-11`.
 
 | Path | Must match | Citation |
@@ -32,16 +32,20 @@ mirrors, and the pricing page imports the tier list the app enforces instead of 
 | `/contact` | form token from `site/src/lib/spam.ts`; action inserts `contact_requests` with the publishable key, then posts to HubSpot | `site/src/app/contact/page.tsx:5-6`; `site/src/app/contact/actions.ts:11-14,47-54`; `site/src/lib/hubspot.ts:9-10,22-23,49-53` |
 | `/how-it-works` | onboarding steps + `STEPS` in `web/src/lib/pipeline/website-intel.ts`; `computeGrowthScore` + `docs/architecture/FEATURE_MODULES.md` §9; `docs/product/BUSINESS_METHODOLOGY.md` | `site/src/app/how-it-works/page.tsx:10-11,39-43,64-65` |
 | `/legal/cookies` | `docs/marketing/SITEMAP.md` §4 (no trackers, no banner) | `site/src/app/legal/cookies/page.tsx:6-7` |
-| `/legal/privacy` | `docs/architecture/SECURITY_AND_PRIVACY.md`; lawyer pending (Q-032) | `site/src/app/legal/privacy/page.tsx:10` |
+| `/legal/dpa` | processor terms (D-056); Annex 2 lists only built measures | `site/src/app/legal/dpa/page.tsx:10-12` |
+| `/legal/gdpr` | guide for EU and UK customers (D-056); Art. 27 representatives pending (Q-053) | `site/src/app/legal/gdpr/page.tsx:10-12` |
+| `/legal/msa` | service scope must match what is live; SLA for paid plans (D-056) | `site/src/app/legal/msa/page.tsx:10-13`; SLA `:103-163`; connected apps `:196-224` |
+| `/legal/privacy` | `docs/architecture/SECURITY_AND_PRIVACY.md`, `docs/research/LEGAL_AND_PRIVACY_REVIEW_2026-11-08.md` §2; lawyer pending (Q-032) | `site/src/app/legal/privacy/page.tsx:10-13` |
+| `/legal/refunds` | refund rules (D-056); billing not built (Q-010) | `site/src/app/legal/refunds/page.tsx:10-13` |
 | `/legal/subprocessors` | `docs/architecture/INTEGRATIONS.md`; update before adding a provider | `site/src/app/legal/subprocessors/page.tsx:10` |
-| `/legal/terms` | placeholder (`DraftNotice`) | `site/src/app/legal/terms/page.tsx:3,5` |
+| `/legal/terms` | D-056; vendor caps in `docs/research/LEGAL_AND_PRIVACY_REVIEW_2026-11-08.md` §1 | `site/src/app/legal/terms/page.tsx:7-10`; liability `:183-230` |
 | `/pricing` | `web/src/lib/plans/tiers.ts` (D-030) | `site/src/app/pricing/page.tsx:5-6` |
 | `/product` | `docs/product/MVP_SCOPE.md` + `tiers.ts`; module names D-010 | `site/src/app/product/page.tsx:10-11` |
 | `/service-businesses` | no doc named in the file | `site/src/app/service-businesses/page.tsx:4-8` |
 | `/trust` | `SECURITY_AND_PRIVACY.md`; no certification claims (WEBSITE_MESSAGING §10) | `site/src/app/trust/page.tsx:11` |
 | `/trust/ai` | `web/src/lib/ai/router.ts` + `docs/architecture/AI_ROUTING_AND_COSTS.md` (D-024) | `site/src/app/trust/ai/page.tsx:10` |
 
-Citations: `site/src/app/sitemap.ts:4-19`, `site/src/app/robots.ts:5-8`, `site/next.config.ts:24-28`
+Citations: `site/src/app/sitemap.ts:4-23`, `site/src/app/robots.ts:5-8`, `site/next.config.ts:24-28`
 
 ## Connected to
 
@@ -52,7 +56,7 @@ Citations: `site/src/app/sitemap.ts:4-19`, `site/src/app/robots.ts:5-8`, `site/n
 
 ## If you change this
 
-- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-19` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:69`); a price or tier change is made in `web/src/lib/plans/tiers.ts`, never on the page; a new vendor → `/legal/subprocessors`; data a connected account stores or sends to a model → `/legal/privacy` (Search Console: `site/src/app/legal/privacy/page.tsx:67-129`) and the vendor rows on `/legal/subprocessors` (`site/src/app/legal/subprocessors/page.tsx:12,14,16,51-55`); a scored module or evidence source added, removed or reweighted → the hand-written score and source copy on `/` (`site/src/app/page.tsx:65,223-225`), `/product` (`site/src/app/product/page.tsx:30`), `/how-it-works` (`site/src/app/how-it-works/page.tsx:39-43,47-48,57`), `/pricing` FAQ (`site/src/app/pricing/page.tsx:27`), `/trust` (`site/src/app/trust/page.tsx:32-33`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:29-30,76-80`), which must match [growth-score](../report/growth-score.md) and the app's `BLEND` list (`web/src/lib/modules/score.ts:165-169`); the site imports neither; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
+- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-23` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:69`); a price or tier change is made in `web/src/lib/plans/tiers.ts`, never on the page; a new vendor → `/legal/subprocessors`; data a connected account stores or sends to a model → `/legal/privacy` (Search Console: `site/src/app/legal/privacy/page.tsx:91-153`) and the vendor rows on `/legal/subprocessors` (`site/src/app/legal/subprocessors/page.tsx:12,14,16,54-58`); a change to the liability cap, uptime target or refunds → Terms §12 (`site/src/app/legal/terms/page.tsx:183-230`), which the MSA (`site/src/app/legal/msa/page.tsx:103-163`) and the Refund policy restate, and D-056; a scored module or evidence source added, removed or reweighted → the hand-written score and source copy on `/` (`site/src/app/page.tsx:65,223-225`), `/product` (`site/src/app/product/page.tsx:30`), `/how-it-works` (`site/src/app/how-it-works/page.tsx:39-43,47-48,57`), `/pricing` FAQ (`site/src/app/pricing/page.tsx:27`), `/trust` (`site/src/app/trust/page.tsx:32-33`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:29-30,76-80`), which must match [growth-score](../report/growth-score.md) and the app's `BLEND` list (`web/src/lib/modules/score.ts:165-169`); the site imports neither; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
 - **Does not hit:** app routes, RLS, the schema (only anonymous inserts into `contact_requests`).
 
 ## Surfaces

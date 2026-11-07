@@ -13,7 +13,11 @@ const PATHS = [
   "/trust",
   "/trust/ai",
   "/legal/terms",
+  "/legal/msa",
   "/legal/privacy",
+  "/legal/dpa",
+  "/legal/gdpr",
+  "/legal/refunds",
   "/legal/cookies",
   "/legal/subprocessors",
 ];
