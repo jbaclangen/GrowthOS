@@ -103,7 +103,7 @@ The difference is the **combination** — no single item below is unique on its 
 | Differentiator | What it means | Status |
 |---|---|---|
 | Business context | Builds a structured profile of the business from its website: services, customers, locations, brand voice, strengths, gaps, likely competitors. Every later output uses it. | **Live** |
-| Strategy | Growth score (0–100 with sub-scores, including Google PageSpeed measurements), top five opportunities ranked by impact and effort, each with a first step; a 30-day content plan with goal, audience, pillars, and channels. | **Live** |
+| Strategy | Growth score (0–100 with sub-scores, including Google PageSpeed measurements and, on Pro with Google Search Console connected, search visibility), a diagnosis the owner confirms or corrects, and one prioritized growth plan, each action with a first step; a 30-day content plan with goal, audience, pillars, and channels. | **Live** |
 | AI-assisted production | Drafts social posts in the business's voice, aligned to the plan. | **Live** (five drafted posts per analysis) |
 | Human approval | Every draft is marked "Needs approval". The user approves or rejects. Nothing is published automatically. | **Live** |
 | Connected tools | Connections to the customer's existing tools, starting with HubSpot. | **Planned** |

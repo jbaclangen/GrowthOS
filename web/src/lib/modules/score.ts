@@ -158,3 +158,17 @@ export function growthScoreNote(modules: ModuleId[]): string {
   const parts = modules.map((id) => (SCORE_SOURCES[id] ? `${moduleLabel(id)} (${SCORE_SOURCES[id]})` : moduleLabel(id)));
   return `0–100, based on ${modules.length} ${modules.length === 1 ? "module" : "modules"}: ${parts.join("; ")}. It isn't a measure of the whole business and doesn't predict results.`;
 }
+
+// What a report's score blends, in words, for the score tile ("short") and the Scores section ("long"): only the
+// sources whose modules the score used, so a report without PageSpeed doesn't claim measured site quality and one
+// without Search Console data doesn't claim search data. Fixed order: measured, assessed, then search data.
+const BLEND: { id: ModuleId; short: string; long: string }[] = [
+  { id: "website_seo", short: "measured site quality", long: "measured site quality (Google PageSpeed)" },
+  { id: "conversion", short: "assessed marketing readiness", long: "Braventa's assessment of your marketing readiness" },
+  { id: "search_visibility", short: "Google search data", long: "your search data (Google Search Console)" },
+];
+
+export function scoreBlend(modules: readonly ModuleId[], form: "short" | "long"): string {
+  const phrases = BLEND.filter((b) => modules.includes(b.id)).map((b) => b[form]);
+  return phrases.length < 2 ? (phrases[0] ?? "") : `${phrases.slice(0, -1).join(", ")} and ${phrases.at(-1)}`;
+}

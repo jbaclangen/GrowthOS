@@ -78,8 +78,9 @@ export const STEPS = [
 
 export type StepKey = (typeof STEPS)[number]["key"] | "evidence_done";
 
-// Growth score: a deterministic blend of measured (PageSpeed) and assessed (AI) dimensions, computed over the
-// organization's enabled feature modules (D-051; lib/modules/score.ts). The modules that ran are recorded in
+// Growth score: a deterministic blend of measured (PageSpeed and, for Pro, Premium and trial organizations with
+// Search Console data, search visibility) and assessed (AI) dimensions, computed over the organization's enabled
+// feature modules (D-051; lib/modules/score.ts). The modules that ran are recorded in
 // module_runs, and new findings and plan items carry the module they belong to (lib/modules/registry.ts).
 
 // What the plan phase needs from the evidence phase; stored in the evidence job's output.

@@ -220,7 +220,9 @@ function HeroPreview() {
         </svg>
         <div>
           <p className="eyebrow text-brand-paper/60">Growth score</p>
-          <p className="mt-1 text-sm text-brand-paper/80">Measured site quality and assessed marketing readiness</p>
+          <p className="mt-1 text-sm text-brand-paper/80">
+            Measured site quality, assessed marketing readiness and, on Pro, your search data
+          </p>
         </div>
       </div>
       <ul className="mt-6 space-y-3">

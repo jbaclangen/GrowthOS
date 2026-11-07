@@ -133,8 +133,10 @@ const business: BusinessSummary = {
     analyzedAt: "2026-10-15T10:00:00Z",
     analysisStatus: "complete",
     growthScore: 58,
+    scoreModules: ["Conversion and messaging", "Website and technical SEO"],
     scores: { content_clarity: 60, conversion_readiness: 50, online_presence: 55 },
     pagespeed: { performance: 70, seo: 90, accessibility: 80, bestPractices: 95 },
+    searchVisibility: null,
     diagnosis: {
       status: "proposed",
       summary: "Few calls from the website.",
@@ -159,6 +161,21 @@ describe("business data in the prompt", () => {
     expect(text).toContain("[Verified, high confidence");
     expect(text).toContain("Add a call button (open)");
     expect(text).toContain("5 needs approval");
+    expect(text).toContain("Growth score based on: Conversion and messaging, Website and technical SEO");
+    expect(text).not.toContain("Search visibility");
+  });
+
+  it("names Search visibility and its sub-score when they counted in the score", () => {
+    const text = formatBusinessSummary({
+      ...business,
+      latest: {
+        ...business.latest!,
+        scoreModules: ["Conversion and messaging", "Website and technical SEO", "Search visibility"],
+        searchVisibility: 64,
+      },
+    });
+    expect(text).toContain("Growth score based on: Conversion and messaging, Website and technical SEO, Search visibility");
+    expect(text).toContain("Search visibility from Google Search Console (measured): 64");
   });
 
   it("caps its size", () => {

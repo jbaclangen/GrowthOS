@@ -226,8 +226,9 @@ Consent class for all templates in this section: **Marketing** — requires reco
   >
   > Your growth score is a starting point for priorities, not a prediction. It combines:
   >
-  > - **Measured by Google:** mobile speed, SEO basics, accessibility.
+  > - **Measured by Google:** mobile speed, SEO basics, accessibility, best practices.
   > - **Assessed by Braventa:** content clarity, conversion readiness, online presence.
+  > - **On Pro, from your Google Search Console:** search position, click-through rate, the trend in clicks, and how many of your pages show up in search.
   >
   > The number matters less than the five opportunities underneath it. Start with the one marked high impact and low effort.
   >

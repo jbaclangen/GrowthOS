@@ -27,7 +27,7 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
     status: "live",
     summary: "A growth score, a diagnosis you confirm, and one prioritized growth plan.",
     today: [
-      "Growth score from measured site quality and assessed marketing readiness",
+      "Growth score from measured site quality, assessed marketing readiness and, on Pro, your Google Search Console data",
       "Findings marked Verified, From you, or Inferred, with confidence",
       "One plan: your priorities first, each action with a first step and a way to measure it",
       "Accept, dismiss or mark each action done",

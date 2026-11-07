@@ -64,8 +64,12 @@ export type BusinessSummary = {
     analyzedAt: string | null;
     analysisStatus: string;
     growthScore: number | null;
+    // The feature modules the score is based on, by label (modulesUsed in lib/modules/score.ts); empty when unscored.
+    scoreModules: string[];
     scores: Record<string, number> | null;
     pagespeed: Record<string, number> | null;
+    // Search visibility's sub-score (Google Search Console), when it counted in the score; null otherwise.
+    searchVisibility: number | null;
     diagnosis: null | {
       status: string;
       summary: string;
@@ -123,12 +127,14 @@ export function formatBusinessSummary(b: BusinessSummary, maxChars = MAX_BUSINES
     if (l.industry) lines.push(`Industry: ${clean(l.industry, 100)}`);
     lines.push(`Analyzed: ${l.analyzedAt ? l.analyzedAt.slice(0, 10) : "not yet"}; analysis status: ${clean(l.analysisStatus, 60)}`);
     lines.push(`Growth score: ${l.growthScore ?? "not scored yet"} / 100`);
+    if (l.scoreModules.length) lines.push(`Growth score based on: ${l.scoreModules.join(", ")}`);
     if (l.scores) lines.push(`Assessed parts (AI): ${Object.entries(l.scores).map(([k, v]) => `${k.replace(/_/g, " ")} ${v}`).join(", ")}`);
     lines.push(
       l.pagespeed
         ? `Google PageSpeed mobile (measured): ${Object.entries(l.pagespeed).map(([k, v]) => `${k} ${v}`).join(", ")}`
         : "Google PageSpeed: missing from this run",
     );
+    if (l.searchVisibility != null) lines.push(`Search visibility from Google Search Console (measured): ${l.searchVisibility}`);
     if (l.diagnosis) {
       lines.push(`Diagnosis (${l.diagnosis.status === "confirmed" ? "confirmed by the owner" : "proposed, waiting for the owner's check"}): ${clean(l.diagnosis.summary, 600)}`);
       l.diagnosis.findings.forEach((f, i) => {

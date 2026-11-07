@@ -26,7 +26,8 @@ export default function AiUse() {
           <h2>What AI does in Braventa</h2>
           <p>
             The business profile, growth assessment, diagnosis, growth plan, content plan and drafted posts are
-            AI-generated from your website, Google PageSpeed scores, and your answers. They can be wrong. That&apos;s why
+            AI-generated from your website, Google PageSpeed scores, your answers and, on Pro with Google Search Console
+            connected, a summary of your search data. They can be wrong. That&apos;s why
             each finding shows its evidence and confidence, and why nothing is used for your business until you confirm or
             approve it.
           </p>
@@ -72,6 +73,10 @@ export default function AiUse() {
           <h2>What the models see</h2>
           <ul>
             <li>Text from your website&apos;s public pages, and its Google PageSpeed scores.</li>
+            <li>
+              On Pro, with Google Search Console connected: a summary of your last 28 days of search data (totals, your
+              top 10 searches and pages, and whether your home page is indexed).
+            </li>
             <li>The answers you give during setup, and any corrections you make to the diagnosis.</li>
             <li>The business profile built from those, so drafts match your brand voice.</li>
             <li>

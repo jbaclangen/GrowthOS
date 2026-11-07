@@ -179,9 +179,11 @@ Step by step (code references are to `web/src/`):
      only — see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#7-prompt-injection-posture)) and PageSpeed (mobile) run in
      parallel; PageSpeed failure is tolerated.
    - Growth score is **deterministic code** (`computeGrowthScore` in `web/src/lib/modules/score.ts`): a weighted
-     blend of three AI-assessed scores and four PageSpeed scores, computed as a renormalised weighted mean over the
-     organization's enabled feature modules (D-051, [FEATURE_MODULES.md](FEATURE_MODULES.md)); the weights are
-     renormalised when a module has no evidence (PageSpeed unavailable).
+     blend of three AI-assessed scores and four PageSpeed (mobile) scores, plus up to five Search visibility scores
+     from Google Search Console for Pro, Premium and trial organizations with the connection active, computed as a
+     renormalised weighted mean over the organization's enabled feature modules (D-051,
+     [FEATURE_MODULES.md](FEATURE_MODULES.md)); the weights are renormalised when a module has no evidence (PageSpeed
+     unavailable, or no Search Console snapshot with at least 10 impressions).
    - Four AI calls via `runWorkerJson`: `business_analyst`, `website_auditor`, `content_strategist`,
      `content_writer`. Each output is zod-validated; a bad parse is retried once.
    - Drafted posts are written with `status = 'needs_approval'`. Nothing is published; no publishing
