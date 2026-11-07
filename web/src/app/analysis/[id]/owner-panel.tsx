@@ -63,7 +63,7 @@ export function OwnerPanel({ businessProfileId, inputs }: { businessProfileId: s
 
       {state?.saved && !editing && (
         <p className="mt-3 text-sm" role="status">
-          Answers saved. Re-run the analysis to update the opportunities, plan and drafts.
+          Answers saved. Re-run the analysis to update the diagnosis, growth plan and drafts.
         </p>
       )}
     </section>

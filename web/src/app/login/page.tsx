@@ -28,7 +28,7 @@ async function LoginContent({ searchParams }: { searchParams: PageProps<"/login"
           ? "Sign in to connect your AI assistant to Braventa. You'll choose the business and approve the access next."
           : invited
             ? "You've been invited to join a business on Braventa. Sign in, or create an account, with the email address the invite was sent to."
-            : "Enter a website and get a growth score, five opportunities, a 30-day plan and your first content."}
+            : "Enter a website and get a growth score, a diagnosis, a growth plan, a 30-day content plan and your first drafts."}
       </p>
       <AuthForm next={next} />
     </>
