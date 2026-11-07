@@ -39,7 +39,11 @@ export const FOOTER = [
     title: "Legal",
     links: [
       { label: "Terms", href: "/legal/terms" },
+      { label: "Master Services Agreement", href: "/legal/msa" },
       { label: "Privacy", href: "/legal/privacy" },
+      { label: "Data Processing Agreement", href: "/legal/dpa" },
+      { label: "GDPR", href: "/legal/gdpr" },
+      { label: "Refund policy", href: "/legal/refunds" },
       { label: "Cookies", href: "/legal/cookies" },
       { label: "Sub-processors", href: "/legal/subprocessors" },
     ],
