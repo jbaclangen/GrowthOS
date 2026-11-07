@@ -4,7 +4,7 @@ cluster: integrations
 universe: live
 status: verified
 verified: 2026-11-08
-commit: c89da2b
+commit: 6de4da0
 entity: supabase/migrations/20261011161133_search_console.sql
 ---
 

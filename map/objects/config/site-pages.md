@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-08
-commit: c89da2b
+commit: 6de4da0
 entity: site/src/app/sitemap.ts
 ---
 
