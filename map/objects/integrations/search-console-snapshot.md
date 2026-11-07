@@ -4,7 +4,7 @@ cluster: integrations
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 6de4da0
+commit: 1d58a87
 entity: supabase/migrations/20261011161133_search_console.sql
 ---
 
@@ -14,32 +14,32 @@ One row per fetch of Search Console data for an organization (28-day totals, top
 
 ## Why this shape
 
-Google's data lags and is quota-limited, so Braventa stores a fetch instead of querying live: a fetch runs at most every `REFRESH_INTERVAL_MS` (10 minutes, `web/src/lib/integrations/search-console.ts:18,436-438`), only `KEEP_SNAPSHOTS` (12) rows survive pruning (`:20,491-505`), and the composite FK ties each row to a connection of the same organization (`supabase/migrations/20261011161133_search_console.sql:61-63`).
+Google's data lags and is quota-limited, so Braventa stores a fetch instead of querying live: a fetch runs at most every `REFRESH_INTERVAL_MS` (10 minutes, `web/src/lib/integrations/search-console.ts:18,397-399`), only `KEEP_SNAPSHOTS` (12) rows survive pruning (`:20,452-466`), and the composite FK ties each row to a connection of the same organization (`supabase/migrations/20261011161133_search_console.sql:61-63`).
 
 ## Shape
 
 - Columns: `connection_id`, `property`, `date_range_start/end`, `dimensions[]`, `rows` jsonb, `totals` jsonb, `fetched_at` — `supabase/migrations/20261011161133_search_console.sql:49-64`
 - RLS "members read", select-only grant — `:68-72`
-- Insert: `syncSearchConsole` `web/src/lib/integrations/search-console.ts:463-473`
-- Delete: Google account changed `:385-387`, disconnect `:543`, prune `:491-505`
-- Read: `latestSnapshot` `:560-569`; `/search` `web/src/app/search/page.tsx:38-44`; card `web/src/components/connections/search-console-card.tsx:65-71`
-- Into the model and score: `summarizeSnapshot` `search-console.ts:254` ← `searchConsoleSummaryForPrompt` `:575-583` ← `searchConsoleEvidence` `web/src/lib/pipeline/website-intel.ts:434-436` (only when `search_visibility` is enabled); score parts `searchVisibilityEvidence` `web/src/lib/modules/score.ts:75-93`; the report records which snapshot was used `web/src/lib/pipeline/website-intel.ts:665-667`
-- Downstream, not the row: the module's sub-score `reports.data.module_scores.search_visibility` shows as a Search visibility bar when it counted, on the score tile `web/src/app/analysis/[id]/infographic.tsx:171,183` and Scores section `web/src/app/analysis/[id]/report-sections.tsx:56,77`, and in Ask Braventa's summary `web/src/lib/assistant/context.ts:180`
-- Prompt ref `G1` `web/src/lib/modules/registry.ts:280`; findings citing it map to `search_visibility` `:286-289`
+- Insert: `syncSearchConsole` `web/src/lib/integrations/search-console.ts:424-434`
+- Delete: Google account changed `web/src/lib/integrations/google-connection.ts:58-61`, disconnect `:83` (`clearConnection`), prune `search-console.ts:452-466`
+- Read: `latestSnapshot` `search-console.ts:488-497`; `/search` `web/src/app/search/page.tsx:38-44`; card `web/src/components/connections/search-console-card.tsx:65-71`
+- Into the model and score: `summarizeSnapshot` `search-console.ts:254` ← `searchConsoleSummaryForPrompt` `:503-511` ← `searchConsoleEvidence` `web/src/lib/pipeline/website-intel.ts:436-438` (only when `search_visibility` is enabled); score parts `searchVisibilityEvidence` `web/src/lib/modules/score.ts:77-95`; the report records which snapshot was used `web/src/lib/pipeline/website-intel.ts:678-680`
+- Downstream, not the row: the module's sub-score `reports.data.module_scores.search_visibility` shows as a Search visibility bar when it counted, on the score tile `web/src/app/analysis/[id]/infographic.tsx:171,185` and Scores section `web/src/app/analysis/[id]/report-sections.tsx:56,78`, and in Ask Braventa's summary `web/src/lib/assistant/context.ts:180`
+- Prompt ref `G1` `web/src/lib/modules/registry.ts:283`; findings citing it map to `search_visibility` `:291-295`
 
-Citations: `supabase/migrations/20261011161133_search_console.sql:47-72`, `web/src/lib/integrations/search-console.ts:412-505`
+Citations: `supabase/migrations/20261011161133_search_console.sql:47-72`, `web/src/lib/integrations/search-console.ts:368-466`
 
 ## Connected to
 
 - **owns:** nothing
 - **owned-by:** [integration-connection](integration-connection.md), [organization](../tenancy/organization.md)
 - **joins:** [report](../report/report.md) (`reports.data.search_console`), [growth-score](../report/growth-score.md), [diagnosis-finding](../report/diagnosis-finding.md) (ref `G1`), [module-run](../modules/module-run.md)
-- **looks-like-but-is-not:** [audit-run](../pipeline/audit-run.md) (Braventa's own crawl, not Google's data)
+- **looks-like-but-is-not:** [audit-run](../pipeline/audit-run.md) (Braventa's own crawl, not Google's data); [analytics-snapshot](analytics-snapshot.md) (GA4 data from the same Google connection, the Analytics module)
 
 ## If you change this
 
-- **Hits:** [sync-search-console](../../processes/sync-search-console.md), [score-and-diagnose](../../processes/score-and-diagnose.md), [revise-diagnosis](../../processes/revise-diagnosis.md), `docs/architecture/FEATURE_MODULES.md` §9; what is stored, kept, shown to whom or summarized for the model (`summarizeSnapshot`) → the hand-written disclosures on `/legal/privacy` (`site/src/app/legal/privacy/page.tsx:96-158`), `/legal/subprocessors` (`site/src/app/legal/subprocessors/page.tsx:12,14,16,54-58`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:76-80`), and `docs/architecture/SECURITY_AND_PRIVACY.md` §6, §9, §10
-- **Does not hit:** [connect-search-console](../../processes/connect-search-console.md) up to `saveConnection`, the MCP and OAuth tables
+- **Hits:** [sync-search-console](../../processes/sync-search-console.md), [score-and-diagnose](../../processes/score-and-diagnose.md), [revise-diagnosis](../../processes/revise-diagnosis.md), `docs/architecture/FEATURE_MODULES.md` §9
+- **Does not hit:** [connect-search-console](../../processes/connect-search-console.md) up to `saveGoogleConnection`, the MCP and OAuth tables
 
 ## Surfaces
 
@@ -49,7 +49,7 @@ Citations: `supabase/migrations/20261011161133_search_console.sql:47-72`, `web/s
 | `/search`, Settings card, connect step | reads |
 | scoring and diagnosis_update steps | reads (latest row) |
 | report score tile, Scores section, Ask Braventa summary | read `module_scores.search_visibility`, not the row |
-| `disconnectSearchConsole` (from `disconnectSearchConsoleAction`, owner only through `integrations.connect`, `web/src/app/settings/connections-actions.ts:52`) | deletes |
+| `disconnectGoogle` (from `disconnectGoogleAction`, owner only through `integrations.connect`, `web/src/app/settings/connections-actions.ts:82`) | deletes |
 
 ## See
 

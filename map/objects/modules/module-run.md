@@ -4,7 +4,7 @@ cluster: modules
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 00d230f
+commit: 1d58a87
 entity: supabase/migrations/20261023063253_feature_modules.sql
 ---
 
@@ -14,17 +14,17 @@ One row per feature module that ran in an analysis job, with its sub-score when 
 
 ## Why this shape
 
-D-051 wanted a per-module record (what ran, with which rules version, on which evidence) separate from the blended growth score (`supabase/migrations/20261023063253_feature_modules.sql:12-13`, `docs/decisions/DECISION_LOG.md:664-668`); the per-module report sections that could read it are not built (`docs/architecture/FEATURE_MODULES.md:129`). Rows are a record, not an input: a failed insert is logged and the analysis continues (`web/src/lib/modules/server.ts:34-35`).
+D-051 wanted a per-module record (what ran, with which rules version, on which evidence) separate from the blended growth score (`supabase/migrations/20261023063253_feature_modules.sql:12-13`, `docs/decisions/DECISION_LOG.md:664-668`); the per-module report sections that could read it are not built (`docs/architecture/FEATURE_MODULES.md:133`). Rows are a record, not an input: a failed insert is logged and the analysis continues (`web/src/lib/modules/server.ts:34-35`).
 
 ## Shape
 
 - Columns: `job_id` (composite FK with the organization to `ai_jobs`, cascade), `module_id` domain, `audit_run_id` (composite FK to `audit_runs`, set null), `report_id`, `status` `completed`/`partial`, `sub_score` 0–100 or null, `rules_version` default 1, `details` jsonb; unique (`job_id`, `module_id`) — `supabase/migrations/20261023063253_feature_modules.sql:41-65`.
 - RLS "members read"; client writes revoked — `supabase/migrations/20261023063253_feature_modules.sql:74-76`.
-- `ModuleRun` type and `recordModuleRuns` — `web/src/lib/modules/server.ts:21-40`; `subScore` — `web/src/lib/modules/score.ts:118-121`.
-- Writers, by step: profiling records `business_intel` and `website_seo` (partial without PageSpeed, `rules_version = AUDIT_VERSION`) — `web/src/lib/pipeline/website-intel.ts:332-354`; scoring records `conversion` and, when enabled, `search_visibility` (completed with a Search Console summary, partial without) — `:679-712`; writing records `content_studio` — `:837-849`. `reviseDiagnosis` (a correction) writes none.
-- No reader in `web/src` (grep at this commit). "Based on N modules" on the report comes from `reports.data.score_modules`, not from this table — `web/src/app/analysis/[id]/report-data.ts:31-32`, `web/src/app/analysis/[id]/infographic.tsx:209`. The Search visibility bar on the score tile and in the Scores section, and `searchVisibility` in Ask Braventa's summary, read `reports.data.module_scores`, not `sub_score` here — `report-data.ts:33`, `infographic.tsx:171`, `web/src/app/analysis/[id]/report-sections.tsx:56`, `web/src/lib/assistant/context.ts:180`.
+- `ModuleRun` type and `recordModuleRuns` — `web/src/lib/modules/server.ts:21-40`; `subScore` — `web/src/lib/modules/score.ts:156-159`.
+- Writers, by step: profiling records `business_intel` and `website_seo` (partial without PageSpeed, `rules_version = AUDIT_VERSION`) — `web/src/lib/pipeline/website-intel.ts:334-356`; scoring records `conversion` and, when enabled, `search_visibility` (completed with a Search Console summary, partial without) and `analytics` (completed with a GA4 summary, partial without; `sub_score` null for a new property) — `:696-748` (`analytics` `:729-747`); writing records `content_studio` — `:873-885`. `reviseDiagnosis` (a correction) writes none.
+- No reader in `web/src` (grep at this commit). "Based on N modules" on the report comes from `reports.data.score_modules`, not from this table — `web/src/app/analysis/[id]/report-data.ts:31-32`, `web/src/app/analysis/[id]/infographic.tsx:212`. The Search visibility bar on the score tile and in the Scores section, and `searchVisibility` in Ask Braventa's summary, read `reports.data.module_scores`, not `sub_score` here — `report-data.ts:33`, `infographic.tsx:171`, `web/src/app/analysis/[id]/report-sections.tsx:56`, `web/src/lib/assistant/context.ts:180`.
 
-Citations: `supabase/migrations/20261023063253_feature_modules.sql:12-13,41-65,74-76`; `docs/decisions/DECISION_LOG.md:664-668`; `web/src/lib/modules/server.ts:21-40`; `web/src/lib/pipeline/website-intel.ts:332-354,679-712,837-849`; `web/src/app/analysis/[id]/report-data.ts:31-33`; `web/src/app/analysis/[id]/infographic.tsx:171,209`; `web/src/app/analysis/[id]/report-sections.tsx:56`; `web/src/lib/assistant/context.ts:180`
+Citations: `supabase/migrations/20261023063253_feature_modules.sql:12-13,41-65,74-76`; `docs/decisions/DECISION_LOG.md:664-668`; `web/src/lib/modules/server.ts:21-40`; `web/src/lib/pipeline/website-intel.ts:334-356,696-748,873-885`; `web/src/app/analysis/[id]/report-data.ts:31-33`; `web/src/app/analysis/[id]/infographic.tsx:171,212`; `web/src/app/analysis/[id]/report-sections.tsx:56`; `web/src/lib/assistant/context.ts:180`
 
 ## Connected to
 
@@ -42,9 +42,9 @@ Citations: `supabase/migrations/20261023063253_feature_modules.sql:12-13,41-65,7
 
 | Surface | Role |
 |---|---|
-| Profiling step (`web/src/lib/pipeline/website-intel.ts:334`) | writes |
-| Scoring step (`web/src/lib/pipeline/website-intel.ts:712`) | writes |
-| Writing step (`web/src/lib/pipeline/website-intel.ts:838`) | writes |
+| Profiling step (`web/src/lib/pipeline/website-intel.ts:336`) | writes |
+| Scoring step (`web/src/lib/pipeline/website-intel.ts:748`) | writes |
+| Writing step (`web/src/lib/pipeline/website-intel.ts:874`) | writes |
 | Report, dashboard, assistant, MCP | none |
 
 ## See

@@ -39,13 +39,14 @@ const ANALYSIS = [
 // computeGrowthScore() in web/src/lib/modules/score.ts (D-051): a renormalized mean over the feature modules that
 // have evidence. Braventa's three assessed scores carry 0.65 and Google's four PageSpeed scores 0.35. On Pro, with
 // Google Search Console connected and enough data, Search visibility adds 0.10 (about a tenth of the score;
-// FEATURE_MODULES.md §9). Without PageSpeed the other parts carry it all. The report names the modules the score is
-// based on.
+// FEATURE_MODULES.md §9), and with Google Analytics 4 connected (a property older than 28 days), Analytics adds 0.10
+// (§10; it scores whether tracking works, not traffic volume). Without PageSpeed the other parts carry it all. The
+// report names the modules the score is based on.
 const MEASURED = ["Mobile speed", "SEO basics", "Accessibility", "Best practices"];
 const ASSESSED = ["Content clarity", "Conversion readiness", "Online presence"];
 const SCORE_LIMITS = [
-  "If Google PageSpeed doesn't respond, the report says so and the score is based on the other parts: Braventa's assessment and, on Pro, your search data.",
-  "On Pro, with Google Search Console connected, your real search data joins the score as a third, smaller part (about a tenth): average position, click-through rate, the trend in clicks, how many of your pages Google serves and whether your home page is indexed. The report says which modules your score is based on.",
+  "If Google PageSpeed doesn't respond, the report says so and the score is based on the other parts: Braventa's assessment and, on Pro, your search and analytics data.",
+  "On Pro, with Google Search Console connected, your real search data joins the score as a third, smaller part (about a tenth): average position, click-through rate, the trend in clicks, how many of your pages Google serves and whether your home page is indexed. With Google Analytics 4 connected, another small part (also about a tenth) checks whether your tracking works: whether visits are recorded, whether key events such as inquiries are set up and recorded, how engaged visits are and the trend in visits. It measures your tracking, not how much traffic you get. The report says which modules your score is based on.",
   "It reflects your website (the home page and up to 24 more public pages) and what you tell Braventa. It doesn't measure your whole business, your finances or your reputation.",
   "It isn't a prediction of revenue, leads or rankings. Use it to see where you stand and what to fix first.",
   "Google's SEO basics score is Lighthouse's automated check of one page's technical basics. It isn't a Google ranking score and isn't Search Console data.",
@@ -54,7 +55,7 @@ const SCORE_LIMITS = [
 
 const YOU_GET = [
   "A business profile: services, customers, locations, brand voice, strengths, gaps, and likely competitors.",
-  "A growth score (0–100) with content clarity, conversion readiness and online presence, plus Google's mobile speed, SEO basics, accessibility and best-practices scores when PageSpeed responds, and on Pro, a search visibility score from your Google Search Console data.",
+  "A growth score (0–100) with content clarity, conversion readiness and online presence, plus Google's mobile speed, SEO basics, accessibility and best-practices scores when PageSpeed responds, and on Pro, a search visibility score from your Google Search Console data. Your Google Analytics 4 data, if you connect it, also counts toward the growth score.",
   "A diagnosis: 3–6 findings, each marked Verified, From you, or Inferred, with how sure Braventa is and what it couldn't confirm.",
   "One prioritized growth plan: for each action, why it matters, a first step, what it depends on, how you'll know it worked, and whether Braventa can help with it today.",
   "A 30-day content plan with a goal, audience, content pillars and channels.",

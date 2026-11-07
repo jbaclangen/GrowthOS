@@ -3,9 +3,11 @@
 **Status:** plan (founder, 2026-10-12, D-041). Build starts the weekend of 2026-10-17. Amended by the founder on
 2026-10-18: HubSpot read-only is the first CRM (D-048), publishing runs through a vendor and an in-app scheduler
 (D-049), Search Console data reaches the diagnosis as the first new module (D-051), and provider applications start
-now (D-053). Only the Google Search Console connection is live (PR #23); since 2026-10-23 its data feeds the diagnosis
-and the growth score as the Search visibility module (§5 item 2); the onboarding step "Connect your tools" (§2) is
-built (2026-10-18, `feat/connect-your-tools`, D-054) with Search Console as its only connectable tool. Everything else here is **Coming soon** and must stay labeled that way in the app
+now (D-053). The Google Search Console connection is live (PR #23); since 2026-10-23 its data feeds the diagnosis
+and the growth score as the Search visibility module (§5 item 2). Google Analytics 4 is built (2026-11-08, D-056)
+through the same Google sign-in and feeds them as the Analytics module (§5 item 3). The onboarding step "Connect
+your tools" (§2) is built (2026-10-18, `feat/connect-your-tools`, D-054); Search Console and GA4 are its connectable
+tools. Everything else here is **Coming soon** and must stay labeled that way in the app
 and on braventa.io until it ships. Meta (Facebook, Instagram), LinkedIn, Google Business Profile and HubSpot are parked
 until the provider registrations are done (founder, 2026-10-18): Coming soon cards only.
 
@@ -43,7 +45,7 @@ several need the provider's app review before real customers can connect.
 | Tool | Auth | Read scopes (discovery, analysis) | Write scopes (Pro actions, later) | Provider approval |
 |---|---|---|---|---|
 | Google Search Console | Google OAuth | `webmasters.readonly` (**live**) | none planned | Google verification before 100 users |
-| Google Analytics 4 | Google OAuth | `analytics.readonly` | none planned | Google verification |
+| Google Analytics 4 | Google OAuth (the same consent screen as Search Console) | `analytics.readonly` (**built 2026-11-08**) | none planned | Google verification must cover the added scope (Q-053) |
 | Google Business Profile | Google OAuth | `business.manage` (no read-only scope exists) | posts, replies to reviews (owner-approved) | Business Profile API access request |
 | HubSpot | HubSpot OAuth, per tenant, over the REST API (not HubSpot's MCP server); an unlisted marketplace app on platform 2026.09, API version `2026-09` (D-048) | contacts, companies, deals, lists: read (`crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`, `crm.lists.read`); not `forms` or `content`, since neither is read-only | create/update contacts and tasks, draft marketing emails (`crm.objects.contacts.write`, …) only after the owner enables an action | None while unlisted (up to 25 installs; sign the Acceptable Use Policy before installing outside test accounts); a marketplace listing and HubSpot's review beyond 25 |
 | Canva | Canva Connect API OAuth | `design:meta:read`, `design:content:read`, `asset:read`, `brandtemplate:meta:read` | `design:content:write`, `asset:write`; brand-template autofill needs Canva Enterprise on the customer's side | Canva integration review |
@@ -120,7 +122,20 @@ Braventa publishes. Publishing is a Pro feature (D-030, D-041).
    (`SCORE_VERSION` 2; scores without Search Console evidence are unchanged). Spec and sub-score definition:
    [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9; the `module_id` domain already listed the module, so
    no migration was needed.
-3. GA4 (same Google client; add the scope and verification).
+3. GA4 (same Google client; add the scope and verification). **Built (2026-11-08, D-056):** one Google connection for
+   Search Console and GA4: the consent screen asks for both read-only scopes, the callback keeps what the owner granted
+   and stores one `integration_connections` row per product (the same refresh token, encrypted separately;
+   `lib/integrations/google-connection.ts`), and "Disconnect Google" revokes the token and deletes both products'
+   snapshots. `lib/integrations/google-analytics.ts` matches the property to the website through its web streams
+   (or the owner picks one), and each sync stores one `analytics_snapshots` row: 28 days against the 28 before
+   (sessions, engagement, key events, channels, landing pages, devices), 12 kept. The GA4 card is in Settings →
+   Connections and on the "Connect your tools" step (Pro and the trial, owner only; paused on Basic). The latest
+   snapshot is a fenced evidence block (ref `G2`) in the diagnosis prompt, findings that cite it are Verified and
+   carry `module_id` `analytics`, and the Analytics module adds 0.10 to the score from four parts (`SCORE_VERSION` 3,
+   provisional weights; scores without GA4 evidence are unchanged). Spec:
+   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10. Before production: migration `20261108120000`, the two
+   GA4 APIs and the scope in Google Cloud ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)), and
+   the privacy pages (Q-052). Tag Manager stays Coming soon.
 4. HubSpot read-only (D-048): the unlisted HubSpot app, a wider `integration_connections` provider check, OAuth start
    and callback routes, a CRM snapshot table and a `tiers.ts` gate entry. GoHighLevel replaces it if the testers turn
    out to be agency-managed. Salesforce and Keap ingestion are deferred. D-048 also names a zero-build path for Claude

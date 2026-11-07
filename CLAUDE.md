@@ -38,12 +38,13 @@ decision. Never describe the product as doing something the code doesn't do, wha
   base `web/src/lib/assistant/knowledge.ts` must stay true to the code (`npm run help:doc` regenerates
   `docs/help/APP_GUIDE.md`); Pro owners can connect Google Search Console (read-only; data stored, shown on `/search`
   and, as the Search visibility module (D-051 step 6), fed to the diagnosis and the growth score of Pro, Premium and
-  trial organizations) in Settings or on the optional "Connect your tools" onboarding step (other tools there are
-  Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon); eight fixed member roles
+  trial organizations) and Google Analytics 4 (D-056: same Pro gating and one Google sign-in for both; read-only,
+  shown in its card, fed to the diagnosis and the growth score as the Analytics module; its migration is not yet
+  applied) in Settings or on the optional "Connect your tools" onboarding step (other tools there are Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon); eight fixed member roles
   with a permission matrix (D-046 foundation: owner-only connect and service keys, no one approves their own draft
   except the owner; Settings → Team: invite by copied link, change or remove roles below your own, seat limits per plan; no invite
   emails, no buying seats). No CRM, publishing,
-  email sending, automation, analytics, or billing yet.
+  email sending, automation, analytics reporting, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
 - Research before building (D-052): a change that adds an integration, a paid vendor, a table, a price or a public claim
   follows the eight steps in `docs/research/SEATS_ROLES_MODULES_2026-10-17.md` §7 (brief, read the repo, look outside,

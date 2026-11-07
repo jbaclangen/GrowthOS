@@ -4,7 +4,7 @@ cluster: access
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 00d230f
+commit: 1d58a87
 entity: web/src/lib/assistant/knowledge.ts
 ---
 
@@ -14,18 +14,18 @@ The one text that tells "Ask Braventa" how the app works; the help article `docs
 
 ## Why this shape
 
-The assistant must never describe a feature the code doesn't have, so the knowledge base is a TypeScript module that imports live facts (`FEATURES`, `TIERS`, `VIEWS`, the tool catalog, `ASSISTANT_LIMITS`) instead of a prose doc that drifts (`web/src/lib/assistant/knowledge.ts:1-16`). The markdown guide is a build output, and a unit test fails when it or the route list is stale (`:7-10`; `web/src/lib/assistant/assistant.test.ts:333-335`).
+The assistant must never describe a feature the code doesn't have, so the knowledge base is a TypeScript module that imports live facts (`FEATURES`, `TIERS`, `VIEWS`, the tool catalog, `ASSISTANT_LIMITS`) instead of a prose doc that drifts (`web/src/lib/assistant/knowledge.ts:1-16`). The markdown guide is a build output, and a unit test fails when it or the route list is stale (`:7-10`; `web/src/lib/assistant/assistant.test.ts:334-336`).
 
 ## Shape
 
 - `KNOWLEDGE_VERSION` (`"2026-11-08"`) — `web/src/lib/assistant/knowledge.ts:13`
 - `APP_ROUTES`: every `page.tsx` route with title, purpose, how to get there — `:19-27`
-- `knowledgeSections()` — `:173-270`; `knowledgeForPrompt()` joins them for the system message — `:273-277`, used in `web/src/lib/assistant/prompt.ts:166-167`
+- `knowledgeSections()` — `:173-270`; `knowledgeForPrompt()` joins them for the system message — `:273-277`, used in `web/src/lib/assistant/prompt.ts:168-169`
 - Growth-score paragraph (weights, what the tile and Scores section say) — `knowledge.ts:158`, prose, not imported from `web/src/lib/modules/score.ts`
 - `renderGuide()` writes the GENERATED header, version and sections — `knowledge.ts:280-292`
 - Scripts `help:doc`, `help:doc:check` — `web/package.json:15-16` → `web/scripts/build-help-doc.mts` (target `:8`, check `:11-22`, write `:24-26`)
-- Test: guide equals `renderGuide()` — `web/src/lib/assistant/assistant.test.ts:333-335`; imports `:8`
-- "Coming soon" tools come from `tool-catalog.ts` `status: "coming_soon"` — `knowledge.ts:15-17`; `web/src/lib/integrations/tool-catalog.ts:24`
+- Test: guide equals `renderGuide()` — `web/src/lib/assistant/assistant.test.ts:334-336`; imports `:8`
+- "Coming soon" tools come from `tool-catalog.ts` `status: "coming_soon"` — `knowledge.ts:15-17`; `web/src/lib/integrations/tool-catalog.ts:25` (Search Console and Google Analytics 4 are the `live` entries, `:37-39`, `:45-47`)
 
 Citations: `web/src/lib/assistant/knowledge.ts:7-27,273-292`, `web/scripts/build-help-doc.mts:6-26`
 

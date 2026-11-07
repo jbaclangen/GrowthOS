@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 00d230f
+commit: 818e5f6
 entity: web/src/lib/env.ts
 ---
 
@@ -18,7 +18,7 @@ Names only; values live in `web/.env.local` and the Vercel projects, never in th
 `web/src/lib/env.ts` imports `server-only` (`:1`), so a client component that touches it fails the build; each
 variable is validated on first use and trimmed, so one missing integration doesn't take the others down and a pasted
 line break can't break a key silently (`:4-7,37-47`). `envConfigured()` lets optional integrations degrade (`:49-52`).
-The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md:86`).
+The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md:87`).
 
 ## Shape
 
@@ -32,7 +32,7 @@ The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md
 | `GOOGLE_API_KEY` | `:16` | no | |
 | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` | `:19-20`, optional `:17-18` | no | |
 | `INTEGRATIONS_ENCRYPTION_KEY` | `:22-24` (32 bytes, base64) | no | |
-| `NEXT_PUBLIC_APP_URL` | `:25` (defaults to localhost) | yes | `web/src/app/login/actions.ts:41`, `web/src/lib/integrations/google-oauth.ts:50`, `web/src/lib/pipeline/dispatch.ts:44`, `web/src/lib/oauth/server-metadata.ts:12` |
+| `NEXT_PUBLIC_APP_URL` | `:25` (defaults to localhost) | yes | `web/src/app/login/actions.ts:37`, `web/src/lib/integrations/google-oauth.ts:53`, `web/src/lib/pipeline/dispatch.ts:44`, `web/src/lib/oauth/server-metadata.ts:12` |
 | `JOB_CONTINUE_SECRET` | `:28`, optional `:26-27` | no | `web/src/app/api/health/integrations/route.ts:93` |
 | `JOB_DISPATCH` | `:32`, optional `:29-31` | no | |
 
@@ -51,7 +51,7 @@ Where names are listed: `web/.env.example:1-49` (complete, with server-only mark
 `JOB_CONTINUE_SECRET` and `JOB_DISPATCH` are missing there, a doc lag to fix). Which project holds which:
 `docs/architecture/SYSTEM_ARCHITECTURE.md:249-250`, `docs/marketing/CONTACT_PIPELINE.md:25`.
 
-Citations: `web/src/lib/env.ts:1,8-33,37-52`, `CLAUDE.md:86`
+Citations: `web/src/lib/env.ts:1,8-33,37-52`, `CLAUDE.md:87`
 
 ## Connected to
 

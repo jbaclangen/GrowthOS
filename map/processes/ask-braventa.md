@@ -18,7 +18,7 @@ Input: `POST /api/assistant` with `{ question, history? }` from the header widge
 
 ## Why this shape
 
-The model is never called without a reservation, so limits hold under parallel requests and a crash still counts (`web/src/lib/assistant/handler.ts:60-75`). The assistant is read-only by prompt and has no tools, so it can't change the plan or approve drafts (`web/src/lib/ai/router.ts:56-58`); business data is marked untrusted inside the prompt (`web/src/lib/assistant/prompt.ts:162-163`). No question or answer text is stored (`supabase/migrations/20261017020224_assistant_usage.sql:2-3`).
+The model is never called without a reservation, so limits hold under parallel requests and a crash still counts (`web/src/lib/assistant/handler.ts:60-75`). The assistant is read-only by prompt and has no tools, so it can't change the plan or approve drafts (`web/src/lib/ai/router.ts:56-58`); business data is marked untrusted inside the prompt (`web/src/lib/assistant/prompt.ts:164-165`). No question or answer text is stored (`supabase/migrations/20261017020224_assistant_usage.sql:2-3`).
 
 ## Steps
 

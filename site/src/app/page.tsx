@@ -62,7 +62,7 @@ const STEPS = [
 const TRUST = [
   { title: "Approval by default.", body: "Every draft waits for you. Braventa does not publish or send anything on your behalf." },
   { title: "Your data, kept separate.", body: "Each organization's data is isolated from every other. Secret keys never leave our servers." },
-  { title: "Clear about evidence.", body: "Every finding says where it came from: your website, Google PageSpeed, your Google Search Console data on Pro, your answers, or Braventa's inference." },
+  { title: "Clear about evidence.", body: "Every finding says where it came from: your website, Google PageSpeed, your Google Search Console or Google Analytics 4 data on Pro, your answers, or Braventa's inference." },
 ];
 
 export default function Home() {
@@ -221,7 +221,7 @@ function HeroPreview() {
         <div>
           <p className="eyebrow text-brand-paper/60">Growth score</p>
           <p className="mt-1 text-sm text-brand-paper/80">
-            Measured site quality, assessed marketing readiness and, on Pro, your search data
+            Measured site quality, assessed marketing readiness and, on Pro, your search and analytics data
           </p>
         </div>
       </div>
