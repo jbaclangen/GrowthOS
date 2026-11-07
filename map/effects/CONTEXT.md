@@ -1,7 +1,7 @@
 # Change-impact index
 
 A catalog, not a copy of the process cards: for a kind of change, the cards to open before editing. First-order only.
-If this index and a card disagree, fix the card. Checked against commit `f8a2eec` on 2026-11-07.
+If this index and a card disagree, fix the card. Checked against commit `5757423` on 2026-11-07.
 
 Links are relative to this folder. Object cards: `../objects/<cluster>/<slug>.md`. Process cards: `../processes/<slug>.md`.
 

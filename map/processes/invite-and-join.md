@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-07
-commit: f8a2eec
+commit: 5757423
 consumes: ["[[team-invitation]]", "[[membership]]", "[[member-role]]", "[[plan-tier]]"]
 produces: ["[[team-invitation]]", "[[membership]]"]
 ---

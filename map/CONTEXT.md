@@ -1,6 +1,6 @@
 # Walking the map
 
-Checked against commit `f8a2eec` on 2026-11-07. Paths are repo-relative; `web/src/` is shortened to `src/`
+Checked against commit `5757423` on 2026-11-07. Paths are repo-relative; `web/src/` is shortened to `src/`
 inside citations only when the context is unambiguous.
 
 ## Universes

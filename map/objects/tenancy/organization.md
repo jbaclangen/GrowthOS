@@ -4,7 +4,7 @@ cluster: tenancy
 universe: live
 status: verified
 verified: 2026-11-07
-commit: f8a2eec
+commit: 5757423
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -22,7 +22,7 @@ One organization per user in the MVP, created by the `create_organization` RPC o
 - `plan` check `trial`/`basic`/`pro`/`premium` — `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:6-7`; `trial_ends_at` not null, default now + 14 days — `:10-13`.
 - No `organization_id` of its own. RLS: "members read org" `supabase/migrations/20261010061028_foundation.sql:282-283`, "admins update org" `:284-285`, narrowed by the column grant above. No insert or delete policy: rows come only from `create_organization`.
 - The AI budget check reads `monthly_ai_budget_usd` against the `ai_spend_mtd` view and fails closed — `web/src/lib/ai/router.ts:96-105`; view `supabase/migrations/20261010061028_foundation.sql:345-349`.
-- `plan, trial_ends_at` are read wherever a gate is decided: the scoring step and the diagnosis update (`reviseDiagnosis`), both through `enabledModules` `web/src/lib/modules/server.ts:13`; Search Console `web/src/lib/integrations/search-console.ts:430,578`, `web/src/app/api/integrations/google/start/route.ts:39`, `web/src/app/api/integrations/google/callback/route.ts:59-63`, `web/src/app/search/page.tsx:45`, `web/src/components/connections/search-console-card.tsx:58`, `web/src/app/onboarding/[sessionId]/connect/page.tsx:53`; the AI assistant connection `web/src/lib/mcp/auth.ts:23,75`, `web/src/app/settings/page.tsx:42`, `web/src/lib/memberships.ts:43` (OAuth consent page); the in-app assistant and `/plans`, both through `firstOrganization` `web/src/lib/memberships.ts:29` (`web/src/app/api/assistant/route.ts:65`, `web/src/lib/plans/access.ts:16`) (grep `trial_ends_at` at this commit).
+- `plan, trial_ends_at` are read wherever a gate is decided: the scoring step and the diagnosis update (`reviseDiagnosis`), both through `enabledModules` `web/src/lib/modules/server.ts:13`; Search Console `web/src/lib/integrations/search-console.ts:430,578`, `web/src/app/api/integrations/google/start/route.ts:39`, `web/src/app/api/integrations/google/callback/route.ts:59-63`, `web/src/app/search/page.tsx:45`, `web/src/components/connections/search-console-card.tsx:58`, `web/src/app/onboarding/[sessionId]/connect/page.tsx:53`; the AI assistant connection `web/src/lib/mcp/auth.ts:23,75`, `web/src/app/settings/page.tsx:42`, `web/src/lib/memberships.ts:45` (OAuth consent page); the in-app assistant and `/plans`, both through `firstOrganization` `web/src/lib/memberships.ts:31` (`web/src/app/api/assistant/route.ts:65`, `web/src/lib/plans/access.ts:16`) (grep `trial_ends_at` at this commit).
 
 Citations: `supabase/migrations/20261010061028_foundation.sql:9-16,57-72,282-285,345-349`; `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:1-2,6-7,10-13,15-18`; `web/src/lib/ai/router.ts:96-105`
 

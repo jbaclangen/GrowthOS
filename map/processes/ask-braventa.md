@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-07
-commit: f8a2eec
+commit: 5757423
 consumes: ["[[membership]]", "[[organization]]", "[[plan-tier]]", "[[assistant-knowledge]]", "[[business-profile]]", "[[report]]", "[[diagnosis]]", "[[content-calendar]]", "[[integration-connection]]"]
 produces: ["[[assistant-usage]]", "[[ai-usage]]"]
 ---
@@ -23,7 +23,7 @@ The model is never called without a reservation, so limits hold under parallel r
 ## Steps
 
 1. Same-origin: `Origin` host must equal `Host` → 403; JSON content type → 415; body ≤ 64 KB → 413 — `web/src/app/api/assistant/route.ts:35-51`.
-2. User from the session (a lookup failure is not "signed out"), then that user's first organization through `firstOrganization`, filtered by the user's id because RLS also returns co-members' memberships (a failed read is a lookup failure, not "no business") — `:56-65`; `handler.ts:41-53`; `web/src/lib/memberships.ts:3-6,23-37`.
+2. User from the session (a lookup failure is not "signed out"), then that user's first organization through `firstOrganization`, filtered by the user's id because RLS also returns co-members' memberships (a failed read is a lookup failure, not "no business") — `:56-65`; `handler.ts:41-53`; `web/src/lib/memberships.ts:3-6,25-39`.
 3. Plan gate `assistantAccess` (`hasSubscription`: trial or any plan) → 403 — `handler.ts:54-55`; `web/src/lib/assistant/access.ts:12-15`. No role check: `assistant.use` is in the matrix but not enforced yet — `docs/architecture/ROLES_AND_PERMISSIONS.md:73`.
 4. Reserve via `reserve_assistant_question` (service client; 40/org/day, 5/user/min) — `route.ts:66-79`; `handler.ts:60-75`; `access.ts:20-23`. Over a limit → 429 with the reason; no row → 503.
 5. Context `loadBusinessSummary` through the user's client (profiles, jobs, sessions, Search Console connection, key count, latest report, diagnosis, calendar) — `route.ts:88`; `web/src/lib/assistant/context.ts:30-40,97-120`.

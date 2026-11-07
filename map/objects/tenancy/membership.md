@@ -4,7 +4,7 @@ cluster: tenancy
 universe: live
 status: verified
 verified: 2026-11-07
-commit: f8a2eec
+commit: 5757423
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -23,9 +23,9 @@ RLS must not recurse through its own table, so the helpers are `security definer
 - Trigger `memberships_owner_guard` (authenticated role only; owner rows need `is_org_owner`) — `supabase/migrations/20261017030000_mcp_oauth.sql:24-38`.
 - Writes: `create_organization` inserts the owner row — `supabase/migrations/20261010061028_foundation.sql:66-67`. App code writes with the secret key (`createSupabaseAdminClient`), scoped to an organization it has authorised: insert on joining an invite — `web/src/app/invite/[token]/actions.ts:51-57`; role change — `web/src/app/settings/team-actions.ts:111`; removal — `web/src/app/settings/team-actions.ts:134`. The rules and the audit row are on [team-invitation](team-invitation.md) and [invite-and-join](../../processes/invite-and-join.md).
 - Settings → Team lists every member of the organization with their email (service client; emails live in `auth.users`) — `web/src/lib/team/team-server.ts:15-29`.
-- Reads: `currentMembership` (oldest membership = the user's organization), `firstOrganization` (the same row with plan and trial) and `memberOrganizations` — `web/src/lib/memberships.ts:11-21,26-37,40-50`; `getCurrentOrg` — `web/src/lib/auth.ts:26-28`; `getOrgAccess` through `firstOrganization` — `web/src/lib/plans/access.ts:16`; the assistant's `getOrg` through `firstOrganization` — `web/src/app/api/assistant/route.ts:65`; OAuth consent — `web/src/app/oauth/authorize/actions.ts:26`; MCP key owner still a member, and their role — `web/src/lib/mcp/auth.ts:33-42`; OAuth token user and role — `web/src/lib/mcp/auth.ts:69-72`; `memberRole()` for permission checks — `web/src/lib/team/server.ts:8-16`; `has_permission()` — `supabase/migrations/20261023092945_roles_and_permissions.sql:30-35`; `isMember` in the OAuth store — `web/src/lib/oauth/supabase-store.ts:94-100`; Settings — `web/src/app/settings/page.tsx:44`.
+- Reads: `currentMembership` (oldest membership = the user's organization), `firstOrganization` (the same row with plan and trial) and `memberOrganizations` — `web/src/lib/memberships.ts:12-23,28-39,42-52`; `getCurrentOrg` — `web/src/lib/auth.ts:26-28`; `getOrgAccess` through `firstOrganization` — `web/src/lib/plans/access.ts:16`; the assistant's `getOrg` through `firstOrganization` — `web/src/app/api/assistant/route.ts:65`; OAuth consent — `web/src/app/oauth/authorize/actions.ts:26`; MCP key owner still a member, and their role — `web/src/lib/mcp/auth.ts:33-42`; OAuth token user and role — `web/src/lib/mcp/auth.ts:69-72`; `memberRole()` for permission checks — `web/src/lib/team/server.ts:8-16`; `has_permission()` — `supabase/migrations/20261023092945_roles_and_permissions.sql:30-35`; `isMember` in the OAuth store — `web/src/lib/oauth/supabase-store.ts:94-100`; Settings — `web/src/app/settings/page.tsx:44`.
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:20-27,34-43,66-67,287-288`; `supabase/migrations/20261010061126_advisor_fixes.sql:10-17`; `supabase/migrations/20261017030000_mcp_oauth.sql:19-38`; `supabase/migrations/20261023092945_roles_and_permissions.sql:23-35`; `web/src/lib/memberships.ts:3-50`; `web/src/lib/team/server.ts:8-16`; `web/src/lib/plans/access.ts:16`; `web/src/app/api/assistant/route.ts:63-65`; `web/src/app/invite/[token]/actions.ts:51-57`; `web/src/app/settings/team-actions.ts:111,134`; `web/src/lib/team/team-server.ts:15-29`
+Citations: `supabase/migrations/20261010061028_foundation.sql:20-27,34-43,66-67,287-288`; `supabase/migrations/20261010061126_advisor_fixes.sql:10-17`; `supabase/migrations/20261017030000_mcp_oauth.sql:19-38`; `supabase/migrations/20261023092945_roles_and_permissions.sql:23-35`; `web/src/lib/memberships.ts:3-52`; `web/src/lib/team/server.ts:8-16`; `web/src/lib/plans/access.ts:16`; `web/src/app/api/assistant/route.ts:63-65`; `web/src/app/invite/[token]/actions.ts:51-57`; `web/src/app/settings/team-actions.ts:111,134`; `web/src/lib/team/team-server.ts:15-29`
 
 ## Connected to
 
@@ -36,7 +36,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:20-27,34-43,66-67,
 
 ## If you change this
 
-- **Hits:** `is_member`, `is_org_admin`, `is_org_owner` and so every RLS policy; `has_permission` and `memberRole` and so every permission gate; `memberships_owner_guard`; `currentMembership`/`getCurrentOrg`, `firstOrganization`/`getOrgAccess` and the assistant's `getOrg`, and everything that takes "the user's first organization" (`web/src/lib/memberships.ts:10,23`); MCP and OAuth principal checks; seat counting (`web/src/lib/team/team-server.ts:77-86`) and the Team list.
+- **Hits:** `is_member`, `is_org_admin`, `is_org_owner` and so every RLS policy; `has_permission` and `memberRole` and so every permission gate; `memberships_owner_guard`; `currentMembership`/`getCurrentOrg`, `firstOrganization`/`getOrgAccess` and the assistant's `getOrg`, and everything that takes "the user's first organization" (`web/src/lib/memberships.ts:10,25`); MCP and OAuth principal checks; seat counting (`web/src/lib/team/team-server.ts:77-86`) and the Team list.
 - **Does not hit:** [platform-admin](platform-admin.md) (separate table, no role column).
 
 Ghost: organization switching and more than one business per account — an invite is refused for an account that already belongs to a business (`web/src/lib/team/invitations.ts:62-64`); planned in `docs/product/ROADMAP.md:82-83` (PL-6), open as Q-051 and Q-047 (`docs/decisions/OPEN_QUESTIONS.md:42,46`; `docs/architecture/ROLES_AND_PERMISSIONS.md:156-157`).

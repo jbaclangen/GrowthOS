@@ -4,7 +4,7 @@ cluster: integrations
 universe: leftover
 status: verified
 verified: 2026-11-07
-commit: f8a2eec
+commit: 5757423
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
