@@ -3,14 +3,14 @@ type: object
 cluster: modules
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 entity: supabase/migrations/20261023063253_feature_modules.sql
 ---
 
 # Module override (`organization_modules`)
 
-A per-organization switch (`enabled`, `config`) over a feature module, read by the scoring step; nothing writes rows yet, so every organization has every live module its tier includes.
+A per-organization switch (`enabled`, `config`) over a feature module, read by the scoring step and the diagnosis correction (`reviseDiagnosis`); nothing writes rows yet, so every organization has every live module its tier includes.
 
 ## Why this shape
 
@@ -20,7 +20,7 @@ D-051 wanted the growth score to be computable over "the organization's enabled 
 
 - PK (`organization_id`, `module_id` domain), `enabled` default true, `config` jsonb, timestamps — `supabase/migrations/20261023063253_feature_modules.sql:29-39`.
 - RLS "members read"; insert/update/delete revoked from clients — `supabase/migrations/20261023063253_feature_modules.sql:71-76`; `touch_updated_at` `:78-79`.
-- The one reader: `enabledModules` reads the tier and the overrides with the admin client and throws if either read fails — `web/src/lib/modules/server.ts:11-19`; the rule is `enabledModuleIds` — `web/src/lib/modules/registry.ts:263-266`; called before the diagnosis model call in the scoring step — `web/src/lib/pipeline/website-intel.ts:622-626` — and in `reviseDiagnosis` (a correction, for the Search Console summary only) — `:583-585`.
+- The one reader: `enabledModules` reads the tier and the overrides with the admin client and throws if either read fails — `web/src/lib/modules/server.ts:11-19`; the rule is `enabledModuleIds` — `web/src/lib/modules/registry.ts:263-266`; called before the diagnosis model call in the scoring step — `web/src/lib/pipeline/website-intel.ts:622-626` (call at `:625`) — and in `reviseDiagnosis` (a correction, for the Search Console summary only) — `:583-585` (call at `:585`). The docs list both readers: `docs/architecture/DATA_MODEL.md:99`, `docs/architecture/FEATURE_MODULES.md:83`.
 - No writer in the repo: `supabase/migrations/20261023063253_feature_modules.sql:9,105`; `docs/architecture/DATA_MODEL.md:99`; `docs/architecture/FEATURE_MODULES.md:45-48`.
 - Effect of a row with `enabled = false`: the module leaves the score and (for Search visibility) its summary leaves the diagnosis; the analysis steps still run — `web/src/lib/modules/registry.ts:260-262`, `docs/architecture/FEATURE_MODULES.md:46-48`.
 

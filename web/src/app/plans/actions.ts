@@ -8,12 +8,12 @@ export type RequestState = { error?: string; sent?: boolean } | undefined;
 
 // "Talk to us": there is no billing yet (D-030), so an upgrade starts as a request the Braventa team follows up.
 export async function requestUpgrade(tier: "basic" | "pro" | "premium", _: RequestState, formData: FormData): Promise<RequestState> {
-  await requireUser();
+  const user = await requireUser();
   if (tier !== "basic" && tier !== "pro" && tier !== "premium") return { error: "That plan isn't available." };
   const message = String(formData.get("message") ?? "").trim();
   if (message.length > 1000) return { error: "Keep your message under 1,000 characters." };
 
-  const access = await getOrgAccess();
+  const access = await getOrgAccess(user.id);
   if (!access) return { error: "Analyze a website first so we know which business this is for." };
 
   const supabase = await createSupabaseServerClient();

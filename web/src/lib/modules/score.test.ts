@@ -4,6 +4,7 @@ import {
   SCORE_VERSION,
   computeGrowthScore,
   conversionEvidence,
+  growthScoreNote,
   modulesUsed,
   scoreEvidence,
   searchVisibilityEvidence,
@@ -273,5 +274,21 @@ describe("modulesUsed", () => {
     expect(modulesUsed({ pagespeed: { performance: 1, seo: 1, accessibility: 1, bestPractices: 1 } })).toEqual(["conversion", "website_seo"]);
     expect(modulesUsed({ pagespeed: null })).toEqual(["conversion"]);
     expect(modulesUsed({})).toEqual(["conversion"]);
+  });
+});
+
+describe("growthScoreNote (the MCP status tool)", () => {
+  it("names Search Console only when the score used Search visibility", () => {
+    const basic = growthScoreNote(["conversion", "website_seo"]);
+    expect(basic).toMatch(/^0–100, based on 2 modules: Conversion and messaging \(Braventa's review/);
+    expect(basic).toContain("Website and technical SEO (Google PageSpeed results on mobile)");
+    expect(basic).not.toContain("Search Console");
+
+    const pro = growthScoreNote(["conversion", "website_seo", "search_visibility"]);
+    expect(pro).toContain("based on 3 modules");
+    expect(pro).toContain("Search visibility (the last 28 days of Google Search Console data)");
+    expect(pro).toMatch(/doesn't predict results\.$/);
+
+    expect(growthScoreNote(["conversion"])).toContain("based on 1 module: Conversion and messaging");
   });
 });

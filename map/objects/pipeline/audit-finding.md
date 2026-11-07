@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 entity: supabase/migrations/20261011160802_website_audit.sql
 ---
 
@@ -37,7 +37,7 @@ Citations: `supabase/migrations/20261011160802_website_audit.sql:35-59`, `:65-68
 ## If you change this
 
 - **Hits:** the rules and `AUDIT_VERSION` in `checks.ts`; `toFindingRow` `website-intel.ts:187-204`; the select at `report-data.ts:182`; `promptFindings` / `loadAuditContext` (`website-intel.ts:211-226`); the category list in `registry.ts:79`.
-- **Does not hit:** stored `diagnosis_findings` rows (refs are text); the growth score (`web/src/lib/modules/score.ts:97-108` scores PageSpeed and assessed scores, not findings).
+- **Does not hit:** stored `diagnosis_findings` rows (refs are text); the growth score (`web/src/lib/modules/score.ts:97-108` scores the assessed scores, PageSpeed and Search Console measures, not findings).
 
 ## Surfaces
 

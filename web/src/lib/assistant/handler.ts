@@ -14,7 +14,8 @@ export type Reservation = { usageId: number | null; orgLastDay: number; userLast
 export type AssistantDeps = {
   // Both throw when the lookup itself fails (as opposed to "signed out" or "no organization", which return null).
   getUserId: () => Promise<string | null>;
-  getOrg: () => Promise<AssistantOrg | null>;
+  // The signed-in user's own organization: the id getUserId returned.
+  getOrg: (userId: string) => Promise<AssistantOrg | null>;
   // Counts the two windows and, when both are under the limits, records the question; usageId is null otherwise.
   reserve: (orgId: string, userId: string, limits: typeof ASSISTANT_LIMITS) => Promise<Reservation>;
   finish: (orgId: string, usageId: number, status: "answered" | "failed") => Promise<void>;
@@ -43,7 +44,7 @@ export async function handleAssistantRequest(body: unknown, deps: AssistantDeps)
   try {
     userId = await deps.getUserId();
     if (!userId) return { status: 401, body: { error: MESSAGES.signedOut } };
-    org = await deps.getOrg();
+    org = await deps.getOrg(userId);
   } catch (e) {
     // A failed lookup isn't "signed out" or "no business": say it's temporary instead of sending them the wrong way.
     deps.logError("assistant account lookup failed", e);

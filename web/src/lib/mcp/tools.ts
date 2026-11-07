@@ -11,6 +11,7 @@ import { createOnboarding } from "@/lib/onboarding/start";
 import { normalizeUrl } from "@/lib/integrations/crawler";
 import { parseOwnerInputs, GOAL_OPTIONS, TOOL_OPTIONS, OTHER_GOAL } from "@/lib/owner-inputs";
 import { loadReport } from "@/app/analysis/[id]/report-data";
+import { growthScoreNote, modulesUsed } from "@/lib/modules/score";
 import type { Permission, Role } from "@/lib/team/roles";
 
 // The AI assistant connection's tools (MCP, D-036): the owner's assistant (Claude Code, Claude Desktop) fills in
@@ -443,8 +444,8 @@ export const TOOLS: Tool[] = [
         ...base,
         status: "ready",
         growth_score: report.data?.growth_score ?? null,
-        growth_score_note:
-          "0–100. Combines Braventa's review of the website (content clarity, conversion readiness, online presence) with Google PageSpeed results. It isn't a measure of the whole business and doesn't predict results.",
+        // The modules this report's score is based on, so a Search visibility score says Search Console is in it.
+        growth_score_note: report.data ? growthScoreNote(modulesUsed(report.data)) : null,
         top_priorities: top,
         diagnosis_status: report.diagnosis.status,
         next_step: "Ask the owner to open the report to confirm or correct the diagnosis and review the drafted posts.",

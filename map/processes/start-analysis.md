@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 consumes: ["[[organization]]", "[[membership]]", "[[member-role]]", "[[business-profile]]"]
 produces: ["[[business-profile]]", "[[onboarding-session]]", "[[ai-job]]", "[[job-step]]", "[[job-dispatch]]"]
 ---
@@ -39,7 +39,7 @@ None. The owner's next read is the discovery page ([discovery-and-review](discov
 
 ## If you change this
 
-- **Hits:** the MCP `braventa_start_onboarding` tool (shares `createOnboarding` and the `analysis.run` permission, `web/src/lib/mcp/tools.ts:164`), the 24 h limit shared with [rerun-analysis](rerun-analysis.md), the evidence job sequence in [job-step-machine](job-step-machine.md), `startPlanIfReady` (reads `evidence_job_id`).
+- **Hits:** the MCP `braventa_start_onboarding` tool (shares `createOnboarding` and the `analysis.run` permission, `web/src/lib/mcp/tools.ts:165`), the 24 h limit shared with [rerun-analysis](rerun-analysis.md), the evidence job sequence in [job-step-machine](job-step-machine.md), `startPlanIfReady` (reads `evidence_job_id`).
 - **Does not hit:** `app/onboarding/[sessionId]/actions.ts` (the discovery steps live there, not here); `website_plan` queuing (that is `orchestrate.ts`, not `start.ts`).
 
 ## Surfaces

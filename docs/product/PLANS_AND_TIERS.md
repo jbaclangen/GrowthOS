@@ -54,7 +54,7 @@ verification of the OAuth client ([SEARCH_CONSOLE_SETUP.md](../architecture/SEAR
 
 1. Add or update its entry in `FEATURES` (`web/src/lib/plans/tiers.ts`) and flip `status` to `live` only in the
    PR that ships it.
-2. Gate it on the server with `canUse(access.tier, featureId)` from `getOrgAccess()`, never only in the UI.
+2. Gate it on the server with `canUse(access.tier, featureId)` from `getOrgAccess(user.id)` (`web/src/lib/plans/access.ts`: the signed-in user's own first business), never only in the UI.
 3. Any action an agent takes in a customer's tool needs the owner's explicit approval first (D-013), an audit
    record, and the scopes documented in `docs/architecture/INTEGRATIONS.md`.
 4. Update this table, `MVP_SCOPE.md`, the support site's "What Braventa can and can't do", and the pricing page.

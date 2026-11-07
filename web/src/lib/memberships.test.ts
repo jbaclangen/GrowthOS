@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fakeSupabase } from "../../test/fake-supabase";
-import { currentMembership, memberOrganizations } from "./memberships";
+import { currentMembership, firstOrganization, memberOrganizations } from "./memberships";
 import { MAX_ACTIVE_SERVICE_KEYS, countActiveServiceKeys, isActiveServiceKey, listServiceKeys } from "./mcp/service-keys";
 
 // The rows are what RLS lets the user read: every membership in their organizations, co-members' included.
@@ -18,6 +18,29 @@ describe("memberships", () => {
     expect(await currentMembership(db, "member-2")).toEqual({ id: "org-a", name: "Acme Plumbing", role: "member" });
     expect(await currentMembership(db, "owner-1")).toEqual({ id: "org-a", name: "Acme Plumbing", role: "owner" });
     expect(await currentMembership(db, "someone-else")).toBeNull();
+  });
+
+  it("give the tier and the assistant the user's own first business, not a co-member's older one", async () => {
+    // What RLS shows member-3: their own business (org-c, 10-05) and org-b, which they joined on 10-06 after
+    // owner-1 (10-03). Unfiltered, the oldest visible row is owner-1's, so the tier would be org-b's while the rest
+    // of the app (currentMembership) uses org-c.
+    const orgC = { id: "org-c", name: "Clear Windows", plan: "trial", trial_ends_at: "2026-10-19T00:00:00Z" };
+    const rows = [
+      { user_id: "owner-1", organization_id: "org-b", role: "owner", created_at: "2026-10-03T00:00:00Z", organizations: orgB },
+      { user_id: "member-3", organization_id: "org-c", role: "owner", created_at: "2026-10-05T00:00:00Z", organizations: orgC },
+      { user_id: "member-3", organization_id: "org-b", role: "analyst", created_at: "2026-10-06T00:00:00Z", organizations: orgB },
+    ];
+    const { db } = fakeSupabase({ memberships: rows });
+    expect(await firstOrganization(db, "member-3")).toEqual({ ...orgC, role: "owner" });
+    expect(await firstOrganization(db, "owner-1")).toEqual({ ...orgB, role: "owner" });
+    expect(await firstOrganization(db, "someone-else")).toBeNull();
+  });
+
+  it("throw when the first-business read fails, so it isn't taken for 'no business'", async () => {
+    const failing = { maybeSingle: async () => ({ data: null, error: { message: "connection reset" } }) };
+    const chain = { select: () => chain, eq: () => chain, order: () => chain, limit: () => failing };
+    const db = { from: () => chain } as unknown as Parameters<typeof firstOrganization>[0];
+    await expect(firstOrganization(db, "member-2")).rejects.toThrow("connection reset");
   });
 
   it("list each business once, and only the user's own", async () => {

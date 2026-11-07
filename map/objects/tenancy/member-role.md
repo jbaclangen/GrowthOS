@@ -3,8 +3,8 @@ type: object
 cluster: tenancy
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 entity: supabase/migrations/20261023092945_roles_and_permissions.sql
 ---
 
@@ -24,7 +24,7 @@ Policies test membership through `security definer` helpers so they never recurs
 - `is_org_owner(org)`: owners only, no platform-admin bypass — `supabase/migrations/20261017030000_mcp_oauth.sql:9-17`.
 - SQL owner-only uses: service-key policies `supabase/migrations/20261017030000_mcp_oauth.sql:228-233`; `memberships_owner_guard` `:24-38`. Admin uses: "admins update org" `supabase/migrations/20261010061028_foundation.sql:284-285`; membership writes `supabase/migrations/20261010061126_advisor_fixes.sql:11-17`. `has_permission` use: the approval guard `supabase/migrations/20261023224450_content_guard_pins_organization.sql:46-55`.
 - `web/src/lib/memberships.ts:8,20` still types the role as a plain string; `can()` holds nothing for an unknown one (`web/src/lib/team/roles.ts:104-112`). Owner-only gates, now through `can()`: `keys.manage_any` for service keys `web/src/app/settings/integrations-actions.ts:25` and another person's app `:77`, Settings `web/src/app/settings/page.tsx:51,145`; `integrations.connect` for Search Console start `web/src/app/api/integrations/google/start/route.ts:36` and callback `web/src/app/api/integrations/google/callback/route.ts:47`, choosing a property and disconnecting `web/src/app/settings/connections-actions.ts:24,40,52`, the Search Console card `web/src/components/connections/search-console-card.tsx:77`, the connect step's `role` `web/src/app/onboarding/[sessionId]/connect/page.tsx:66` → `owner-only` card state and line `web/src/lib/integrations/connect-step.ts:38,42,73`.
-- Settings role line — `web/src/app/settings/page.tsx:53,58` → `roleSentence` `web/src/lib/team/roles.ts:140-143`. MCP: a key or sign-in carries its user's role — `web/src/lib/mcp/principal.ts:10-12,54-63`; write tools carry a `permission` — `web/src/lib/mcp/tools.ts:42`, refused at `web/src/lib/mcp/protocol.ts:92-93`.
+- Settings role line — `web/src/app/settings/page.tsx:53,58` → `roleSentence` `web/src/lib/team/roles.ts:140-143`. MCP: a key or sign-in carries its user's role — `web/src/lib/mcp/principal.ts:10-12,54-63`; write tools carry a `permission` — `web/src/lib/mcp/tools.ts:43`, refused at `web/src/lib/mcp/protocol.ts:92-93`.
 
 Citations: `supabase/migrations/20261010061028_foundation.sql:18,23,35-54,284-285`; `supabase/migrations/20261010061126_advisor_fixes.sql:4-17`; `supabase/migrations/20261017030000_mcp_oauth.sql:9-38,228-233`; `supabase/migrations/20261023092945_roles_and_permissions.sql:3-6,19-27,30-60`; `supabase/migrations/20261023224450_content_guard_pins_organization.sql:46-55`; `web/src/lib/team/roles.ts:8-30,81-112,140-143`; `web/src/lib/team/server.ts:8-21`; `web/src/lib/memberships.ts:8,20`
 

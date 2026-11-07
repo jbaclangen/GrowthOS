@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 consumes: ["[[onboarding-session]]", "[[discovery-catalog]]", "[[ai-worker]]", "[[member-role]]"]
 produces: ["[[onboarding-response]]", "[[onboarding-session]]", "[[ai-usage]]"]
 ---
@@ -39,7 +39,7 @@ The owner (or another member whose role holds `profile.edit`) confirms the prior
 
 ## If you change this
 
-- **Hits:** MCP `braventa_submit_discovery` and `braventa_confirm_priorities` (same `saveDiscovery`/`saveReview`: `web/src/lib/mcp/tools.ts:267`, `:309`; same `profile.edit`: `:246`, `:287`), [follow-up-questions](follow-up-questions.md) (reads `confirmed` + `customer_priority`), `loadDiscovery` in [score-and-diagnose](score-and-diagnose.md).
+- **Hits:** MCP `braventa_submit_discovery` and `braventa_confirm_priorities` (same `saveDiscovery`/`saveReview`: `web/src/lib/mcp/tools.ts:268`, `:310`; same `profile.edit`: `:247`, `:288`), [follow-up-questions](follow-up-questions.md) (reads `confirmed` + `customer_priority`), `loadDiscovery` in [score-and-diagnose](score-and-diagnose.md).
 - **Does not hit:** the evidence job (it never reads responses); the `startPlanIfReady` guards (only status `completed`/`skipped` matter there).
 
 ## Surfaces

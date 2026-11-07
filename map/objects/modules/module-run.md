@@ -3,8 +3,8 @@ type: object
 cluster: modules
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 entity: supabase/migrations/20261023063253_feature_modules.sql
 ---
 

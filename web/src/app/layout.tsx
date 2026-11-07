@@ -49,7 +49,7 @@ async function UserMenu() {
   await connection();
   const user = await getUser();
   if (!user) return null;
-  const access = await getOrgAccess();
+  const access = await getOrgAccess(user.id);
   // D-030: the current tier, with the days left in a Pro trial.
   const planLabel = !access
     ? null

@@ -3,8 +3,8 @@ type: object
 cluster: access
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 entity: supabase/migrations/20261017020224_assistant_usage.sql
 ---
 
@@ -14,7 +14,7 @@ One row per "Ask Braventa" question, reserved before the model runs: the counter
 
 ## Why this shape
 
-The row is reserved under a per-organization advisory lock by `reserve_assistant_question`, so parallel requests can't all pass the count, and a request that fails later still counts (`supabase/migrations/20261017020224_assistant_usage.sql:5-7,33-63`). Without the table the route fails closed (`web/src/lib/assistant/handler.ts:59-66`; health check `web/src/app/api/health/integrations/route.ts:36-41`). Tokens and cost go to `ai_usage` instead (`…assistant_usage.sql:3`).
+The row is reserved under a per-organization advisory lock by `reserve_assistant_question`, so parallel requests can't all pass the count, and a request that fails later still counts (`supabase/migrations/20261017020224_assistant_usage.sql:5-7,33-63`). Without the table the route fails closed (`web/src/lib/assistant/handler.ts:60-67`; health check `web/src/app/api/health/integrations/route.ts:36-41`). Tokens and cost go to `ai_usage` instead (`…assistant_usage.sql:3`).
 
 ## Shape
 
@@ -22,9 +22,9 @@ The row is reserved under a per-organization advisory lock by `reserve_assistant
 - RLS "own usage read"; client writes revoked — `:24-28`
 - Function `reserve_assistant_question(org, user, per_org_per_day, per_user_per_minute)` → `usage_id | null` plus counts; service role only — `:33-65`
 - Limits `ASSISTANT_LIMITS` 40 / 5 — `web/src/lib/assistant/access.ts:20-23`; user-facing reasons `:28-40`
-- Reserve: `admin.rpc("reserve_assistant_question")` — `web/src/app/api/assistant/route.ts:73-86`; settle `answered | failed` — `:87-94`, `handler.ts:76-83`
+- Reserve: `admin.rpc("reserve_assistant_question")` — `web/src/app/api/assistant/route.ts:66-79`; settle `answered | failed` — `:80-87`, `handler.ts:77-84`
 
-Citations: `supabase/migrations/20261017020224_assistant_usage.sql:13-65`, `web/src/app/api/assistant/route.ts:73-94`
+Citations: `supabase/migrations/20261017020224_assistant_usage.sql:13-65`, `web/src/app/api/assistant/route.ts:66-87`
 
 ## Connected to
 
