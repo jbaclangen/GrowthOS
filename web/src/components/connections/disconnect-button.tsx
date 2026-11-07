@@ -2,25 +2,26 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
-import { disconnectSearchConsoleAction } from "@/app/settings/connections-actions";
+import { disconnectGoogleAction } from "@/app/settings/connections-actions";
 
-// Two steps, because disconnecting deletes the stored Search Console data. returnTo is the page to come back to
+// Two steps, because disconnecting deletes the stored Search Console and Google Analytics data (one Google sign-in
+// covers both). returnTo is the page to come back to
 // (Settings or the onboarding step), checked again on the server.
 export function DisconnectButton({ returnTo }: { returnTo: string }) {
   const [confirming, setConfirming] = useState(false);
   if (!confirming) {
     return (
       <button type="button" className="btn-secondary" onClick={() => setConfirming(true)}>
-        Disconnect
+        Disconnect Google
       </button>
     );
   }
   return (
-    <form action={disconnectSearchConsoleAction} className="w-full rounded-md border border-border p-3 text-sm">
+    <form action={disconnectGoogleAction} className="w-full rounded-md border border-border p-3 text-sm">
       <input type="hidden" name="returnTo" value={returnTo} />
       <p>
-        Disconnecting revokes Braventa&apos;s access at Google and deletes the Search Console data Braventa stored for this
-        business. Your Search Console account isn&apos;t changed.
+        Disconnecting revokes Braventa&apos;s access at Google, for both Search Console and Google Analytics, and deletes the
+        data Braventa stored from them for this business. Your Google accounts aren&apos;t changed.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <ConfirmButton />

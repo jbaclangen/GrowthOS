@@ -10,14 +10,16 @@ import { isModuleId, moduleLabel, type ModuleId } from "./registry";
 // presence 0.15 (Braventa's assessment, the conversion and messaging module), then PageSpeed mobile performance
 // 0.15, SEO 0.12, accessibility 0.04 and best practices 0.04 (website and technical SEO). When PageSpeed is missing
 // its module has no evidence and the remaining weights are renormalized, as before. Search visibility (Google Search
-// Console, Pro; FEATURE_MODULES.md §9) adds its parts after those, so without its evidence the sum is unchanged.
+// Console, Pro; FEATURE_MODULES.md §9) and Analytics (Google Analytics 4, Pro; §10) add their parts after those, so
+// without their evidence the sum is unchanged.
 // score.test.ts proves the equivalence against the old formula.
 
 // Bump when a part, a weight or the module a part belongs to changes, so a report scored under one version isn't
 // compared with one scored under another (an upgrade isn't an improvement). 1 = the Basic blend above, unchanged
 // since 2026-10-10 (reports from before modules carry no version and are version 1); 2 = Search visibility's parts
-// join the sum when the organization has Search Console evidence (2026-10-23, D-051 step 6).
-export const SCORE_VERSION = 2;
+// join the sum when the organization has Search Console evidence (2026-10-23, D-051 step 6); 3 = Analytics' parts
+// join the sum when it has Google Analytics 4 evidence (2026-11-08).
+export const SCORE_VERSION = 3;
 
 export type AssessedScores = { content_clarity: number; conversion_readiness: number; online_presence: number };
 export type PageSpeedScores = { performance: number; seo: number; accessibility: number; bestPractices: number };
@@ -92,18 +94,54 @@ export function searchVisibilityEvidence(gsc: SearchVisibilityMeasures | null, c
   return { moduleId: "search_visibility", parts };
 }
 
+// What the Analytics module scores: the measures of summarizeAnalytics (lib/integrations/google-analytics.ts), the
+// last 28 days of settled GA4 data for the connected property against the 28 days before.
+export type AnalyticsMeasures = {
+  totals: { sessions: number; engagement_rate_percent: number; key_events: number; sessions_change_percent: number | null };
+  // The property was created inside the window: too new to judge.
+  new_property: boolean;
+  // Key events set up in the property, or null when Google didn't say.
+  key_events_configured: number | null;
+};
+
+// Google Analytics 4: the Analytics module's scored evidence (the parts and weights are FEATURE_MODULES.md §10,
+// provisional). It scores whether measurement works and is set up to count inquiries, not how much traffic the
+// business gets (there is no size-free baseline for that; the model reads the numbers in the prompt). No parts
+// without a summary or for a new property.
+export function analyticsEvidence(ga: AnalyticsMeasures | null): ModuleEvidence {
+  const parts: ScorePart[] = [];
+  if (ga && !ga.new_property) {
+    const { sessions, engagement_rate_percent: engagement, key_events: keyEvents, sessions_change_percent: change } = ga.totals;
+    // Data flowing: an older property that recorded no session in 28 days isn't measuring the website.
+    parts.push({ key: "data_flowing", value: sessions > 0 ? 100 : 0, weight: 0.03 });
+    // Key events (inquiries, calls, bookings): set up and recorded = 100, set up but none recorded = 50, none set up
+    // = 0. Recorded key events prove they're set up even when the Admin API didn't answer.
+    if (keyEvents > 0) parts.push({ key: "key_events", value: 100, weight: 0.03 });
+    else if (ga.key_events_configured !== null) parts.push({ key: "key_events", value: ga.key_events_configured > 0 ? 50 : 0, weight: 0.03 });
+    if (sessions >= 10) {
+      // Engagement rate: 60% or more = 100.
+      parts.push({ key: "engagement", value: pct(engagement / 60), weight: 0.02 });
+      // Sessions against the previous 28 days: unchanged = 50, none = 0, doubled or more = 100.
+      if (change !== null) parts.push({ key: "trend", value: pct((100 + change) / 200), weight: 0.02 });
+    }
+  }
+  return { moduleId: "analytics", parts };
+}
+
 // Today's evidence as modules, in the order the parts are summed (see the note above about equivalence). Search
-// Console is optional: null (or omitted) for an organization without it, which leaves the sum as it was.
+// Console and GA4 are optional: null (or omitted) for an organization without them, which leaves the sum as it was.
 export function scoreEvidence(input: {
   psi: PageSpeedScores | null;
   ai: AssessedScores;
   searchConsole?: SearchVisibilityMeasures | null;
   crawledPages?: number;
+  analytics?: AnalyticsMeasures | null;
 }): ModuleEvidence[] {
   return [
     conversionEvidence(input.ai),
     websiteSeoEvidence(input.psi),
     searchVisibilityEvidence(input.searchConsole ?? null, input.crawledPages ?? 0),
+    analyticsEvidence(input.analytics ?? null),
   ];
 }
 
@@ -151,6 +189,7 @@ const SCORE_SOURCES: Partial<Record<ModuleId, string>> = {
   conversion: "Braventa's review of the website: content clarity, conversion readiness and online presence",
   website_seo: "Google PageSpeed results on mobile",
   search_visibility: "the last 28 days of Google Search Console data",
+  analytics: "the last 28 days of Google Analytics 4 data",
 };
 
 // The growth score explained from the modules it is based on (modulesUsed), as the report's score tile lists them.
@@ -161,11 +200,13 @@ export function growthScoreNote(modules: ModuleId[]): string {
 
 // What a report's score blends, in words, for the score tile ("short") and the Scores section ("long"): only the
 // sources whose modules the score used, so a report without PageSpeed doesn't claim measured site quality and one
-// without Search Console data doesn't claim search data. Fixed order: measured, assessed, then search data.
+// without Search Console data doesn't claim search data. Fixed order: measured, assessed, search data, then
+// analytics.
 const BLEND: { id: ModuleId; short: string; long: string }[] = [
   { id: "website_seo", short: "measured site quality", long: "measured site quality (Google PageSpeed)" },
   { id: "conversion", short: "assessed marketing readiness", long: "Braventa's assessment of your marketing readiness" },
   { id: "search_visibility", short: "your search data", long: "your search data (Google Search Console)" },
+  { id: "analytics", short: "your website analytics", long: "your website analytics (Google Analytics 4)" },
 ];
 
 export function scoreBlend(modules: readonly ModuleId[], form: "short" | "long"): string {

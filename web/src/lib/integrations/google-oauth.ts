@@ -3,7 +3,9 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { env, envConfigured } from "@/lib/env";
 import { decryptSecret, encryptSecret } from "./secret-box";
 
-// Server-side Google OAuth 2.0 for the Search Console connection (authorization code flow with PKCE S256).
+// Server-side Google OAuth 2.0 for the Google connection (authorization code flow with PKCE S256). One consent screen
+// asks for both read-only scopes, Search Console and Google Analytics 4 (founder decision 2026-11-08); the owner may
+// untick either, and the callback keeps only what was granted.
 // Endpoints from Google's "OAuth 2.0 for Web Server Applications" guide. No SDK: plain fetch.
 // Tokens never leave the server: the refresh token is stored encrypted, access tokens are minted per use.
 
@@ -12,8 +14,9 @@ export const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 export const GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke";
 
 export const SEARCH_CONSOLE_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
+export const ANALYTICS_SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
 // openid + email only to show which Google account is connected.
-export const OAUTH_SCOPES = ["openid", "email", SEARCH_CONSOLE_SCOPE];
+export const OAUTH_SCOPES = ["openid", "email", SEARCH_CONSOLE_SCOPE, ANALYTICS_SCOPE];
 
 export const CALLBACK_PATH = "/api/integrations/google/callback";
 export const STATE_COOKIE = "brv_google_oauth";

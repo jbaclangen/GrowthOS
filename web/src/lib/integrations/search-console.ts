@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { decryptSecret, encryptSecret } from "./secret-box";
-import { GoogleOAuthError, mintAccessToken, revokeToken } from "./google-oauth";
+import { decryptSecret } from "./secret-box";
+import { GoogleOAuthError, mintAccessToken } from "./google-oauth";
 import { searchConsoleAccess } from "./search-console-access";
 
 // Google Search Console client, normalization and sync (Pro, Website Intelligence blueprint §3.5).
@@ -363,46 +363,7 @@ async function websiteFor(db: Db, organizationId: string) {
   return (data?.website_url as string | undefined) ?? null;
 }
 
-// Stores a new connection (or replaces the existing one) after the OAuth callback. Revokes the replaced token.
-export async function saveConnection(
-  db: Db,
-  c: { organizationId: string; userId: string; email: string | null; scopes: string[]; refreshToken: string },
-) {
-  const { data: existing } = await db
-    .from("integration_connections")
-    .select("id, refresh_token_ciphertext, google_account_email")
-    .eq("organization_id", c.organizationId)
-    .eq("provider", PROVIDER)
-    .maybeSingle();
-  if (existing?.refresh_token_ciphertext) {
-    try {
-      await revokeToken(decryptSecret(existing.refresh_token_ciphertext));
-    } catch {
-      // Unreadable old token (key changed): nothing to revoke from here.
-    }
-  }
-  // Another Google account means other data: drop the old snapshots.
-  if (existing && existing.google_account_email !== c.email) {
-    await db.from("search_console_snapshots").delete().eq("organization_id", c.organizationId);
-  }
-  const { error } = await db.from("integration_connections").upsert(
-    {
-      organization_id: c.organizationId,
-      provider: PROVIDER,
-      connected_by: c.userId,
-      google_account_email: c.email,
-      refresh_token_ciphertext: encryptSecret(c.refreshToken),
-      scopes: c.scopes,
-      available_properties: [],
-      selected_property: null,
-      status: "active",
-      last_error: null,
-      last_attempted_at: null,
-    },
-    { onConflict: "organization_id,provider" },
-  );
-  if (error) throw new Error("The Search Console connection wasn't saved.");
-}
+// Saving and disconnecting the connection: lib/integrations/google-connection.ts (shared with GA4).
 
 export type SyncResult =
   | { ok: true; property: string }
@@ -522,39 +483,6 @@ export async function selectProperty(db: Db, organizationId: string, property: s
     .eq("organization_id", organizationId);
   if (error) return "invalid";
   return conn.selected_property ? "changed" : "first";
-}
-
-// Revokes Braventa's access at Google, removes the token and deletes every snapshot for the organization.
-export async function disconnectSearchConsole(db: Db, organizationId: string) {
-  const { data: conn } = await db
-    .from("integration_connections")
-    .select("id, refresh_token_ciphertext")
-    .eq("organization_id", organizationId)
-    .eq("provider", PROVIDER)
-    .maybeSingle();
-  if (!conn) return;
-  if (conn.refresh_token_ciphertext) {
-    try {
-      await revokeToken(decryptSecret(conn.refresh_token_ciphertext));
-    } catch {
-      // Unreadable token: deleting it below still cuts Braventa off; the owner can also remove access in Google.
-    }
-  }
-  const { error: snapError } = await db.from("search_console_snapshots").delete().eq("organization_id", organizationId);
-  const { error } = await db
-    .from("integration_connections")
-    .update({
-      refresh_token_ciphertext: null,
-      status: "revoked",
-      google_account_email: null,
-      scopes: [],
-      available_properties: [],
-      selected_property: null,
-      last_error: null,
-    })
-    .eq("id", conn.id)
-    .eq("organization_id", organizationId);
-  if (error || snapError) throw new Error("Search Console wasn't fully disconnected. Try again.");
 }
 
 export async function latestSnapshot(db: SupabaseClient, organizationId: string): Promise<Snapshot | null> {

@@ -10,8 +10,9 @@ const pick = (id: string, priority: number | null = null, confirmed = true) => (
 describe("tool catalog", () => {
   it("has exactly one live tool, Search Console, matching the tier list", () => {
     const live = TOOLS.filter((t) => t.status === "live");
-    expect(live.map((t) => t.id)).toEqual(["search_console"]);
+    expect(live.map((t) => t.id)).toEqual(["search_console", "google_analytics"]);
     expect(live[0].status).toBe(FEATURES.find((f) => f.id === "search_console")!.status);
+    expect(live[1].status).toBe(FEATURES.find((f) => f.id === "google_analytics")!.status);
   });
 
   it("uses unique ids and only active catalog pain points", () => {

@@ -18,6 +18,7 @@ import { moduleForArea, moduleForFinding, type ModuleId } from "@/lib/modules/re
 import {
   SCORE_VERSION,
   computeGrowthScore,
+  analyticsEvidence,
   conversionEvidence,
   scoreEvidence,
   searchVisibilityEvidence,
@@ -26,6 +27,7 @@ import {
 } from "@/lib/modules/score";
 import { enabledModules, recordModuleRuns, type ModuleRun } from "@/lib/modules/server";
 import { searchConsoleSummaryForPrompt, type SearchConsoleSummary } from "@/lib/integrations/search-console";
+import { analyticsSummaryForPrompt, type AnalyticsSummary } from "@/lib/integrations/google-analytics";
 import { fromProfileRow, type OwnerInputs } from "@/lib/owner-inputs";
 import { startPlanIfReady } from "@/lib/onboarding/orchestrate";
 import { claimStep, ownedUpdate } from "./claims";
@@ -435,6 +437,12 @@ async function searchConsoleEvidence(ctx: Ctx, enabled: ReadonlySet<ModuleId>): 
   return enabled.has("search_visibility") ? searchConsoleSummaryForPrompt(ctx.db, ctx.org) : null;
 }
 
+// The organization's Google Analytics 4 summary (the Analytics module), under the same rules: only when the module is
+// enabled, the connection is active and a snapshot exists; nothing is fetched from Google here.
+async function analyticsModuleEvidence(ctx: Ctx, enabled: ReadonlySet<ModuleId>): Promise<AnalyticsSummary | null> {
+  return enabled.has("analytics") ? analyticsSummaryForPrompt(ctx.db, ctx.org) : null;
+}
+
 // ON-7/ON-8: one call on the strongest tier returns the scores, the diagnosis and the plan.
 function diagnose(
   ctx: Ctx,
@@ -443,6 +451,7 @@ function diagnose(
   discovery: DiscoveryContext | null,
   corrections: Corrections | null,
   searchConsole: SearchConsoleSummary | null,
+  analytics: AnalyticsSummary | null,
 ) {
   return runWorkerJson(
     {
@@ -463,6 +472,7 @@ function diagnose(
             corrections,
             audit: evidence.audit ?? null,
             searchConsole,
+            analytics,
           }),
         },
       ],
@@ -489,17 +499,18 @@ async function storeDiagnosis(
     reportId: string | null;
     evidence: Evidence;
     searchConsole: SearchConsoleSummary | null;
+    analytics: AnalyticsSummary | null;
     revises?: { id: string; version: number };
   },
 ) {
   const { db, org } = ctx;
   const facts = discoveryFacts(discovery);
-  // Only refs that exist in this run count as citations; uncited website, PageSpeed and Search Console findings
-  // become inferred.
+  // Only refs that exist in this run count as citations; uncited website, PageSpeed, Search Console and Google
+  // Analytics findings become inferred.
   const findings = toFindings(
     raw.findings,
     facts,
-    citableRefs({ ...opts.evidence, audit: opts.evidence.audit ?? null, searchConsole: opts.searchConsole }),
+    citableRefs({ ...opts.evidence, audit: opts.evidence.audit ?? null, searchConsole: opts.searchConsole, analytics: opts.analytics }),
   );
   const items = orderPlan(toPlanItems(raw.plan, findings, facts));
 
@@ -581,15 +592,17 @@ async function reviseDiagnosis(ctx: Ctx, diagnosisId: string) {
       .map((f) => ({ statement: f.statement, note: f.owner_note })),
   };
   const discovery = await loadDiscovery(db, org, ctx.businessProfileId);
-  // The same Search Console evidence as the analysis (its latest snapshot), so a corrected diagnosis keeps its
-  // Search Console findings. The score isn't recomputed here.
-  const searchConsole = await searchConsoleEvidence(ctx, await enabledModules(db, org));
+  // The same Search Console and GA4 evidence as the analysis (their latest snapshots), so a corrected diagnosis keeps
+  // those findings. The score isn't recomputed here.
+  const enabled = await enabledModules(db, org);
+  const [searchConsole, analytics] = await Promise.all([searchConsoleEvidence(ctx, enabled), analyticsModuleEvidence(ctx, enabled)]);
 
-  const raw = await diagnose(ctx, evidence, intel.data, discovery, corrections, searchConsole);
+  const raw = await diagnose(ctx, evidence, intel.data, discovery, corrections, searchConsole, analytics);
   const { diagnosisId: revisedId } = await storeDiagnosis(ctx, raw, discovery, {
     reportId: previous.report_id,
     evidence,
     searchConsole,
+    analytics,
     revises: { id: previous.id, version: previous.version },
   });
   await db.from("diagnoses").update({ status: "superseded" }).eq("id", previous.id).eq("organization_id", org);
@@ -624,10 +637,10 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
   // overrides (D-051). Read before the model call, so a failed read doesn't waste one. The Search Console summary
   // (search visibility, D-051 step 6) goes to the model as evidence and into the score.
   const enabled = await enabledModules(db, org);
-  const searchConsole = await searchConsoleEvidence(ctx, enabled);
-  const raw = await diagnose(ctx, evidence, intel, discovery, null, searchConsole);
+  const [searchConsole, analytics] = await Promise.all([searchConsoleEvidence(ctx, enabled), analyticsModuleEvidence(ctx, enabled)]);
+  const raw = await diagnose(ctx, evidence, intel, discovery, null, searchConsole, analytics);
   const scored = computeGrowthScore(
-    scoreEvidence({ psi: evidence.psi, ai: raw.scores, searchConsole, crawledPages: evidence.pages.length }),
+    scoreEvidence({ psi: evidence.psi, ai: raw.scores, searchConsole, crawledPages: evidence.pages.length, analytics }),
     enabled,
   );
   if (!scored) throw new Error("No enabled module has evidence for the growth score.");
@@ -665,6 +678,10 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
         search_console: searchConsole
           ? { property: searchConsole.property, period: searchConsole.period, fetched_at: searchConsole.fetched_at, little_data: searchConsole.little_data }
           : null,
+        // The same for the Google Analytics 4 snapshot.
+        google_analytics: analytics
+          ? { property: analytics.property, period: analytics.period, fetched_at: analytics.fetched_at, new_property: analytics.new_property }
+          : null,
         discovery_priorities: [...(discovery?.painPoints ?? [])]
           .filter((p) => p.priority)
           .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0))
@@ -674,7 +691,7 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
     .select("id")
     .single();
 
-  const { items: planItems } = await storeDiagnosis(ctx, raw, discovery, { reportId: report?.id ?? null, evidence, searchConsole });
+  const { items: planItems } = await storeDiagnosis(ctx, raw, discovery, { reportId: report?.id ?? null, evidence, searchConsole, analytics });
 
   // The modules that ran here: conversion and messaging (its sub-score is the assessed part of the growth score)
   // and, for an organization that can use it, search visibility: completed when a Search Console summary was used
@@ -706,6 +723,25 @@ async function scoreStep(ctx: Ctx, state: JobState, input: JobInput, worker: str
         property: searchConsole?.property ?? null,
         period: searchConsole?.period ?? null,
         little_data: searchConsole?.little_data ?? null,
+      },
+    });
+  }
+  // Analytics, the same way: completed when a GA4 summary was used, partial when there was none.
+  if (enabled.has("analytics")) {
+    runs.push({
+      organization_id: org,
+      job_id: ctx.jobId,
+      module_id: "analytics",
+      status: analytics ? "completed" : "partial",
+      sub_score: subScore(analyticsEvidence(analytics).parts),
+      report_id: report?.id ?? null,
+      rules_version: 1,
+      details: {
+        score_version: scored.version,
+        snapshot: Boolean(analytics),
+        property: analytics?.property ?? null,
+        period: analytics?.period ?? null,
+        new_property: analytics?.new_property ?? null,
       },
     });
   }

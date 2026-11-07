@@ -2,6 +2,7 @@ import { NextResponse, connection, type NextRequest } from "next/server";
 import { getCurrentOrg, getUser } from "@/lib/auth";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import {
+  ANALYTICS_SCOPE,
   GoogleOAuthError,
   SEARCH_CONSOLE_SCOPE,
   STATE_COOKIE,
@@ -14,15 +15,18 @@ import {
   stateMatches,
 } from "@/lib/integrations/google-oauth";
 import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
-import { saveConnection, syncSearchConsole } from "@/lib/integrations/search-console";
+import { syncSearchConsole } from "@/lib/integrations/search-console";
+import { syncAnalytics } from "@/lib/integrations/google-analytics";
+import { saveGoogleConnection, type GoogleProvider } from "@/lib/integrations/google-connection";
 import { SETTINGS_RETURN, connectionOutcomeUrl } from "@/lib/integrations/return-to";
 import { can } from "@/lib/team/roles";
 import { recordAcceptance } from "@/lib/legal/acceptances";
 
 // Google redirects here after the consent screen. Needs the same signed-in session that started the flow
 // (proxy.ts redirects signed-out requests to /login). Verifies the encrypted state cookie (random value + user +
-// organization), exchanges the code with the PKCE verifier, stores the refresh token encrypted, and fetches the
-// first snapshot. Every outcome ends on a page that explains a short reason code: Settings until the state cookie is
+// organization), exchanges the code with the PKCE verifier, stores the refresh token encrypted for each product the
+// owner granted (Search Console and/or Google Analytics 4: one consent screen, lib/integrations/google-connection.ts),
+// and fetches the first snapshots. Every outcome ends on a page that explains a short reason code: Settings until the state cookie is
 // verified, then the page the flow started from (Settings or the onboarding "Connect your tools" step), checked again
 // against the allowlist in lib/integrations/return-to.ts.
 
@@ -63,7 +67,7 @@ export async function GET(request: NextRequest) {
     .eq("id", org.id)
     .maybeSingle();
   if (orgError) {
-    console.error("Search Console callback: organization lookup failed:", orgError.message);
+    console.error("Google callback: organization lookup failed:", orgError.message);
     return toOutcome(request, back, "error");
   }
   if (!orgRow || !searchConsoleAccess(orgRow).allowed) return toOutcome(request, back, "paused");
@@ -74,13 +78,17 @@ export async function GET(request: NextRequest) {
   try {
     tokens = await exchangeCode(code, saved.verifier, saved.redirectUri);
   } catch (e) {
-    console.error("Search Console token exchange failed:", e instanceof GoogleOAuthError ? e.code : "network");
+    console.error("Google token exchange failed:", e instanceof GoogleOAuthError ? e.code : "network");
     return toOutcome(request, back, "error");
   }
 
   const scopes = grantedScopes(tokens.scope);
-  // Google lets people untick individual scopes on the consent screen.
-  if (!scopes.includes(SEARCH_CONSOLE_SCOPE)) {
+  // Google lets people untick individual scopes on the consent screen: keep the products they granted.
+  const granted: GoogleProvider[] = [
+    ...(scopes.includes(SEARCH_CONSOLE_SCOPE) ? (["google_search_console"] as const) : []),
+    ...(scopes.includes(ANALYTICS_SCOPE) ? (["google_analytics"] as const) : []),
+  ];
+  if (!granted.length) {
     await revokeToken(tokens.refresh_token ?? tokens.access_token);
     return toOutcome(request, back, "scope-missing");
   }
@@ -90,15 +98,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    await saveConnection(db, {
+    await saveGoogleConnection(db, {
       organizationId: org.id,
       userId: user.id,
       email: emailFromIdToken(tokens.id_token),
       scopes,
       refreshToken: tokens.refresh_token,
+      granted,
     });
   } catch (e) {
-    console.error("Search Console callback: saving the connection failed:", e instanceof Error ? e.message : "unknown");
+    console.error("Google callback: saving the connection failed:", e instanceof Error ? e.message : "unknown");
     await revokeToken(tokens.refresh_token);
     return toOutcome(request, back, "error");
   }
@@ -112,6 +121,15 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const sync = await syncSearchConsole(db, org.id, { skipGuard: true });
-  return toOutcome(request, back, sync.ok ? "connected" : sync.reason === "needs-property" ? "choose-property" : "connected-sync-failed");
+  const syncs = await Promise.all([
+    granted.includes("google_search_console") ? syncSearchConsole(db, org.id, { skipGuard: true }) : null,
+    granted.includes("google_analytics") ? syncAnalytics(db, org.id, { skipGuard: true }) : null,
+  ]);
+  const results = syncs.filter((s) => s !== null);
+  const outcome = results.every((s) => s.ok)
+    ? "connected"
+    : results.some((s) => !s.ok && s.reason === "needs-property")
+      ? "choose-property"
+      : "connected-sync-failed";
+  return toOutcome(request, back, outcome);
 }

@@ -11,6 +11,7 @@ import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
 import { connectionReturnPath } from "@/lib/integrations/return-to";
 import { suggestTools } from "@/lib/integrations/tool-catalog";
 import { SearchConsoleCard } from "@/components/connections/search-console-card";
+import { AnalyticsCard } from "@/components/connections/analytics-card";
 import { ToolCardList } from "@/components/connections/tool-cards";
 import { continueAfterConnect } from "../actions";
 import { EvidenceStatus } from "../evidence-status";
@@ -85,6 +86,7 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
     tools: (profile?.current_tools as string[] | null) ?? [],
   });
   const searchConsole = suggestions.find((s) => s.tool.id === "search_console");
+  const analytics = suggestions.find((s) => s.tool.id === "google_analytics");
   const comingSoon = suggestions.filter((s) => s.tool.status === "coming_soon");
   const returnTo = connectionReturnPath(`/onboarding/${session.id}/connect`);
 
@@ -95,9 +97,9 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
       <p className="mt-2 text-sm text-muted">
         Optional. Connect the tools your business already uses.{" "}
         {configured
-          ? "Today that's Google Search Console: Braventa shows your clicks, impressions, top searches and pages on Search performance and uses them in your diagnosis and growth score. More tools are coming soon."
+          ? "Today that's Google: one sign-in connects Search Console (clicks, impressions, top searches and pages) and Google Analytics 4 (sessions, engagement, key events and channels), and Braventa uses both in your diagnosis and growth score. More tools are coming soon."
           : "None can be connected here yet."}{" "}
-        {canConnect ? "You can skip this step and connect Search Console later in Settings." : "You can skip this step."}
+        {canConnect ? "You can skip this step and connect Google later in Settings." : "You can skip this step."}
       </p>
       {planLine && <p className="mt-4 rounded-md bg-surface-muted px-3 py-2 text-sm">{planLine}</p>}
       <EvidenceStatus jobId={session.evidence_job_id} />
@@ -112,6 +114,13 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
           returnTo={returnTo}
           sectionId="search-console"
           reasons={searchConsole?.reasons}
+          connectClassName="btn-secondary"
+        />
+        <AnalyticsCard
+          org={membership}
+          canConnectHere={canConnectHere}
+          returnTo={returnTo}
+          reasons={analytics?.reasons}
           connectClassName="btn-secondary"
         />
       </section>

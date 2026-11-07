@@ -1,12 +1,13 @@
 import { PAIN_POINTS, getPainPoint, isActivePainPointId } from "@/lib/onboarding/catalog";
 
 // The tools the onboarding step "Connect your tools" and Settings → Connections show (D-041, INTEGRATIONS_ROADMAP §2).
-// Only Google Search Console is live; every other tool is Coming soon and has no connect action. Its status must match
+// Google Search Console and Google Analytics 4 are live (one Google sign-in); every other tool is Coming soon and has
+// no connect action. Its status must match
 // FEATURES in lib/plans/tiers.ts (a test checks it). Suggestions come from the owner's confirmed pain points and the
 // tools they named at the start (BI-12, business_profiles.current_tools), without an AI call. Pure logic, unit-tested.
 //
 // Claim rule (VOICE_AND_MESSAGING §5): present tense means it works today, so every coming-soon "helps" line starts
-// with "Planned:". Search Console data feeds the diagnosis and the growth score (D-051 step 6), so its line may say so.
+// with "Planned:". Search Console and GA4 data feed the diagnosis and the growth score, so their lines may say so.
 
 export type ToolId =
   | "search_console"
@@ -43,8 +44,8 @@ export const TOOLS: Tool[] = [
   {
     id: "google_analytics",
     name: "Google Analytics 4",
-    status: "coming_soon",
-    helps: "Planned: see which website visits turn into inquiries.",
+    status: "live",
+    helps: "See which website visits turn into inquiries: sessions, engagement, key events and traffic channels, used in your diagnosis and growth score.",
     painPoints: [
       "website.low_conversion",
       "strategy.unclear_priorities",
