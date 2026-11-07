@@ -6,6 +6,7 @@ import {
   conversionEvidence,
   growthScoreNote,
   modulesUsed,
+  scoreBlend,
   scoreEvidence,
   searchVisibilityEvidence,
   subScore,
@@ -290,5 +291,28 @@ describe("growthScoreNote (the MCP status tool)", () => {
     expect(pro).toMatch(/doesn't predict results\.$/);
 
     expect(growthScoreNote(["conversion"])).toContain("based on 1 module: Conversion and messaging");
+  });
+});
+
+describe("scoreBlend (the score tile and the Scores section)", () => {
+  it("names only the sources whose modules the score used, measured first", () => {
+    expect(scoreBlend(["conversion", "website_seo"], "short")).toBe("measured site quality and assessed marketing readiness");
+    expect(scoreBlend(["conversion", "website_seo", "search_visibility"], "short")).toBe(
+      "measured site quality, assessed marketing readiness and your search data",
+    );
+    expect(scoreBlend(["conversion", "website_seo", "search_visibility"], "long")).toBe(
+      "measured site quality (Google PageSpeed), Braventa's assessment of your marketing readiness and your search data (Google Search Console)",
+    );
+  });
+
+  it("leaves out PageSpeed when it didn't respond", () => {
+    expect(scoreBlend(["conversion"], "short")).toBe("assessed marketing readiness");
+    expect(scoreBlend(["conversion", "search_visibility"], "long")).toBe(
+      "Braventa's assessment of your marketing readiness and your search data (Google Search Console)",
+    );
+  });
+
+  it("returns an empty string for a module list with no scored sources", () => {
+    expect(scoreBlend([], "short")).toBe("");
   });
 });

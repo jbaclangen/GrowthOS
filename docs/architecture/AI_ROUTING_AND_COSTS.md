@@ -221,7 +221,7 @@ Known limitations:
 | Cheap models for extraction/classification | Partial | `simple` class exists; no feature uses it yet |
 | Mid-tier for standard content and structured analysis | Implemented | `content_writer` = standard |
 | Strong models for strategy and critical review | Partial | `complex` used for profile, audit, plan. `qa` defined but no QA step runs |
-| Deterministic code for calculations and rules | Implemented for the growth score | `computeGrowthScore` blends AI and PageSpeed scores in code; crawler signals (HTTPS, H1s, schema, alt text) are computed, not inferred |
+| Deterministic code for calculations and rules | Implemented for the growth score | `computeGrowthScore` blends AI-assessed and PageSpeed scores in code, plus Search Console measures for Pro, Premium and trial organizations (the Search visibility module); crawler signals (HTTPS, H1s, schema, alt text) are computed, not inferred |
 | Reuse business knowledge; cache | **Not implemented** | Crawled pages are stored in `knowledge_documents` but re-runs re-crawl and re-prompt from scratch; no prompt or response cache; no embeddings |
 | Track model, tokens, latency, failures, cost | Implemented | Per call in `ai_usage`: model, tokens, cost, `latency_ms`, `status`, `error` (2026-10-10) |
 | Configurable fallbacks | Implemented (code-level) | Chains in `router.ts`; changing them requires a deploy. No per-org or per-worker override |

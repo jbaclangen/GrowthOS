@@ -7,7 +7,7 @@ export type PageSpeedStrategy = "mobile" | "desktop";
 // took 86 s once and over 120 s another time on 2026-10-17 (desktop: 41 s). The crawl and PageSpeed run in their own
 // `crawling` step, one function invocation (300 s on Vercel Hobby, D-042), alongside a crawl capped at 45 s, so 180 s
 // still leaves about two minutes for the writes after it. Past this, the report says PageSpeed timed out and the score
-// uses Braventa's assessment alone.
+// uses the other modules' parts: Braventa's assessment, plus search visibility when it has Search Console evidence.
 const PSI_TIMEOUT_MS = 180_000;
 const MAX_OPPORTUNITIES = 5;
 

@@ -3,8 +3,8 @@ type: object
 cluster: access
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: supabase/migrations/20261017020224_assistant_usage.sql
 ---
 

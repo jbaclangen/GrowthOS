@@ -65,7 +65,7 @@ Section heads on braventa.io may be short uppercase lines set in Quicksand headi
 | seamless, integrated | Only when an integration is actually live. |
 | optimize | Fine when specific ("optimize your contact page"); avoid as a vague benefit. |
 | leverage, synergy, solution, empower, robust | Prefer plain verbs: use, help, fix, build. |
-| growth score | Always explain it is a blend of measured site quality and assessed marketing readiness; never present it as a prediction of revenue. |
+| growth score | Always explain it is a blend of measured site quality and assessed marketing readiness, plus real search data on Pro when Google Search Console is connected; never present it as a prediction of revenue. |
 | competitors | The app lists "likely competitors" inferred from the website. Do not present them as verified. |
 
 ## 5. Claim rules (live vs planned)
@@ -139,7 +139,7 @@ Supporting benefits:
 | Pillar | Message | Proof points (live) | Proof points (planned — label when used) |
 |---|---|---|---|
 | **1. Know your business** | Braventa starts by understanding your business, so nothing it produces is generic. | Website crawl; business profile with services, customers, locations, brand voice, strengths, gaps, likely competitors | Business knowledge base; customer-supplied sources |
-| **2. Know what to do next** | A clear, ranked answer to "what should we work on?" | Growth score 0–100 with sub-scores (content clarity, conversion readiness, online presence) and Google PageSpeed measures; top 5 opportunities with impact, effort, and first step | Next-best-action recommendations from results |
+| **2. Know what to do next** | A clear, ranked answer to "what should we work on?" | Growth score 0–100 with sub-scores (content clarity, conversion readiness, online presence), Google PageSpeed measures and, on Pro with Google Search Console connected, search visibility; one prioritized growth plan with impact, effort, and a first step for each action | Next-best-action recommendations from results |
 | **3. Get it done** | From plan to drafted work in one sitting. | 30-day content plan (goal, audience, pillars, channels); 5 drafted social posts in your brand voice with image ideas | Blog, email, and video script drafts; execution through connected tools (use once integrations ship) |
 | **4. Stay in control** | You approve everything. Your data stays yours. | Every draft marked "Needs approval"; approve, reject, or undo; data isolated per organization; monthly AI usage limit | Approval steps and logs on workflows; usage dashboard |
 
@@ -170,7 +170,7 @@ Format: acknowledge, answer with a fact, offer a next step.
 | **"Is my data safe?"** | "Your data is stored in a database that isolates each organization from every other one, secret keys stay on our servers, and we only send AI models what a task needs. We don't publish or send anything on your behalf. [Link to data handling page — add when available]." |
 | **"What does it cost?"** | "Pricing isn't final yet. During the early access phase we're working closely with a small number of businesses. Book a call and we'll walk you through it." (Do not quote prices — D-012.) |
 | **"We tried an agency and it didn't work."** | "Agencies often work in silos and the knowledge leaves when they do. Braventa keeps your business profile, plan, and drafts in one place you own, and shows why each recommendation matters. If you want hands-on help later, that can sit on top of the system rather than replace it." |
-| **"How accurate is the growth score?"** | "Part of it is measured — mobile speed, SEO basics, and accessibility come from Google PageSpeed. The rest is an assessment of your content clarity, conversion readiness, and online presence. It's a starting point for priorities, not a forecast of revenue." |
+| **"How accurate is the growth score?"** | "Part of it is measured — mobile speed, SEO basics, accessibility, and best practices come from Google PageSpeed, and on Pro, with Google Search Console connected, your real search data counts too. The rest is an assessment of your content clarity, conversion readiness, and online presence. It's a starting point for priorities, not a forecast of revenue." |
 | **"Our website is small / outdated."** | "That's fine. Braventa works with what's there, and a thin website usually means the opportunities are clearer. If the site can't be read, you'll see why and what to try." |
 
 ## 10. Calls to action

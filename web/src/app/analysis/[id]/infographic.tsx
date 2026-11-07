@@ -3,7 +3,7 @@ import { getPainPoint } from "@/lib/onboarding/catalog";
 import { PROVENANCE_LABEL, type Provenance } from "@/lib/plan/priority";
 import { PRIORITY_LABEL_TEXT, type PriorityLabel } from "@/lib/audit/checks";
 import { moduleLabel } from "@/lib/modules/registry";
-import { modulesUsed } from "@/lib/modules/score";
+import { modulesUsed, scoreBlend } from "@/lib/modules/score";
 import { scoreTone } from "@/components/score-badge";
 import { sortedPlan } from "./plan-section";
 import type { Report } from "./report-data";
@@ -164,6 +164,12 @@ export function ReportInfographic({ report, href }: { report: Report; href: stri
   const { data, diagnosis, findings, planItems, issues, ownStatement, intel, strategy, contentItems, drafts, audit } = report;
   if (!data) return null;
 
+  // The feature modules the score is based on (D-051): the stored list, or derived for older reports.
+  const modules = modulesUsed(data);
+  const blend = scoreBlend(modules, "short");
+  // Search visibility's sub-score (Google Search Console), when it counted in this score.
+  const searchScore = modules.includes("search_visibility") ? data.module_scores?.search_visibility : undefined;
+
   const scoreRows = [
     { label: "Content clarity", value: data.scores.content_clarity },
     { label: "Conversion readiness", value: data.scores.conversion_readiness },
@@ -174,10 +180,8 @@ export function ReportInfographic({ report, href }: { report: Report; href: stri
           { label: "SEO basics", value: data.pagespeed.seo, note: "Google" },
         ]
       : []),
+    ...(searchScore != null ? [{ label: "Search visibility", value: searchScore, note: "Search Console" }] : []),
   ];
-
-  // The feature modules the score is based on (D-051): the stored list, or derived for older reports.
-  const modules = modulesUsed(data);
 
   const confirmed = diagnosis?.status === "confirmed";
   const plan = diagnosis ? sortedPlan(planItems, confirmed) : [];
@@ -198,7 +202,9 @@ export function ReportInfographic({ report, href }: { report: Report; href: stri
           <ScoreRing score={data.growth_score} />
           <p className={`text-sm font-medium ${scoreTone(data.growth_score)}`}>
             {data.growth_score >= 70 ? "Strong" : data.growth_score >= 45 ? "Room to grow" : "Needs attention"}
-            <span className="mt-1 block text-xs font-normal text-muted">Measured site quality and assessed marketing readiness</span>
+            {blend && (
+              <span className="mt-1 block text-xs font-normal text-muted">{blend.charAt(0).toUpperCase() + blend.slice(1)}</span>
+            )}
             <span className="mt-1 block text-xs font-normal text-muted">
               Based on {modules.length} {modules.length === 1 ? "module" : "modules"}: {modules.map(moduleLabel).join(", ")}
             </span>

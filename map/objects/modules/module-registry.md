@@ -3,8 +3,8 @@ type: object
 cluster: modules
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: web/src/lib/modules/registry.ts
 ---
 
@@ -22,9 +22,9 @@ D-051 made modules the unit the growth score and the tier map are expressed in, 
 - Live: `business_intel` `:58-63`, `website_seo` weight 0.35 `:70-77`, `conversion` 0.65 `:83-91`, `content_studio` `:97-102` (Basic); `search_visibility` 0.1, Pro `:109-118`. Not live: `:124-230` (Premium only `custom_integrations` `:220-225`).
 - `MODULE_IDS` `:233`; `liveModules` `:249-251`; `enabledModuleIds(tier, overrides)` `:263-266`; `moduleForArea` `:272-276`; `SEARCH_CONSOLE_REF = "G1"` `:280`; `moduleForFinding` (verified citing G1 → search visibility, other verified → website SEO, customer-provided → business intel, inferred → none) `:286-295`; `moduleFeature` `:298-300`.
 - SQL domain `public.module_id` — `supabase/migrations/20261023063253_feature_modules.sql:25-27`; backfill rules for existing findings and plan items `:86-103`.
-- Score over modules: `SCORE_VERSION = 2` `web/src/lib/modules/score.ts:20`; `computeGrowthScore(evidence, enabled)` `:133-140`; used in the scoring step `web/src/lib/pipeline/website-intel.ts:625-632`; the report says "Based on N modules" from `reports.data.score_modules` — `web/src/app/analysis/[id]/report-data.ts:31-32`, `web/src/app/analysis/[id]/infographic.tsx:203`.
+- Score over modules: `SCORE_VERSION = 2` `web/src/lib/modules/score.ts:20`; `computeGrowthScore(evidence, enabled)` `:133-140`; used in the scoring step `web/src/lib/pipeline/website-intel.ts:626-633`; `scoreBlend(modules, form)` words the blend from the modules used (`BLEND` `web/src/lib/modules/score.ts:165-169`, `:171-174`). The report's score tile says "Based on N modules" from `reports.data.score_modules` plus the short blend, and shows a Search visibility bar from `reports.data.module_scores` when that module counted — `web/src/app/analysis/[id]/report-data.ts:31-33`, `web/src/app/analysis/[id]/infographic.tsx:168-171,183,205-209`; the Scores section does the same with the long blend — `web/src/app/analysis/[id]/report-sections.tsx:54-56,61,77`; Ask Braventa's business summary gets the module labels and that sub-score — `web/src/lib/assistant/context.ts:159,177,180`.
 
-Citations: `web/src/lib/modules/registry.ts:4-13,15-53,58-118,124-230,233-300`; `supabase/migrations/20261023063253_feature_modules.sql:5-7,25-27,86-103`; `web/src/lib/modules/score.ts:20,133-140,149-160`; `web/src/lib/pipeline/website-intel.ts:625-632`
+Citations: `web/src/lib/modules/registry.ts:4-13,15-53,58-118,124-230,233-300`; `supabase/migrations/20261023063253_feature_modules.sql:5-7,25-27,86-103`; `web/src/lib/modules/score.ts:20,133-140,149-160,162-174`; `web/src/lib/pipeline/website-intel.ts:526,533,586,626-633`; `web/src/app/analysis/[id]/infographic.tsx:168-171,173-184,205-209`; `web/src/app/analysis/[id]/report-sections.tsx:54-56,61,64-77`; `web/src/lib/assistant/context.ts:159,177,180`
 
 ## Connected to
 
@@ -35,19 +35,21 @@ Citations: `web/src/lib/modules/registry.ts:4-13,15-53,58-118,124-230,233-300`; 
 
 ## If you change this
 
-- **Hits:** the `module_id` domain (a new id needs a migration replacing the constraint, `supabase/migrations/20261023063253_feature_modules.sql:27`); `migration.test.ts` and `registry.test.ts`; `SCORE_VERSION` if a weight or part moves (`web/src/lib/modules/score.ts:16-19`); `enabledModules`; `moduleForFinding`/`moduleForArea` and so every new finding and plan item; the module names on the report's score tile and in the MCP status note (`moduleLabel` `web/src/lib/modules/registry.ts:245-247`; a newly scored module needs a `SCORE_SOURCES` entry, `web/src/lib/modules/score.ts:149-154`); `docs/architecture/FEATURE_MODULES.md`.
+- **Hits:** the `module_id` domain (a new id needs a migration replacing the constraint, `supabase/migrations/20261023063253_feature_modules.sql:27`); `migration.test.ts` and `registry.test.ts`; `SCORE_VERSION` if a weight or part moves (`web/src/lib/modules/score.ts:16-19`); `enabledModules`; `moduleForFinding`/`moduleForArea` and so every new finding and plan item; the module names on the report's score tile, in the MCP status note and in Ask Braventa's business summary (`moduleLabel` `web/src/lib/modules/registry.ts:245-247`); a newly scored module needs a `SCORE_SOURCES` entry (`web/src/lib/modules/score.ts:149-154`), a `BLEND` entry for the tile's and Scores section's blend wording (`:165-169`) and its own bar, since each bar is written by hand (`web/src/app/analysis/[id]/infographic.tsx:173-184`, `web/src/app/analysis/[id]/report-sections.tsx:64-77`; the assistant summary carries only Search visibility's sub-score, `web/src/lib/assistant/context.ts:180`); `docs/architecture/FEATURE_MODULES.md`.
 - **Does not hit:** [plan-tier](../tenancy/plan-tier.md)'s `FEATURES` list — a module's `live` flag does not flip a feature's status (the test only requires they agree, `web/src/lib/modules/registry.ts:38-39`).
 
-Ghost: a module switch in the app and the permission that would gate it (the D-046 roles foundation has no module permission yet, [member-role](../tenancy/member-role.md)) — `docs/architecture/FEATURE_MODULES.md:125`, `docs/architecture/ROLES_AND_PERMISSIONS.md:161`; per-module report sections, `audit_findings.module_id`, prompt fragments — `docs/decisions/DECISION_LOG.md:682-685`.
+Ghost: a module switch in the app and the permission that would gate it (the D-046 roles foundation has no module permission yet, [member-role](../tenancy/member-role.md)) — `docs/architecture/FEATURE_MODULES.md:128`, `docs/architecture/ROLES_AND_PERMISSIONS.md:161`; per-module report sections, `audit_findings.module_id`, prompt fragments — `docs/decisions/DECISION_LOG.md:682-685`.
 
 ## Surfaces
 
 | Surface | Role |
 |---|---|
-| Scoring step (`web/src/lib/pipeline/website-intel.ts:625-632`) | reads (`enabledModules`, `computeGrowthScore`) |
-| Diagnosis update (`web/src/lib/pipeline/website-intel.ts:585`) | reads (`enabledModules`) |
-| `storeDiagnosis` (`web/src/lib/pipeline/website-intel.ts:525,532`) | reads (`moduleForFinding`, `moduleForArea`) |
-| Report score tile (`web/src/app/analysis/[id]/infographic.tsx:203`) | reads (`moduleLabel`) |
+| Scoring step (`web/src/lib/pipeline/website-intel.ts:626-633`) | reads (`enabledModules`, `computeGrowthScore`) |
+| Diagnosis update (`web/src/lib/pipeline/website-intel.ts:586`) | reads (`enabledModules`) |
+| `storeDiagnosis` (`web/src/lib/pipeline/website-intel.ts:526,533`) | reads (`moduleForFinding`, `moduleForArea`) |
+| Report score tile (`web/src/app/analysis/[id]/infographic.tsx:168-171,205-209`) | reads (`moduleLabel`, `modulesUsed`, `scoreBlend`) |
+| Report Scores section (`web/src/app/analysis/[id]/report-sections.tsx:54-56`) | reads (`modulesUsed`, `scoreBlend`) |
+| Ask Braventa business summary (`web/src/lib/assistant/context.ts:159,177`) | reads (`modulesUsed`, `moduleLabel`) |
 | MCP `braventa_get_status` note (`growthScoreNote` `web/src/lib/modules/score.ts:157-160`, returned at `web/src/lib/mcp/tools.ts:448`) | reads (`moduleLabel`) |
 | Owner / Settings | none (no switch UI) |
 

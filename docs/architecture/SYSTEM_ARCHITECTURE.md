@@ -22,7 +22,7 @@ anything not built is labelled **Planned** or **Not implemented**. Companion doc
 | System of record | Supabase (project ref `mlztvhvmsullvwawwamc`): Postgres + Auth + RLS, `pgvector` extension | All tenant data, auth, authorization (RLS via `public.is_member()`), job state, AI usage ledger | Live |
 | Workflow execution | n8n, self-hosted at `n8nautomations.pixelmarketingdesign.com` | Intended: scheduled and long-running workflows that call back to `/api/n8n/*` | **Configured only.** Client in `web/src/lib/integrations/n8n.ts`; no workflows exported (`n8n/` is empty); no `/api/n8n/*` routes exist |
 | AI routing | `web/src/lib/ai/router.ts` over OpenRouter (`web/src/lib/integrations/openrouter.ts`) | Worker -> task class -> model chain, budget check, usage logging | Live |
-| External integrations | Google PageSpeed Insights, a cheerio-based crawler | Website measurement and content extraction | Live. Everything else (HubSpot, GA4, Search Console, Stripe, WordPress, publishing) is Planned — see [INTEGRATIONS.md](INTEGRATIONS.md) |
+| External integrations | Google PageSpeed Insights, a cheerio-based crawler, Google Search Console (Pro, read-only) | Website measurement, content extraction and search data for the diagnosis and the Search visibility score | Live. Everything else (HubSpot, GA4, Stripe, WordPress, publishing) is Planned — see [INTEGRATIONS.md](INTEGRATIONS.md) |
 
 Binding rules (from `CLAUDE.md`; restated so architecture reviews can check against them):
 
@@ -179,9 +179,11 @@ Step by step (code references are to `web/src/`):
      only — see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#7-prompt-injection-posture)) and PageSpeed (mobile) run in
      parallel; PageSpeed failure is tolerated.
    - Growth score is **deterministic code** (`computeGrowthScore` in `web/src/lib/modules/score.ts`): a weighted
-     blend of three AI-assessed scores and four PageSpeed scores, computed as a renormalised weighted mean over the
-     organization's enabled feature modules (D-051, [FEATURE_MODULES.md](FEATURE_MODULES.md)); the weights are
-     renormalised when a module has no evidence (PageSpeed unavailable).
+     blend of three AI-assessed scores and four PageSpeed (mobile) scores, plus up to five Search visibility scores
+     from Google Search Console for Pro, Premium and trial organizations with the connection active, computed as a
+     renormalised weighted mean over the organization's enabled feature modules (D-051,
+     [FEATURE_MODULES.md](FEATURE_MODULES.md)); the weights are renormalised when a module has no evidence (PageSpeed
+     unavailable, or no Search Console snapshot with at least 10 impressions).
    - Four AI calls via `runWorkerJson`: `business_analyst`, `website_auditor`, `content_strategist`,
      `content_writer`. Each output is zod-validated; a bad parse is retried once.
    - Drafted posts are written with `status = 'needs_approval'`. Nothing is published; no publishing

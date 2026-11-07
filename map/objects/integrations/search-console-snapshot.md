@@ -3,8 +3,8 @@ type: object
 cluster: integrations
 universe: live
 status: verified
-verified: 2026-11-07
-commit: dde2f04
+verified: 2026-11-08
+commit: 00d230f
 entity: supabase/migrations/20261011161133_search_console.sql
 ---
 
@@ -23,7 +23,8 @@ Google's data lags and is quota-limited, so Braventa stores a fetch instead of q
 - Insert: `syncSearchConsole` `web/src/lib/integrations/search-console.ts:463-473`
 - Delete: Google account changed `:385-387`, disconnect `:543`, prune `:491-505`
 - Read: `latestSnapshot` `:560-569`; `/search` `web/src/app/search/page.tsx:38-44`; card `web/src/components/connections/search-console-card.tsx:65-71`
-- Into the model and score: `summarizeSnapshot` `search-console.ts:254` ← `searchConsoleSummaryForPrompt` `:575-583` ← `searchConsoleEvidence` `web/src/lib/pipeline/website-intel.ts:433-435` (only when `search_visibility` is enabled); score parts `searchVisibilityEvidence` `web/src/lib/modules/score.ts:75-92`; the report records which snapshot was used `web/src/lib/pipeline/website-intel.ts:664-666`
+- Into the model and score: `summarizeSnapshot` `search-console.ts:254` ← `searchConsoleSummaryForPrompt` `:575-583` ← `searchConsoleEvidence` `web/src/lib/pipeline/website-intel.ts:434-436` (only when `search_visibility` is enabled); score parts `searchVisibilityEvidence` `web/src/lib/modules/score.ts:75-93`; the report records which snapshot was used `web/src/lib/pipeline/website-intel.ts:665-667`
+- Downstream, not the row: the module's sub-score `reports.data.module_scores.search_visibility` shows as a Search visibility bar when it counted, on the score tile `web/src/app/analysis/[id]/infographic.tsx:171,183` and Scores section `web/src/app/analysis/[id]/report-sections.tsx:56,77`, and in Ask Braventa's summary `web/src/lib/assistant/context.ts:180`
 - Prompt ref `G1` `web/src/lib/modules/registry.ts:280`; findings citing it map to `search_visibility` `:286-289`
 
 Citations: `supabase/migrations/20261011161133_search_console.sql:47-72`, `web/src/lib/integrations/search-console.ts:412-505`
@@ -47,6 +48,7 @@ Citations: `supabase/migrations/20261011161133_search_console.sql:47-72`, `web/s
 | `syncSearchConsole` (callback, Settings refresh, property choice) | writes |
 | `/search`, Settings card, connect step | reads |
 | scoring and diagnosis_update steps | reads (latest row) |
+| report score tile, Scores section, Ask Braventa summary | read `module_scores.search_visibility`, not the row |
 | `disconnectSearchConsole` (from `disconnectSearchConsoleAction`, owner only through `integrations.connect`, `web/src/app/settings/connections-actions.ts:52`) | deletes |
 
 ## See

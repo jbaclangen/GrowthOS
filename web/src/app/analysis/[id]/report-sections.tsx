@@ -1,6 +1,7 @@
 import { getPainPoint } from "@/lib/onboarding/catalog";
 import { fromProfileRow } from "@/lib/owner-inputs";
 import { ScoreBadge, ScoreBar } from "@/components/score-badge";
+import { modulesUsed, scoreBlend } from "@/lib/modules/score";
 import { ContentActions } from "./controls";
 import { OwnerPanel } from "./owner-panel";
 import { DiagnosisSection, PlanSection } from "./plan-section";
@@ -49,13 +50,15 @@ export function ReportSection({ view, report }: { view: ViewKey; report: Report 
 function Scores({ report }: { report: Report }) {
   const { data } = report;
   if (!data) return null;
+  // What the score blends: only the modules it used (D-051), so Search Console appears only when its data counted.
+  const modules = modulesUsed(data);
+  const blend = scoreBlend(modules, "long");
+  const searchScore = modules.includes("search_visibility") ? data.module_scores?.search_visibility : undefined;
   return (
     <section className="flex flex-col gap-6 md:flex-row md:items-start">
       <div className="flex items-center gap-4 md:w-1/3">
         <ScoreBadge score={data.growth_score} />
-        <p className="text-xs text-muted">
-          A blend of measured site quality (Google PageSpeed) and Braventa&apos;s assessment of your marketing readiness.
-        </p>
+        <p className="text-xs text-muted">{modules.length > 1 ? `A blend of ${blend}.` : `Based on ${blend} only.`}</p>
       </div>
       <div className="grid flex-1 gap-3 sm:grid-cols-2">
         <ScoreBar label="Content clarity" value={data.scores.content_clarity} />
@@ -71,6 +74,7 @@ function Scores({ report }: { report: Report }) {
         ) : (
           <p className="text-sm text-muted">Google PageSpeed scores weren&apos;t available for this run.</p>
         )}
+        {searchScore != null && <ScoreBar label="Search visibility" value={searchScore} note="Google Search Console" />}
       </div>
     </section>
   );

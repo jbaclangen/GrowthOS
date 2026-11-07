@@ -3,8 +3,8 @@ type: object
 cluster: report
 universe: ghost
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -19,7 +19,7 @@ The foundation schema's "content engine" planned campaigns above calendars; the 
 ## Shape
 
 - Table `supabase/migrations/20261010061028_foundation.sql:153-163`: `name`, `objective`, `status` text with a comment listing `planned | active | complete` `:158`, `starts_on`, `ends_on`. RLS "members all" `:300-309`.
-- Referenced by `content_calendars.campaign_id` `:168` and `content_items.campaign_id` `:184` (set null on delete); indexes `supabase/migrations/20261010061126_advisor_fixes.sql:21-22`. Neither writer sets the column (`web/src/lib/pipeline/website-intel.ts:754-762`, `:767-777`).
+- Referenced by `content_calendars.campaign_id` `:168` and `content_items.campaign_id` `:184` (set null on delete); indexes `supabase/migrations/20261010061126_advisor_fixes.sql:21-22`. Neither writer sets the column (`web/src/lib/pipeline/website-intel.ts:755-763`, `:768-778`).
 - No reference to `campaigns` or `campaign_id` anywhere in `web/src`.
 - Related leftover: the `campaign_planner` worker is defined and never called (`web/src/lib/ai/router.ts:47`).
 - Planned use: campaign planning (MS-7, CS-11) is "Later" `docs/product/ROADMAP.md:119`.

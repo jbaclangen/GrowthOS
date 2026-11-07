@@ -3,8 +3,8 @@ type: object
 cluster: onboarding
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: supabase/migrations/20261010155911_onboarding_discovery.sql
 ---
 
@@ -23,7 +23,7 @@ Discovery runs alongside the website analysis, so the session must know both job
 - RLS "members all" — `supabase/migrations/20261010155911_onboarding_discovery.sql:59-60`; clients may insert only listed columns and update only `status`, `completed_at`; job links are server-only — `supabase/migrations/20261010155931_onboarding_sessions_column_grants.sql:3-6`.
 - Lifecycle writers: `discovering` `web/src/lib/onboarding/start.ts:76-86` (then `evidence_job_id` with the admin client `:97-101`); `reviewing` `web/src/lib/onboarding/service.ts:102`; `following_up` `:152`; `completed` `:44-49`; `skipped` `:52-57`; `plan_job_id` claimed conditionally `web/src/lib/onboarding/orchestrate.ts:50-58`.
 - Routing: `SessionStatus`, `OPEN_STATUSES`, `onboardingPath` — `web/src/lib/onboarding/steps.ts:3-26`; `followUpStep` picks connect or questions by pending count — `:31-37`.
-- Plan gate: `web/src/lib/onboarding/orchestrate.ts:18-19,27`. A re-run with no session uses the latest `completed` one — `web/src/lib/pipeline/website-intel.ts:380-387`.
+- Plan gate: `web/src/lib/onboarding/orchestrate.ts:18-19,27`. A re-run with no session uses the latest `completed` one — `web/src/lib/pipeline/website-intel.ts:381-388`.
 - Permissions (D-046): creating a session needs `analysis.run` (`web/src/app/analysis/actions.ts:55`; MCP `web/src/lib/mcp/tools.ts:165`); every onboarding page action needs `profile.edit` (`web/src/app/onboarding/[sessionId]/actions.ts:15-25`; MCP write tools `web/src/lib/mcp/tools.ts:247,288,341`).
 
 Citations: `supabase/migrations/20261010155911_onboarding_discovery.sql:7-27,59-60`; `supabase/migrations/20261010155931_onboarding_sessions_column_grants.sql:3-6`; `supabase/migrations/20261010163029_onboarding_follow_ups.sql:4-6`; `web/src/lib/onboarding/service.ts:44-57,102,152`; `web/src/lib/onboarding/orchestrate.ts:18-58`; `web/src/lib/onboarding/steps.ts:3-37`
@@ -47,8 +47,8 @@ Citations: `supabase/migrations/20261010155911_onboarding_discovery.sql:7-27,59-
 | `startAnalysis` / MCP `braventa_start_onboarding` via `createOnboarding` | writes |
 | `/onboarding/[sessionId]`, `/review`, `/connect`, `/questions` pages and actions | reads, writes `status` |
 | `startPlanIfReady` (`web/src/lib/onboarding/orchestrate.ts:11`) | reads, writes `plan_job_id` |
-| Scoring step `loadDiscovery` (`web/src/lib/pipeline/website-intel.ts:380-387`) | reads |
-| Dashboard, report (`web/src/app/analysis/[id]/report-data.ts:113`), assistant context (`web/src/lib/assistant/context.ts:49`) | reads |
+| Scoring step `loadDiscovery` (`web/src/lib/pipeline/website-intel.ts:381-388`) | reads |
+| Dashboard, report (`web/src/app/analysis/[id]/report-data.ts:113`), assistant context (`web/src/lib/assistant/context.ts:51`) | reads |
 | MCP `braventa_get_status` (`web/src/lib/mcp/tools.ts:404-411`) | reads |
 
 ## See

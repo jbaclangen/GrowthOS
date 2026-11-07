@@ -99,9 +99,12 @@ Builds and maintains the structured business profile used by every other module.
 
 **MVP acceptance criteria**
 - Every opportunity cites evidence from the crawl, PageSpeed, or profile, and gives one concrete first step.
-- The growth score is reproducible from the stored component scores using the documented weights.
-- When PageSpeed is unavailable, the score is computed from assessed dimensions only and the page
-  says measured data was unavailable.
+- The growth score is reproducible from the stored component scores using the documented weights. Search visibility is
+  stored as its sub-score only (`module_scores`, `module_runs.sub_score`), not its parts, so a score that includes it
+  can be checked down to that sub-score but not recomputed exactly.
+- When PageSpeed is unavailable, the score is computed from the other modules' evidence (the assessed dimensions,
+  plus Search visibility when a Pro, Premium or trial organization has Search Console data) and the page says
+  PageSpeed data was unavailable.
 
 ### C. Content Studio — MVP (subset) · Partial
 
@@ -137,7 +140,7 @@ Builds and maintains the structured business profile used by every other module.
 | WI-3 | Website, SEO, and conversion findings in the diagnosis and the growth plan | MVP | **Live** |
 | WI-4 | Show the measured signals as a checklist with pass/fail and why it matters | Next phase | Not started |
 | WI-5 | Dedicated prioritised website improvement plan (SEO, content quality, CRO, UX) using `seo_analyst` | Next phase | Not started |
-| WI-6 | Desktop PageSpeed, Search Console, and GA4 data | Next phase / Future | **Partial**: desktop PageSpeed runs alongside mobile (D-038; the growth score uses mobile only); the Google Search Console connection is live for Pro (in Settings and on the optional "Connect your tools" onboarding step, D-054), but using its data in the diagnosis is not started; GA4 not started |
+| WI-6 | Desktop PageSpeed, Search Console, and GA4 data | Next phase / Future | **Partial**: desktop PageSpeed runs alongside mobile (D-038; the growth score uses mobile only); the Google Search Console connection is live for Pro (in Settings and on the optional "Connect your tools" onboarding step, D-054), and its data feeds the diagnosis and, as the Search visibility module, the growth score of Pro, Premium and trial organizations (D-051 step 6); GA4 not started |
 | WI-7 | Page-level recommendations and rewrite suggestions | Future vision | Not started |
 
 **MVP acceptance criteria:** the assessment is produced even if PageSpeed fails; crawl failures on

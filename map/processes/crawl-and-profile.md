@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-11-08
+commit: 00d230f
 consumes: ["[[ai-job]]", "[[business-profile]]", "[[ai-worker]]"]
 produces: ["[[audit-run]]", "[[audit-finding]]", "[[knowledge-document]]", "[[business-profile]]", "[[brand-profile]]", "[[module-run]]", "[[ai-usage]]", "[[ai-job]]"]
 ---
@@ -23,17 +23,17 @@ The crawl and PageSpeed together approach the invocation limit, so the profile m
 ## Steps
 
 1. Sequence `["crawling", "profiling"]` — `web/src/lib/pipeline/steps.ts:18`.
-2. `crawlStep` → `runAudit` — `web/src/lib/pipeline/website-intel.ts:255-257`.
-3. `runAudit` inserts `audit_runs` (`status: running`, `AUDIT_VERSION`) — `web/src/lib/pipeline/website-intel.ts:111-127`; `AUDIT_VERSION` at `web/src/lib/audit/checks.ts:13`.
-4. `crawlSite` and `pageSpeedReport` in parallel — `web/src/lib/pipeline/website-intel.ts:129-132`; crawl limits (`MAX_PAGES = 25`, robots first) — `web/src/lib/integrations/crawler.ts:86`, `:408-416`; PageSpeed mobile + desktop — `web/src/lib/integrations/google.ts:145`.
-5. Crawl error → `audit_runs` failed, throw — `web/src/lib/pipeline/website-intel.ts:133-147`; else `runChecks` — `:150`, `web/src/lib/audit/checks.ts:911`.
-6. Update `audit_runs` (`completed`/`partial`), insert `audit_findings` — `web/src/lib/pipeline/website-intel.ts:159-182`.
-7. Upsert crawled pages into `knowledge_documents` by content hash — `web/src/lib/pipeline/website-intel.ts:260-273`.
-8. Artifacts `evidence` and `digest` go into the job output — `web/src/lib/pipeline/website-intel.ts:275-289`.
-9. `profileStep` requires both artifacts, runs `business_analyst` — `web/src/lib/pipeline/website-intel.ts:293-307`.
-10. Update `business_profiles` (incl. `intelligence`) — `web/src/lib/pipeline/website-intel.ts:309-322`; insert `brand_profiles` — `:324-329`.
-11. `recordModuleRuns` for `business_intel` and `website_seo` — `web/src/lib/pipeline/website-intel.ts:333-353`; writer at `web/src/lib/modules/server.ts:36-40`.
-12. Evidence job ends `{step: 'evidence_done', evidence}`; `website_intel` drops the digest and continues — `web/src/lib/pipeline/website-intel.ts:356-357`; then `startPlanIfReady` — `:945-951`, `web/src/lib/onboarding/orchestrate.ts:11`.
+2. `crawlStep` → `runAudit` — `web/src/lib/pipeline/website-intel.ts:256-258`.
+3. `runAudit` inserts `audit_runs` (`status: running`, `AUDIT_VERSION`) — `web/src/lib/pipeline/website-intel.ts:112-128`; `AUDIT_VERSION` at `web/src/lib/audit/checks.ts:13`.
+4. `crawlSite` and `pageSpeedReport` in parallel — `web/src/lib/pipeline/website-intel.ts:130-133`; crawl limits (`MAX_PAGES = 25`, robots first) — `web/src/lib/integrations/crawler.ts:86`, `:408-416`; PageSpeed mobile + desktop — `web/src/lib/integrations/google.ts:145`.
+5. Crawl error → `audit_runs` failed, throw — `web/src/lib/pipeline/website-intel.ts:134-148`; else `runChecks` — `:151`, `web/src/lib/audit/checks.ts:911`.
+6. Update `audit_runs` (`completed`/`partial`), insert `audit_findings` — `web/src/lib/pipeline/website-intel.ts:160-183`.
+7. Upsert crawled pages into `knowledge_documents` by content hash — `web/src/lib/pipeline/website-intel.ts:261-274`.
+8. Artifacts `evidence` and `digest` go into the job output — `web/src/lib/pipeline/website-intel.ts:276-290`.
+9. `profileStep` requires both artifacts, runs `business_analyst` — `web/src/lib/pipeline/website-intel.ts:294-308`.
+10. Update `business_profiles` (incl. `intelligence`) — `web/src/lib/pipeline/website-intel.ts:310-323`; insert `brand_profiles` — `:325-330`.
+11. `recordModuleRuns` for `business_intel` and `website_seo` — `web/src/lib/pipeline/website-intel.ts:334-354`; writer at `web/src/lib/modules/server.ts:36-40`.
+12. Evidence job ends `{step: 'evidence_done', evidence}`; `website_intel` drops the digest and continues — `web/src/lib/pipeline/website-intel.ts:357-358`; then `startPlanIfReady` — `:946-952`, `web/src/lib/onboarding/orchestrate.ts:11`.
 
 ## Human gate
 

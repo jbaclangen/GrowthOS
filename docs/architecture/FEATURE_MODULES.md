@@ -18,7 +18,7 @@ module has:
 | `label`, `summary` | Descriptive display name (D-010, Q-036) and one line of what it covers | Registry |
 | `tier` | The lowest tier that includes it | D-051's module-to-tier map (§2) |
 | `featureId` | The plans-page feature it is gated with, when one exists | `FEATURES` in `web/src/lib/plans/tiers.ts`; the test checks the feature's `minTier` equals `tier`, and that a live module's feature is live |
-| `live` | The code does it today | Only the four modules in the current pipeline; set in the PR that ships a module |
+| `live` | The code does it today | Only the modules in the current pipeline (the four Basic ones and Search visibility); set in the PR that ships a module |
 | `scoreWeight` | Its weight in the growth score: the sum of its parts' weights with full evidence; null when not scored | `score.ts` builds the parts; `score.test.ts` checks the sum |
 | `subScore` | What its sub-score measures; null for an output module | Research §5 |
 | `findingCategories`, `planAreas` | The `audit_findings.category` and `growth_plan_items.area` values it owns | Used by `moduleForArea` and the backfill |
@@ -70,7 +70,10 @@ visibility has nothing to score (§9).
 - **Version rule:** bump `SCORE_VERSION` when a part, a weight or the module a part belongs to changes, so a report
   scored under one version isn't compared with one under another (an upgrade isn't an improvement).
 - **UI:** the report's score tile (`web/src/app/analysis/[id]/infographic.tsx`) says "Based on N modules" with their
-  names, and a finding's basis line names Google Search Console when it cites `G1`. The public explanation of the
+  names, and both it and the Scores section (`report-sections.tsx`) describe the blend from the modules used
+  (`scoreBlend` in `score.ts`: "measured site quality", "assessed marketing readiness", "your search data"), with a
+  Search visibility bar when that module counted; a finding's basis line names Google Search Console when it cites
+  `G1`. The public explanation of the
   score (D-035, amended 2026-10-23) says the score is based on the modules with evidence, named on the report.
 
 ## 5. Data
@@ -182,7 +185,9 @@ window), `partial` with no sub-score when there is no summary, and no row when t
 module. `reports.data.search_console` keeps the property, window, fetch time and `little_data` of the summary used,
 or null. Findings that cite `G1` carry `module_id` `search_visibility` (`moduleForFinding`); plan items keep the area
 rule (there is no "search" area; `seo` stays with website and technical SEO). The report's score tile counts the
-module ("Based on 3 modules") and a finding's basis line names Google Search Console next to the checks it cites.
+module ("Based on 3 modules"), the tile and the Scores section show its sub-score (`reports.data.module_scores`) and
+name your search data in the blend, Ask Braventa's business summary gets the modules and the sub-score, and a
+finding's basis line names Google Search Console next to the checks it cites.
 
 **Not in this change (§8).** Keyword and search-intent analysis, a report section for the module, a module switch in
 the app, and Search Console data in the plan and writer prompts.

@@ -41,7 +41,7 @@ flowchart LR
 | Step | Input | Output | Module | Status | Evidence / gap |
 |---|---|---|---|---|---|
 | **1 Understand the business** | Website URL, optional business name, and the owner's optional goal, service area and tools (today); later: uploaded documents, customer answers, connected CRM and analytics | Structured business profile: summary, industry, services, target customers, locations, offers, unique value, brand voice, likely competitors, strengths, gaps. Crawled pages stored as knowledge documents | A Business Intelligence (with D Website Intelligence) | **Partial** | `web/src/lib/pipeline/website-intel.ts` crawls up to 25 pages, respecting robots.txt (`crawler.ts`), runs the `business_analyst` worker, writes `business_profiles.intelligence` and a `brand_profiles` row, and upserts `knowledge_documents`. Gaps: the website and those three optional answers are the only sources; the customer cannot review or edit the profile; stored pages are never chunked, embedded, or retrieved (`knowledge_chunks` / `match_knowledge` unused). |
-| **2 Identify opportunities and bottlenecks** | Business profile, crawl signals (HTTPS, meta description, H1s, contact form, phone, schema, missing alt text, social links), Google PageSpeed (mobile and desktop), the owner's discovery answers (pain points, top three, follow-ups) | Three assessed scores (content clarity, conversion readiness, online presence), a deterministic growth score, a diagnosis (summary and up to six findings, each marked by evidence) and one growth plan of up to seven items, each with area, evidence, first action, impact, urgency, effort and a calculated priority (D-028, D-029) | B Marketing Strategy, D Website Intelligence | **Live** (website-based) | `website_auditor` worker plus `computeGrowthScore()` in `website-intel.ts`; scores and evidence stored as a `reports` row (`report_type = growth_plan`), the diagnosis in `diagnoses` and `diagnosis_findings`, the plan in `growth_plan_items`; rendered in `web/src/app/analysis/[id]/page.tsx`. CRM-side bottlenecks are Planned. |
+| **2 Identify opportunities and bottlenecks** | Business profile, crawl signals (HTTPS, meta description, H1s, contact form, phone, schema, missing alt text, social links), Google PageSpeed (mobile and desktop), the owner's discovery answers (pain points, top three, follow-ups) and, for Pro, Premium and trial organizations with Google Search Console connected, the latest Search Console summary (the Search visibility module) | Three assessed scores (content clarity, conversion readiness, online presence), a deterministic growth score over the organization's enabled modules, a diagnosis (summary and up to six findings, each marked by evidence) and one growth plan of up to seven items, each with area, evidence, first action, impact, urgency, effort and a calculated priority (D-028, D-029) | B Marketing Strategy, D Website Intelligence | **Live** (website-based) | `website_auditor` worker plus `computeGrowthScore()` in `web/src/lib/modules/score.ts` (called from `website-intel.ts`); scores and evidence stored as a `reports` row (`report_type = growth_plan`), the diagnosis in `diagnoses` and `diagnosis_findings`, the plan in `growth_plan_items`; rendered in `web/src/app/analysis/[id]/page.tsx`. CRM-side bottlenecks are Planned. |
 | **3 Set priorities and objectives** | Diagnosis and growth plan; the owner's goal, top three pain points and corrections | Agreed priorities and objectives the plan is built against | B Marketing Strategy | **Partial** | The owner may state a main goal at onboarding (`business_profiles.goals`) and picks a top three during discovery. Plan items are scored in code (impact × urgency × confidence ÷ effort, `web/src/lib/plan/priority.ts`). The owner marks each finding right or wrong (a correction re-runs the diagnosis), confirms the diagnosis, which orders the plan with the owner's priorities first, and accepts, dismisses or marks done each item (`web/src/app/analysis/plan-actions.ts`). Gaps: the owner can't reorder items by hand, and no measurable objectives or targets are agreed. |
 
 ### Stage 2 — Act
@@ -73,7 +73,7 @@ reusable profile so the AI does not rediscover the business on every request (br
 | Target customers and buying motivations | Customers yes; motivations no | Website (AI) | Customer input, CRM |
 | Brand identity and tone of voice | Tone and traits | Website (AI) | Customer edits, brand documents |
 | Products, offers, differentiators | Yes | Website (AI) | Customer edits |
-| Website and digital presence | Signals and PageSpeed | Crawl, Google PageSpeed | Search Console, GA4 |
+| Website and digital presence | Signals and PageSpeed | Crawl, Google PageSpeed, Google Search Console (Pro, read-only) | GA4 |
 | Acquisition channels | Social links only | Crawl | Analytics, CRM |
 | Sales process and CRM structure | No | — | HubSpot |
 | Existing marketing assets | Crawled pages | Crawl | Uploads, connected tools |
@@ -95,10 +95,12 @@ they told it, what it guessed, and what it suggests.
 | **AI-recommended** | A suggestion about what to do | Opportunities, first steps, the 30-day plan, drafted posts | "Recommendation" or "Draft" plus the reason ("why") | Always requires human review; approval is recorded |
 
 **Current implementation:** only partial. The guided onboarding answers (main goal, service area, tools; BI-12) are stored in their own columns and labelled "From you" on the results page; the pipeline never overwrites them and tells the AI they outrank the website. The analysis page marks PageSpeed bars with a "Google"
-note and explains the growth score as a "blend of measured site quality and assessed marketing
-readiness"; drafts are labelled with approval status. Profile fields are not labelled as inferred,
+note and explains the growth score as a blend of the sources it used ("measured site quality, assessed marketing
+readiness and your search data" when Search visibility counted; `scoreBlend` in `web/src/lib/modules/score.ts`);
+drafts are labelled with approval status. Profile fields are not labelled as inferred,
 and provenance is not stored per field. The growth score is a mixed value (deterministic weighting of
-verified PageSpeed scores and inferred AI scores in `computeGrowthScore()`); the UI must keep saying so.
+verified PageSpeed scores, inferred AI scores and, for Pro, Premium and trial organizations with Search Console data,
+verified Search Console measures in `computeGrowthScore()`); the UI must keep saying so.
 
 **Rule for future work:** a new data field or AI output is not done until its provenance class is
 decided, stored, and labelled.
@@ -113,7 +115,7 @@ never claim an integration or automated action exists before it is built and tes
 |---|---|---|---|
 | Growth opportunities | Five opportunities with first steps | Turn into tracked tasks | Live (recommendation only) |
 | Website and conversion recommendations | Inside the five opportunities | Dedicated prioritised website plan | Partial |
-| SEO priorities | Inside the opportunities (PageSpeed SEO score, crawl signals) | Search Console data, keyword priorities | Partial |
+| SEO priorities | Inside the diagnosis and growth plan (PageSpeed SEO score, crawl signals and, on Pro, Search Console data) | Keyword priorities | Partial |
 | Content strategies and calendars | 30-day plan | Edit, schedule, publish via connected tools | Live (plan) |
 | Campaign briefs and marketing assets | First five drafts | Campaigns (`campaigns` table exists, unused), more formats | Partial |
 | Lead-management and CRM workflow recommendations | None | HubSpot read-only summary, then tasks | Planned |

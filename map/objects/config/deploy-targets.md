@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: docs/architecture/SYSTEM_ARCHITECTURE.md
 ---
 
@@ -15,7 +15,7 @@ Supabase project, and every external caller of an app route.
 
 ## Why this shape
 
-One Supabase project serves every environment (`docs/architecture/SYSTEM_ARCHITECTURE.md:251,255-256`), so a local
+One Supabase project serves every environment (`docs/architecture/SYSTEM_ARCHITECTURE.md:253,257-258`), so a local
 dev server writes to production data (Q-009, `docs/decisions/OPEN_QUESTIONS.md:18`) and per-environment secrets have
 to keep one environment from running another's steps (`web/.env.example:39-41`). Production never calls itself
 (Vercel answers a self-call chain with 508), so Postgres posts the analysis hand-offs
@@ -28,24 +28,24 @@ Live:
 
 - **Vercel `braventa-app`**: root `web`, production branch `main`, `https://app.braventa.io`, Hobby tier (300 s per
   invocation, `web/src/app/onboarding/page.tsx:7-9`), env vars set for Production only
-  (`docs/architecture/SYSTEM_ARCHITECTURE.md:247`; D-011 `docs/decisions/DECISION_LOG.md:131-132`).
+  (`docs/architecture/SYSTEM_ARCHITECTURE.md:249`; D-011 `docs/decisions/DECISION_LOG.md:131-132`).
 - **Vercel `braventa-site`**: root `site`, `main`, `https://braventa.io` (`www` redirects); Hostinger is registrar and
-  DNS (`docs/architecture/SYSTEM_ARCHITECTURE.md:248`; `docs/marketing/SITEMAP.md:12`); `HUBSPOT_*` and
+  DNS (`docs/architecture/SYSTEM_ARCHITECTURE.md:250`; `docs/marketing/SITEMAP.md:12`); `HUBSPOT_*` and
   `CONTACT_HASH_SALT` live there (`docs/marketing/CONTACT_PIPELINE.md:25,41`; `site/src/lib/spam.ts:6`;
   `site/src/lib/hubspot.ts:9-10`). Deploy state is read with `gh api repos/jbaclangen/GrowthOS/commits/main/statuses`
   (`.claude/agents/braventa-health-check.md:18`).
 - **Supabase project `mlztvhvmsullvwawwamc`**: Postgres + Auth + RLS for every environment (`CLAUDE.md:70`;
-  `docs/architecture/SYSTEM_ARCHITECTURE.md:22,251`; `.mcp.json:5`; `docs/architecture/SEARCH_CONSOLE_SETUP.md:83`).
+  `docs/architecture/SYSTEM_ARCHITECTURE.md:22,253`; `.mcp.json:5`; `docs/architecture/SEARCH_CONSOLE_SETUP.md:83`).
 - **Postgres → `POST /api/jobs/continue`**: `pg_net` from an insert trigger, `pg_cron` sweeper every minute; the URL
   must be `https://…/api/jobs/continue` (`supabase/migrations/20261017110000_job_dispatches.sql:55-56,68,103-105,339-340`;
   `web/src/lib/pipeline/dispatch.ts:52,68-72`).
-- **Google OAuth client** (GCP project `growth-os-511206`, `docs/architecture/SYSTEM_ARCHITECTURE.md:253`): redirect
+- **Google OAuth client** (GCP project `growth-os-511206`, `docs/architecture/SYSTEM_ARCHITECTURE.md:255`): redirect
   URIs `https://app.braventa.io/api/integrations/google/callback` and the localhost:3000 one, plus the origin of
   `NEXT_PUBLIC_APP_URL`; preview URLs don't work (`docs/architecture/SEARCH_CONSOLE_SETUP.md:54-59`;
   `docs/architecture/INTEGRATIONS.md:74-77`; `web/.env.example:24-26`; `web/src/lib/integrations/google-oauth.ts:18,49-50`).
 - **Supabase Auth email links** → `/auth/callback?next=` and the Site URL root `/`
   (`web/src/app/login/actions.ts:37,41`; `web/src/app/page.tsx:5,16`; `docs/architecture/SECURITY_AND_PRIVACY.md:96-97`;
-  `docs/architecture/SYSTEM_ARCHITECTURE.md:259-261`).
+  `docs/architecture/SYSTEM_ARCHITECTURE.md:261-263`).
 - **MCP clients** (Claude Code, Claude Desktop, claude.ai, ChatGPT, MCP Inspector, n8n HTTP node) → `/api/mcp`,
   `/oauth/*`, `/.well-known/*` (`docs/developers/MCP_AND_API.md:13,41-45,103,145-147`;
   `docs/architecture/MCP_SERVER.md:28,168,175`; `docs/product/CONNECT_YOUR_AI_ASSISTANT.md:30,47`;
@@ -57,15 +57,15 @@ Live:
 Ghost (named, not wired):
 
 - **n8n** at `n8nautomations.pixelmarketingdesign.com`, callbacks to `/api/n8n/*`: no route exists and `proxy.ts`
-  would redirect it (`CLAUDE.md:71,81-82`; `docs/architecture/SYSTEM_ARCHITECTURE.md:23,29,52,81,237-239,252`;
+  would redirect it (`CLAUDE.md:71,81-82`; `docs/architecture/SYSTEM_ARCHITECTURE.md:23,29,52,81,239-241,254`;
   `docs/architecture/INTEGRATIONS.md:34`; `web/src/lib/integrations/n8n.ts:4-5,38-39`; `web/.env.example:17`; host Q-006).
 - **support.braventa.io**, **community.braventa.io**: planned (`docs/product/SUPPORT_SITE.md:1-5`;
-  `docs/marketing/SITEMAP.md:14`; `docs/architecture/SYSTEM_ARCHITECTURE.md:249-250`).
+  `docs/marketing/SITEMAP.md:14`; `docs/architecture/SYSTEM_ARCHITECTURE.md:251-252`).
 
-Doc lag: `docs/architecture/SYSTEM_ARCHITECTURE.md:21,247-248` still say "planned" / "Deploying (2026-10-11)" for
+Doc lag: `docs/architecture/SYSTEM_ARCHITECTURE.md:21,249-250` still say "planned" / "Deploying (2026-10-11)" for
 the two Vercel projects.
 
-Citations: `docs/architecture/SYSTEM_ARCHITECTURE.md:244-253`
+Citations: `docs/architecture/SYSTEM_ARCHITECTURE.md:246-255`
 
 ## Connected to
 
@@ -76,7 +76,7 @@ Citations: `docs/architecture/SYSTEM_ARCHITECTURE.md:244-253`
 
 ## If you change this
 
-- **Hits:** a new public route → `PUBLIC_PATHS` and this list; a new redirect URI → the GCP client and `docs/architecture/SEARCH_CONSOLE_SETUP.md:54-56`; a new env var → both the Vercel project and `web/.env.example`; moving `NEXT_PUBLIC_APP_URL` → Supabase Auth Site URL / redirect allow-list (`docs/architecture/SYSTEM_ARCHITECTURE.md:259-261`), the Google client and `job_dispatches` URL check; a second Supabase project → Q-009 and every migration.
+- **Hits:** a new public route → `PUBLIC_PATHS` and this list; a new redirect URI → the GCP client and `docs/architecture/SEARCH_CONSOLE_SETUP.md:54-56`; a new env var → both the Vercel project and `web/.env.example`; moving `NEXT_PUBLIC_APP_URL` → Supabase Auth Site URL / redirect allow-list (`docs/architecture/SYSTEM_ARCHITECTURE.md:261-263`), the Google client and `job_dispatches` URL check; a second Supabase project → Q-009 and every migration.
 - **Does not hit:** tokens, page copy.
 
 ## Surfaces

@@ -1,6 +1,6 @@
 # Walking the map
 
-Checked against commit `5757423` on 2026-11-07. Paths are repo-relative; `web/src/` is shortened to `src/`
+Checked against commit `00d230f` on 2026-11-08. Paths are repo-relative; `web/src/` is shortened to `src/`
 inside citations only when the context is unambiguous.
 
 ## Universes
@@ -53,7 +53,7 @@ Eight member roles with one permission matrix — `web/src/lib/team/roles.ts:8-1
 - Decision log: D-007, D-008, D-017, D-020, D-026 superseded; D-023 withdrawn; the index table stops at D-028 (plus a
   D-055 row) while entries run to D-055 (`docs/decisions/DECISION_LOG.md:12-42`).
 - Pre-ON-8 "five opportunities" copy and fields (`web/src/app/analysis/[id]/report-data.ts:18-26`,
-  `report-sections.tsx:230-235`, `web/src/app/login/page.tsx:31`, `start-form.tsx:36`).
+  `report-sections.tsx:234-239`, `web/src/app/login/page.tsx:31`, `start-form.tsx:36`).
 - Single-invocation compatibility: unknown worker falls back to the full sequence (`steps.ts:24-27`), old outputs
   handled at `steps.ts:59-60`, `claims.ts:16`, `report-data.ts:210`. Pre-module scores derived by `modulesUsed`
   (`web/src/lib/modules/score.ts:142-144`); `business_profiles.growth_score` duplicates `reports.data.growth_score`.
@@ -69,19 +69,19 @@ The product word and the code name differ. Use the code name in code and citatio
 
 | Product / UI / doc word | Code name | Where |
 |---|---|---|
-| Braventa | `GrowthOS` (repo, `X-GrowthOS-Secret`, `-- GrowthOS foundation schema`, GCP `growth-os-511206`) | `CLAUDE.md:1`; `web/src/lib/integrations/n8n.ts:31`; `foundation.sql:1`; `docs/architecture/SYSTEM_ARCHITECTURE.md:253` |
+| Braventa | `GrowthOS` (repo, `X-GrowthOS-Secret`, `-- GrowthOS foundation schema`, GCP `growth-os-511206`) | `CLAUDE.md:1`; `web/src/lib/integrations/n8n.ts:31`; `foundation.sql:1`; `docs/architecture/SYSTEM_ARCHITECTURE.md:255` |
 | "Analyze website" (new analysis) | job `website_evidence` → steps crawling, profiling | `web/src/lib/onboarding/start.ts:92`; `steps.ts:18` |
 | the report after discovery | job `website_plan` → scoring, planning, writing | `web/src/lib/onboarding/orchestrate.ts:33`; `steps.ts:19` |
 | "Re-run analysis" | job `website_intel` → all five steps | `web/src/app/analysis/actions.ts:99`; `steps.ts:20` |
 | owner corrections to the diagnosis | job `diagnosis_update` → scoring only | `web/src/app/analysis/plan-actions.ts:137`; `steps.ts:21` |
 | "Report" / "Growth assessment" | route `/analysis/[id]` where `id` is the `business_profiles` id; row in `reports` with `report_type` `growth_plan` | `web/src/app/analysis/[id]/page.tsx:17`; `report-data.ts:97-101` |
 | `worker` (one column name, two vocabularies) | `ai_jobs.worker` = the four job types; `ai_usage.worker` = the AI workers | `foundation.sql:225,243`; `router.ts:40-65` |
-| website audit (technical checks) vs AI worker `website_auditor` | checks: `audit_runs`, `audit_findings`, `web/src/lib/audit/checks.ts`; the worker writes the diagnosis and plan | `20261011160802_website_audit.sql:6,35`; `website-intel.ts:450` |
+| website audit (technical checks) vs AI worker `website_auditor` | checks: `audit_runs`, `audit_findings`, `web/src/lib/audit/checks.ts`; the worker writes the diagnosis and plan | `20261011160802_website_audit.sql:6,35`; `website-intel.ts:451` |
 | growth score | `computeGrowthScore`, `SCORE_VERSION = 2`; legacy column `business_profiles.growth_score` | `score.ts:20,133`; `foundation.sql:90` |
 | growth plan | `growth_plan_items`; feature `growth_plan`; solution `growth_plan`; `report_type` `growth_plan` | `20261010164133_diagnosis_and_plan.sql:54`; `tiers.ts:52`; `catalog.ts:15` |
 | "plan" (three meanings) | growth plan (`web/src/lib/plan/`, `plan-actions.ts`), subscription plan (`web/src/lib/plans/`, `organizations.plan`), 30-day plan (`content_calendars`) | `foundation.sql:13,165` |
 | diagnosis / "What's holding the business back" | `diagnoses`, `diagnosis_findings`; feature `diagnosis` also gates module `conversion` | `diagnosis_and_plan.sql:5,32`; `tiers.ts:51`; `registry.ts:87` |
-| drafted posts and 30-day plan | one table `content_items`: plan rows `brief`, drafts `needs_approval`; calendar in `content_calendars`; module `content_studio`; feature `content_plan` | `foundation.sql:165,180`; `website-intel.ts:767-830` |
+| drafted posts and 30-day plan | one table `content_items`: plan rows `brief`, drafts `needs_approval`; calendar in `content_calendars`; module `content_studio`; feature `content_plan` | `foundation.sql:165,180`; `website-intel.ts:768-834` |
 | business profile | `business_profiles` (`intelligence` jsonb); module `business_intel`; feature `website_analysis`; write-only `brand_profiles` | `foundation.sql:77,89,97`; `registry.ts:59`; `tiers.ts:49` |
 | "Ask Braventa" | worker `app_assistant`, route `/api/assistant`, `web/src/lib/assistant/*`, table `assistant_usage`, feature `ai_assistant`; `SOLUTIONS.ai_assistant` still says planned (stale) | `router.ts:49`; `tiers.ts:56`; `catalog.ts:45-49` |
 | "AI assistant connection" (MCP) vs Ask Braventa | feature `assistant_connection`, route `/api/mcp`; Settings section `#ai-assistant` is MCP | `tiers.ts:58`; `web/src/app/settings/page.tsx:71-74` |

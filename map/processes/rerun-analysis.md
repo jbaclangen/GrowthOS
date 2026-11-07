@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-08
+commit: 00d230f
 consumes: ["[[business-profile]]", "[[ai-job]]", "[[onboarding-session]]", "[[member-role]]"]
 produces: ["[[ai-job]]", "[[job-step]]", "[[job-dispatch]]"]
 ---
@@ -30,7 +30,7 @@ One analysis at a time per business keeps two chains from writing the same profi
 6. `queueJob('website_intel')` inserts the job and `startJob` hands `crawling` off — `web/src/app/analysis/actions.ts:96-102`; `web/src/lib/onboarding/start.ts:35-50`.
 7. `refresh()` so the report shows progress — `web/src/app/analysis/actions.ts:103`.
 8. Sequence: all five steps — `web/src/lib/pipeline/steps.ts:20`; intent in `web/src/lib/pipeline/website-intel.ts:64`.
-9. Scoring without a session id: `loadDiscovery` takes the latest `completed` session; a `skipped` one yields null — `web/src/lib/pipeline/website-intel.ts:619-620`, `:385-387`.
+9. Scoring without a session id: `loadDiscovery` takes the latest `completed` session; a `skipped` one yields null — `web/src/lib/pipeline/website-intel.ts:620-621`, `:386-388`.
 
 ## Human gate
 

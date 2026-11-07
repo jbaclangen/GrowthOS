@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: web/src/lib/env.ts
 ---
 
@@ -47,9 +47,9 @@ Site (its own process, Vercel `braventa-site`): `SITE_INDEXABLE` `site/src/lib/i
 `site/src/app/contact/actions.ts:47-48`.
 
 Where names are listed: `web/.env.example:1-49` (complete, with server-only marks `:6,29,31,38,43`);
-`docs/architecture/SYSTEM_ARCHITECTURE.md:256-259` (ten names; `GOOGLE_OAUTH_*`, `INTEGRATIONS_ENCRYPTION_KEY`,
+`docs/architecture/SYSTEM_ARCHITECTURE.md:258-261` (ten names; `GOOGLE_OAUTH_*`, `INTEGRATIONS_ENCRYPTION_KEY`,
 `JOB_CONTINUE_SECRET` and `JOB_DISPATCH` are missing there, a doc lag to fix). Which project holds which:
-`docs/architecture/SYSTEM_ARCHITECTURE.md:247-248`, `docs/marketing/CONTACT_PIPELINE.md:25`.
+`docs/architecture/SYSTEM_ARCHITECTURE.md:249-250`, `docs/marketing/CONTACT_PIPELINE.md:25`.
 
 Citations: `web/src/lib/env.ts:1,8-33,37-52`, `CLAUDE.md:86`
 
@@ -62,7 +62,7 @@ Citations: `web/src/lib/env.ts:1,8-33,37-52`, `CLAUDE.md:86`
 
 ## If you change this
 
-- **Hits:** a new variable → `web/src/lib/env.ts` schema, `web/.env.example`, `docs/architecture/SYSTEM_ARCHITECTURE.md:256-259`, the Vercel project ([deploy-targets](deploy-targets.md)) and, when optional, an `envConfigured()` check; rotating `INTEGRATIONS_ENCRYPTION_KEY` makes stored connections unreadable (`web/.env.example:33`); `JOB_CONTINUE_SECRET` must differ per environment because they share one database (`web/.env.example:39-41`); production needs `JOB_DISPATCH=database` (`web/.env.example:43-48`).
+- **Hits:** a new variable → `web/src/lib/env.ts` schema, `web/.env.example`, `docs/architecture/SYSTEM_ARCHITECTURE.md:258-261`, the Vercel project ([deploy-targets](deploy-targets.md)) and, when optional, an `envConfigured()` check; rotating `INTEGRATIONS_ENCRYPTION_KEY` makes stored connections unreadable (`web/.env.example:33`); `JOB_CONTINUE_SECRET` must differ per environment because they share one database (`web/.env.example:39-41`); production needs `JOB_DISPATCH=database` (`web/.env.example:43-48`).
 - **Does not hit:** tokens, the schema, the assistant knowledge base.
 
 ## Surfaces

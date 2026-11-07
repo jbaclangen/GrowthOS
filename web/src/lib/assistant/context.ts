@@ -4,6 +4,8 @@ import { PROVIDER } from "@/lib/integrations/search-console";
 import { orderPlan, type Provenance } from "@/lib/plan/priority";
 import { isOpen } from "@/lib/onboarding/steps";
 import { effectiveAccess } from "@/lib/plans/tiers";
+import { moduleLabel } from "@/lib/modules/registry";
+import { modulesUsed } from "@/lib/modules/score";
 import { describeSearchConsole, type BusinessSummary } from "./prompt";
 
 // The signed-in user's own account, summarized for the assistant (D-043). Every read uses the user's client, so RLS
@@ -150,7 +152,11 @@ export async function loadBusinessSummary(
   const data = (report?.data ?? null) as {
     scores?: Record<string, number>;
     pagespeed?: Record<string, number> | null;
+    score_modules?: unknown;
+    module_scores?: Record<string, number>;
   } | null;
+  // The modules the score is based on (D-051), stored or derived for older reports; Search visibility only when it counted.
+  const scoreModules = data ? modulesUsed(data) : [];
   const planRows = (items ?? []).map((r) => ({ ...r, calculated_priority: Number(r.calculated_priority) }));
   const ordered =
     diagnosis?.status === "confirmed"
@@ -168,8 +174,10 @@ export async function loadBusinessSummary(
     analyzedAt: latest.analyzed_at,
     analysisStatus: jobLabel(jobStatus.get(latest.id), isOpen(sessionStatus.get(latest.id))),
     growthScore: latest.growth_score,
+    scoreModules: scoreModules.map(moduleLabel),
     scores: data?.scores ?? null,
     pagespeed: data?.pagespeed ?? null,
+    searchVisibility: scoreModules.includes("search_visibility") ? (data?.module_scores?.search_visibility ?? null) : null,
     diagnosis: diagnosis
       ? {
           status: diagnosis.status,

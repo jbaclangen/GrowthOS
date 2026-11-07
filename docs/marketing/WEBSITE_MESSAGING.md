@@ -74,7 +74,8 @@ actions done. Not true: a free-form chat, AI-written questions, reordering plan 
   days, Search visibility adds 0.10 (about a tenth): average position, click-through rate, the trend in clicks, pages
   Google serves, home page indexed (D-051 step 6, 2026-10-23). Say "a third, smaller part"; never a share of
   traffic or a ranking.
-- Without PageSpeed the score is the assessment alone, and the report says PageSpeed wasn't available.
+- Without PageSpeed the score is based on the other parts (the assessment and, on Pro, the search data), and the
+  report says PageSpeed wasn't available.
 - It reflects the website (up to 25 pages) and the owner's answers. Never say it measures overall business health or
   predicts revenue, leads or rankings.
 
@@ -208,7 +209,7 @@ Copy foundations:
 - `EYEBROW`: HOW IT WORKS · **Heading:** Understand. Act. Improve.
 - Section per Growth Loop stage, each listing its three steps (D-004) and status.
 - "What happens in an analysis" timeline using the app's step names: Reading the website → Understanding the business → Scoring growth and finding opportunities → Building the 30-day plan → Drafting your first posts. Note: about 3–4 minutes.
-- "What you get" checklist: business profile; growth score (0–100) with content clarity, conversion readiness, online presence, plus Google mobile speed, SEO basics, accessibility; top 5 opportunities with impact, effort, and first step; 30-day plan (goal, audience, pillars, channels); 5 drafted posts with image ideas.
+- "What you get" checklist: business profile; growth score (0–100) with content clarity, conversion readiness, online presence, plus Google mobile speed, SEO basics, accessibility and best practices when PageSpeed responds, and on Pro a search visibility score from Google Search Console; a diagnosis (3–6 findings marked Verified, From you or Inferred); one prioritized growth plan, each action with why, a first step and how you'll know it worked; 30-day plan (goal, audience, pillars, channels); 5 drafted posts with image ideas.
 - "What Braventa doesn't do (yet)": publish, send email, connect to your CRM, run automations, report on results — with "coming next" where planned.
 - CTA: Get your growth assessment.
 
