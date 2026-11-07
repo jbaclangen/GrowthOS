@@ -33,8 +33,8 @@ export function StartForm() {
       <div className="border-t border-border pt-4">
         <h2 className="text-base font-semibold">Tailor your plan</h2>
         <p className="mt-1 text-xs text-muted">
-          Three optional questions. Your answers shape the opportunities, the 30-day plan and the drafts. Skip
-          them and Braventa works from your website alone.
+          Three optional questions. Your answers shape the diagnosis, the growth plan, the 30-day plan and the
+          drafts. Skip them and Braventa works from your website alone.
         </p>
         <div className="mt-4">
           <OwnerQuestions />
