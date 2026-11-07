@@ -18,7 +18,7 @@ export const TIERS: Record<Tier, { label: string; summary: string }> = {
   },
   pro: {
     label: "Pro",
-    summary: "Everything in Basic, plus your Google Search Console data in your diagnosis and growth score. Coming soon: a full marketing audit, more connected tools and AI agents that carry out approved changes for you.",
+    summary: "Everything in Basic, plus your Google Search Console data in your diagnosis and growth score, and read-only counts from your HubSpot CRM. Coming soon: a full marketing audit, more connected tools and AI agents that carry out approved changes for you.",
   },
   premium: {
     label: "Premium",
@@ -36,6 +36,7 @@ export type FeatureId =
   | "assistant_connection"
   | "full_audit"
   | "search_console"
+  | "hubspot"
   | "analytics_integrations"
   | "creative_integrations"
   | "channel_integrations"
@@ -60,6 +61,9 @@ export const FEATURES: Feature[] = [
   // Read-only; paused after the trial on Basic, data kept (founder decision 2026-10-11, lib/integrations/search-console-access.ts).
   // Its data feeds the diagnosis and the growth score as the Search visibility module (D-051 step 6).
   { id: "search_console", label: "Google Search Console connection", detail: "Read-only clicks, impressions, top search queries and pages for your website, shown in Braventa and used in your diagnosis and growth score.", minTier: "pro", status: "live" },
+  // Read-only, aggregates only (D-048, D-057); paused after the trial on Basic, counts kept
+  // (lib/integrations/hubspot-access.ts). Not part of the diagnosis or score yet: that is the CRM module (D-051).
+  { id: "hubspot", label: "HubSpot connection", detail: "Read-only counts from your HubSpot CRM, shown in Settings: contacts by lifecycle stage, new contacts, and open, won and lost deals. Braventa stores counts and totals, not names or email addresses. Not used in your diagnosis yet.", minTier: "pro", status: "live" },
   { id: "analytics_integrations", label: "Analytics connections", detail: "Google Analytics 4 and Tag Manager.", minTier: "pro", status: "coming_soon" },
   { id: "creative_integrations", label: "Creative tool connections", detail: "Canva, HeyGen and Higgsfield.", minTier: "pro", status: "coming_soon" },
   { id: "channel_integrations", label: "Website and social connections", detail: "WordPress and your social media accounts.", minTier: "pro", status: "coming_soon" },

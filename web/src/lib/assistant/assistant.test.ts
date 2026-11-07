@@ -298,10 +298,17 @@ describe("knowledge base", () => {
       source("../../app/onboarding/[sessionId]/connect/page.tsx"),
       source("../../app/onboarding/[sessionId]/connect/continue-button.tsx"),
     ].join("\n");
-    const card = source("../../components/connections/search-console-card.tsx");
+    const card = [
+      source("../../components/connections/search-console-card.tsx"),
+      source("../../components/connections/hubspot-card.tsx"),
+    ].join("\n");
     for (const label of ["Continue", "Change your priorities", "Connect your tools"]) expect(step, label).toContain(label);
     expect(card).toContain("Connect Google Search Console");
     expect(section("search-console")).toContain("**Connect Google Search Console**");
+    for (const label of ["Connect HubSpot", "Refresh HubSpot counts", "Disconnect"]) {
+      expect(card, label).toContain(label);
+      expect(section("hubspot"), label).toContain(`**${label}**`);
+    }
 
     // Every bold label in the step's route entry and in getting-started step 4 is on the page or its card.
     const route = APP_ROUTES.find((r) => r.route === "/onboarding/[sessionId]/connect")!;
@@ -311,10 +318,12 @@ describe("knowledge base", () => {
     expect(quoted.length).toBeGreaterThan(1);
     for (const label of quoted) expect(`${step}\n${card}`, label).toContain(label);
 
-    // Only Search Console is live and its data feeds the diagnosis and the score (D-051 step 6); every other tool
-    // is named as coming soon.
+    // Search Console and HubSpot are live; only Search Console data feeds the diagnosis and the score (D-051 step 6);
+    // every other tool is named as coming soon.
     expect(route.purpose).toMatch(/goes into your diagnosis and growth score/);
-    expect(route.purpose).toMatch(/Coming soon[^.]*: Google Analytics 4, .*HubSpot.* and HeyGen\./);
+    expect(route.purpose).toMatch(/HubSpot[^.]*counts[^.]*aren't used in your diagnosis yet/);
+    expect(route.purpose).toMatch(/Coming soon[^.]*: Google Analytics 4, .* and HeyGen\./);
+    expect(route.purpose.match(/Coming soon[^.]*: [^.]*\./)![0]).not.toMatch(/HubSpot/);
     expect(route.howToGetThere).toMatch(/AI assistant connected to Braventa skips this step/);
   });
 

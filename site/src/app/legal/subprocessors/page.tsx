@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 // Must match what the product actually uses (docs/architecture/INTEGRATIONS.md). Update before adding a provider.
 const VENDORS = [
-  { name: "Supabase", purpose: "Database and sign-in for all customer data", data: "Account, setup answers, analysis results, contact requests, and, if you connect Google Search Console, the connected Google account email, the encrypted Google token and copies of your search data" },
+  { name: "Supabase", purpose: "Database and sign-in for all customer data", data: "Account, setup answers, analysis results, contact requests, and, if you connect Google Search Console, the connected Google account email, the encrypted Google token and copies of your search data; if you connect HubSpot, the encrypted HubSpot token, your portal's ID and domain and copies of your CRM counts" },
   { name: "Vercel", purpose: "Hosting for braventa.io and app.braventa.io", data: "Requests passing through the site and app" },
   { name: "OpenRouter", purpose: "Routes requests to AI models", data: "Website text, setup answers and business profile for each task; with Google Search Console connected, a summary of your search data for the diagnosis; and questions asked in the in-app assistant with a summary of the account" },
   { name: "Anthropic Claude (via OpenRouter; served by Anthropic, Google Cloud or Amazon Web Services)", purpose: "AI models that analyze, plan and draft, with zero data retention", data: "As above, for the task at hand" },
@@ -55,6 +55,12 @@ export default function Subprocessors() {
         If you connect Google Search Console, Braventa reads your search data from Google with the read-only access you
         granted. Google holds that data under your own Google account and terms; it isn&apos;t a Braventa sub-processor
         for it. See <Link href="/legal/privacy">Privacy</Link>.
+      </p>
+      <p>
+        If you connect HubSpot, Braventa reads your CRM records from your own HubSpot portal with the read-only access you
+        granted and keeps only counts and totals. HubSpot holds your CRM data under your own account and terms; it
+        isn&apos;t a Braventa sub-processor for it. (Braventa&apos;s own HubSpot portal, listed above, is separate: it
+        handles contact-form requests sent to us.) See <Link href="/legal/privacy">Privacy</Link>.
       </p>
     </>
   );

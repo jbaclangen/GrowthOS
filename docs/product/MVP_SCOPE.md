@@ -120,7 +120,10 @@ data-handling decisions, and it only helps customers who use HubSpot. Planned fo
 the **Next phase** as step 4 of the Pro integrations order, after Search Console and GA4 (D-041,
 [INTEGRATIONS_ROADMAP.md](INTEGRATIONS_ROADMAP.md) §5), built for two or three design partners who use
 HubSpot, rather than as an MVP blocker. HubSpot read-only as the first CRM is decided (D-048, resolves Q-011);
-GoHighLevel is the alternate if the testers turn out to be agency-managed.
+GoHighLevel is the alternate if the testers turn out to be agency-managed. **Update 2026-11-08:** the connection is
+built ahead of GA4, outside the MVP (Pro, read-only, counts only, D-057; live once the HubSpot app is set up,
+[HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). The summary in the diagnosis (CRM-1, CRM-2, the CRM module) is
+not built.
 
 ## 4. Explicitly out of scope for the MVP
 
@@ -129,7 +132,8 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
 - Publishing or scheduling to any social network, Google Business Profile, WordPress, or email tool. Social
   publishing is decided for after the MVP, as a Pro feature (D-049); until it ships, copy must not claim it.
 - Any n8n workflow triggered by the app; trigger-based or scheduled automations.
-- CRM connections of any kind (HubSpot is Next phase).
+- CRM connections other than the read-only HubSpot connection (Pro, counts only, outside the MVP; D-048, D-057), and
+  any use of CRM data in the diagnosis (the CRM module is Next phase).
 - Analytics integrations (GA4) and performance reporting. The Google Search Console connection is live for Pro, outside
   the MVP (read-only, shown on `/search`; connected in Settings, and also offered during setup on the optional
   "Connect your tools" step, D-054), and since 2026-10-23 its latest snapshot feeds the diagnosis and the growth score

@@ -6,7 +6,7 @@ document, UI string or sales conversation claims an integration that is not buil
 [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md), [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md),
 [../product/MVP_SCOPE.md](../product/MVP_SCOPE.md), [../decisions/OPEN_QUESTIONS.md](../decisions/OPEN_QUESTIONS.md).
 
-**Status / last reviewed: 2026-10-11.**
+**Status / last reviewed: 2026-10-11** (HubSpot rows updated 2026-11-08).
 
 ---
 
@@ -34,7 +34,7 @@ Status definitions:
 | n8n | Workflow execution, scheduling, orchestration | **Configured only** | `web/src/lib/integrations/n8n.ts` (`listWorkflows`, `triggerWebhook`, `verifyCallback`); used only by the dev health route | `N8N_BASE_URL`, `N8N_API_KEY`, `N8N_WEBHOOK_SECRET` (>= 32 chars) | Instance `n8nautomations.pixelmarketingdesign.com`. `n8n/` folder empty: no workflows exported. **No `/api/n8n/*` routes exist**, and `proxy.ts` would redirect them to `/login` until `/api/n8n` is made public. `triggerWebhook` and `verifyCallback` are unused |
 | Google Analytics 4 (Data/Admin API) | Traffic and conversion data for reporting | **Configured only** (API enabled in GCP; no code) | None | OAuth per customer property (planned); current API key is PageSpeed-only | Enablement recorded in infrastructure notes, not verifiable from the repo. `integrations.provider` comment lists `google_analytics` |
 | Google Search Console | Read-only clicks, impressions, top queries and pages, device split, sitemaps, home-page URL Inspection (Pro) | **Live** for Pro in production: connected and synced on 2026-10-11 (setup: [SEARCH_CONSOLE_SETUP.md](SEARCH_CONSOLE_SETUP.md)); since 2026-10-23 its latest snapshot feeds the diagnosis and the growth score as the Search visibility module (D-051 step 6, [FEATURE_MODULES.md](FEATURE_MODULES.md) §9) | `web/src/lib/integrations/{google-oauth,search-console,search-console-access,secret-box}.ts`, `web/src/app/api/integrations/google/{start,callback}/route.ts`, `web/src/app/settings/connections-*.tsx`, `web/src/app/search/` | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `INTEGRATIONS_ENCRYPTION_KEY` (server-only); per-org OAuth refresh token, encrypted | See [Google Search Console](#google-search-console-pro) below. The scoring step calls `searchConsoleSummaryForPrompt` for organizations whose enabled modules include Search visibility (Pro, Premium, the trial). `braventa.io` itself is verified in Search Console (TXT record) — that is Braventa's own domain, not this integration |
-| HubSpot | First CRM integration: pipeline and lead summaries | **Planned** (priority) | None. Health route returns a "Sprint 5" placeholder | HubSpot public app (OAuth client id/secret), `INTEGRATIONS_ENCRYPTION_KEY`; per-org OAuth refresh token, encrypted | See plan below |
+| HubSpot | First CRM integration (D-048): read-only counts of contacts, companies and deals (Pro) | **Built, not set up** (2026-11-08): live once the founder uploads the HubSpot app and sets the env vars ([HUBSPOT_SETUP.md](HUBSPOT_SETUP.md)). Counts only, no records (D-057); not in the diagnosis or score yet | `web/src/lib/integrations/{hubspot-oauth,hubspot,hubspot-metrics,hubspot-access}.ts`, `web/src/app/api/integrations/hubspot/{start,callback}/route.ts`, `web/src/components/connections/hubspot-card.tsx`; app config in `hubspot/` | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET`, `INTEGRATIONS_ENCRYPTION_KEY` (server-only); per-org OAuth refresh token, encrypted | See [HubSpot](#hubspot-pro-read-only) below |
 | HubSpot (Braventa's own CRM) | braventa.io contact requests: notification, CRM record, replies from hello@braventa.io via Hostinger SMTP (D-034, Pixelmarketingdesign portal 247150427). Not the customer-facing integration above | **Live** (submissions arrive since the 2026-10-11 `pageUri` fix) | `site/src/lib/hubspot.ts` (Forms API, no secret; form `ce8aca1a-…`) | `HUBSPOT_PORTAL_ID`, `HUBSPOT_FORM_GUID` on Vercel `braventa-site` | [CONTACT_PIPELINE.md](../marketing/CONTACT_PIPELINE.md) |
 | Braventa MCP server (inbound) | Owners' AI assistants (Claude Code, Claude Desktop) fill in onboarding (D-036) | **Live, phase 1** | `web/src/app/api/mcp/route.ts`, `web/src/lib/mcp/` | None (owners' personal access keys, hashed in `mcp_access_keys`) | [MCP_SERVER.md](MCP_SERVER.md). OAuth for claude.ai/ChatGPT not built (Q-039) |
 | WordPress | Publish approved blog content; read site content | **Idea** | None | Application password or OAuth per site | Brief cites founder's WordPress experience; no decision. Publishing requires approval flow (D-013) |
@@ -115,35 +115,43 @@ nothing under 10 impressions). Nothing is fetched from Google during an analysis
 **Not built yet:** a sync during the analysis, scheduled syncs, country and search-appearance dimensions, manual
 actions and security issues, URL Inspection beyond the home page, an audit log of connect/disconnect.
 
-## HubSpot-first plan (Planned)
+## HubSpot (Pro, read-only)
 
-HubSpot is the first CRM because of the founder's experience (brief §3.E). Braventa augments HubSpot; it
-does not replace it. Nothing below is built.
+HubSpot is the first CRM (D-048). Braventa augments HubSpot; it doesn't replace it. **Built 2026-11-08, not set up
+yet:** until the founder uploads the app in `hubspot/` and sets the env vars ([HUBSPOT_SETUP.md](HUBSPOT_SETUP.md)),
+the HubSpot card says the connection isn't set up yet.
 
-**Phase 1 — read-only summaries.**
-1. Create a HubSpot **public app** (OAuth 2.0) owned by Braventa; request the minimum read scopes needed
-   for contacts, companies, deals and owners (exact scope list to be fixed during build). No write scopes.
-2. Connect flow, the same pattern as Search Console: the organization's owner (only with Pro access) clicks
-   Connect -> HubSpot consent -> `/api/integrations/hubspot/callback` (server route, behind the signed-in
-   session like the Google routes) checks owner role and Pro access, exchanges the code, encrypts the refresh
-   token with `secret-box.ts` (AES-256-GCM, `INTEGRATIONS_ENCRYPTION_KEY`) and upserts one row into
-   `integration_connections` (add `hubspot` to its `provider` check list) with the service client, scoped to
-   the authorized organization: `refresh_token_ciphertext`, `scopes`, `connected_by`, `status = 'active'`,
-   plus the portal id (the table has no column for it yet). No access token is stored.
-   The OAuth `state` parameter must bind to the user and org to prevent cross-tenant connection.
-3. Sync: a scheduled job (n8n or a cron route) pulls bounded snapshots (counts, stage totals, stale deals,
-   missing fields) into tenant tables (e.g. `crm_snapshots`, with `organization_id` + RLS). Store aggregates
-   and identifiers, not full contact records, unless a feature needs them.
-4. Analysis: `crm_analyst` worker summarises the snapshot (aggregates only by default; minimise personal
-   data sent to models — no free-tier models for CRM data). Output as a `reports` row
-   (`report_type = 'crm_summary'`).
-5. Disconnect: revoke the token at HubSpot, set `refresh_token_ciphertext = null` and `status = 'revoked'`,
-   delete synced rows per the retention decision.
+**Phase 1, built: read-only counts.**
+1. App: an unlisted marketplace OAuth app on platform 2026.09, defined as code in `hubspot/` (up to 25 installs
+   without HubSpot's review). Scopes `crm.objects.contacts.read`, `crm.objects.companies.read`,
+   `crm.objects.deals.read` (HubSpot adds `oauth`). Not `crm.lists.read` (nothing reads lists), `forms` or `content`.
+2. Connect: the owner (`integrations.connect`) of a Pro, Premium or trial organization selects **Connect HubSpot** in
+   Settings → Connections or on the onboarding step → `/api/integrations/hubspot/start` seals `{state, user, org,
+   redirectUri, returnTo}` in an encrypted cookie → HubSpot's install screen → `/api/integrations/hubspot/callback`
+   checks the cookie, owner and plan, exchanges the code (OAuth API `2026-09`; HubSpot documents no PKCE for apps, so
+   the client secret and the sealed state carry it), introspects the token for the portal id, domain and scopes,
+   requires all three scopes, and upserts `integration_connections` (`provider = 'hubspot'`, `external_account_id` =
+   portal id, `external_account_name` = portal domain, the refresh token encrypted with `secret-box.ts`).
+3. Sync (`syncHubSpot`): on connect and on **Refresh HubSpot counts** only, at most every 10 minutes; nothing runs in
+   the background. Mints an access token (storing a rotated refresh token), then about 30 CRM searches at 4 a second
+   (the search API allows 5) for totals: contacts, new contacts in the last 28 days and the 28 before, contacts by
+   lifecycle stage, new contacts by original source, contacts without an owner, new contacts with no "last
+   contacted" date, companies. Deals are listed (up to 5,000, only amount, stage, pipeline and dates requested) and
+   summed in memory against the deal pipelines: open count and value, stale open deals (not updated in 30 days),
+   created, won and lost in the period, 90-day win rate, totals per stage. One `hubspot_snapshots` row per sync,
+   12 kept.
+4. **Aggregates only (D-057):** the snapshot holds counts, sums and the portal's own stage and source labels. No
+   names, email addresses, phone numbers, deal names, record ids or owner names are stored, logged or shown. A size
+   check on `metrics` (32 KB) backs this up.
+5. Disconnect (owner): uninstall the app from the portal (`DELETE /appinstalls/2026-09/external-install`, HubSpot
+   emails the portal's admins), revoke the refresh token, delete every snapshot, blank the row to `revoked`.
+   Reconnecting to another portal deletes the old portal's snapshots.
+6. On Basic (trial ended), the connection pauses like Search Console: counts kept, nothing fetched.
 
-**Phase 2 — assisted actions (later, approval required).** Create tasks or notes, update properties, enrol
-in sequences. Each action is proposed, shown to a human, approved, executed, and logged (D-013). Requires
-write scopes and an audit table.
+**Not built yet:** the CRM module (counts in the diagnosis and growth score, D-051; next step), uninstall detection
+(HubSpot's webhooks journal `APP_LIFECYCLE_EVENT`; today a sync after an uninstall fails with `invalid_grant` and the
+card asks to reconnect), scheduled syncs, an audit log of connect/disconnect, owners, lists.
 
-**Prerequisites before Phase 1:** a migration adding `hubspot` (and a portal id column) to
-`integration_connections`; an audit log for connect/disconnect; a documented data-retention rule for CRM
-data; HubSpot app listing requirements reviewed.
+**Phase 2: assisted actions (later, approval required).** Create tasks or notes, update properties, enroll in
+sequences. Each action is proposed, shown to a human, approved, executed, and logged (D-013). Requires write scopes
+(requested one tool at a time, INTEGRATIONS_ROADMAP §2) and an audit table.

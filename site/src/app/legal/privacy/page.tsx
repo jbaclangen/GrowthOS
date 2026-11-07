@@ -151,6 +151,52 @@ export default function Privacy() {
           data, and data already fetched stays until the owner disconnects in Braventa.
         </li>
       </ul>
+      <h3>If you connect HubSpot (optional)</h3>
+      <ul>
+        <li>
+          On the Pro and Premium plans and during the 14-day Pro trial, the owner of a business can connect its HubSpot
+          portal, in Settings → Connections or during setup, by installing Braventa&apos;s app there. Only the owner can
+          connect or disconnect it.
+        </li>
+        <li>
+          Braventa asks HubSpot for read-only access to contacts, companies and deals. It can&apos;t create, change or
+          delete anything in HubSpot.
+        </li>
+        <li>
+          Braventa reads those records to count them, but it doesn&apos;t keep them. What we store: the token HubSpot
+          issues, encrypted; your portal&apos;s ID and domain; and, each time counts are fetched, a copy of the counts and
+          totals: contacts in total, by lifecycle stage and without an owner; new contacts in the last 28 days and the 28
+          before, by original source, and how many have no logged sales activity; the number of companies; and open, won
+          and lost deals with their total amounts, stale open deals and your win rate, by pipeline stage. The copy holds
+          the names of your own lifecycle stages, sources and pipeline stages, but no names, email addresses, phone
+          numbers, deal names or record IDs. We keep the 12 most recent copies.
+        </li>
+        <li>
+          Braventa fetches new counts only when the owner connects or when someone in your business refreshes them, at
+          most once every 10 minutes. Nothing is fetched in the background.
+        </li>
+        <li>
+          People in your business on Braventa can see the counts and which portal is connected. Today the counts are
+          shown only in the app: they aren&apos;t sent to our AI providers or the in-app assistant, and they aren&apos;t
+          used in your diagnosis or growth score.
+        </li>
+        <li>
+          We don&apos;t sell this data, use it for advertising, or share it with anyone other than the providers that run
+          Braventa for us. Braventa staff don&apos;t look at it unless you ask us to (for example, for support), or when
+          it&apos;s needed for security or to comply with the law.
+        </li>
+        <li>
+          After the trial, on Basic, the connection is paused: counts already fetched are kept and shown, but nothing new
+          is fetched until the business moves to Pro or Premium.
+        </li>
+        <li>
+          The owner can disconnect in Settings → Connections at any time. Braventa then uninstalls its app from your
+          portal (HubSpot emails your portal&apos;s admins), revokes its token and deletes the stored counts and portal
+          details. Connecting a different portal also deletes the counts from the old one. If you uninstall the app in
+          HubSpot instead, Braventa can&apos;t fetch new counts; the ones already fetched stay until the owner disconnects
+          in Braventa.
+        </li>
+      </ul>
 
       <h2>How we use it, and our legal bases</h2>
       <p>
@@ -219,6 +265,7 @@ export default function Privacy() {
           to keep.
         </li>
         <li>Google Search Console data: the 12 most recent copies, deleted when the owner disconnects.</li>
+        <li>HubSpot counts: the 12 most recent copies, deleted when the owner disconnects.</li>
         <li>
           Contact form messages: until you ask us to delete them. We&apos;re setting a fixed retention period and will
           update this page when we do.
@@ -263,6 +310,10 @@ export default function Privacy() {
         <li>
           The owner chooses whether to connect Google Search Console and can disconnect it at any time, which deletes
           the stored search data.
+        </li>
+        <li>
+          The owner chooses whether to connect HubSpot and can disconnect it at any time, which deletes the stored
+          counts.
         </li>
         <li>You can unsubscribe from product updates at any time.</li>
       </ul>

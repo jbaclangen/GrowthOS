@@ -1,4 +1,5 @@
-// Where a Search Console flow (Google consent screen, refresh, property choice, disconnect) sends the owner back to.
+// Where a connection flow (Search Console or HubSpot: consent screen, refresh, property choice, disconnect) sends the
+// owner back to.
 // An exact allowlist, not a general "safe path" check (safe-next.ts allows any same-site path): Settings, or the
 // onboarding "Connect your tools" step of one session. Anything else, including a tampered value, means Settings.
 // Session ids come from gen_random_uuid(), so only lowercase UUIDs are accepted. Pure logic, unit-tested.
@@ -23,4 +24,17 @@ export function searchConsoleStartHref(returnTo: string): string {
   return path === SETTINGS_RETURN
     ? "/api/integrations/google/start"
     : `/api/integrations/google/start?returnTo=${encodeURIComponent(path)}`;
+}
+
+// The HubSpot connection (D-048) uses the same allowlist with its own outcome parameter (?hubspot=) and card anchor,
+// so a HubSpot outcome never shows on the Search Console card or the other way round.
+export function hubspotOutcomeUrl(returnTo: unknown, code: string): string {
+  return `${connectionReturnPath(returnTo)}?hubspot=${encodeURIComponent(code)}#hubspot`;
+}
+
+export function hubspotStartHref(returnTo: string): string {
+  const path = connectionReturnPath(returnTo);
+  return path === SETTINGS_RETURN
+    ? "/api/integrations/hubspot/start"
+    : `/api/integrations/hubspot/start?returnTo=${encodeURIComponent(path)}`;
 }

@@ -12,7 +12,8 @@ Sign up → enter a website → Braventa reads the site and Google PageSpeed →
 sub-scores → top five opportunities, each with a first step → 30-day content plan → five drafted posts that you
 approve or reject. Nothing is published automatically.
 
-Not built yet: CRM (HubSpot) connection, publishing, email sending, automation, analytics, billing. See
+Not built yet: CRM data in the diagnosis (the HubSpot connection is built, read-only, counts only, and needs its app
+set up: `docs/architecture/HUBSPOT_SETUP.md`), publishing, email sending, automation, analytics, billing. See
 [`docs/product/MVP_SCOPE.md`](docs/product/MVP_SCOPE.md) and [`docs/product/ROADMAP.md`](docs/product/ROADMAP.md).
 
 ## Repository

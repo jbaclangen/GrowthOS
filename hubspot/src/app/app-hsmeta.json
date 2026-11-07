@@ -1,0 +1,22 @@
+{
+  "uid": "braventa_crm_reader",
+  "type": "app",
+  "config": {
+    "name": "Braventa",
+    "description": "Read-only: Braventa reads contacts, companies, deals and deal pipelines and keeps only counts and totals for your growth plan. It can't change anything in HubSpot.",
+    "distribution": "marketplace",
+    "auth": {
+      "type": "oauth",
+      "redirectUrls": [
+        "https://app.braventa.io/api/integrations/hubspot/callback",
+        "http://localhost:3000/api/integrations/hubspot/callback"
+      ],
+      "requiredScopes": ["crm.objects.contacts.read", "crm.objects.companies.read", "crm.objects.deals.read"],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "support": {
+      "supportEmail": "hello@braventa.io"
+    }
+  }
+}

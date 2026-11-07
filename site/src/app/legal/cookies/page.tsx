@@ -15,8 +15,8 @@ export default function Cookies() {
       <h2>app.braventa.io</h2>
       <p>
         The app uses only strictly necessary cookies: our authentication provider stores your sign-in session so you stay
-        signed in, and while an owner connects Google Search Console, a short-lived, encrypted cookie secures that
-        connection. They aren&apos;t used for tracking or advertising.
+        signed in, and while an owner connects Google Search Console or HubSpot, a short-lived, encrypted cookie secures
+        that connection. They aren&apos;t used for tracking or advertising.
       </p>
       <p>If we add analytics, we&apos;ll ask for your consent first and update this page.</p>
     </>
