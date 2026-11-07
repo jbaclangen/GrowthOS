@@ -38,7 +38,7 @@ public page (CLAUDE.md: never present planned features as live).
 | Connect your AI assistant (MCP): Claude fills in onboarding (D-036) | Basic | Live — every plan during the trial; paused after it until the business is on a plan |
 | Full marketing audit (SEO, search ads, social, email, video) | Pro | Coming soon |
 | Google Search Console connection: read-only clicks, impressions, top queries and pages, shown on `/search` | Pro | Live (founder decision 2026-10-11) — the first live Pro feature; set up in production and first connected and synced on 2026-10-11 ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)). Paused after the trial on Basic: data kept, nothing new fetched, resumes on Pro/Premium. Connected in Settings, and also offered during setup on the optional "Connect your tools" step (owner only; Basic sees it paused; D-054). Since 2026-10-23 its latest snapshot feeds the diagnosis and the growth score as the Search visibility module (D-051 step 6, §6) |
-| Google Analytics 4 connection: read-only sessions, engagement, key events, traffic channels and landing pages, shown in the Google Analytics card (Settings → Connections and the "Connect your tools" step) | Pro | Live in the code (founder decisions 2026-11-08, D-056); production needs its migration and Google Cloud setup ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)). Through the same Google sign-in as Search Console (one consent screen; "Disconnect Google" ends both). Same Pro rule: owner only, paused after the trial on Basic, data kept. Its latest snapshot feeds the diagnosis and the growth score as the Analytics module ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10) |
+| Google Analytics 4 connection: read-only sessions, engagement, key events, traffic channels and landing pages, shown in the Google Analytics card (Settings → Connections and the "Connect your tools" step) | Pro | Live in the code (founder decisions 2026-11-08, D-058); production needs its migration and Google Cloud setup ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)). Through the same Google sign-in as Search Console (one consent screen; "Disconnect Google" ends both). Same Pro rule: owner only, paused after the trial on Basic, data kept. Its latest snapshot feeds the diagnosis and the growth score as the Analytics module ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10) |
 | Tag Manager connection | Pro | Coming soon |
 | Creative tool connections: Canva, HeyGen, Higgsfield | Pro | Coming soon |
 | Website and social connections: WordPress, social accounts | Pro | Coming soon |
@@ -137,7 +137,7 @@ switched on or off from the app yet.
   diagnosis and adds a modest 0.10 to the growth score (about a tenth) for Pro, Premium and trial organizations with
   the connection active and data in the window ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9). Basic
   keeps the connection paused and its score as it was.
-- The second, Analytics, is live (2026-11-08, D-056): the latest Google Analytics 4 snapshot goes to the diagnosis
+- The second, Analytics, is live (2026-11-08, D-058): the latest Google Analytics 4 snapshot goes to the diagnosis
   and adds 0.10 to the growth score (provisional) for Pro, Premium and trial organizations with the connection
   active, a snapshot and a property older than 28 days. It measures whether tracking works and counts inquiries
   (data flowing, key events, engagement rate, the sessions trend), not traffic volume

@@ -38,7 +38,7 @@ decision. Never describe the product as doing something the code doesn't do, wha
   base `web/src/lib/assistant/knowledge.ts` must stay true to the code (`npm run help:doc` regenerates
   `docs/help/APP_GUIDE.md`); Pro owners can connect Google Search Console (read-only; data stored, shown on `/search`
   and, as the Search visibility module (D-051 step 6), fed to the diagnosis and the growth score of Pro, Premium and
-  trial organizations) and Google Analytics 4 (D-056: same Pro gating and one Google sign-in for both; read-only,
+  trial organizations) and Google Analytics 4 (D-058: same Pro gating and one Google sign-in for both; read-only,
   shown in its card, fed to the diagnosis and the growth score as the Analytics module) in Settings or on the optional "Connect your tools" onboarding step (other tools there are Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon); eight fixed member roles
   with a permission matrix (D-046 foundation: owner-only connect and service keys, no one approves their own draft
   except the owner; Settings → Team: invite by copied link, change or remove roles below your own, seat limits per plan; no invite

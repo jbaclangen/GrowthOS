@@ -199,7 +199,7 @@ RLS. Rules:
     forbids a revoked row with a token), clears the account email and properties, and deletes the organization's
     `search_console_snapshots`. Reconnecting with a different Google account deletes the old snapshots.
   - After the Pro trial, on Basic, the connection is paused: the token and snapshots are kept, nothing is fetched.
-- **Google Analytics 4 (Pro, D-056)** uses the same Google sign-in (once migration `20261107224123` is applied). One
+- **Google Analytics 4 (Pro, D-058)** uses the same Google sign-in (migration `20261107224123`, applied 2026-11-08). One
   consent screen asks for `webmasters.readonly` and `analytics.readonly`; the callback keeps only the products the
   owner granted and stores one `integration_connections` row per product (`google_search_console`,
   `google_analytics`), each holding the same refresh token encrypted on its own with the secret box above

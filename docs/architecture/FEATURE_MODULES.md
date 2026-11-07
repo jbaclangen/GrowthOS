@@ -2,7 +2,7 @@
 
 **Status:** built 2026-10-23 (D-051 steps 1–6; the spec step of D-052). Describes the code as it is. The first new
 module, Search visibility (D-051 step 6), is live: §9 is its spec. The second, Analytics (Google Analytics 4,
-D-056), is live since 2026-11-08: §10 is its spec. What is still open is listed in §8.
+D-058), is live since 2026-11-08: §10 is its spec. What is still open is listed in §8.
 
 Braventa's analysis is made of feature modules: capability areas that each collect evidence, produce findings and
 plan items, and may carry a sub-score. The growth plan is the core that combines them, not a module. Research:
@@ -136,7 +136,7 @@ same-organization composite foreign key, so a run can't be paired with another o
   of the provisional sub-score once a few Pro organizations have scores (D-052 step 8).
 - Analytics beyond the first cut (§10): a report bar and Ask Braventa summary for its sub-score, Tag Manager checks,
   GA4 data in the plan and writer prompts, a sync during the analysis, and a review of the provisional weights once
-  testers have data (Q-054).
+  testers have data (Q-062).
 
 ## 9. Search visibility
 
@@ -201,9 +201,9 @@ the app, and Search Console data in the plan and writer prompts.
 
 ## 10. Analytics
 
-**Status:** built 2026-11-08 (founder decisions 2026-11-08, D-056). The sub-score definition and its weights are
+**Status:** built 2026-11-08 (founder decisions 2026-11-08, D-058). The sub-score definition and its weights are
 provisional, like Search visibility's: the research §5 names the module and its sub-score ("Measurement readiness")
-but gives no formula, so this one is proposed here and reviewed once testers have data (D-052 step 8, Q-054).
+but gives no formula, so this one is proposed here and reviewed once testers have data (D-052 step 8, Q-062).
 
 **Evidence.** The organization's latest `analytics_snapshots` row, summarized by `summarizeAnalytics`
 (`web/src/lib/integrations/google-analytics.ts`): the last 28 days of Google Analytics 4 data for the connected
@@ -215,7 +215,7 @@ Admin API didn't answer) and `new_property` (the property was created within the
 organization has no Pro access or there is no snapshot. The scoring step and the diagnosis update call it only when
 `analytics` is among the organization's enabled modules (Pro, Premium or the trial, not switched off). Nothing is
 fetched from Google during an analysis: the snapshot is whatever the last sync stored. GA4 comes through the same
-Google connection as Search Console (one consent screen, D-056).
+Google connection as Search Console (one consent screen, D-058).
 
 **In the diagnosis.** The summary goes to the diagnosis model as one fenced block, `<google_analytics>`, with the ref
 `G2` (`ANALYTICS_REF` in the registry), labelled as data measured by Google for that property and window, with the

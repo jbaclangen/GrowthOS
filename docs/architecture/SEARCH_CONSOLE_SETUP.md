@@ -1,7 +1,7 @@
 # Google connection (Search Console and Google Analytics 4): setup
 
 **Status / last reviewed: 2026-11-08.** The code is built (see [INTEGRATIONS.md](INTEGRATIONS.md#google-search-console-pro)).
-Since 2026-11-08 the same Google sign-in also connects Google Analytics 4 (D-056): one consent screen asks for both
+Since 2026-11-08 the same Google sign-in also connects Google Analytics 4 (D-058): one consent screen asks for both
 read-only scopes, and the owner can untick either. The Search Console steps below were done on 2026-10-11; the GA4
 additions (§1 step 3, the scope in §2, the migration in §5) still have to be done before GA4 works in production.
 Until the steps below are done, Settings → Connections says "Search Console connection isn't set up yet" and
@@ -58,7 +58,7 @@ adding it to Data access means the verification must cover it too: the submissio
 Braventa, summarized for the diagnosis and the growth score, deleted on disconnect, not sold or used for ads) and the
 demo video has to show the GA4 card. If the app was verified for `webmasters.readonly` alone, adding the new scope
 needs a new verification before customers who aren't test users can grant it. The privacy and sub-processors pages
-must describe GA4 data first (Q-052, Q-053).
+must describe GA4 data first (Q-060, Q-061).
 
 ## 3. Create the OAuth client
 

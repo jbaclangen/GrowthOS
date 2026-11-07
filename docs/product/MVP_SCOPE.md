@@ -135,7 +135,7 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
   the optional "Connect your tools" step, D-054), and since 2026-10-23 its latest snapshot feeds the diagnosis and the
   growth score of Pro, Premium and trial organizations as the Search visibility module (D-051 step 6,
   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9). Google Analytics 4 is built the same way since
-  2026-11-08, outside the MVP (D-056): read-only, through the same Google sign-in, shown in its card in Settings and
+  2026-11-08, outside the MVP (D-058): read-only, through the same Google sign-in, shown in its card in Settings and
   on the "Connect your tools" step, and its latest snapshot feeds the diagnosis and the growth score as the Analytics
   module ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10).
 - Billing and Stripe (prices decided in D-039, not built; Q-010). The trial clock and tier checks are in (D-030);

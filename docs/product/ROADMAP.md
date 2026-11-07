@@ -66,7 +66,7 @@ the growth score as the Search visibility module; Google Analytics 4 joined it t
    connection is live, the "Connect your tools" step in discovery with the Pro gate is built (D-054), the module
    registry (D-051 steps 1–5) is built and scores say "Based on N modules", and Search visibility, the first new
    module, is live (D-051 step 6, 2026-10-23: Search Console data in the diagnosis and the score,
-   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9); GA4 (WI-6) is built (2026-11-08, D-056: one Google
+   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9); GA4 (WI-6) is built (2026-11-08, D-058: one Google
    connection with Search Console, the Analytics module in the diagnosis and the score, §10; production needs its
    migration and Google Cloud setup); next a HubSpot read-only CRM summary:
    connect, pipeline summary, data quality, follow-up recommendations (CRM-1 – CRM-4), over HubSpot's REST API with
@@ -118,7 +118,7 @@ met or consciously revised; pricing decided.
 - Trigger-based automations and client-configured authorised automations (AU-7, AU-8).
 - The full Improve stage: planned vs actual, outcome learning, next-best-action recommendations
   (AN-5 – AN-7). (Search Console and GA4 moved to Next with the Pro integrations — D-041; the Search Console
-  connection is live and GA4 is built, D-056.)
+  connection is live and GA4 is built, D-058.)
 - Campaign planning, repurposing, video scripts and creative briefs (MS-7, CS-11).
 - (Grounded Q&A assistant moved to Next — D-020; the read-only in-app assistant shipped — D-043.)
 - Agency features: multi-client reporting (CS-13). (Client approvers and roles moved to Next with team access,

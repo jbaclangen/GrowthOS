@@ -845,10 +845,10 @@ migration applied to production 2026-11-08. Spec: [LEGAL_ACCEPTANCE.md](../archi
   a fenced block with the ref `G2` (source `analytics`, Verified only when cited) and gives four parts: data flowing
   0.03, key events 0.03, engagement rate 0.02, sessions against the previous 28 days 0.02. It measures whether
   tracking works and counts inquiries, not traffic volume. No parts for a property created within the last 28 days.
-  The weights are reviewed once testers have data (D-052 step 8, Q-054). Spec:
+  The weights are reviewed once testers have data (D-052 step 8, Q-062). Spec:
   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10.
 - **`SCORE_VERSION` 3.** Scores without GA4 evidence are unchanged (`score.test.ts`); with it a score can move, so
   version 3 reports aren't compared with version 2 ones.
 - Before customers connect GA4: apply the migration, enable the Google Analytics Data and Admin APIs and add the
   scope in Google Cloud ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)), describe GA4 data on
-  the privacy and sub-processors pages (Q-052), and extend Google's OAuth verification to the new scope (Q-053).
+  the privacy and sub-processors pages (Q-060), and extend Google's OAuth verification to the new scope (Q-061).
