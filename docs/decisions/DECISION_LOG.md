@@ -799,3 +799,25 @@ a draft until counsel reviews it (Q-032). Review and gap list:
   `cookies` and `subprocessors` are updated.
 - Why: the founder asked to limit Braventa's capital exposure, cover privacy law in the markets it targets (US, UK,
   Australia, Canada, maybe the EU) and publish the documents business customers expect.
+
+## D-057 — Agreement checkboxes in the app, recorded in legal_acceptances
+**Status:** Founder (2026-11-08, in chat: "include the policies in steps we have in the app … a check box when they
+connect an app, check box when they sign up, check boxes when they pay"). Built on branch `legal-consent-checkboxes`;
+the migration needs applying before deploy. Spec: [LEGAL_ACCEPTANCE.md](../architecture/LEGAL_ACCEPTANCE.md).
+- **Where the app asks:**
+  - sign-up: Terms, MSA and DPA, Privacy read, 18+, business use;
+  - a banner for accounts that haven't accepted the current `LEGAL_VERSION`;
+  - starting an analysis: you own the website or may act for its business, Terms §7;
+  - connecting or reconnecting Google Search Console: authorized and responsible, MSA §8;
+  - creating a personal or service access key, and approving an app's OAuth access: responsible for what uses it,
+    Terms §3.
+- **Evidence:** one append-only row per agreement in `legal_acceptances` (user, optional organization, context,
+  version, documents, subject, time). The server writes it with the secret key; users read their own rows.
+  Recording never blocks the step.
+- **Checkout:** specified, not built. Billing doesn't exist yet (Q-010). It needs an auto-renewal disclosure, a
+  required checkbox for the Refund policy and the recurring charge, and a `checkout` context
+  (LEGAL_ACCEPTANCE.md §5).
+- **Not asked:** inviting a teammate, and approving a draft (nothing is published yet; ask when publishing ships,
+  D-049).
+- Resolves Q-055. The documents are still drafts pending counsel (Q-032). Change `LEGAL_VERSION` whenever they change
+  materially.

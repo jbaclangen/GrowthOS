@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { ConsentCheckbox, CoreTermsSentence } from "@/components/legal/consent";
 import { signIn, signUp, type AuthState } from "./actions";
 
 export function AuthForm({ next }: { next: string | null }) {
@@ -28,6 +29,13 @@ export function AuthForm({ next }: { next: string | null }) {
           className="input mt-1"
         />
       </label>
+
+      {/* D-057: sign-up records agreement to the Terms, MSA and DPA (lib/legal/acceptances.ts). */}
+      {mode === "signup" && (
+        <ConsentCheckbox id="signup-agree">
+          <CoreTermsSentence />
+        </ConsentCheckbox>
+      )}
 
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
       {state?.message && <p className="rounded-md bg-accent-soft p-3 text-sm">{state.message}</p>}

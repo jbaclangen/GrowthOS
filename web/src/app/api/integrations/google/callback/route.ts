@@ -17,6 +17,7 @@ import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
 import { saveConnection, syncSearchConsole } from "@/lib/integrations/search-console";
 import { SETTINGS_RETURN, connectionOutcomeUrl } from "@/lib/integrations/return-to";
 import { can } from "@/lib/team/roles";
+import { recordAcceptance } from "@/lib/legal/acceptances";
 
 // Google redirects here after the consent screen. Needs the same signed-in session that started the flow
 // (proxy.ts redirects signed-out requests to /login). Verifies the encrypted state cookie (random value + user +
@@ -100,6 +101,15 @@ export async function GET(request: NextRequest) {
     console.error("Search Console callback: saving the connection failed:", e instanceof Error ? e.message : "unknown");
     await revokeToken(tokens.refresh_token);
     return toOutcome(request, back, "error");
+  }
+  // D-057: the owner's confirmation from the connect form, recorded now that Google has approved and it's saved.
+  if (saved.consented) {
+    await recordAcceptance({
+      userId: user.id,
+      organizationId: org.id,
+      context: "search_console_connect",
+      subject: emailFromIdToken(tokens.id_token),
+    });
   }
 
   const sync = await syncSearchConsole(db, org.id, { skipGuard: true });

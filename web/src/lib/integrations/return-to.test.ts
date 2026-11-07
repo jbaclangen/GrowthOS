@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SETTINGS_RETURN, connectionOutcomeUrl, connectionReturnPath, searchConsoleStartHref } from "./return-to";
+import { SETTINGS_RETURN, connectionOutcomeUrl, connectionReturnPath } from "./return-to";
 
 const ID = "0b5e3c1a-7f2d-4e8b-9a6c-1d2e3f4a5b6c";
 const CONNECT = `/onboarding/${ID}/connect`;
@@ -61,19 +61,9 @@ describe("connectionOutcomeUrl", () => {
   });
 });
 
-describe("searchConsoleStartHref", () => {
-  it("adds returnTo only for the onboarding step", () => {
-    expect(searchConsoleStartHref("/settings")).toBe("/api/integrations/google/start");
-    expect(searchConsoleStartHref(CONNECT)).toBe(`/api/integrations/google/start?returnTo=${encodeURIComponent(CONNECT)}`);
-  });
-
-  it("uses the plain start route for a path that isn't allowed", () => {
-    expect(searchConsoleStartHref("/dashboard")).toBe("/api/integrations/google/start");
-    expect(searchConsoleStartHref("https://evil.com")).toBe("/api/integrations/google/start");
-  });
-
+describe("the connect form's returnTo field", () => {
   it("round-trips through the start route's check", () => {
-    const href = new URL(searchConsoleStartHref(CONNECT), "https://app.braventa.io");
+    const href = new URL(`/api/integrations/google/start?returnTo=${encodeURIComponent(CONNECT)}&agree=yes`, "https://app.braventa.io");
     expect(connectionReturnPath(href.searchParams.get("returnTo"))).toBe(CONNECT);
   });
 });

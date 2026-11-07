@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { browserGuardEnvironment, guardClicks } from "@/lib/oauth/click-guard";
 import { decideAuthorization, type ConsentState } from "./actions";
+import { ConsentCheckbox, LegalLink } from "@/components/legal/consent";
 
 type Org = { id: string; name: string; paused: boolean };
 
@@ -40,6 +41,12 @@ export function ConsentForm({ params, orgs }: { params: Record<string, string | 
         </fieldset>
       )}
 
+      {/* D-057, Terms §3. Cancel skips the check (formNoValidate). */}
+      <ConsentCheckbox id="oauth-agree">
+        This app will be able to use Braventa for the business above. I&apos;m responsible for what it does with that
+        access, and I can remove it at any time (<LegalLink doc="terms">Terms of Service</LegalLink>, section 3).
+      </ConsentCheckbox>
+
       {state?.error && (
         <p className="text-sm text-danger" role="alert">
           {state.error}
@@ -50,7 +57,7 @@ export function ConsentForm({ params, orgs }: { params: Record<string, string | 
         <button type="submit" name="decision" value="approve" disabled={pending || !armed} className="btn-primary">
           {pending ? "Connecting…" : "Approve"}
         </button>
-        <button type="submit" name="decision" value="deny" disabled={pending} className="btn-secondary">
+        <button type="submit" name="decision" value="deny" disabled={pending} formNoValidate className="btn-secondary">
           Cancel
         </button>
       </div>

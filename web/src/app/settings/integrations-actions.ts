@@ -7,6 +7,8 @@ import { generateSecret, sha256Hex } from "@/lib/oauth/tokens";
 import { MAX_ACTIVE_SERVICE_KEYS, countActiveServiceKeys } from "@/lib/mcp/service-keys";
 import { can } from "@/lib/team/roles";
 import { memberRole } from "@/lib/team/server";
+import { CONSENT_REQUIRED, consentGiven } from "@/lib/legal/documents";
+import { recordAcceptance } from "@/lib/legal/acceptances";
 
 // Settings → Integrations: service keys and disconnecting OAuth-connected apps. Both need keys.manage_any (owner only,
 // D-044 and D-046; lib/team/roles.ts); RLS on service keys (is_org_owner) says the same.
@@ -30,6 +32,8 @@ export async function createServiceKey(_: CreateServiceKeyState, formData: FormD
   const expiry = String(formData.get("expiry") ?? "never");
   const days = Number(expiry);
   if (expiry !== "never" && !EXPIRY_DAYS.has(days)) return { error: "Choose when the key expires." };
+  // D-057, Terms §3.
+  if (!consentGiven(formData)) return { error: CONSENT_REQUIRED.access_key };
   const expiresAt = expiry === "never" ? null : new Date(Date.now() + days * 86_400_000).toISOString();
 
   // RLS lets only owners read and add service keys for their organization. Expired keys don't count.
@@ -48,6 +52,7 @@ export async function createServiceKey(_: CreateServiceKeyState, formData: FormD
     expires_at: expiresAt,
   });
   if (error) return { error: "The service key wasn't created. Try again." };
+  await recordAcceptance({ userId: user.id, organizationId: org.id, context: "access_key", subject: servicePrefix(key) });
   refresh();
   // Shown once; only the hash is stored.
   return { key, name };

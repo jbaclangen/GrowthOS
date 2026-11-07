@@ -8,6 +8,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { AssistantLauncher } from "@/components/assistant";
 import { getUser } from "@/lib/auth";
 import { getOrgAccess } from "@/lib/plans/access";
+import { TermsBanner } from "@/components/legal/terms-banner";
 import { signOut } from "./login/actions";
 import "./globals.css";
 
@@ -38,6 +39,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </Suspense>
           </div>
         </header>
+        <Suspense fallback={null}>
+          <TermsBanner />
+        </Suspense>
         {children}
       </body>
     </html>

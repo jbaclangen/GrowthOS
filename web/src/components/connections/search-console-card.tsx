@@ -4,7 +4,7 @@ import { searchConsoleConfigured } from "@/lib/integrations/google-oauth";
 import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
 import { PROVIDER, percentChange, type Snapshot } from "@/lib/integrations/search-console";
 import { searchConsoleCardState, type SearchConsoleCardState } from "@/lib/integrations/connect-step";
-import { searchConsoleStartHref } from "@/lib/integrations/return-to";
+import { SearchConsoleConnectForm } from "./connect-form";
 import { formatChange, formatDateTime, formatInt } from "@/app/search/format";
 import { chooseSearchConsoleProperty, refreshSearchConsole } from "@/app/settings/connections-actions";
 import { can } from "@/lib/team/roles";
@@ -219,10 +219,12 @@ function NotConnected({
       ) : state === "owner-only" ? (
         <p className="mt-4 text-sm text-muted">Ask the business owner to connect Search Console.</p>
       ) : (
-        // A plain link, not a form: the start route redirects to Google's consent screen.
-        <a href={searchConsoleStartHref(returnTo)} className={`${connectClassName} mt-4`}>
-          Connect Google Search Console
-        </a>
+        <SearchConsoleConnectForm
+          id="gsc-connect-agree"
+          returnTo={returnTo}
+          label="Connect Google Search Console"
+          buttonClassName={connectClassName}
+        />
       )}
     </>
   );
@@ -302,9 +304,7 @@ function Connected({
           </form>
         )}
         {canConnect && connection.status === "error" && allowed && (
-          <a href={searchConsoleStartHref(returnTo)} className="btn-secondary">
-            Reconnect
-          </a>
+          <SearchConsoleConnectForm id="gsc-reconnect-agree" returnTo={returnTo} label="Reconnect" buttonClassName="btn-secondary" />
         )}
         {canConnect && <DisconnectButton returnTo={returnTo} />}
       </div>
