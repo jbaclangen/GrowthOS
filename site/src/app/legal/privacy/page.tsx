@@ -64,6 +64,69 @@ export default function Privacy() {
           app.
         </li>
       </ul>
+      <h3>If you connect Google Search Console (optional)</h3>
+      <ul>
+        <li>
+          On the Pro and Premium plans and during the 14-day Pro trial, the owner of a business can connect its Google
+          Search Console account, in Settings → Connections or during setup. Only the owner can connect or disconnect it.
+        </li>
+        <li>
+          Braventa asks Google for read-only access to your Search Console data and for the email address of the Google
+          account you connect, to show which account it is. Braventa can&apos;t change anything in Search Console or in
+          your Google account.
+        </li>
+        <li>
+          What we store: the email address of the connected Google account; the token Google issues so Braventa can read
+          your data, stored encrypted; the list of Search Console properties that account can see and the one you chose; and a
+          copy of your search data each time it&apos;s fetched. Each copy holds clicks, impressions, click-through rate and
+          average position for the last 28 days and the 28 days before; your top 25 search queries and top 25 pages;
+          the same figures by device; your sitemaps and the errors and warnings Google reports for them; and Google&apos;s indexing
+          report for your home page (URL Inspection). We keep the 12 most recent copies.
+        </li>
+        <li>
+          Braventa fetches new data only when the owner connects or chooses a property, or when someone in your business
+          refreshes it, at most once every 10 minutes. Nothing is fetched in the background.
+        </li>
+        <li>
+          People in your business on Braventa can see this data on the Search performance page and which Google account
+          is connected.
+        </li>
+        <li>
+          We use it to show your search performance in the app, and in your diagnosis, growth plan and growth score
+          (Search visibility). For the diagnosis, a summary of the latest copy is sent to our AI providers: the property
+          name, totals for the last 28 days against the 28 before, your top 10 search queries and pages, clicks and
+          impressions by device, sitemap status, and whether your home page is indexed. The summary never includes the
+          token or your Google account email, and our AI providers keep nothing after answering.
+        </li>
+        <li>
+          The in-app assistant (Ask Braventa) is told whether Search Console is connected, which property, and your
+          Search visibility score. It isn&apos;t sent the search data itself, though your diagnosis, which it does see,
+          may mention it.
+        </li>
+        <li>
+          We don&apos;t sell this data, use it for advertising, or share it with anyone other than the providers that run
+          Braventa for us. Braventa&apos;s use and transfer of information received from Google APIs follows the{" "}
+          <a href="https://developers.google.com/terms/api-services-user-data-policy">
+            Google API Services User Data Policy
+          </a>
+          , including the Limited Use requirements.
+        </li>
+        <li>
+          Braventa staff don&apos;t read your Search Console data unless you ask us to (for example, for support), or when
+          it&apos;s needed for security or to comply with the law.
+        </li>
+        <li>
+          After the trial, on Basic, the connection is paused: data already fetched is kept and shown, but nothing new is
+          fetched and it isn&apos;t used in new analyses until the business moves to Pro or Premium.
+        </li>
+        <li>
+          The owner can disconnect in Settings → Connections at any time. Braventa then revokes its access at Google and
+          deletes the token, the Google account email and all stored search data. Connecting a different Google account
+          also deletes the data fetched with the old one. You can remove Braventa&apos;s access in your{" "}
+          <a href="https://myaccount.google.com/connections">Google Account</a> too; Braventa then can&apos;t fetch new
+          data, and data already fetched stays until the owner disconnects in Braventa.
+        </li>
+      </ul>
 
       <h2>Why we use it</h2>
       <ul>
@@ -83,6 +146,10 @@ export default function Privacy() {
       <ul>
         <li>You can correct your setup answers in the app at any time.</li>
         <li>You choose whether to connect an AI assistant, and you can revoke its access key in the app at any time.</li>
+        <li>
+          The owner chooses whether to connect Google Search Console and can disconnect it at any time, which deletes
+          the stored search data.
+        </li>
         <li>
           To get a copy of your data or have it deleted, <Link href="/contact">contact us</Link>. We&apos;re building a
           self-service option.

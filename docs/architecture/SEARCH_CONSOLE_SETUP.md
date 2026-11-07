@@ -38,7 +38,9 @@ Audience / Data access**).
 
 Before opening the connection to customers generally, submit the app for **Google verification** (Audience →
 Publish app, then Verification centre). Google asks for: the privacy policy that describes the Search Console data
-use (read-only performance and sitemap data, shown to the owner, deleted on disconnect, not sold or used for ads),
+use (read-only performance and sitemap data, shown to the business's members in Braventa, summarized for the
+diagnosis model, deleted on disconnect, not sold or used for ads; drafted on `/legal/privacy`, pending the founder and
+counsel),
 a demo video of the consent flow and of where the data appears, and proof of ownership of `braventa.io` (already
 verified in Search Console). Verification typically takes several days to a few weeks. The privacy policy should be
 reviewed against [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md) §6 before you submit (the blueprint's legal

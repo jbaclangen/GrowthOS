@@ -293,8 +293,13 @@ human approval, unless the client has explicitly configured an authorised automa
   and a summary of their own account (business names, websites, growth score, diagnosis findings, plan items, draft
   titles and statuses; at most 6,000 characters, fenced as untrusted data) go to the `app_assistant` model. No email
   addresses, keys or tokens.
-- Customers are not yet told which providers process their data; a privacy policy and subprocessor list are
-  needed before onboarding paying customers.
+- Google Search Console (D-051 step 6): for organizations with Pro access, an active connection and a snapshot, the
+  diagnosis prompt gets `summarizeSnapshot` of the latest snapshot (property, 28-day totals against the 28 before,
+  top 10 queries and pages, device split, sitemaps, home page index verdict), fenced as untrusted data. Never the token
+  or the Google account email. The diagnosis runs on the `complex` tier (Claude only, no OpenAI fallback). Ask
+  Braventa gets only the connection status, the property and the Search visibility sub-score.
+- Customers are told which providers process their data on the site's draft `/legal/privacy` and
+  `/legal/subprocessors` pages (counsel review pending, Q-032); keep both in step with this section and §6.
 
 ## 10. Data retention and deletion
 
