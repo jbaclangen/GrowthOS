@@ -3,8 +3,8 @@ type: object
 cluster: modules
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: supabase/migrations/20261023063253_feature_modules.sql
 ---
 
@@ -14,7 +14,7 @@ One row per feature module that ran in an analysis job, with its sub-score when 
 
 ## Why this shape
 
-D-051 wanted a per-module record (what ran, with which rules version, on which evidence) separate from the blended growth score, so future per-module report sections have data (`supabase/migrations/20261023063253_feature_modules.sql:12-13`). Rows are a record, not an input: a failed insert is logged and the analysis continues (`web/src/lib/modules/server.ts:34-35`).
+D-051 wanted a per-module record (what ran, with which rules version, on which evidence) separate from the blended growth score (`supabase/migrations/20261023063253_feature_modules.sql:12-13`, `docs/decisions/DECISION_LOG.md:663-667`); the per-module report sections that could read it are not built (`docs/architecture/FEATURE_MODULES.md:126`). Rows are a record, not an input: a failed insert is logged and the analysis continues (`web/src/lib/modules/server.ts:34-35`).
 
 ## Shape
 
@@ -24,7 +24,7 @@ D-051 wanted a per-module record (what ran, with which rules version, on which e
 - Writers, by step: profiling records `business_intel` and `website_seo` (partial without PageSpeed, `rules_version = AUDIT_VERSION`) — `web/src/lib/pipeline/website-intel.ts:331-353`; scoring records `conversion` and, when enabled, `search_visibility` (completed with a Search Console summary, partial without) — `:678-711`; writing records `content_studio` — `:836-848`. `reviseDiagnosis` (a correction) writes none.
 - No reader in `web/src` (grep at this commit). "Based on N modules" on the report comes from `reports.data.score_modules`, not from this table — `web/src/app/analysis/[id]/report-data.ts:31-32`, `web/src/app/analysis/[id]/infographic.tsx:203`.
 
-Citations: `supabase/migrations/20261023063253_feature_modules.sql:12-13,41-65,74-76`; `web/src/lib/modules/server.ts:21-40`; `web/src/lib/pipeline/website-intel.ts:331-353,678-711,836-848`; `web/src/app/analysis/[id]/report-data.ts:31-32`
+Citations: `supabase/migrations/20261023063253_feature_modules.sql:12-13,41-65,74-76`; `docs/decisions/DECISION_LOG.md:663-667`; `web/src/lib/modules/server.ts:21-40`; `web/src/lib/pipeline/website-intel.ts:331-353,678-711,836-848`; `web/src/app/analysis/[id]/report-data.ts:31-32`
 
 ## Connected to
 
@@ -35,7 +35,7 @@ Citations: `supabase/migrations/20261023063253_feature_modules.sql:12-13,41-65,7
 
 ## If you change this
 
-- **Hits:** `recordModuleRuns` and the three step writers; the composite FKs to `ai_jobs` and `audit_runs`; `docs/architecture/DATA_MODEL.md:96`, `docs/architecture/FEATURE_MODULES.md` §5.
+- **Hits:** `recordModuleRuns` and the three step writers; the composite FKs to `ai_jobs` and `audit_runs`; `docs/architecture/DATA_MODEL.md:100`, `docs/architecture/FEATURE_MODULES.md` §5.
 - **Does not hit:** the growth score or the report page — neither reads this table; `organization_modules`.
 
 ## Surfaces

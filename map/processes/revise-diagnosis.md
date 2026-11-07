@@ -2,9 +2,9 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
-consumes: ["[[diagnosis]]", "[[diagnosis-finding]]", "[[report]]", "[[business-profile]]", "[[audit-run]]", "[[audit-finding]]", "[[search-console-snapshot]]", "[[ai-worker]]"]
+verified: 2026-10-24
+commit: 2214b05
+consumes: ["[[diagnosis]]", "[[diagnosis-finding]]", "[[report]]", "[[business-profile]]", "[[audit-run]]", "[[audit-finding]]", "[[search-console-snapshot]]", "[[ai-worker]]", "[[member-role]]"]
 produces: ["[[ai-job]]", "[[diagnosis]]", "[[diagnosis-finding]]", "[[growth-plan-item]]", "[[ai-usage]]"]
 ---
 
@@ -22,11 +22,11 @@ A full re-run would re-crawl and re-plan for a wording correction; reusing the s
 
 ## Steps
 
-1. Owner marks a finding wrong — `web/src/app/analysis/[id]/plan-controls.tsx:89` → `setFindingVerdict` writes `owner_verdict`, `owner_note` — `web/src/app/analysis/plan-actions.ts:20-39`; client may update only those two columns — `supabase/migrations/20261010164133_diagnosis_and_plan.sql:111`; verdict values `:44`.
+1. Owner marks a finding wrong — `web/src/app/analysis/[id]/plan-controls.tsx:89` → `setFindingVerdict` writes `owner_verdict`, `owner_note` — `web/src/app/analysis/plan-actions.ts:24-46`; client may update only those two columns — `supabase/migrations/20261010164133_diagnosis_and_plan.sql:111`; verdict values `:44`.
 2. Button posts `requestDiagnosisUpdate` — `web/src/app/analysis/[id]/plan-controls.tsx:141`.
-3. Preconditions: status `proposed` — `web/src/app/analysis/plan-actions.ts:100`; at least one `rejected` finding — `:102-108`.
-4. `failStaleJobs`, then active-job check by `businessProfileId` with no explicit org filter (RLS scopes it) — `web/src/app/analysis/plan-actions.ts:115-122`.
-5. Insert `ai_jobs` (`worker: diagnosis_update`, `input.diagnosisId`, `initialState`) and `startJob` — `web/src/app/analysis/plan-actions.ts:124-137`.
+3. Preconditions: `diagnosis.correct` — `web/src/app/analysis/plan-actions.ts:108`; status `proposed` — `:109`; at least one `rejected` finding — `:111-117`.
+4. `failStaleJobs`, then active-job check by `businessProfileId` with no explicit org filter (RLS scopes it) — `web/src/app/analysis/plan-actions.ts:124-131`.
+5. Insert `ai_jobs` (`worker: diagnosis_update`, `input.diagnosisId`, `initialState`) and `startJob` — `web/src/app/analysis/plan-actions.ts:133-146`.
 6. Sequence is `["scoring"]` only — `web/src/lib/pipeline/steps.ts:21`; `runStep` routes `scoring` to `reviseStep` for this worker — `web/src/lib/pipeline/website-intel.ts:862`, `:598-602`.
 7. `reviseDiagnosis` loads the previous diagnosis (must belong to the business) — `web/src/lib/pipeline/website-intel.ts:544-550`; reads `reports.data`, `business_profiles.intelligence`, findings with verdicts — `:552-561`; missing analysis → throw — `:567`.
 8. Audit context rebuilt from `audit_runs`/`audit_findings` — `web/src/lib/pipeline/website-intel.ts:573`, `:207`.
@@ -36,7 +36,7 @@ A full re-run would re-crawl and re-plan for a wording correction; reusing the s
 
 ## Human gate
 
-The owner marks findings wrong and asks for the update (steps 1–2). The new version is again `proposed` and waits for [confirm-diagnosis-and-plan](confirm-diagnosis-and-plan.md).
+The owner marks findings wrong and asks for the update (steps 1–2); any member whose role holds `diagnosis.correct` may (`web/src/lib/team/roles.ts:92`, [member-role](../objects/tenancy/member-role.md)). The new version is again `proposed` and waits for [confirm-diagnosis-and-plan](confirm-diagnosis-and-plan.md).
 
 ## If you change this
 

@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -20,12 +20,13 @@ A job runs as a chain of steps, one function invocation each (D-042), so the row
 
 - Columns (`worker`, `task_class`, `status`, `input`, `output`, `error`, `n8n_execution_id`, `created_by`, timestamps): `supabase/migrations/20261010061028_foundation.sql:222-236`; `job_status` enum `:220`; default `queued` `:227`.
 - `unique (id, organization_id)` for composite foreign keys: `supabase/migrations/20261017110000_job_dispatches.sql:61`.
-- RLS "members all", so signed-in clients insert rows: `supabase/migrations/20261010061028_foundation.sql:300-309`; inserts at `web/src/lib/onboarding/start.ts:42-46`, `web/src/lib/onboarding/orchestrate.ts:29-46` (admin client), `web/src/app/analysis/plan-actions.ts:124-135`.
-- The four `worker` values and their step sequences: `web/src/lib/pipeline/steps.ts:11-22`. `task_class` is `complex` at every insert: `start.ts:44`, `orchestrate.ts:34`, `plan-actions.ts:129`.
+- RLS "members all", so signed-in clients insert rows: `supabase/migrations/20261010061028_foundation.sql:300-309`; inserts at `web/src/lib/onboarding/start.ts:42-46`, `web/src/lib/onboarding/orchestrate.ts:29-46` (admin client), `web/src/app/analysis/plan-actions.ts:133-144`.
+- The four `worker` values and their step sequences: `web/src/lib/pipeline/steps.ts:11-22`. `task_class` is `complex` at every insert: `start.ts:44`, `orchestrate.ts:34`, `plan-actions.ts:138`.
 - `input` keys: `web/src/lib/pipeline/website-intel.ts:239-246`. `output` while running is the step state ([job-step](job-step.md)); final outputs `:356`, `:601`, `:850-852`.
 - Status moves: `running` on claim `web/src/lib/pipeline/claims.ts:22-27`; `succeeded` `website-intel.ts:937-943`; `failed` on a step error `:928-933`, a refused hand-off `claims.ts:53-65` and `job_dispatches.sql:187-196`, or no progress for `STALE_JOB_MS` `web/src/lib/pipeline/jobs.ts:18-27`.
-- Limit of 10 crawling jobs (`website_evidence`, `website_intel`) per organization per 24 h: `web/src/lib/onboarding/start.ts:18-31`, enforced at `:63` and `web/src/app/analysis/actions.ts:85`. One active job per business blocks a re-run or update: `actions.ts:74-84`, `plan-actions.ts:115-122`.
-- `n8n_execution_id` is never written (leftover; n8n callbacks are roadmap: `docs/product/ROADMAP.md:95-96`).
+- Limit of 10 crawling jobs (`website_evidence`, `website_intel`) per organization per 24 h: `web/src/lib/onboarding/start.ts:18-31`, enforced at `:63` and `web/src/app/analysis/actions.ts:94`. One active job per business blocks a re-run or update: `actions.ts:83-93`, `plan-actions.ts:124-131`.
+- Who may queue one (D-046): `analysis.run` for an analysis or re-run (`actions.ts:55`, `:81`; MCP `web/src/lib/mcp/tools.ts:164`); `profile.edit` for the discovery steps whose finish queues the plan job (`web/src/app/onboarding/[sessionId]/actions.ts:21`; MCP `tools.ts:287`, `:340`), which the evidence job's success can queue instead (`website-intel.ts:945-948`); `diagnosis.correct` for an update (`plan-actions.ts:108`). Matrix `web/src/lib/team/roles.ts:90-92`, spec `docs/architecture/ROLES_AND_PERMISSIONS.md:62-64`.
+- `n8n_execution_id` is never written (leftover; n8n callbacks are roadmap: `docs/product/ROADMAP.md:97-98`).
 
 Citations: `supabase/migrations/20261010061028_foundation.sql:220-237`, `web/src/lib/pipeline/steps.ts:11-22`, `web/src/lib/pipeline/claims.ts:12-65`, `web/src/lib/pipeline/website-intel.ts:875-974`.
 
@@ -46,6 +47,8 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:220-237`, `web/src
 | Surface | Role |
 |---|---|
 | `/onboarding` → [start-analysis](../../processes/start-analysis.md) | writes (`website_evidence`) |
+| `/onboarding/[sessionId]` → [follow-up-questions](../../processes/follow-up-questions.md) | writes (`website_plan`) |
+| `POST /api/mcp` → [mcp-onboarding](../../processes/mcp-onboarding.md) | writes (`website_evidence`, `website_plan`) |
 | `/analysis/[id]` → [rerun-analysis](../../processes/rerun-analysis.md), [revise-diagnosis](../../processes/revise-diagnosis.md) | reads; writes (`website_intel`, `diagnosis_update`) |
 | `POST /api/jobs/continue` → [job-step-machine](../../processes/job-step-machine.md) | writes (claim, advance, finish) |
 | Postgres sweeper → [job-recovery](../../processes/job-recovery.md) | writes (fails) |
@@ -54,4 +57,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:220-237`, `web/src
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:84`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:88`)

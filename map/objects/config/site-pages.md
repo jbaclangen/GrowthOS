@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: site/src/app/sitemap.ts
 ---
 
@@ -47,12 +47,12 @@ Citations: `site/src/app/sitemap.ts:4-19`, `site/src/app/robots.ts:5-8`, `site/n
 
 - **owns:** nothing in the database; `/contact` writes [contact-request](../integrations/contact-request.md)
 - **owned-by:** —
-- **joins:** [plan-tier](../tenancy/plan-tier.md) (`tiers.ts` import), [design-tokens](design-tokens.md) and [generators](generators.md) (shared `tokens.css`, `logo-geometry.ts`, icons: `CLAUDE.md:63-65`), [env-config](env-config.md) (`SITE_INDEXABLE`, `CONTACT_HASH_SALT`, `HUBSPOT_*`), [deploy-targets](deploy-targets.md) (`braventa-site`, HubSpot)
+- **joins:** [plan-tier](../tenancy/plan-tier.md) (`tiers.ts` import), [design-tokens](design-tokens.md) and [generators](generators.md) (shared `tokens.css`, `logo-geometry.ts`, icons: `CLAUDE.md:66-68`), [env-config](env-config.md) (`SITE_INDEXABLE`, `CONTACT_HASH_SALT`, `HUBSPOT_*`), [deploy-targets](deploy-targets.md) (`braventa-site`, HubSpot)
 - **looks-like-but-is-not:** [app-routes](app-routes.md) (app.braventa.io; its `robots.ts` disallows everything, the site's flips on `SITE_INDEXABLE`)
 
 ## If you change this
 
-- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-19` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:65`); a price or tier change is made in `web/src/lib/plans/tiers.ts`, never on the page; a new vendor → `/legal/subprocessors`; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
+- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-19` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:68`); a price or tier change is made in `web/src/lib/plans/tiers.ts`, never on the page; a new vendor → `/legal/subprocessors`; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
 - **Does not hit:** app routes, RLS, the schema (only anonymous inserts into `contact_requests`).
 
 ## Surfaces

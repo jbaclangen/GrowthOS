@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 consumes: ["[[membership]]", "[[organization]]", "[[plan-tier]]", "[[assistant-knowledge]]", "[[business-profile]]", "[[report]]", "[[diagnosis]]", "[[content-calendar]]", "[[integration-connection]]"]
 produces: ["[[assistant-usage]]", "[[ai-usage]]"]
 ---
@@ -24,7 +24,7 @@ The model is never called without a reservation, so limits hold under parallel r
 
 1. Same-origin: `Origin` host must equal `Host` → 403; JSON content type → 415; body ≤ 64 KB → 413 — `web/src/app/api/assistant/route.ts:34-50`.
 2. User from the session (a lookup failure is not "signed out") and the first membership's organization through RLS — `:55-72`; `handler.ts:40-52`.
-3. Plan gate `assistantAccess` (`hasSubscription`: trial or any plan) → 403 — `handler.ts:53-54`; `web/src/lib/assistant/access.ts:12-15`.
+3. Plan gate `assistantAccess` (`hasSubscription`: trial or any plan) → 403 — `handler.ts:53-54`; `web/src/lib/assistant/access.ts:12-15`. No role check: `assistant.use` is in the matrix but not enforced yet — `docs/architecture/ROLES_AND_PERMISSIONS.md:72`.
 4. Reserve via `reserve_assistant_question` (service client; 40/org/day, 5/user/min) — `route.ts:73-86`; `handler.ts:59-74`; `access.ts:20-23`. Over a limit → 429 with the reason; no row → 503.
 5. Context `loadBusinessSummary` through the user's client (profiles, jobs, sessions, Search Console connection, key count, latest report, diagnosis, calendar) — `route.ts:95`; `web/src/lib/assistant/context.ts:30-40,97-120`.
 6. Messages: system = guide (`knowledgeForPrompt`) + data rule + business summary, then trimmed history and the question — `prompt.ts:160-167`.
@@ -52,5 +52,5 @@ None. The assistant only answers; every change it describes is done by the user 
 
 ## See
 
-- Objects: [[assistant-usage]], [[assistant-knowledge]], [[ai-worker]]
+- Objects: [assistant-usage](../objects/access/assistant-usage.md), [assistant-knowledge](../objects/access/assistant-knowledge.md), [ai-worker](../objects/pipeline/ai-worker.md)
 - Source: `web/src/app/api/assistant/route.ts`, `web/src/lib/assistant/handler.ts`

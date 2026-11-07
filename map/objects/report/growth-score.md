@@ -3,8 +3,8 @@ type: object
 cluster: report
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-10-24
+commit: 2214b05
 entity: web/src/lib/modules/score.ts
 ---
 
@@ -37,7 +37,7 @@ Citations: `web/src/lib/modules/score.ts:20-147`, `web/src/lib/modules/registry.
 
 ## If you change this
 
-- **Hits:** the `SCORE_VERSION` bump rule (`score.ts:16-19`; `CLAUDE.md` feature-module rule); `score.test.ts` equivalence (`:14`); the scoring step `website-intel.ts:628-634`; `module_runs.details.score_version` (`:351`, `:690`, `:703`); `docs/architecture/FEATURE_MODULES.md` §4; the infographic label.
+- **Hits:** the `SCORE_VERSION` bump rule (`score.ts:16-19`; `CLAUDE.md` feature-module rule); `score.test.ts` equivalence (`:14`); the scoring step `website-intel.ts:628-634`; `module_runs.details.score_version` (`:351`, `:690`, `:703`); `docs/architecture/FEATURE_MODULES.md` §4; the infographic label; the MCP status note (`web/src/lib/mcp/tools.ts:446-447`).
 - **Does not hit:** diagnosis findings and plan items (model output); `audit_runs.audit_version` (a separate version, `web/src/lib/audit/checks.ts:12-13`).
 
 ## Surfaces
@@ -46,7 +46,8 @@ Citations: `web/src/lib/modules/score.ts:20-147`, `web/src/lib/modules/registry.
 |---|---|
 | Scoring step → [score-and-diagnose](../../processes/score-and-diagnose.md) | computes; writes |
 | `/analysis/[id]` and `/dashboard` | reads |
-| `POST /api/assistant` → [ask-braventa](../../processes/ask-braventa.md) | reads (report data) |
+| `POST /api/assistant` → [ask-braventa](../../processes/ask-braventa.md) | reads `business_profiles.growth_score` (`web/src/lib/assistant/context.ts:38`, `:79`, `:170`) |
+| MCP `braventa_get_status` → [mcp-onboarding](../../processes/mcp-onboarding.md) | reads `reports.data.growth_score` with a fixed note (`web/src/lib/mcp/tools.ts:445-447`) |
 
 ## See
 
