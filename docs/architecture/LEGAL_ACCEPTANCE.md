@@ -1,6 +1,6 @@
 # Legal acceptance: agreement checkboxes in the app
 
-**Status:** Built 2026-11-08 (D-057). The migration needs applying before deploy (see §6). It follows the legal pages
+**Status:** Built 2026-11-08 (D-057); migration applied to production the same day. It follows the legal pages
 (D-056) and the review in `docs/research/LEGAL_AND_PRIVACY_REVIEW_2026-11-08.md`. The documents remain drafts
 pending counsel (Q-032).
 
@@ -45,7 +45,7 @@ Rules:
 
 ## 4. Data
 
-`public.legal_acceptances` (`supabase/migrations/20261108120000_legal_acceptances.sql`) is append-only. Columns:
+`public.legal_acceptances` (`supabase/migrations/20261107224300_legal_acceptances.sql`) is append-only. Columns:
 `user_id`, optional `organization_id`, `context`, `documents_version` (= `LEGAL_VERSION`), `documents[]`, `subject`,
 `accepted_at`. RLS lets users read their own rows; there are no client writes. The server writes with the secret key
 after authenticating the user. Rows are deleted with the user or the organization.
@@ -79,7 +79,7 @@ When Stripe billing is built, the checkout step must include:
 
 ## 6. Deploying
 
-1. Apply `20261108120000_legal_acceptances.sql` to the Supabase project before or with the deploy. The app works
+1. Apply `20261107224300_legal_acceptances.sql` to the Supabase project before or with the deploy (done 2026-11-08). The app works
    without it, but records nothing and the banner stays hidden.
 2. After deploy, check:
    - sign-up shows the checkbox and refuses without it

@@ -803,7 +803,7 @@ a draft until counsel reviews it (Q-032). Review and gap list:
 ## D-057 — Agreement checkboxes in the app, recorded in legal_acceptances
 **Status:** Founder (2026-11-08, in chat: "include the policies in steps we have in the app … a check box when they
 connect an app, check box when they sign up, check boxes when they pay"). Built on branch `legal-consent-checkboxes`;
-the migration needs applying before deploy. Spec: [LEGAL_ACCEPTANCE.md](../architecture/LEGAL_ACCEPTANCE.md).
+migration applied to production 2026-11-08. Spec: [LEGAL_ACCEPTANCE.md](../architecture/LEGAL_ACCEPTANCE.md).
 - **Where the app asks:**
   - sign-up: Terms, MSA and DPA, Privacy read, 18+, business use;
   - a banner for accounts that haven't accepted the current `LEGAL_VERSION`;

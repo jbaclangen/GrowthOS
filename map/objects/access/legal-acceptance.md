@@ -5,7 +5,7 @@ universe: live
 status: verified
 verified: 2026-11-08
 commit: fe535cb
-entity: supabase/migrations/20261108120000_legal_acceptances.sql
+entity: supabase/migrations/20261107224300_legal_acceptances.sql
 ---
 
 # Legal acceptance (`legal_acceptances`)
@@ -14,16 +14,16 @@ One append-only row each time someone ticks an agreement checkbox in the app: th
 
 ## Why this shape
 
-It is the evidence that the Terms' liability cap and the MSA's connected-app clause bind the user. So the server writes every row with the secret key and the user can only read their own (`supabase/migrations/20261108120000_legal_acceptances.sql:31-35`). Recording never blocks the step it belongs to, and a failed read hides the banner instead of locking anyone out (`web/src/lib/legal/acceptances.ts:7-10,33-45`). **The migration isn't applied yet.**
+It is the evidence that the Terms' liability cap and the MSA's connected-app clause bind the user. So the server writes every row with the secret key and the user can only read their own (`supabase/migrations/20261107224300_legal_acceptances.sql:31-35`). Recording never blocks the step it belongs to, and a failed read hides the banner instead of locking anyone out (`web/src/lib/legal/acceptances.ts:7-10,33-45`).
 
 ## Shape
 
-- Columns: `user_id`, `organization_id` (null for `signup`/`terms_update`), `context`, `documents_version`, `documents[]`, `subject`, `accepted_at` — `supabase/migrations/20261108120000_legal_acceptances.sql:13-26`.
+- Columns: `user_id`, `organization_id` (null for `signup`/`terms_update`), `context`, `documents_version`, `documents[]`, `subject`, `accepted_at` — `supabase/migrations/20261107224300_legal_acceptances.sql:13-26`.
 - Contexts, documents per context, `LEGAL_VERSION`, the checkbox field (`agree=yes`) and the error per step — `web/src/lib/legal/documents.ts:9,25-46,48-54,56-63`. They're kept equal to the SQL check by `web/src/lib/legal/documents.test.ts:52-62`.
 - Write: `recordAcceptance` — `web/src/lib/legal/acceptances.ts:11-30`. Read: `hasAcceptedCurrentTerms` — `:33-45`.
 - Checkbox UI: `ConsentCheckbox`, `LegalLink`, `CoreTermsSentence` — `web/src/components/legal/consent.tsx`.
 
-Citations: `supabase/migrations/20261108120000_legal_acceptances.sql:13-37`, `web/src/lib/legal/acceptances.ts:11-45`
+Citations: `supabase/migrations/20261107224300_legal_acceptances.sql:13-37`, `web/src/lib/legal/acceptances.ts:11-45`
 
 ## Connected to
 
@@ -53,5 +53,5 @@ Citations: `supabase/migrations/20261108120000_legal_acceptances.sql:13-37`, `we
 
 ## See
 
-- Source: `supabase/migrations/20261108120000_legal_acceptances.sql`, `web/src/lib/legal/`
+- Source: `supabase/migrations/20261107224300_legal_acceptances.sql`, `web/src/lib/legal/`
 - As built: `docs/architecture/LEGAL_ACCEPTANCE.md`
