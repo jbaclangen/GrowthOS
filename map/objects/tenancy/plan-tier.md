@@ -3,8 +3,8 @@ type: object
 cluster: tenancy
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 entity: web/src/lib/plans/tiers.ts
 ---
 
@@ -22,9 +22,9 @@ The founder decided tiers and the trial before billing exists, so the trial cloc
 - `FEATURES`: each with `minTier` and `status` `live`/`coming_soon` — `web/src/lib/plans/tiers.ts:48-68`; `includes` `:72-74`; `canUse` = tier includes it and it is live `:77-80`; `proHasLiveFeatures` `:105-107`.
 - `effectiveAccess(org)`: a `trial` plan is Pro until `trial_ends_at`, then Basic; an unknown plan reads as Basic — `web/src/lib/plans/tiers.ts:88-102`.
 - Database side: `plan` check and `trial_ends_at` default — `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:4-13`.
-- Gates built on it: Search Console `web/src/lib/integrations/search-console-access.ts:12-15`; the MCP connection `web/src/lib/mcp/access.ts:13-15` and the assistant `web/src/lib/assistant/access.ts:12`, both through `hasSubscription` `web/src/lib/plans/subscription.ts:5-7`; module enablement `web/src/lib/modules/server.ts:18` → `web/src/lib/modules/registry.ts:263-266`; `getOrgAccess` `web/src/lib/plans/access.ts:9-24`.
+- Gates built on it: Search Console `web/src/lib/integrations/search-console-access.ts:12-15`; the MCP connection `web/src/lib/mcp/access.ts:13-15` and the assistant `web/src/lib/assistant/access.ts:12`, both through `hasSubscription` `web/src/lib/plans/subscription.ts:5-7`; module enablement `web/src/lib/modules/server.ts:18` → `web/src/lib/modules/registry.ts:263-266`; `getOrgAccess` `web/src/lib/plans/access.ts:11-19`.
 
-Citations: `web/src/lib/plans/tiers.ts:1-27,48-107`; `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:4-13`; `web/src/lib/plans/access.ts:9-24`; `web/src/lib/plans/subscription.ts:5-7`
+Citations: `web/src/lib/plans/tiers.ts:1-27,48-107`; `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:4-13`; `web/src/lib/plans/access.ts:11-19`; `web/src/lib/plans/subscription.ts:5-7`
 
 ## Connected to
 
@@ -47,7 +47,7 @@ Ghost: Stripe billing and plan limits — `docs/product/ROADMAP.md:62-63`; seat 
 | `/plans` (`web/src/app/plans/page.tsx:5,50,89`) | reads `TIERS`, `FEATURES` |
 | Settings, connect step, Search page, OAuth routes via `effectiveAccess` | reads |
 | `/api/mcp` and `/api/assistant` via `hasSubscription` | reads |
-| Scoring step via `enabledModules` (`web/src/lib/modules/server.ts:18`) | reads |
+| Scoring step and diagnosis update via `enabledModules` (`web/src/lib/modules/server.ts:18`) | reads |
 | Braventa team in Supabase (`web/src/lib/plans/tiers.ts:2-3`) | writes `plan` by hand |
 
 ## See

@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 consumes: ["[[assistant-knowledge]]", "[[app-routes]]"]
 produces: ["[[assistant-knowledge]]"]
 ---
@@ -60,7 +60,7 @@ reviewed by whoever edits `knowledge.ts` (`CLAUDE.md:38-39`).
 | Developer in `web/` | runs `help:doc`, commits both files |
 | `web/scripts/build-help-doc.mts` | renders and checks |
 | `web/src/lib/assistant/assistant.test.ts:216-242,316-318` | refuses drift |
-| `POST /api/assistant` (`web/src/app/api/assistant/route.ts:34`) | answers users from the same sections (`knowledgeForPrompt()`, `web/src/lib/assistant/knowledge.ts:265`) |
+| `POST /api/assistant` (`web/src/app/api/assistant/route.ts:35`) | answers users from the same sections (`knowledgeForPrompt()`, `web/src/lib/assistant/knowledge.ts:265`) |
 
 ## See
 

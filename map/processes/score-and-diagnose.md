@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-23
-commit: 62d0c69
+verified: 2026-11-07
+commit: dde2f04
 consumes: ["[[ai-job]]", "[[business-profile]]", "[[onboarding-session]]", "[[onboarding-response]]", "[[onboarding-follow-up]]", "[[module-registry]]", "[[organization-module]]", "[[search-console-snapshot]]", "[[ai-worker]]"]
 produces: ["[[growth-score]]", "[[report]]", "[[diagnosis]]", "[[diagnosis-finding]]", "[[growth-plan-item]]", "[[module-run]]", "[[business-profile]]", "[[ai-usage]]"]
 ---

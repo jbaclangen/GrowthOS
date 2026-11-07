@@ -3,8 +3,8 @@ type: object
 cluster: tenancy
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -24,7 +24,7 @@ Staff need to see every tenant without a membership in each (`supabase/migration
 - Not consulted by `has_permission()`, which reads memberships only — `supabase/migrations/20261023092945_roles_and_permissions.sql:7-9,30-34`; in the app `memberRole()` gives staff without a membership null, so every `can()` gate refuses them — `web/src/lib/team/server.ts:5-8`, `docs/architecture/ROLES_AND_PERMISSIONS.md:45-47`.
 - No app code reads the table; its only mention in `web/src` is the test that proves `has_permission()` leaves it out — `web/src/lib/team/migration.test.ts:41-42` (grep at this commit). Rows are inserted manually; there is no admin UI — `docs/architecture/DATA_MODEL.md:52-53`, `docs/product/MVP_SCOPE.md:83`.
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:29-32,40-42,51-53,280,293-294`; `supabase/migrations/20261017030000_mcp_oauth.sql:9-15`; `supabase/migrations/20261023092945_roles_and_permissions.sql:7-9,30-34`; `web/src/lib/team/server.ts:5-8`; `web/src/lib/team/migration.test.ts:41-42`; `web/src/lib/memberships.ts:3-6,11-18`; `web/src/lib/plans/access.ts:13-18`; `web/src/app/api/assistant/route.ts:64-69`; `docs/architecture/DATA_MODEL.md:52-53,135`
+Citations: `supabase/migrations/20261010061028_foundation.sql:29-32,40-42,51-53,280,293-294`; `supabase/migrations/20261017030000_mcp_oauth.sql:9-15`; `supabase/migrations/20261023092945_roles_and_permissions.sql:7-9,30-34`; `web/src/lib/team/server.ts:5-8`; `web/src/lib/team/migration.test.ts:41-42`; `web/src/lib/memberships.ts:3-6,11-18,26-37`; `web/src/lib/plans/access.ts:16`; `web/src/app/api/assistant/route.ts:63-65`; `docs/architecture/DATA_MODEL.md:52-53,135`
 
 ## Connected to
 
@@ -35,8 +35,8 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:29-32,40-42,51-53,
 
 ## If you change this
 
-- **Hits:** `is_member` and `is_org_admin`, so every RLS policy built on them; any read of `memberships` that does not filter by the user's id, because RLS shows staff every organization's memberships (`web/src/lib/memberships.ts:3-6`) — `getOrgAccess` (`web/src/lib/plans/access.ts:13-18`) and the assistant's `getOrg` (`web/src/app/api/assistant/route.ts:64-69`) are two; `docs/architecture/DATA_MODEL.md:52-53,77`.
-- **Does not hit:** `is_org_owner`, `has_permission()` and every `can()` gate (service keys and Search Console connect included); `memberships_owner_guard`; `getCurrentOrg`, which filters memberships by the user's id (`web/src/lib/auth.ts:26-28`, `web/src/lib/memberships.ts:11-18`).
+- **Hits:** `is_member` and `is_org_admin`, so every RLS policy built on them; any new read of `memberships` that does not filter by the user's id, because RLS shows staff every organization's memberships (`web/src/lib/memberships.ts:3-6`); `docs/architecture/DATA_MODEL.md:52-53,77`.
+- **Does not hit:** `is_org_owner`, `has_permission()` and every `can()` gate (service keys and Search Console connect included); `memberships_owner_guard`; `getCurrentOrg`, `getOrgAccess` and the assistant's `getOrg`, which filter memberships by the user's id (`web/src/lib/auth.ts:26-28`, `web/src/lib/memberships.ts:11-18,26-37`, `web/src/lib/plans/access.ts:16`, `web/src/app/api/assistant/route.ts:63-65`).
 
 ## Surfaces
 

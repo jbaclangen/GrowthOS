@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 entity: web/src/proxy.ts
 ---
 
@@ -52,7 +52,7 @@ API routes:
 | Route | Credential | Citation |
 |---|---|---|
 | `POST /api/mcp` | bearer `brv_at_` (OAuth), `brv_` (personal), `brv_sk_` (service); Origin check; tool calls carry the principal's role; tool calls paused after the trial | `web/src/app/api/mcp/route.ts:8-14,36,40-42,76,82-83,101-103`; `web/src/lib/mcp/access.ts:3-6` |
-| `POST /api/assistant` | session, same origin; plan gate | `web/src/app/api/assistant/route.ts:8-13,34-38`; `web/src/lib/assistant/handler.ts:53`; `web/src/lib/assistant/access.ts:3-6` |
+| `POST /api/assistant` | session, same origin; plan gate | `web/src/app/api/assistant/route.ts:9-14,35-39`; `web/src/lib/assistant/handler.ts:54`; `web/src/lib/assistant/access.ts:3-6` |
 | `POST /api/jobs/continue` | HMAC of job id + step; 202 then `after()` | `web/src/app/api/jobs/continue/route.ts:6-13,21,35-38` |
 | `GET /api/integrations/google/start` | session, `integrations.connect` (owner), Pro or trial | `web/src/app/api/integrations/google/start/route.ts:19-22,27,32-40` |
 | `GET /api/integrations/google/callback` | same session, `integrations.connect` (owner), state cookie, Pro or trial | `web/src/app/api/integrations/google/callback/route.ts:21-29,38,44-48,68` |

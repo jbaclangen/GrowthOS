@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 consumes: ["[[onboarding-session]]", "[[onboarding-response]]", "[[business-profile]]", "[[connect-step]]", "[[ai-worker]]", "[[member-role]]"]
 produces: ["[[onboarding-follow-up]]", "[[onboarding-session]]", "[[ai-job]]", "[[ai-usage]]"]
 ---
@@ -40,7 +40,7 @@ The owner answers or skips each round on `/questions`; any member whose role hol
 
 ## If you change this
 
-- **Hits:** MCP `braventa_confirm_priorities` / `braventa_answer_follow_up_questions` (`web/src/lib/mcp/tools.ts:311`, `:379`; both carry `profile.edit` — `:287`, `:340`), the evidence job's final branch, `loadDiscovery` (reads `answered` follow-ups), [job-step-machine](job-step-machine.md) (plan job starts here).
+- **Hits:** MCP `braventa_confirm_priorities` / `braventa_answer_follow_up_questions` (`web/src/lib/mcp/tools.ts:312`, `:380`; both carry `profile.edit` — `:288`, `:341`), the evidence job's final branch, `loadDiscovery` (reads `answered` follow-ups), [job-step-machine](job-step-machine.md) (plan job starts here).
 - **Does not hit:** [discovery-and-review](discovery-and-review.md) (`saveReview` prunes follow-ups but does not generate them); the `website_intel` re-run (never touches sessions).
 
 ## Surfaces

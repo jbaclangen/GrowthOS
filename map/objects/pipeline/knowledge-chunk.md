@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: ghost
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -31,7 +31,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:123-148`, `docs/pr
 - **owns:** nothing.
 - **owned-by:** [knowledge-document](knowledge-document.md) (`:126`); [organization](../tenancy/organization.md).
 - **joins:** nothing live.
-- **looks-like-but-is-not:** [knowledge-document](knowledge-document.md), which is written; Ask Braventa's context, which is a summary built from tables (`web/src/app/api/assistant/route.ts:95`), not a vector search.
+- **looks-like-but-is-not:** [knowledge-document](knowledge-document.md), which is written; Ask Braventa's context, which is a summary built from tables (`web/src/app/api/assistant/route.ts:88`), not a vector search.
 
 ## If you change this
 

@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: dde2f04
 consumes: ["[[mcp-access-key]]", "[[oauth-token]]", "[[oauth-grant]]", "[[organization]]", "[[membership]]", "[[member-role]]", "[[plan-tier]]", "[[discovery-catalog]]"]
 produces: ["[[mcp-tool-call]]", "[[onboarding-session]]", "[[onboarding-response]]", "[[onboarding-follow-up]]", "[[business-profile]]", "[[ai-job]]"]
 ---
@@ -18,7 +18,7 @@ Input: a JSON-RPC 2.0 request with a bearer credential (personal key, service ke
 
 ## Why this shape
 
-The tools wrap the existing onboarding service instead of adding a second write path, so the session status machine and the plan trigger stay single-sourced (`web/src/lib/mcp/tools.ts:197,267,309-311,376-379`), down to the permission each write needs (`tools.ts:18-19,41-42`). Every query is scoped to the credential's organization, never one the client names (`web/src/app/api/mcp/route.ts:13,77-84`). The connect step is skipped because connections are authorised only in Braventa (`web/src/app/onboarding/[sessionId]/connect/page.tsx:22`; `tools.ts:86-89`).
+The tools wrap the existing onboarding service instead of adding a second write path, so the session status machine and the plan trigger stay single-sourced (`web/src/lib/mcp/tools.ts:198,268,310-312,377-380`), down to the permission each write needs (`tools.ts:19-20,42-43`). Every query is scoped to the credential's organization, never one the client names (`web/src/app/api/mcp/route.ts:13,77-84`). The connect step is skipped because connections are authorised only in Braventa (`web/src/app/onboarding/[sessionId]/connect/page.tsx:22`; `tools.ts:87-90`).
 
 ## Steps
 
@@ -28,13 +28,13 @@ The tools wrap the existing onboarding service instead of adding a second write 
 4. Trial gate `mcpAccess` (`hasSubscription`): `tools/call` gets the paused message as an error result; `tools/list` still works — `:76,100-105`; `web/src/lib/mcp/access.ts:13-15`.
 5. Rate limit 30/min and 300/h per key or grant, counted in `mcp_tool_calls` — `route.ts:20-21,106-114`.
 6. `handleMessage`: `initialize`, `ping`, `tools/list` filtered by scope, `tools/call` with scope check, then the tool's `permission` for the caller (`principalCan`), then zod args; every call logged — `web/src/lib/mcp/protocol.ts:44-118` (permission `:92-96`; `web/src/lib/mcp/principal.ts:59-63`; caller `route.ts:82-83`); `route.ts:87-96`. Matrix: [member-role](../objects/tenancy/member-role.md).
-7. Tools, all scope `onboarding` (`tools.ts:160`): `braventa_start_onboarding` → `createOnboarding` (`:162,197`, the same function as [start-analysis](start-analysis.md); permission `analysis.run` `:164`); `braventa_get_discovery_questions` (`:215`); `braventa_submit_discovery` → `saveDiscovery` + `reviewCandidates` (`:244,267-269`; `profile.edit` `:246`); `braventa_confirm_priorities` → `saveReview` then `continueFollowUps` (`:285,309-311`; `profile.edit` `:287`); `braventa_get_follow_up_questions` (`:316`); `braventa_answer_follow_up_questions` → `saveFollowUps`, `finish: true` → `completeSession` (`:338,376-379`; `profile.edit` `:340`); `braventa_get_status` (`:387`, latest session by default `:402-410`). The `get` tools carry no permission (`:217,318,389`).
-8. Not exposed: skip discovery, re-run, diagnosis correction, plan item status, post approval. The tool list ends with `braventa_get_status`, whose description says the owner does those in Braventa (`:387-392`).
+7. Tools, all scope `onboarding` (`tools.ts:161`): `braventa_start_onboarding` → `createOnboarding` (`:163,198`, the same function as [start-analysis](start-analysis.md); permission `analysis.run` `:165`); `braventa_get_discovery_questions` (`:216`); `braventa_submit_discovery` → `saveDiscovery` + `reviewCandidates` (`:245,268-270`; `profile.edit` `:247`); `braventa_confirm_priorities` → `saveReview` then `continueFollowUps` (`:286,310-312`; `profile.edit` `:288`); `braventa_get_follow_up_questions` (`:317`); `braventa_answer_follow_up_questions` → `saveFollowUps`, `finish: true` → `completeSession` (`:339,377-380`; `profile.edit` `:341`); `braventa_get_status` (`:388`, latest session by default `:403-411`). The `get` tools carry no permission (`:218,319,390`).
+8. Not exposed: skip discovery, re-run, diagnosis correction, plan item status, post approval. The tool list ends with `braventa_get_status`, whose description says the owner does those in Braventa (`:388-393`).
 9. `maxDuration` 300 s because the follow-up tools call the extractor model — `route.ts:16-18`.
 
 ## Human gate
 
-Credential creation: a member makes a personal key in Settings (`web/src/app/settings/actions.ts:15`, no role check; service keys: owner only, `web/src/app/settings/integrations-actions.ts:25`) or approves the consent page at `/oauth/authorize`. After that the client acts with that member's role, or for the business with a service key (`web/src/lib/mcp/principal.ts:59-63`), without a per-call approval; confirming the diagnosis and approving posts still happen only in the app (`tools.ts:392`).
+Credential creation: a member makes a personal key in Settings (`web/src/app/settings/actions.ts:15`, no role check; service keys: owner only, `web/src/app/settings/integrations-actions.ts:25`) or approves the consent page at `/oauth/authorize`. After that the client acts with that member's role, or for the business with a service key (`web/src/lib/mcp/principal.ts:59-63`), without a per-call approval; confirming the diagnosis and approving posts still happen only in the app (`tools.ts:393`).
 
 ## If you change this
 
