@@ -582,7 +582,7 @@ blocking at the limit that day; ROLES_AND_PERMISSIONS.md §8).
   (service keys keep their rule, D-044); Settings shows the user's role. Spec and open items:
   [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md).
 - **Remains:** invite emails (Q-010), charging for extra seats (Stripe), more than one business per account (Q-051), client approvers
-  (D-047), `keys.manage_own` on personal keys, `plan_items.update_own` (needs an assignee), RLS write policies per
+  (D-047), `plan_items.update_own` (needs an assignee), RLS write policies per
   permission. Matrix cells that differ from the research (Admin and keys, client approver, Admin and integrations)
   are listed there for the founder to confirm or widen (Q-050).
 - **Roles:** Owner, Admin, Marketing manager, Social media manager, Copywriter, Content creator, Analyst and Client
@@ -593,7 +593,7 @@ blocking at the limit that day; ROLES_AND_PERMISSIONS.md §8).
 - **Seats:** 2 / 5 / 10 full seats included on Basic / Pro / Premium; an extra full seat is $29 / $39 / quoted (target
   $35). Analyst seats free up to 5 / 10 / unlimited; client approvers free up to 3 / 10 / unlimited (D-047). As with
   D-039, seat prices stay off the site until checkout exists.
-- **Needs:** invitations need transactional email (Q-010); charging for seats needs Stripe.
+- **Needs:** invite emails need transactional email (Q-010; invites go by copied link meanwhile); charging for seats needs Stripe.
 - **Changes:** ROADMAP.md Next item 8. Team access no longer waits for agencies to prove a buying segment.
 - Source: [SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §0–§3;
   [research README](../research/README.md) §2, decision 2.

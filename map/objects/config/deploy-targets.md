@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: f8a2eec
 entity: docs/architecture/SYSTEM_ARCHITECTURE.md
 ---
 
@@ -34,7 +34,7 @@ Live:
   `CONTACT_HASH_SALT` live there (`docs/marketing/CONTACT_PIPELINE.md:25,41`; `site/src/lib/spam.ts:6`;
   `site/src/lib/hubspot.ts:9-10`). Deploy state is read with `gh api repos/jbaclangen/GrowthOS/commits/main/statuses`
   (`.claude/agents/braventa-health-check.md:18`).
-- **Supabase project `mlztvhvmsullvwawwamc`**: Postgres + Auth + RLS for every environment (`CLAUDE.md:69`;
+- **Supabase project `mlztvhvmsullvwawwamc`**: Postgres + Auth + RLS for every environment (`CLAUDE.md:70`;
   `docs/architecture/SYSTEM_ARCHITECTURE.md:22,251`; `.mcp.json:5`; `docs/architecture/SEARCH_CONSOLE_SETUP.md:83`).
 - **Postgres → `POST /api/jobs/continue`**: `pg_net` from an insert trigger, `pg_cron` sweeper every minute; the URL
   must be `https://…/api/jobs/continue` (`supabase/migrations/20261017110000_job_dispatches.sql:55-56,68,103-105,339-340`;
@@ -57,7 +57,7 @@ Live:
 Ghost (named, not wired):
 
 - **n8n** at `n8nautomations.pixelmarketingdesign.com`, callbacks to `/api/n8n/*`: no route exists and `proxy.ts`
-  would redirect it (`CLAUDE.md:70,80-81`; `docs/architecture/SYSTEM_ARCHITECTURE.md:23,29,52,81,237-239,252`;
+  would redirect it (`CLAUDE.md:71,81-82`; `docs/architecture/SYSTEM_ARCHITECTURE.md:23,29,52,81,237-239,252`;
   `docs/architecture/INTEGRATIONS.md:34`; `web/src/lib/integrations/n8n.ts:4-5,38-39`; `web/.env.example:17`; host Q-006).
 - **support.braventa.io**, **community.braventa.io**: planned (`docs/product/SUPPORT_SITE.md:1-5`;
   `docs/marketing/SITEMAP.md:14`; `docs/architecture/SYSTEM_ARCHITECTURE.md:249-250`).

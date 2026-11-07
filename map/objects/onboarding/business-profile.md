@@ -3,8 +3,8 @@ type: object
 cluster: onboarding
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: f8a2eec
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -34,7 +34,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:77-95,297-309`; `s
 
 ## If you change this
 
-- **Hits:** `createOnboarding`, `profileStep`, `scoreStep`, `saveOwnerInputs` and the "From you" panel, the dashboard and report loaders, the assistant context, the prompts that read owner inputs (`web/src/lib/pipeline/website-intel.ts:304`), `docs/architecture/DATA_MODEL.md:78`.
+- **Hits:** `createOnboarding`, `profileStep`, `scoreStep`, `saveOwnerInputs` and the "From you" panel, the dashboard and report loaders, the assistant context, the prompts that read owner inputs (`web/src/lib/pipeline/website-intel.ts:304`), `docs/architecture/DATA_MODEL.md:81`.
 - **Does not hit:** [onboarding-response](onboarding-response.md) — pain points and priorities are not profile columns.
 
 ## Surfaces

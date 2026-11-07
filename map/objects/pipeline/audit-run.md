@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: f8a2eec
 entity: supabase/migrations/20261011160802_website_audit.sql
 ---
 
@@ -51,4 +51,4 @@ Citations: `supabase/migrations/20261011160802_website_audit.sql:6-33`, `:64-68`
 ## See
 
 - Source: `supabase/migrations/20261011160802_website_audit.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:95`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:98`)

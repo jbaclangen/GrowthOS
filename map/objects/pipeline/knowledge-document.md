@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: f8a2eec
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -49,4 +49,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:110-121`, `:300-30
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:80`); planned use `docs/product/ROADMAP.md:73-74`, `:100`
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:83`); planned use `docs/product/ROADMAP.md:73-74`, `:101`

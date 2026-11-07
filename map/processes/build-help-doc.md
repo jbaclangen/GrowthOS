@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-07
-commit: dde2f04
+commit: f8a2eec
 consumes: ["[[assistant-knowledge]]", "[[app-routes]]"]
 produces: ["[[assistant-knowledge]]"]
 ---
@@ -29,7 +29,7 @@ checkable.
 
 ## Steps
 
-1. Edit `web/src/lib/assistant/knowledge.ts` (`APP_ROUTES` `:27`; `knowledgeSections()` `:165`; `renderGuide()` `:272`).
+1. Edit `web/src/lib/assistant/knowledge.ts` (`APP_ROUTES` `:27`; `knowledgeSections()` `:173`; `renderGuide()` `:280`).
    Parts come straight from code (`FEATURES`, `VIEWS`, provenance labels, `:9`), so a change there moves the guide too.
 2. In `web/`, run `npm run help:doc` (`web/package.json:15`): `web/scripts/build-help-doc.mts:8-9,24-25` writes
    `docs/help/APP_GUIDE.md`, whose first line marks it generated (`docs/help/APP_GUIDE.md:1`).
@@ -60,7 +60,7 @@ reviewed by whoever edits `knowledge.ts` (`CLAUDE.md:38-39`).
 | Developer in `web/` | runs `help:doc`, commits both files |
 | `web/scripts/build-help-doc.mts` | renders and checks |
 | `web/src/lib/assistant/assistant.test.ts:216-242,316-318` | refuses drift |
-| `POST /api/assistant` (`web/src/app/api/assistant/route.ts:35`) | answers users from the same sections (`knowledgeForPrompt()`, `web/src/lib/assistant/knowledge.ts:265`) |
+| `POST /api/assistant` (`web/src/app/api/assistant/route.ts:35`) | answers users from the same sections (`knowledgeForPrompt()`, `web/src/lib/assistant/knowledge.ts:273`) |
 
 ## See
 

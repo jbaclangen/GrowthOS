@@ -3,8 +3,8 @@ type: object
 cluster: access
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: f8a2eec
 entity: supabase/migrations/20261017030000_mcp_oauth.sql
 ---
 
@@ -20,9 +20,9 @@ Tokens belong to a grant (their family), so disconnecting or detecting refresh-t
 
 - Columns: `user_id`, `client_id` (FK), `client_name`, `scopes` (1–10), `resource`, `last_used_at`, `revoked_at`, `revoked_reason` `user | refresh_reuse | code_reuse | membership` — `supabase/migrations/20261017030000_mcp_oauth.sql:103-115`
 - RLS "members read"; column grant leaves out `client_id`, `resource` and `revoked_reason` — `:119-124`
-- Writers (service client): `createGrant`, `revokeGrant` — `web/src/lib/oauth/supabase-store.ts:39-64`; Settings disconnect sets `revoked_reason: "user"` and revokes its tokens — `web/src/app/settings/integrations-actions.ts:72-95`; someone else's grant needs `keys.manage_any` ([member-role](../tenancy/member-role.md)) — `:77`, `web/src/lib/team/roles.ts:89`
+- Writers (service client): `createGrant`, `revokeGrant` — `web/src/lib/oauth/supabase-store.ts:39-64`; Settings disconnect sets `revoked_reason: "user"` and revokes its tokens — `web/src/app/settings/integrations-actions.ts:72-95`; someone else's grant needs `keys.manage_any` ([member-role](../tenancy/member-role.md)) — `:77`, `web/src/lib/team/roles.ts:89`; removing a member from the business sets `revoked_at` on their grants for it (no `revoked_reason`, tokens left to the grant check) — `web/src/app/settings/team-actions.ts:141` ([invite-and-join](../../processes/invite-and-join.md))
 - `/api/mcp` reads `revoked_at` and bumps `last_used_at` — `web/src/lib/mcp/auth.ts:66-67,77-80`; a revoked grant is refused — `web/src/lib/mcp/principal.ts:74-76`
-- Reader: `ConnectedApps` (unrevoked grants; a live refresh token decides the "Signed out" chip) — `web/src/app/settings/integrations-sections.tsx:17-36,58`; disconnect offered by the same rule — `:52`, `web/src/app/settings/page.tsx:50-51`
+- Reader: `ConnectedApps` (unrevoked grants; a live refresh token decides the "Signed out" chip) — `web/src/app/settings/integrations-sections.tsx:17-36,58`; disconnect offered by the same rule — `:52`, `web/src/app/settings/page.tsx:51-52`
 
 Citations: `supabase/migrations/20261017030000_mcp_oauth.sql:98-124`, `web/src/lib/oauth/supabase-store.ts:39-64`
 

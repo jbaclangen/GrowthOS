@@ -56,9 +56,9 @@ enforces yet is still in the matrix so the next feature doesn't invent its own r
 |---|---|---|
 | `billing.view` | See the plan, credits and invoices | Not yet: no billing. `/plans` and its "Talk to us" request stay open to every member |
 | `billing.manage` | Change the plan, pay, top up | Not yet: no billing |
-| `team.manage` | Invite, change roles, remove members | No UI yet. RLS on `memberships` (`is_org_admin`) allows the same two roles |
+| `team.manage` | Invite, change roles, remove members | Settings → Team and `app/settings/team-actions.ts`, with the manage-below-your-role rule (§8). RLS on `memberships` (`is_org_admin`) allows the same two roles |
 | `integrations.connect` | Connect, choose a property for, reconnect and disconnect a tool (Google Search Console) | `GET /api/integrations/google/start` and `callback`, `chooseSearchConsoleProperty`, `disconnectSearchConsoleAction`, the Search Console card and the "Connect your tools" plan line (`lib/integrations/connect-step.ts`) |
-| `keys.manage_own` | Create and revoke a personal access key | Not yet: every member can create personal keys, as before (RLS: own rows only). See §7 |
+| `keys.manage_own` | Create and revoke a personal access key | `createAccessKey` and the Settings key form, once the user has a business (§6). Revoking one's own key isn't gated (RLS: own rows only) |
 | `keys.manage_any` | Create and revoke service keys; disconnect any app, not only one's own | `createServiceKey`, the Service keys section, `disconnectApp` for another person's grant; RLS `is_org_owner` on service keys |
 | `profile.edit` | Edit the business profile and answer discovery | `saveOwnerInputs`; every onboarding action (`submitDiscovery`, `skipDiscovery`, `submitReview`, `continueAfterConnect`, `submitFollowUps`, `skipFollowUps`); MCP `braventa_submit_discovery`, `braventa_confirm_priorities`, `braventa_answer_follow_up_questions` |
 | `analysis.run` | Start or re-run an analysis (uses credits) | `startAnalysis` once the business exists, `rerunAnalysis`; MCP `braventa_start_onboarding` |

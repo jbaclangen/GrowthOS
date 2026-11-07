@@ -57,7 +57,7 @@ export function seatAvailable(tier: Tier, usage: SeatUsage, role: Role): { ok: t
   const what = kind === "full" ? `${limit} full seats` : `${limit} analyst seats`;
   return {
     ok: false,
-    error: `Your ${TIER_LABELS[tier]} plan includes ${what}, and all of them are taken or invited. Remove someone or revoke an invite, invite them as ${kind === "full" ? "an analyst" : "a full member"} instead, or ask about a bigger plan on Plans.`,
+    error: `Your ${TIER_LABELS[tier]} plan includes ${what}, and all of them are taken or invited. Remove someone or withdraw an invite, invite them as ${kind === "full" ? "an analyst" : "a full member"} instead, or ask about a bigger plan on Plans.`,
   };
 }
 

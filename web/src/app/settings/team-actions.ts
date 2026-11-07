@@ -138,7 +138,7 @@ export async function removeMember(userId: string) {
   const now = new Date().toISOString();
   await Promise.all([
     admin.from("mcp_access_keys").update({ revoked_at: now }).eq("organization_id", m.org.id).eq("user_id", userId).eq("kind", "personal").is("revoked_at", null),
-    admin.from("oauth_grants").update({ revoked_at: now }).eq("organization_id", m.org.id).eq("user_id", userId).is("revoked_at", null),
+    admin.from("oauth_grants").update({ revoked_at: now, revoked_reason: "membership" }).eq("organization_id", m.org.id).eq("user_id", userId).is("revoked_at", null),
   ]);
   await recordTeamEvent(admin, { organizationId: m.org.id, actorId: m.user.id, action: "removed", subjectEmail: target.email, subjectUserId: userId, roleFrom: target.role });
   refresh();
