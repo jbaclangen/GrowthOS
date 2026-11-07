@@ -4,7 +4,7 @@ cluster: pipeline
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 1549242
+commit: 825fd1b
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
