@@ -473,7 +473,10 @@ describe("handleAssistantRequest", () => {
     const reserve = vi.fn(async () => (calls.push("reserve"), free));
     const ask = vi.fn(async () => (calls.push("ask"), { text: " Open [Settings](/settings). " }));
     const finish = vi.fn(async () => void calls.push("finish"));
-    const r = await handleAssistantRequest({ question: "Where is Settings?" }, deps({ reserve, ask, finish }));
+    const getOrg = vi.fn(deps().getOrg);
+    const r = await handleAssistantRequest({ question: "Where is Settings?" }, deps({ reserve, ask, finish, getOrg }));
+    // The organization is the signed-in user's own (lib/memberships.ts filters by this id).
+    expect(getOrg).toHaveBeenCalledWith("user-1");
     expect(r).toEqual({ status: 200, body: { answer: "Open [Settings](/settings).", remainingToday: ASSISTANT_LIMITS.perOrgPerDay - 1 } });
     expect(reserve).toHaveBeenCalledWith("org-1", "user-1", ASSISTANT_LIMITS);
     expect(ask).toHaveBeenCalledWith("org-1", expect.any(Array));

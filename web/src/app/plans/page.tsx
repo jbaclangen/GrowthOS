@@ -21,8 +21,8 @@ const ORDER: Tier[] = ["basic", "pro", "premium"];
 const PREVIOUS: Record<Tier, string | null> = { basic: null, pro: "Everything in Basic, plus:", premium: "Everything in Pro, plus:" };
 
 async function Plans() {
-  await requireUser();
-  const access = await getOrgAccess();
+  const user = await requireUser();
+  const access = await getOrgAccess(user.id);
   const trial = access?.trial;
 
   return (

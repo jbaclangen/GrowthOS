@@ -117,7 +117,7 @@ the assistant to relay; they are not JSON-RPC errors.
 | `braventa_confirm_priorities` | `session_id`, `keep_pain_point_ids` (≥1), `priorities` (1–3, ordered) | `status: "following_up"` + `questions[]`, or `status: "completed"` + `report_url` |
 | `braventa_get_follow_up_questions` | `session_id` | `status`, `questions[{question_id,about,question,why_we_ask,type,choices?|example?,max_characters?}]`, `next_step?` (when no question is waiting: call `braventa_answer_follow_up_questions` with no answers for the next round, or with `finish: true`) |
 | `braventa_answer_follow_up_questions` | `session_id`, `answers[{question_id,answer?,not_applicable?}]` (≤10), `finish` | Next round of `questions`, or `status: "completed"` |
-| `braventa_get_status` | `session_id` (optional; latest by default) | `status` (`not_started`, `discovering`, `reviewing`, `following_up`, `building_plan`, `failed`, `ready`), `business`, `report_url`; when ready `growth_score`, `growth_score_note`, `top_priorities[{title,first_step}]`, `diagnosis_status` |
+| `braventa_get_status` | `session_id` (optional; latest by default) | `status` (`not_started`, `discovering`, `reviewing`, `following_up`, `building_plan`, `failed`, `ready`), `business`, `report_url`; when ready `growth_score`, `growth_score_note` (the modules the score is based on and what each measures, as the report's score tile lists them: Search visibility only when Search Console data was in it), `top_priorities[{title,first_step}]`, `diagnosis_status` |
 
 Exact JSON Schemas: call `tools/list`. Order of use: start → get discovery questions → submit discovery → confirm
 priorities (after checking with the owner) → answer follow-ups → get status. A session whose priorities were confirmed

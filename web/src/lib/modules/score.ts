@@ -1,4 +1,4 @@
-import { isModuleId, type ModuleId } from "./registry";
+import { isModuleId, moduleLabel, type ModuleId } from "./registry";
 
 // The growth score over feature modules (D-051): a renormalized weighted mean of the parts of every enabled module
 // that has evidence. Pure logic (no I/O), unit-tested in score.test.ts.
@@ -144,4 +144,17 @@ export function computeGrowthScore(evidence: ModuleEvidence[], enabled: Readonly
 export function modulesUsed(stored: { score_modules?: unknown; pagespeed?: unknown }): ModuleId[] {
   if (Array.isArray(stored.score_modules)) return stored.score_modules.filter(isModuleId);
   return stored.pagespeed ? ["conversion", "website_seo"] : ["conversion"];
+}
+
+// What each scored module's parts measure, for a reader without the report page (the MCP status tool).
+const SCORE_SOURCES: Partial<Record<ModuleId, string>> = {
+  conversion: "Braventa's review of the website: content clarity, conversion readiness and online presence",
+  website_seo: "Google PageSpeed results on mobile",
+  search_visibility: "the last 28 days of Google Search Console data",
+};
+
+// The growth score explained from the modules it is based on (modulesUsed), as the report's score tile lists them.
+export function growthScoreNote(modules: ModuleId[]): string {
+  const parts = modules.map((id) => (SCORE_SOURCES[id] ? `${moduleLabel(id)} (${SCORE_SOURCES[id]})` : moduleLabel(id)));
+  return `0–100, based on ${modules.length} ${modules.length === 1 ? "module" : "modules"}: ${parts.join("; ")}. It isn't a measure of the whole business and doesn't predict results.`;
 }

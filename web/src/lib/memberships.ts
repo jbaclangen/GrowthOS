@@ -20,6 +20,22 @@ export async function currentMembership(db: SupabaseClient, userId: string) {
   return org ? { id: org.id, name: org.name, role: data!.role as string } : null;
 }
 
+// The user's first organization (MVP: one per user) with its plan and trial: what the tier (lib/plans/access.ts)
+// and the in-app assistant read. Unlike the two reads beside it, a failed read throws, so a caller can tell a failed
+// lookup from "no organization".
+export async function firstOrganization(db: SupabaseClient, userId: string): Promise<MemberOrganization | null> {
+  const { data, error } = await db
+    .from("memberships")
+    .select("role, organizations(id, name, plan, trial_ends_at)")
+    .eq("user_id", userId)
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  const org = data?.organizations as unknown as Omit<MemberOrganization, "role"> | null;
+  return org ? { ...org, role: data!.role as string } : null;
+}
+
 // Every organization the user belongs to, oldest membership first.
 export async function memberOrganizations(db: SupabaseClient, userId: string): Promise<MemberOrganization[]> {
   const { data } = await db

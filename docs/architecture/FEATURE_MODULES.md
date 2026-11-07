@@ -80,7 +80,7 @@ Migration `20261023063253_feature_modules.sql`; details in [DATA_MODEL.md](DATA_
 | Object | Purpose | Written by | Read by | RLS |
 |---|---|---|---|---|
 | Domain `module_id` | Limits every module column to the registry's ids | Migration | — | — |
-| `organization_modules` | Per-organization overrides: `enabled`, `config` | Nobody yet (server only; who may change them comes with roles, D-046) | Scoring step | Members read via `is_member`; no client writes |
+| `organization_modules` | Per-organization overrides: `enabled`, `config` | Nobody yet (server only; who may change them comes with roles, D-046) | Scoring step; diagnosis update (`reviseDiagnosis`: whether Search Console evidence goes into the corrected diagnosis) | Members read via `is_member`; no client writes |
 | `module_runs` | One row per module that ran in a job: `status` (`completed`/`partial`), `sub_score`, `audit_run_id`, `report_id`, `rules_version`, `details` | Pipeline (`recordModuleRuns`, best effort: a failed write is logged, the analysis continues) | Nothing yet (a record) | Members read; no client writes; same-organization composite FKs to `ai_jobs` and `audit_runs` |
 | `diagnosis_findings.module_id` | The module a finding belongs to | Pipeline (`moduleForFinding`): verified citing `G1` → `search_visibility`, other verified → `website_seo`, customer_provided → `business_intel`, inferred → null | Report page (`select *`), unused so far | Not granted to clients |
 | `growth_plan_items.module_id` | The module a plan item belongs to | Pipeline (`moduleForArea`): the first comma-separated `area`, matched case-insensitively; `operations`, unknown and empty → null | Not selected yet | Not granted to clients |
