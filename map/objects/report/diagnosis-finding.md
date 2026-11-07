@@ -49,4 +49,4 @@ Citations: `supabase/migrations/20261010164133_diagnosis_and_plan.sql:32-52`, `:
 ## See
 
 - Source: `supabase/migrations/20261010164133_diagnosis_and_plan.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:100`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:102`)

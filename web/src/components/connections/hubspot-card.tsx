@@ -5,10 +5,10 @@ import { hubspotAccess } from "@/lib/integrations/hubspot-access";
 import { HUBSPOT_PROVIDER } from "@/lib/integrations/hubspot";
 import { percentChange, type HubSpotMetrics } from "@/lib/integrations/hubspot-metrics";
 import { connectionCardState, type ConnectionCardState } from "@/lib/integrations/connect-step";
-import { hubspotStartHref } from "@/lib/integrations/return-to";
 import { formatChange, formatDateTime, formatInt } from "@/app/search/format";
 import { disconnectHubSpotAction, refreshHubSpot } from "@/app/settings/connections-actions";
 import { can } from "@/lib/team/roles";
+import { HubSpotConnectForm } from "./connect-form";
 import { ConnectionNotice } from "./connection-notice";
 import { DisconnectButton } from "./disconnect-button";
 import { SubmitButton } from "./submit-button";
@@ -16,7 +16,7 @@ import { SubmitButton } from "./submit-button";
 // The HubSpot connection card (Pro, read-only, D-048), shared by Settings → Connections and the onboarding step
 // "Connect your tools", built like the Search Console card. Reads through the signed-in user's client, so RLS and
 // column grants apply: the encrypted refresh token is never selected here. Braventa stores only counts and totals
-// from HubSpot (D-057), so that is all this card can show. The counts don't reach the diagnosis yet (the CRM module,
+// from HubSpot (D-058), so that is all this card can show. The counts don't reach the diagnosis yet (the CRM module,
 // D-051, is the next step), so nothing here says they do.
 
 type Connection = {
@@ -204,10 +204,8 @@ function NotConnected({
       ) : state === "owner-only" ? (
         <p className="mt-4 text-sm text-muted">Ask the business owner to connect HubSpot.</p>
       ) : (
-        // A plain link, not a form: the start route redirects to HubSpot's consent screen.
-        <a href={hubspotStartHref(returnTo)} className={`${connectClassName} mt-4`}>
-          Connect HubSpot
-        </a>
+        // A GET form with the required agreement checkbox (D-057); the start route redirects to HubSpot.
+        <HubSpotConnectForm id="hubspot-connect-agree" returnTo={returnTo} label="Connect HubSpot" buttonClassName={connectClassName} />
       )}
     </>
   );
@@ -324,9 +322,7 @@ function Connected({
           </form>
         )}
         {canConnect && connection.status === "error" && allowed && (
-          <a href={hubspotStartHref(returnTo)} className="btn-secondary">
-            Reconnect
-          </a>
+          <HubSpotConnectForm id="hubspot-reconnect-agree" returnTo={returnTo} label="Reconnect" buttonClassName="btn-secondary" />
         )}
         {canConnect && <DisconnectButton returnTo={returnTo} action={disconnectHubSpotAction} explanation={DISCONNECT_EXPLANATION} />}
       </div>

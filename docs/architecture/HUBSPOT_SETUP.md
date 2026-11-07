@@ -3,7 +3,7 @@
 **Status / last reviewed: 2026-11-08.** The code is built (see [INTEGRATIONS.md](INTEGRATIONS.md#hubspot-pro-read-only)).
 Until the steps in §3 are done, Settings → Connections says "HubSpot connection isn't set up yet" and nothing else
 changes. The steps are for the founder: they need a HubSpot sign-in, the HubSpot CLI, Vercel and Supabase. Decisions:
-D-048 (HubSpot read-only first, REST with per-tenant OAuth, unlisted app), D-057 (store aggregates only).
+D-048 (HubSpot read-only first, REST with per-tenant OAuth, unlisted app), D-058 (store aggregates only).
 
 ## 1. What it does
 

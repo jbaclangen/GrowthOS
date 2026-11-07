@@ -84,6 +84,8 @@ export type OAuthState = {
   redirectUri: string;
   expiresAt: number;
   returnTo?: string;
+  // The owner ticked the connect checkbox (D-057); the callback records it once Google has approved.
+  consented?: boolean;
 };
 
 // The state cookie is encrypted (AES-GCM), so it can't be read or forged, and binds the flow to user + org.

@@ -200,7 +200,7 @@ RLS. Rules:
     `search_console_snapshots`. Reconnecting with a different Google account deletes the old snapshots.
   - After the Pro trial, on Basic, the connection is paused: the token and snapshots are kept, nothing is fetched.
 - The foundation's `integrations` table (`vault_secret_id`, Supabase Vault) is still unused. Search Console chose
-  app-level encryption to avoid a Vault dependency. HubSpot (built 2026-11-08, D-048/D-057) follows the same pattern:
+  app-level encryption to avoid a Vault dependency. HubSpot (built 2026-11-08, D-048/D-058) follows the same pattern:
   the refresh token encrypted in `integration_connections` (provider `hubspot`, portal id and domain in
   `external_account_id`/`external_account_name`), access tokens minted per sync, the state cookie sealed and bound to
   user and organization (HubSpot documents no PKCE for apps). `hubspot_snapshots` holds counts and totals only: no
@@ -353,6 +353,10 @@ What is undecided / not implemented:
   the analysis page.
 - `team_events` (2026-11-07): invites, withdrawn invites, joins, role changes and removals, append-only, written by
   the server, readable by `team.manage` ([ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §8).
+- `legal_acceptances` (2026-11-08, D-057): each agreement to the legal documents and each confirmation they require
+  (sign-up, terms banner, analysis start, Search Console connect, access keys, OAuth approval), with version,
+  documents and subject; append-only, written by the server with the secret key, each person reads their own rows;
+  deleted with the user or the organization ([LEGAL_ACCEPTANCE.md](LEGAL_ACCEPTANCE.md)).
 - Not implemented: an audit log of other sensitive operations (sign-in events beyond Supabase's own auth logs,
   approvals history, integration connect/disconnect, platform-admin access,
   exports/deletions). Recommended: an `audit_events` table (M-read, admin-client writes) before multi-user

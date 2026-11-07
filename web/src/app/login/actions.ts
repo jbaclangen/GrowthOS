@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { safeNext } from "@/lib/safe-next";
+import { CONSENT_REQUIRED, consentGiven } from "@/lib/legal/documents";
+import { recordAcceptance } from "@/lib/legal/acceptances";
 
 export type AuthState = { error?: string; message?: string } | undefined;
 
@@ -32,6 +34,8 @@ export async function signIn(_: AuthState, formData: FormData): Promise<AuthStat
 export async function signUp(_: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = parse(formData);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+  // D-057: no account without agreeing to the Terms, MSA and DPA, and confirming 18+ and business use.
+  if (!consentGiven(formData)) return { error: CONSENT_REQUIRED.signup };
 
   const supabase = await createSupabaseServerClient();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -41,6 +45,11 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
     options: { emailRedirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent(next)}` },
   });
   if (error) return { error: error.message };
+  // Supabase answers an already-registered email with a user that has no identities (so it can't be probed); only a
+  // real new account gets a record.
+  if (data.user && (data.user.identities?.length ?? 0) > 0) {
+    await recordAcceptance({ userId: data.user.id, context: "signup" });
+  }
   if (data.session) redirect(next);
   return { message: "Check your email for a confirmation link, then come back and sign in." };
 }

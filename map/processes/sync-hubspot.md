@@ -18,18 +18,18 @@ Input: an active HubSpot connection, triggered by the OAuth callback or Settings
 
 ## Why this shape
 
-Records are summed in memory and only counts are stored (D-057), so the search totals and a fixed deal property list are all the sync asks for (`web/src/lib/integrations/hubspot.ts:67-102`; `web/src/lib/integrations/hubspot-metrics.ts:128`). Searches wait 250 ms each because HubSpot's search API allows 5 a second per portal (`hubspot.ts:33,67-68`). The plan gate runs on every sync, so an ended trial pauses instead of fetching (`hubspot.ts:274-277`).
+Records are summed in memory and only counts are stored (D-058), so the search totals and a fixed deal property list are all the sync asks for (`web/src/lib/integrations/hubspot.ts:67-102`; `web/src/lib/integrations/hubspot-metrics.ts:128`). Searches wait 250 ms each because HubSpot's search API allows 5 a second per portal (`hubspot.ts:33,67-68`). The plan gate runs on every sync, so an ended trial pauses instead of fetching (`hubspot.ts:274-277`).
 
 ## Steps
 
 1. Load the connection; revoked, no token or no portal → `not-connected` — `web/src/lib/integrations/hubspot.ts:259-268`.
 2. Plan gate `hubspotAccess`; not allowed → `paused` — `:274-277`.
 3. 10-minute guard on `last_attempted_at` unless `skipGuard` — `:279`.
-4. Decrypt, mint an access token, store a rotated refresh token — `:293-295`; `web/src/lib/integrations/hubspot-oauth.ts:135`.
+4. Decrypt, mint an access token, store a rotated refresh token — `:293-295`; `web/src/lib/integrations/hubspot-oauth.ts:137`.
 5. `fetchMetrics`: lifecycle and source options, deal pipelines (`0-3`), contact and company search totals, deal list up to `MAX_DEALS` — `hubspot.ts:112`; aggregation `hubspot-metrics.ts:151`.
 6. Size check, insert, prune to 12, mark `active` — `hubspot.ts:297-310`; errors → `describeHubSpotError` → status + `last_error` — `:194`.
-7. Callers: callback `web/src/app/api/integrations/hubspot/callback/route.ts:97`; Settings refresh (any member) `web/src/app/settings/connections-actions.ts:76-80`.
-8. Disconnect (owner, `integrations.connect`): uninstall the app and revoke the token, delete every snapshot, blank the row — `hubspot.ts:338-365`; `hubspot-oauth.ts:173`; action `connections-actions.ts:83-91`.
+7. Callers: callback `web/src/app/api/integrations/hubspot/callback/route.ts:108`; Settings refresh (any member) `web/src/app/settings/connections-actions.ts:76-80`.
+8. Disconnect (owner, `integrations.connect`): uninstall the app and revoke the token, delete every snapshot, blank the row — `hubspot.ts:338-365`; `hubspot-oauth.ts:175`; action `connections-actions.ts:83-91`.
 
 ## Human gate
 

@@ -72,6 +72,8 @@ export type HubSpotOAuthState = {
   redirectUri: string;
   expiresAt: number;
   returnTo?: string;
+  // The connect form's agreement checkbox was ticked (D-057); the callback records it once HubSpot approves.
+  consented?: boolean;
 };
 
 // Encrypted (AES-GCM), so it can't be read or forged, and bound to the user and organization.

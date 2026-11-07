@@ -27,6 +27,10 @@ const SEARCH_CONSOLE: Record<string, Notice> = {
   "redirect-mismatch": { tone: "danger", text: "Google sign-in isn't set up for this address. Use app.braventa.io." },
   "not-configured": { tone: "info", text: "Search Console connection isn't set up yet." },
   "owner-only": { tone: "info", text: "Only the business owner can connect, change or disconnect Search Console." },
+  "consent-needed": {
+    tone: "warning",
+    text: "Tick the box to confirm you're authorized to connect this Google account and responsible for it, then connect again.",
+  },
   "no-business": { tone: "info", text: "Analyze a website first so we know which business to connect." },
   "property-invalid": { tone: "warning", text: "That property isn't available to the connected Google account. Choose one from the list." },
   disconnected: {
@@ -54,6 +58,10 @@ const HUBSPOT: Record<string, Notice> = {
   "redirect-mismatch": { tone: "danger", text: "HubSpot sign-in isn't set up for this address. Use app.braventa.io." },
   "not-configured": { tone: "info", text: "HubSpot connection isn't set up yet." },
   "owner-only": { tone: "info", text: "Only the business owner can connect or disconnect HubSpot." },
+  "consent-needed": {
+    tone: "warning",
+    text: "Tick the box to confirm you're authorized to connect this HubSpot portal and responsible for it, then connect again.",
+  },
   "no-business": { tone: "info", text: "Analyze a website first so we know which business to connect." },
   disconnected: {
     tone: "success",

@@ -16,6 +16,7 @@ import { hubspotAccess } from "@/lib/integrations/hubspot-access";
 import { saveHubSpotConnection, syncHubSpot } from "@/lib/integrations/hubspot";
 import { SETTINGS_RETURN, hubspotOutcomeUrl } from "@/lib/integrations/return-to";
 import { can } from "@/lib/team/roles";
+import { recordAcceptance } from "@/lib/legal/acceptances";
 
 // HubSpot redirects here after the owner installs the app in their portal. Needs the same signed-in session that
 // started the flow. Verifies the encrypted state cookie (random value + user + organization), exchanges the code with
@@ -92,6 +93,16 @@ export async function GET(request: NextRequest) {
     console.error("HubSpot callback: saving the connection failed:", e instanceof Error ? e.message : "unknown");
     await revokeHubSpotRefreshToken(tokens.refresh_token);
     return toOutcome(request, back, "error");
+  }
+
+  // D-057: the owner's confirmation from the connect form, recorded now that HubSpot has approved and it's saved.
+  if (saved.consented) {
+    await recordAcceptance({
+      userId: user.id,
+      organizationId: org.id,
+      context: "hubspot_connect",
+      subject: info.hubDomain ?? `portal ${info.hubId}`,
+    });
   }
 
   const sync = await syncHubSpot(db, org.id, { skipGuard: true });

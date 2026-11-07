@@ -23,12 +23,12 @@ One analysis at a time per business keeps two chains from writing the same profi
 ## Steps
 
 1. Button calls `rerunAnalysis(businessProfileId)` — `web/src/app/analysis/[id]/controls.tsx:17`; hidden while running, updating or discovery open — `web/src/app/analysis/[id]/page.tsx:52`; flags computed at `web/src/app/analysis/[id]/report-data.ts:197-209`.
-2. Load the profile by id (user's client; RLS) — `web/src/app/analysis/actions.ts:75-80`; refuse without `analysis.run` (`hasPermission`) — `:81` ([member-role](../objects/tenancy/member-role.md)).
-3. `failStaleJobs(org)` — `web/src/app/analysis/actions.ts:85`; reaper at `web/src/lib/pipeline/jobs.ts:18-27`.
-4. Active-job check with org filter and `input->>businessProfileId` — `web/src/app/analysis/actions.ts:86-93`.
-5. 24 h limit via `analysesInLastDay` — `web/src/app/analysis/actions.ts:94`; counts `website_evidence` + `website_intel` — `web/src/lib/onboarding/start.ts:21-31`, `MAX_ANALYSES_PER_DAY` `:18`.
-6. `queueJob('website_intel')` inserts the job and `startJob` hands `crawling` off — `web/src/app/analysis/actions.ts:96-102`; `web/src/lib/onboarding/start.ts:35-50`.
-7. `refresh()` so the report shows progress — `web/src/app/analysis/actions.ts:103`.
+2. Load the profile by id (user's client; RLS) — `web/src/app/analysis/actions.ts:80-85`; refuse without `analysis.run` (`hasPermission`) — `:86` ([member-role](../objects/tenancy/member-role.md)).
+3. `failStaleJobs(org)` — `web/src/app/analysis/actions.ts:90`; reaper at `web/src/lib/pipeline/jobs.ts:18-27`.
+4. Active-job check with org filter and `input->>businessProfileId` — `web/src/app/analysis/actions.ts:91-98`.
+5. 24 h limit via `analysesInLastDay` — `web/src/app/analysis/actions.ts:99`; counts `website_evidence` + `website_intel` — `web/src/lib/onboarding/start.ts:21-31`, `MAX_ANALYSES_PER_DAY` `:18`.
+6. `queueJob('website_intel')` inserts the job and `startJob` hands `crawling` off — `web/src/app/analysis/actions.ts:101-107`; `web/src/lib/onboarding/start.ts:35-50`.
+7. `refresh()` so the report shows progress — `web/src/app/analysis/actions.ts:108`.
 8. Sequence: all five steps — `web/src/lib/pipeline/steps.ts:20`; intent in `web/src/lib/pipeline/website-intel.ts:64`.
 9. Scoring without a session id: `loadDiscovery` takes the latest `completed` session; a `skipped` one yields null — `web/src/lib/pipeline/website-intel.ts:620-621`, `:386-388`.
 

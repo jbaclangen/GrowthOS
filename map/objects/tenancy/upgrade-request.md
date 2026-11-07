@@ -34,7 +34,7 @@ Citations: `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:20-39`; 
 
 ## If you change this
 
-- **Hits:** `requestUpgrade` and the `/plans` request form; the insert column grant; `docs/architecture/DATA_MODEL.md:105`.
+- **Hits:** `requestUpgrade` and the `/plans` request form; the insert column grant; `docs/architecture/DATA_MODEL.md:107`.
 - **Does not hit:** [plan-tier](plan-tier.md) — a request never changes `organizations.plan`; the team does that by hand.
 
 ## Surfaces

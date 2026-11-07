@@ -1,4 +1,4 @@
-// HubSpot snapshot shape and the pure aggregation behind it (D-048, D-057: aggregates only). Braventa reads contact,
+// HubSpot snapshot shape and the pure aggregation behind it (D-048, D-058: aggregates only). Braventa reads contact,
 // company and deal records from the owner's HubSpot portal but stores only what is defined here: counts, sums and the
 // labels of the portal's own stages and sources. Never names, email addresses, phone numbers, deal names, record ids
 // or owner names. Pure logic, unit-tested; the API calls live in hubspot.ts.

@@ -35,7 +35,7 @@ export const APP_ROUTES: RouteEntry[] = [
     route: "/login",
     title: "Sign in",
     purpose:
-      "Sign in with your email and password, or create an account. New accounts get a confirmation email first. When an AI app sent you here to connect to Braventa, you go on to its approval screen after signing in.",
+      "Sign in with your email and password, or create an account. Creating an account asks you to tick a box agreeing to Braventa's Terms of Service, Master Services Agreement and Data Processing Agreement, and confirming you're 18 or older and using Braventa for a business. New accounts get a confirmation email first. When an AI app sent you here to connect to Braventa, you go on to its approval screen after signing in. Accounts made before the terms were published see a banner asking to accept them.",
     howToGetThere: "Open app.braventa.io when you're signed out, or select Sign out in the header.",
   },
   {
@@ -49,7 +49,7 @@ export const APP_ROUTES: RouteEntry[] = [
     route: "/onboarding",
     title: "Analyze your business (step 1 of 5)",
     purpose:
-      "Enter a website address and, optionally, the business name, your main goal for the next few months, where you serve customers and the tools you already use. Braventa starts reading the website and opens discovery.",
+      "Enter a website address and, optionally, the business name, your main goal for the next few months, where you serve customers and the tools you already use. Tick the box to confirm you own the website or are authorized to act for the business that does. Braventa starts reading the website and opens discovery.",
     howToGetThere: "Select Analyze a website on the dashboard.",
   },
   {
@@ -68,7 +68,7 @@ export const APP_ROUTES: RouteEntry[] = [
   {
     route: "/onboarding/[sessionId]/connect",
     title: "Connect your tools (step 4 of 5)",
-    purpose: `Optional. Today Google Search Console and HubSpot can be connected here, as in Settings: both are Pro features included in the Pro trial, and only the business owner can connect them. On Basic they show as paused. Search Console data appears on Search performance and goes into your diagnosis and growth score (the Search visibility module). HubSpot shows your contacts and deals as counts on its card; those counts aren't used in your diagnosis yet. Other tools are marked Coming soon, with nothing to connect yet: ${comingSoonToolList}. Tools that fit your answers are marked Suggested, with the reason. Select **Continue** to go on, whether or not you connected anything, or **Change your priorities** to go back.`,
+    purpose: `Optional. Today Google Search Console and HubSpot can be connected here, as in Settings: both are Pro features included in the Pro trial, and only the business owner can connect them, after ticking a box confirming they are authorized to connect the account and responsible for it. On Basic they show as paused. Search Console data appears on Search performance and goes into your diagnosis and growth score (the Search visibility module). HubSpot shows your contacts and deals as counts on its card; those counts aren't used in your diagnosis yet. Other tools are marked Coming soon, with nothing to connect yet: ${comingSoonToolList}. Tools that fit your answers are marked Suggested, with the reason. Select **Continue** to go on, whether or not you connected anything, or **Change your priorities** to go back.`,
     howToGetThere:
       "Comes after confirming your priorities. To resume an unfinished setup, open the business from the dashboard and select the continue button. An AI assistant connected to Braventa skips this step: only the owner can connect tools, in Braventa.",
   },
@@ -234,7 +234,7 @@ A service key belongs to the business, not to a person: it keeps working if the 
     {
       id: "hubspot",
       title: "Connect HubSpot",
-      body: `A Pro feature (included in the ${TRIAL_DAYS}-day Pro trial). Open [Settings → Connections](/settings#hubspot) and select **Connect HubSpot**, then install Braventa's app in your HubSpot portal. You need to be a Super admin in HubSpot, or have HubSpot Marketplace access. HubSpot hasn't reviewed the app yet, so it shows a warning before you install. You can also connect it during setup, on the optional **Connect your tools** step. Only the business owner can connect it. Access is read-only: Braventa reads contacts, companies, deals and your deal pipelines, and stores only counts and totals (no names, email addresses, phone numbers or deal names). The HubSpot card then shows new contacts in the last 28 days and how many have no logged sales activity, contacts by lifecycle stage, contacts without an owner, open deals and their value, deals won and lost, and your 90-day win rate. Select **Refresh HubSpot counts** to fetch them again (at most every 10 minutes). The counts aren't used in your diagnosis or growth score yet. **Disconnect** uninstalls the app from your portal and deletes the stored counts. On Basic the connection is paused: counts already fetched are kept, nothing new is fetched, and it resumes on Pro or Premium. If Settings says the connection isn't set up yet, the Braventa team hasn't turned it on for the app yet.`,
+      body: `A Pro feature (included in the ${TRIAL_DAYS}-day Pro trial). Open [Settings → Connections](/settings#hubspot), tick the box confirming you're authorized to connect the portal and responsible for it, and select **Connect HubSpot**, then install Braventa's app in your HubSpot portal. You need to be a Super admin in HubSpot, or have HubSpot Marketplace access. HubSpot hasn't reviewed the app yet, so it shows a warning before you install. You can also connect it during setup, on the optional **Connect your tools** step. Only the business owner can connect it. Access is read-only: Braventa reads contacts, companies, deals and your deal pipelines, and stores only counts and totals (no names, email addresses, phone numbers or deal names). The HubSpot card then shows new contacts in the last 28 days and how many have no logged sales activity, contacts by lifecycle stage, contacts without an owner, open deals and their value, deals won and lost, and your 90-day win rate. Select **Refresh HubSpot counts** to fetch them again (at most every 10 minutes). The counts aren't used in your diagnosis or growth score yet. **Disconnect** uninstalls the app from your portal and deletes the stored counts. On Basic the connection is paused: counts already fetched are kept, nothing new is fetched, and it resumes on Pro or Premium. If Settings says the connection isn't set up yet, the Braventa team hasn't turned it on for the app yet.`,
     },
     {
       id: "plans",

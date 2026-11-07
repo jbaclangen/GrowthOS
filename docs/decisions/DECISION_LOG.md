@@ -611,7 +611,7 @@ blocking at the limit that day; ROLES_AND_PERMISSIONS.md §8).
   [research README](../research/README.md) §2, decision 3.
 
 ## D-048 — First CRM: HubSpot, read-only
-**Status:** Founder (2026-10-18, in chat). Resolves Q-011. Connection built 2026-11-08, amended by D-057 (aggregates
+**Status:** Founder (2026-10-18, in chat). Resolves Q-011. Connection built 2026-11-08, amended by D-058 (aggregates
 only, scopes without `crm.lists.read`, no PKCE); the CRM module is not built.
 - HubSpot read-only comes first (the owner's own portal; unrelated to D-034's contact pipeline), over direct REST with
   per-tenant OAuth, not vendor MCP servers. It ships as an unlisted marketplace app on platform 2026.09, API version
@@ -801,7 +801,29 @@ a draft until counsel reviews it (Q-032). Review and gap list:
 - Why: the founder asked to limit Braventa's capital exposure, cover privacy law in the markets it targets (US, UK,
   Australia, Canada, maybe the EU) and publish the documents business customers expect.
 
-## D-057 — HubSpot connection: aggregates only, built ahead of the CRM module
+## D-057 — Agreement checkboxes in the app, recorded in legal_acceptances
+**Status:** Founder (2026-11-08, in chat: "include the policies in steps we have in the app … a check box when they
+connect an app, check box when they sign up, check boxes when they pay"). Built on branch `legal-consent-checkboxes`;
+migration applied to production 2026-11-08. Spec: [LEGAL_ACCEPTANCE.md](../architecture/LEGAL_ACCEPTANCE.md).
+- **Where the app asks:**
+  - sign-up: Terms, MSA and DPA, Privacy read, 18+, business use;
+  - a banner for accounts that haven't accepted the current `LEGAL_VERSION`;
+  - starting an analysis: you own the website or may act for its business, Terms §7;
+  - connecting or reconnecting Google Search Console: authorized and responsible, MSA §8;
+  - creating a personal or service access key, and approving an app's OAuth access: responsible for what uses it,
+    Terms §3.
+- **Evidence:** one append-only row per agreement in `legal_acceptances` (user, optional organization, context,
+  version, documents, subject, time). The server writes it with the secret key; users read their own rows.
+  Recording never blocks the step.
+- **Checkout:** specified, not built. Billing doesn't exist yet (Q-010). It needs an auto-renewal disclosure, a
+  required checkbox for the Refund policy and the recurring charge, and a `checkout` context
+  (LEGAL_ACCEPTANCE.md §5).
+- **Not asked:** inviting a teammate, and approving a draft (nothing is published yet; ask when publishing ships,
+  D-049).
+- Resolves Q-055. The documents are still drafts pending counsel (Q-032). Change `LEGAL_VERSION` whenever they change
+  materially.
+
+## D-058 — HubSpot connection: aggregates only, built ahead of the CRM module
 **Status:** Founder (2026-11-08, in chat: "aggregates only", "connection first"). Built, not set up: live once the
 HubSpot app is uploaded and its env vars are set ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). Amends D-048.
 - **Store aggregates only.** Braventa reads contacts, companies, deals and deal pipelines from the owner's portal but
@@ -820,4 +842,7 @@ HubSpot app is uploaded and its env vars are set ([HUBSPOT_SETUP.md](../architec
   organization-bound state cookie protect the flow.
 - **Disconnect uninstalls** the app from the portal (HubSpot emails its admins), revokes the token and deletes every
   snapshot, as HubSpot's Developer Terms §4 ask. Uninstall detection is open (Q-061).
+- **Agreement checkbox (D-057):** the connect form asks the owner to confirm they're authorized to connect the portal
+  and responsible for it (MSA §8); the start route refuses without it and the callback records it as the new
+  `hubspot_connect` context in `legal_acceptances` (the migration widens its check).
 - Why: the founder chose the smallest privacy load and the same order Search Console used (connection, then module).

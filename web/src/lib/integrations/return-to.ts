@@ -18,23 +18,11 @@ export function connectionOutcomeUrl(returnTo: unknown, code: string): string {
   return `${path}?gsc=${encodeURIComponent(code)}#${path === SETTINGS_RETURN ? "connections" : "search-console"}`;
 }
 
-// The "Connect Google Search Console" link. Settings is the start route's default, so it needs no parameter.
-export function searchConsoleStartHref(returnTo: string): string {
-  const path = connectionReturnPath(returnTo);
-  return path === SETTINGS_RETURN
-    ? "/api/integrations/google/start"
-    : `/api/integrations/google/start?returnTo=${encodeURIComponent(path)}`;
-}
+// The connect buttons are forms with a required checkbox (D-057, components/connections/connect-form.tsx), not links:
+// the start routes refuse a request without it.
 
 // The HubSpot connection (D-048) uses the same allowlist with its own outcome parameter (?hubspot=) and card anchor,
 // so a HubSpot outcome never shows on the Search Console card or the other way round.
 export function hubspotOutcomeUrl(returnTo: unknown, code: string): string {
   return `${connectionReturnPath(returnTo)}?hubspot=${encodeURIComponent(code)}#hubspot`;
-}
-
-export function hubspotStartHref(returnTo: string): string {
-  const path = connectionReturnPath(returnTo);
-  return path === SETTINGS_RETURN
-    ? "/api/integrations/hubspot/start"
-    : `/api/integrations/hubspot/start?returnTo=${encodeURIComponent(path)}`;
 }

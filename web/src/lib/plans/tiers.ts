@@ -61,7 +61,7 @@ export const FEATURES: Feature[] = [
   // Read-only; paused after the trial on Basic, data kept (founder decision 2026-10-11, lib/integrations/search-console-access.ts).
   // Its data feeds the diagnosis and the growth score as the Search visibility module (D-051 step 6).
   { id: "search_console", label: "Google Search Console connection", detail: "Read-only clicks, impressions, top search queries and pages for your website, shown in Braventa and used in your diagnosis and growth score.", minTier: "pro", status: "live" },
-  // Read-only, aggregates only (D-048, D-057); paused after the trial on Basic, counts kept
+  // Read-only, aggregates only (D-048, D-058); paused after the trial on Basic, counts kept
   // (lib/integrations/hubspot-access.ts). Not part of the diagnosis or score yet: that is the CRM module (D-051).
   { id: "hubspot", label: "HubSpot connection", detail: "Read-only counts from your HubSpot CRM, shown in Settings: contacts by lifecycle stage, new contacts, and open, won and lost deals. Braventa stores counts and totals, not names or email addresses. Not used in your diagnosis yet.", minTier: "pro", status: "live" },
   { id: "analytics_integrations", label: "Analytics connections", detail: "Google Analytics 4 and Tag Manager.", minTier: "pro", status: "coming_soon" },

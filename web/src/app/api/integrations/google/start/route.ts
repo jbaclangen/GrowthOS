@@ -15,6 +15,7 @@ import {
 import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
 import { connectionOutcomeUrl, connectionReturnPath } from "@/lib/integrations/return-to";
 import { can } from "@/lib/team/roles";
+import { consentGiven } from "@/lib/legal/documents";
 
 // Starts "Connect Google Search Console" (Pro). Signed-in users with integrations.connect only (owners, D-046;
 // proxy.ts already sends signed-out visitors to /login). Sets a short-lived, encrypted state cookie bound to the user and organization, with the PKCE verifier and
@@ -34,6 +35,8 @@ export async function GET(request: NextRequest) {
   const org = await getCurrentOrg(user.id);
   if (!org) return toOutcome(request, back, "no-business");
   if (!can(org.role, "integrations.connect")) return toOutcome(request, back, "owner-only");
+  // D-057, MSA §8: the connect form's checkbox (agree=yes). It's recorded only after Google approves (callback).
+  if (!consentGiven(request.nextUrl.searchParams)) return toOutcome(request, back, "consent-needed");
 
   const supabase = await createSupabaseServerClient();
   const { data: orgRow } = await supabase.from("organizations").select("plan, trial_ends_at").eq("id", org.id).maybeSingle();
@@ -50,7 +53,7 @@ export async function GET(request: NextRequest) {
   );
   response.cookies.set(
     STATE_COOKIE,
-    sealState({ state, verifier, userId: user.id, orgId: org.id, redirectUri, expiresAt: Date.now() + STATE_TTL_SECONDS * 1000, returnTo: back }),
+    sealState({ state, verifier, userId: user.id, orgId: org.id, redirectUri, expiresAt: Date.now() + STATE_TTL_SECONDS * 1000, returnTo: back, consented: true }),
     {
       httpOnly: true,
       sameSite: "lax",

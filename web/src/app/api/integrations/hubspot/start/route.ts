@@ -14,6 +14,7 @@ import {
 import { hubspotAccess } from "@/lib/integrations/hubspot-access";
 import { connectionReturnPath, hubspotOutcomeUrl } from "@/lib/integrations/return-to";
 import { can } from "@/lib/team/roles";
+import { consentGiven } from "@/lib/legal/documents";
 
 // Starts "Connect HubSpot" (Pro, read-only, D-048), built like the Search Console start route. Signed-in users with
 // integrations.connect only (owners, D-046). Sets a short-lived, encrypted state cookie bound to the user and
@@ -33,6 +34,8 @@ export async function GET(request: NextRequest) {
   const org = await getCurrentOrg(user.id);
   if (!org) return toOutcome(request, back, "no-business");
   if (!can(org.role, "integrations.connect")) return toOutcome(request, back, "owner-only");
+  // D-057, MSA §8: the connect form's checkbox (agree=yes). It's recorded only after HubSpot approves (callback).
+  if (!consentGiven(request.nextUrl.searchParams)) return toOutcome(request, back, "consent-needed");
 
   const supabase = await createSupabaseServerClient();
   const { data: orgRow } = await supabase.from("organizations").select("plan, trial_ends_at").eq("id", org.id).maybeSingle();
@@ -45,7 +48,7 @@ export async function GET(request: NextRequest) {
   const response = NextResponse.redirect(buildHubSpotAuthUrl({ clientId: env().HUBSPOT_CLIENT_ID, redirectUri, state }), 303);
   response.cookies.set(
     HUBSPOT_STATE_COOKIE,
-    sealHubSpotState({ state, userId: user.id, orgId: org.id, redirectUri, expiresAt: Date.now() + STATE_TTL_SECONDS * 1000, returnTo: back }),
+    sealHubSpotState({ state, userId: user.id, orgId: org.id, redirectUri, expiresAt: Date.now() + STATE_TTL_SECONDS * 1000, returnTo: back, consented: true }),
     {
       httpOnly: true,
       sameSite: "lax",

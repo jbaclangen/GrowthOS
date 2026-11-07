@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { createAccessKey, keyLastUsed, type CreateKeyState } from "./actions";
 import { CopyBlock } from "./copy-block";
+import { ConsentCheckbox, LegalLink } from "@/components/legal/consent";
 
 type App = "desktop" | "code";
 
@@ -65,6 +66,11 @@ export function KeyForm({ serverUrl, needsBusiness }: { serverUrl: string; needs
               {pending ? "Creating…" : state?.key ? "Key created" : "Create key"}
             </button>
           </div>
+          {/* D-057, Terms §3. */}
+          <ConsentCheckbox id="access-key-agree">
+            Anyone with this key can use Braventa for this business through an AI assistant. I&apos;ll keep it private,
+            and I&apos;m responsible for what uses it (<LegalLink doc="terms">Terms of Service</LegalLink>, section 3).
+          </ConsentCheckbox>
         </form>
         {state?.error && (
           <p className="mt-2 text-sm text-danger" role="alert">

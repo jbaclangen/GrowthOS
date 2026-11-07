@@ -10,7 +10,7 @@ entity: supabase/migrations/20261108120000_hubspot_connection.sql
 
 # HubSpot snapshot (`hubspot_snapshots`)
 
-One row per fetch of counts and totals from an organization's HubSpot portal (contacts, companies, deals); the latest row is what the HubSpot card shows. Holds no CRM records (D-057).
+One row per fetch of counts and totals from an organization's HubSpot portal (contacts, companies, deals); the latest row is what the HubSpot card shows. Holds no CRM records (D-058).
 
 ## Why this shape
 
@@ -34,7 +34,7 @@ Braventa reads CRM records only to count them, so the row has one `metrics` json
 
 ## If you change this
 
-- **Hits:** [sync-hubspot](../../processes/sync-hubspot.md); what is stored, kept or shown → the hand-written disclosures on `/legal/privacy` (HubSpot section), `/legal/subprocessors`, `/legal/dpa`, `docs/architecture/SECURITY_AND_PRIVACY.md` §6 and `docs/architecture/HUBSPOT_SETUP.md`; storing anything beyond counts needs a new decision (D-057)
+- **Hits:** [sync-hubspot](../../processes/sync-hubspot.md); what is stored, kept or shown → the hand-written disclosures on `/legal/privacy` (HubSpot section), `/legal/subprocessors`, `/legal/dpa`, `docs/architecture/SECURITY_AND_PRIVACY.md` §6 and `docs/architecture/HUBSPOT_SETUP.md`; storing anything beyond counts needs a new decision (D-058)
 - **Does not hit:** the pipeline steps, the growth score, Ask Braventa
 
 ## Surfaces
