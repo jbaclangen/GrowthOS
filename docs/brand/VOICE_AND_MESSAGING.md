@@ -14,7 +14,7 @@ Braventa sounds like **a knowledgeable growth and systems consultant explaining 
 
 | Principle | What it means | Example |
 |---|---|---|
-| **Lead with the business outcome** | Say what changes for the customer before how it works. | "See the five things worth your time this month" rather than "Our AI analyzes 40 signals". |
+| **Lead with the business outcome** | Say what changes for the customer before how it works. | "See what's holding your business back and what to fix first" rather than "Our AI analyzes 40 signals". |
 | **Be specific** | Name the thing: the score, the page, the step, the number of drafts. Vague claims read as hype. | "A 30-day plan and five drafted posts" rather than "Tons of content". |
 | **Short, confident declaratives** | One idea per sentence. Active voice. No hedging stacks ("may potentially help"). | "Braventa reads your website. Then it tells you what to fix first." |
 | **Honest status** | Live features are stated plainly; planned ones are labelled. Never imply autonomy. | "Today you approve every draft. Publishing connections are coming next." |
@@ -29,7 +29,7 @@ Section heads on braventa.io may be short uppercase lines set in Quicksand headi
 
 | Don't | Do | Why |
 |---|---|---|
-| "Braventa's revolutionary AI supercharges your marketing." | "Braventa reads your website and tells you the five changes most likely to bring in more enquiries." | Specific outcome, no hype words. |
+| "Braventa's revolutionary AI supercharges your marketing." | "Braventa reads your website and gives you one prioritized growth plan, with a first step for each action." | Specific outcome, no hype words. |
 | "Effortless growth on autopilot." | "Braventa drafts the work. You approve it in a few clicks." | No autonomy, no "effortless". |
 | "Get 10x more leads guaranteed." | "Find the gaps that are costing you enquiries, and a first step for each." | No guarantees or invented multipliers. |
 | "AI-powered growth platform." | "A business growth system." | Category, not mechanism, leads. |
@@ -84,7 +84,7 @@ Section heads on braventa.io may be short uppercase lines set in Quicksand headi
 ### What is live today (the reference sentence)
 > Today Braventa reads your website and checks it with Google PageSpeed, asks what's holding your business back and follows up on your answers, builds a profile of your business, and gives you a growth score with a diagnosis you confirm or correct. It turns that into one prioritized growth plan, plans 30 days of content, and drafts your first five posts for you to approve.
 
-(Updated 2026-10-11 for the diagnosis and growth plan, D-028/D-035; the site's copy is `LIVE_TODAY` in `site/src/lib/site.ts`. The short and long descriptions in §7 still describe "five opportunities" — use [`WEBSITE_MESSAGING.md` §0](../marketing/WEBSITE_MESSAGING.md#0-phase-1-messaging-current-d-035) instead until they are rewritten. Status badges: Live · Limited · Coming soon.)
+(Updated 2026-10-11 for the diagnosis and growth plan, D-028/D-035; the site's copy is `LIVE_TODAY` in `site/src/lib/site.ts`. The rest of this document followed on 2026-11-08: it describes the report as a diagnosis and one growth plan, not the earlier five opportunities. Status badges: Live · Limited · Coming soon.)
 
 ### What is not live (never imply otherwise)
 HubSpot or any CRM connection · publishing or scheduling to any channel · sending email on the customer's behalf · running automations · analytics and results reporting · team accounts/roles beyond the current organization model · pricing and plans.
@@ -94,7 +94,7 @@ HubSpot or any CRM connection · publishing or scheduling to any channel · send
 - **Spelling: US English** for all public and product copy (the initial market is assumed to be North America; confirm with the founder). Examples: analyze, organization, optimize, color, prioritize, enroll.
 - **Harmonize the app:** the UI was moved from UK spellings ("Analyse") to US forms on 2026-10-10 (D-016). Internal docs written earlier in UK English do not need rewriting, but new public copy uses US English.
 - **Sentence case** for headings, buttons, labels, and email subjects. Uppercase only for marketing section heads and small eyebrow labels.
-- **Numbers:** numerals for all quantities in UI and marketing ("5 opportunities", "30-day plan"); spell out only at the start of a sentence in long-form prose.
+- **Numbers:** numerals for all quantities in UI and marketing ("5 drafted posts", "30-day plan"); spell out only at the start of a sentence in long-form prose.
 - **Serial comma:** yes.
 - **Dashes:** em dash without spaces in body copy is acceptable; D-005 lines keep their spaced em dash exactly as written.
 - **Product name:** Braventa. Module names are capitalized as proper nouns (Content Studio, Website Intelligence). Feature nouns are lowercase (growth score, business profile, 30-day plan).
@@ -113,17 +113,17 @@ HubSpot or any CRM connection · publishing or scheduling to any channel · send
 Braventa connects your website, marketing, CRM, and content into one growth system that shows you what to do next — and helps you get it done.
 
 ### Short description (~50 words)
-Braventa is a business growth system for service businesses. It learns how your business works from your website, scores where you stand, picks the five opportunities that matter most, and turns them into a 30-day plan with drafted content for your approval. Connections to the tools you already use are coming next.
+Braventa is a business growth system for service businesses. It learns how your business works from your website and your answers, scores where you stand, and gives you a diagnosis you confirm or correct. It turns that into one prioritized growth plan, a 30-day content plan, and drafted posts for your approval. Connections to the tools you already use are coming next.
 
 ### Long description (~150 words)
 Most small businesses run growth through disconnected pieces: a website from one vendor, posts from another, a CRM nobody updates, and reports that explain the past but never say what to do next. Braventa brings those pieces into one system.
 
-Start with your website. In about four minutes, Braventa reads your site and checks it with Google PageSpeed, then builds a profile of your business — services, customers, locations, brand voice, strengths, and gaps. It gives you a growth score, the five opportunities most worth your time with a first step for each, a 30-day content plan, and five drafted posts in your voice. Nothing goes out without your approval.
+Start with your website. Braventa reads your site and checks it with Google PageSpeed while you tell it what's holding your business back, then builds a profile of your business — services, customers, locations, brand voice, strengths, and gaps. In about 3–4 minutes it gives you a growth score and a diagnosis you confirm or correct, one prioritized growth plan with a first step for each action, a 30-day content plan, and five drafted posts in your voice. Nothing goes out without your approval.
 
 Next, Braventa will connect to the tools you already use, starting with HubSpot, so the plan can move into action and results can feed back into what you do next. One system, with you in control.
 
 ### Elevator pitch (~30 seconds, spoken)
-"You know how most small businesses have a website from one person, social posts from another, a CRM nobody updates, and no idea which of those things is actually worth their time? Braventa fixes that. You give it your website, and in a few minutes it builds a profile of your business, scores where you stand, tells you the five things worth doing first, plans your next month of content, and drafts the first posts for you to approve. We're building the connections to tools like HubSpot next, so the plan turns into action and the results come back. One system, and you stay in control of everything that goes out."
+"You know how most small businesses have a website from one person, social posts from another, a CRM nobody updates, and no idea which of those things is actually worth their time? Braventa fixes that. You give it your website and answer a few questions, and in a few minutes it builds a profile of your business, scores where you stand, shows you what's holding it back, gives you one prioritized plan of what to do first, plans your next month of content, and drafts the first posts for you to approve. We're building the connections to tools like HubSpot next, so the plan turns into action and the results come back. One system, and you stay in control of everything that goes out."
 
 ### Value proposition
 **Braventa tells you what to work on next and helps you get it done — grounded in how your business actually works, with you approving everything that goes out.**
@@ -147,9 +147,9 @@ Supporting benefits:
 
 | Audience | Value proposition | Voice shift | Avoid |
 |---|---|---|---|
-| **Business owners** | "Stop guessing which marketing is worth your time. Braventa shows you the five things to do first and drafts the work." | Plainest language; outcomes and time saved; short sentences; one clear next step. | Marketing jargon (funnels, MQLs), technical detail. |
+| **Business owners** | "Stop guessing which marketing is worth your time. Braventa shows you what's holding your business back and what to do first, then drafts the work." | Plainest language; outcomes and time saved; short sentences; one clear next step. | Marketing jargon (funnels, MQLs), technical detail. |
 | **Marketing managers** | "Go from a blank page to a prioritized 30-day plan and first drafts in one sitting, all in the brand's voice." | Peer-to-peer; can use pillars, channels, CRO, brand voice; emphasize consistency and speed. | Implying Braventa replaces their judgment or job. |
-| **Sales / CRM teams** | (use once CRM Intelligence ships) "Braventa reads your pipeline and tells you which leads need follow-up today." Today: "Braventa is building HubSpot support first; your website opportunities already show where enquiries are lost." | Practical, pipeline language; follow-up, data quality. | Claiming any live CRM capability. |
+| **Sales / CRM teams** | (use once CRM Intelligence ships) "Braventa reads your pipeline and tells you which leads need follow-up today." Today: "Braventa is building HubSpot support first; your diagnosis already shows where your website loses enquiries." | Practical, pipeline language; follow-up, data quality. | Claiming any live CRM capability. |
 | **Technical administrators** | "Tenant-isolated data, server-side secrets, a per-organization AI budget, and human approval before anything is published." | Precise and factual; name the mechanisms (row-level security, server-only keys); no marketing adjectives. | Vague "bank-grade security" claims; certifications we do not hold. |
 | **Agency partners** | (future) "Run a consistent growth process across every client, with approval and context built in." Today: invite conversations, not commitments. | Business-partner tone; margin, consistency, client reporting. | Promising partner programs, white-labeling, or multi-client features that do not exist. |
 | **Developers** | (future) "Clear APIs and webhooks to connect Braventa to your stack." Today: architecture notes only. | Concise, technical, accurate; link to docs; code over adjectives. | Announcing an API before one exists. |
@@ -171,7 +171,7 @@ Format: acknowledge, answer with a fact, offer a next step.
 | **"What does it cost?"** | "Pricing isn't final yet. During the early access phase we're working closely with a small number of businesses. Book a call and we'll walk you through it." (Do not quote prices — D-012.) |
 | **"We tried an agency and it didn't work."** | "Agencies often work in silos and the knowledge leaves when they do. Braventa keeps your business profile, plan, and drafts in one place you own, and shows why each recommendation matters. If you want hands-on help later, that can sit on top of the system rather than replace it." |
 | **"How accurate is the growth score?"** | "Part of it is measured — mobile speed, SEO basics, accessibility, and best practices come from Google PageSpeed, and on Pro, with Google Search Console connected, your real search data counts too. The rest is an assessment of your content clarity, conversion readiness, and online presence. It's a starting point for priorities, not a forecast of revenue." |
-| **"Our website is small / outdated."** | "That's fine. Braventa works with what's there, and a thin website usually means the opportunities are clearer. If the site can't be read, you'll see why and what to try." |
+| **"Our website is small / outdated."** | "That's fine. Braventa works with what's there, and a thin website usually makes the first fixes clearer. If the site can't be read, you'll see why and what to try." |
 
 ## 10. Calls to action
 
@@ -193,12 +193,12 @@ CTA rules: verbs first; say what happens next; no "Click here", "Submit", or "Le
 | Placement | Limit | Copy |
 |---|---|---|
 | **LinkedIn tagline** | 220 chars | Business growth system for service businesses. Know what to do next. Then get it done. |
-| **LinkedIn About (opening)** | 2,000 chars | Braventa is a business growth system for service businesses. It reads your website, builds a profile of your business, scores where you stand, finds the five opportunities worth your time, plans 30 days of content, and drafts the first posts for your approval. Connections to the tools you already use, starting with HubSpot, are coming next. Run your growth as one system. braventa.io |
+| **LinkedIn About (opening)** | 2,000 chars | Braventa is a business growth system for service businesses. It reads your website, asks what's holding your business back, builds a profile of your business, and gives you a growth score with a diagnosis you confirm or correct. It turns that into one prioritized growth plan, plans 30 days of content, and drafts the first posts for your approval. Connections to the tools you already use, starting with HubSpot, are coming next. Run your growth as one system. braventa.io |
 | **X bio** | 160 chars | Business growth system for service businesses. Know what to do next. Then get it done. You approve everything. braventa.io (≈ 110 chars) |
 | **Instagram bio** | 150 chars | Run your growth as one system. Growth plans and drafted content for service businesses, built from your own website. (≈ 115 chars) |
 | **Facebook short description** | 255 chars | Braventa is a business growth system for service businesses. It shows you what to work on next, plans your content, and drafts it for your approval. Run your growth as one system. |
 | **App listing (short, 80 chars)** | 80 chars | Know what to do next for your business. Then get it done. |
-| **App listing (long)** | ~600 chars | Braventa is a business growth system for service businesses. Enter your website and Braventa builds a profile of your business, gives you a growth score with five prioritized opportunities, plans 30 days of content, and drafts your first posts in your brand voice. You approve or reject every draft — nothing is published automatically. Coming next: connections to the tools you already use, starting with HubSpot. |
+| **App listing (long)** | ~600 chars | Braventa is a business growth system for service businesses. Enter your website and answer a few questions. Braventa builds a profile of your business, gives you a growth score and a diagnosis you confirm or correct, turns it into one prioritized growth plan, plans 30 days of content, and drafts your first posts in your brand voice. You approve or reject every draft — nothing is published automatically. Coming next: connections to the tools you already use, starting with HubSpot. |
 | **Email signature** | 2 lines | {{sender_name}} · {{sender_title}}, Braventa / Run your growth as one system. · braventa.io |
 | **Community page blurb** | ~300 chars | The Braventa community is where service business owners and marketers share how they run growth as a system, get help with Braventa, and shape what we build next. Ask questions, share what worked, and read release notes first. |
 
@@ -221,10 +221,10 @@ Do not add "AI" to any profile name or handle (D-002). Social handles: confirm a
 ### Empty states
 | Screen | Heading | Body | Action |
 |---|---|---|---|
-| Dashboard, no businesses | No businesses yet | Add a website to get a growth score, five opportunities, and a 30-day plan. | Analyze your first website |
+| Dashboard, no businesses | No businesses yet | Add a website to get a growth score, a diagnosis, a growth plan and a 30-day content plan. | Analyze your first website |
 | Drafts, none | No drafts yet | Drafts appear here when an analysis finishes. | — |
 | Drafts, all reviewed | All drafts reviewed | You've approved or rejected every draft in this batch. | Re-run analysis |
-| Opportunities missing (partial run) | Opportunities aren't ready | The analysis stopped before this step. Run it again to finish. | Re-run analysis |
+| Report, last analysis failed (no diagnosis or plan from it) | The last analysis didn't finish | {{reason}} The AI service may have been busy. Try again in a minute. | Re-run analysis |
 | (use once integrations ship) Integrations | No tools connected | Connect HubSpot so Braventa can use your pipeline in its recommendations. | Connect HubSpot |
 
 ### Errors
@@ -243,14 +243,14 @@ Do not add "AI" to any profile name or handle (D-002). Social handles: confirm a
 | Situation | Copy |
 |---|---|
 | Analysis running | Analyzing your business… About 3–4 minutes. You can leave this page and come back. |
-| Pipeline steps | Reading the website · Understanding the business · Scoring growth and finding opportunities · Building the 30-day plan · Drafting your first posts |
+| Pipeline steps | Reading the website · Understanding the business · Diagnosing and building your growth plan · Building the 30-day plan · Drafting your first posts |
 | Button pending | Starting… · Saving… · Signing in… |
 | Page loading | Loading… |
 
 ### Notifications (in-app toasts/banners)
 | Event | Copy |
 |---|---|
-| Analysis complete | Your analysis of {{business_name}} is ready. Review the opportunities and drafts. |
+| Analysis complete | Your analysis of {{business_name}} is ready. Check the diagnosis and confirm your plan. |
 | Draft approved | Draft approved. It won't be published until publishing is connected. (Remove the second sentence once publishing ships.) |
 | Draft rejected | Draft rejected. Undo |
 | Analysis failed | The analysis of {{business_name}} didn't finish. See why |
@@ -260,10 +260,10 @@ Do not add "AI" to any profile name or handle (D-002). Social handles: confirm a
 | Element | Copy |
 |---|---|
 | Sign-in heading | Welcome to Braventa |
-| Sign-in subhead | Enter your website and get a growth score, five opportunities, a 30-day plan, and your first drafts. |
+| Sign-in subhead | Enter a website and get a growth score, a diagnosis, a growth plan, a 30-day content plan and your first drafts. |
 | Sign-up confirmation | Check your email for a confirmation link, then come back and sign in. |
 | Onboarding heading | Analyze your business |
-| Onboarding body | Braventa reads your website, builds a business profile, scores your growth potential, finds the five most valuable opportunities, plans 30 days of content, and drafts your first posts for your approval. |
+| Onboarding body | Braventa reads the website, builds a business profile, gives it a growth score and a diagnosis, builds a prioritized growth plan, plans 30 days of content and drafts the first posts for your approval. |
 | Field: website | Website · placeholder: example.com |
 | Field: business name | Business name (optional) · placeholder: We'll detect it from your website |
 | Helper | Takes about 3–4 minutes. You can leave the page and come back. |
