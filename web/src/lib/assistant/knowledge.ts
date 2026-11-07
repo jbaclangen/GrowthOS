@@ -10,7 +10,7 @@ import { ASSISTANT_LIMITS } from "./access";
 // can't drift. Keep every sentence true of the current code: never describe a planned feature as live.
 // Links are relative app routes; the assistant repeats them as markdown links.
 
-export const KNOWLEDGE_VERSION = "2026-10-23";
+export const KNOWLEDGE_VERSION = "2026-11-07";
 
 // The tools on "Connect your tools" that can't be connected yet, from the same catalog the page uses.
 const COMING_SOON_TOOLS = TOOLS.filter((t) => t.status === "coming_soon").map((t) => t.name);
@@ -104,9 +104,17 @@ export const APP_ROUTES: RouteEntry[] = [
     route: "/settings",
     title: "Settings",
     purpose:
-      "Your role in the business (one line under the title), then Integrations: connect Claude or ChatGPT to Braventa (step-by-step setup with the server URL, or a personal access key instead), Connected apps (see and disconnect apps approved with Sign in with Braventa), Service keys for automation tools (owners only) and Google Search Console, followed by the tools that are coming soon.",
+      "Your role in the business (one line under the title), then Team: everyone in the business with their role, the seats used and included in your plan, and, for owners and admins, Invite someone (create a one-time invite link to send yourself), open invites to withdraw, and changing or removing people whose role is below yours. Then Integrations: connect Claude or ChatGPT to Braventa (step-by-step setup with the server URL, or a personal access key instead), Connected apps (see and disconnect apps approved with Sign in with Braventa), Service keys for automation tools (owners only) and Google Search Console, followed by the tools that are coming soon.",
     howToGetThere:
-      "Select Settings in the header. Direct sections: /settings#ai-assistant, /settings#connected-apps, /settings#service-keys and /settings#connections.",
+      "Select Settings in the header. Direct sections: /settings#team, /settings#ai-assistant, /settings#connected-apps, /settings#service-keys and /settings#connections.",
+  },
+  {
+    route: "/invite/[token]",
+    title: "Join a business (invite link)",
+    purpose:
+      "Opens from an invite link an owner or admin sent you. Shows the business and the role you're invited as; select Join to become a member and go to its dashboard. It works only for the email address the invite was made for, once, for 7 days, and not for an account that already belongs to another business.",
+    howToGetThere:
+      "Open the invite link you were sent. If you're signed out, sign in or create an account with the invited email address first; you come back here afterwards.",
   },
   {
     route: "/oauth/authorize",
@@ -232,7 +240,7 @@ A service key belongs to the business, not to a person: it keeps working if the 
     {
       id: "roles",
       title: "Roles: who can do what",
-      body: `Each person in a business account has one role, shown under the title in [Settings](/settings). The person who set up the business is its **owner**. The other roles are admin, marketing manager, social media manager, copywriter, content creator, analyst and client approver, but there's no way to invite people or change roles in the app yet, so today every account has its owner only. What the roles mean: only the owner can connect or disconnect tools (Google Search Console), create service keys and disconnect other people's apps. Owners, admins and marketing managers can start analyses, change the answers, confirm or correct the diagnosis, update plan items and approve or reject drafts. No one approves a draft they wrote themselves, except the owner; today every draft is written by Braventa, so this doesn't come up yet. If an action says your role can't do something, ask the business owner.`,
+      body: `Each person in a business account has one role, shown under the title in [Settings](/settings). The person who set up the business is its **owner**. The other roles are admin, marketing manager, social media manager, copywriter, content creator, analyst and client approver. Owners and admins add people in Settings → Team: they create a one-time invite link for one email address and send it themselves (Braventa doesn't send invite emails yet); the link works once, for 7 days. They can change or remove only people whose role is below their own: owners manage admins and everyone else, admins manage everyone below admin, and no one changes an owner. Client approvers can't be invited yet. An account can belong to only one business for now. Seats: Basic includes 2 full seats, Pro (and the trial) 5 and Premium 10; analysts take an analyst seat instead (5 on Basic, 10 on Pro, no limit on Premium). Open invites count. When the seats are used up, an invite is refused: remove someone, withdraw an invite or ask about a bigger plan on [Plans](/plans). Extra seats can't be bought in the app. Copywriters, content creators and analysts can't create personal access keys. What the roles mean: only the owner can connect or disconnect tools (Google Search Console), create service keys and disconnect other people's apps. Owners, admins and marketing managers can start analyses, change the answers, confirm or correct the diagnosis, update plan items and approve or reject drafts. No one approves a draft they wrote themselves, except the owner; today every draft is written by Braventa, so this doesn't come up yet. If an action says your role can't do something, ask the business owner.`,
     },
     {
       id: "troubleshooting",

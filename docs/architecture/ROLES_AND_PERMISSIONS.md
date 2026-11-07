@@ -1,8 +1,9 @@
 # Roles and permissions
 
-**Status:** foundation built 2026-10-23 (D-046; research README §4 step 4; the spec step of D-052). Describes the code
-as it is. Invitations, seat limits, a role-change UI, client approval links (D-047) and seat prices on the site are not
-built; §7 lists what is open.
+**Status:** foundation built 2026-10-23 (D-046; research README §4 step 4; the spec step of D-052); invitations by
+link, seat limits, role changes and removals built 2026-11-07 (§8). Describes the code as it is. Invite emails (Q-010),
+buying extra seats (Stripe), client approval links (D-047) and seat prices on the site are not built; §7 lists what is
+open.
 
 Every member of an organization has one of eight fixed roles with fixed permissions (D-046; research
 [SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §2). There are no custom roles.
@@ -138,21 +139,58 @@ tools that write carry the web action's permission (§2). Service keys belong to
 
 ## 6. Settings
 
-Settings shows the signed-in user's role in words under the page title ("Your role in Acme Plumbing is owner."). There
-is no way to change a role, invite anyone or see other members in the app.
+Settings shows the signed-in user's role in words under the page title ("Your role in Acme Plumbing is owner."), then
+the Team section (§8). Personal access keys need `keys.manage_own` since invitations exist: copywriters, content
+creators and analysts see why instead of the key form, and `createAccessKey` refuses them. A user with no business yet
+can still create a key, which creates the business with them as owner (D-036).
 
 ## 7. Open
 
-- **Personal keys and `keys.manage_own`:** every member can still create a personal key. Applying the permission
-  would take it from copywriters, content creators and analysts. Apply it with invitations, when such members can
-  exist, or have the founder widen the matrix.
 - **`plan_items.update_own`** waits on an assignee on plan items; until then only `plan_items.update_any` is checked.
 - **Client approvers** get their permissions with D-047's approval link and item assignment.
 - **RLS write policies** still say "member": a member can write the M-all tables directly with the publishable key
   ([SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md) §2). `has_permission()` is there to tighten them; nothing is
   rewritten yet.
-- **Invitations** need transactional email (Q-010); **seat limits and prices** need Stripe and stay off the site
-  (D-039, D-046). Role changes need a UI and an audit log (SECURITY_AND_PRIVACY.md §11).
+- **Invite emails** need transactional email (Q-010); today the manager copies the link. **Buying extra seats** needs
+  Stripe; seat prices stay off the app and the site (D-039, D-046).
+- **More than one business per account** (Q-051): an invite is refused for an account that already belongs to a
+  business, because the app reads the first membership (Q-047).
+- **RLS on `memberships`** still lets anyone `is_org_admin()` (owner, admin) write memberships directly with the
+  publishable key; the app's own writes go through §8's rules with the secret key. Moving those policies to
+  `has_permission('team.manage')` and the manage-below-your-role rule is part of the RLS rewrite above.
 - **`organization_modules.enabled`** (Q-048) can now get its rule: a permission id here, then a write path.
 - **Research matrix differences** (§3) are the founder's to confirm or widen: Admin and keys, client approver rights,
   Admin and integrations.
+
+## 8. Team: invitations, seats, role changes
+
+Built 2026-11-07 (founder choices that day: invite by copied link, block at the seat limit). Code:
+`web/src/lib/team/invitations.ts`, `seats.ts`, `team-server.ts`, `canManageRole()` in `roles.ts`,
+`web/src/app/settings/team-*.tsx` and `team-actions.ts`, `web/src/app/invite/[token]/`. Migration
+`20261107130000_team_invitations.sql`.
+
+**Who manages whom.** `team.manage` (owner, admin) opens Settings → Team's controls. A manager may invite, re-role or
+remove only people whose role holds strictly fewer permissions than their own, and give only such a role
+(`canManageRole`, `assignableRoles`). So an owner manages admins and everyone below, an admin manages everyone below
+admin but not other admins, no one manages an owner or changes their own role, and the owner role is never given in the
+app. Client approvers can't be invited until D-047's approval link exists. Every member sees the member list.
+
+**Invitations.** An invite is for one email address and one role. The manager copies a one-time link
+(`/invite/brv_inv_…`) and sends it themselves; Braventa sends no email yet (Q-010). Only the token's SHA-256 is stored
+(`team_invitations.token_hash`). A link works once, for 7 days, and only for an account with the invited address.
+Inviting the same address again withdraws the old link. A signed-out invitee is sent to sign in or create an account
+and comes back to the link (`?next=`, through the email confirmation too); selecting Join checks everything again,
+claims the invite and adds the membership. An account that already belongs to a business can't join a second one yet
+(Q-051).
+
+**Seats (D-046).** Full seats 2 / 5 / 10 on Basic / Pro (and the trial) / Premium; analyst seats 5 / 10 / unlimited.
+Every role except analyst and client approver takes a full seat, the owner's included. Open invites hold their seat.
+An invite, a role change that moves someone between seat kinds, and joining are refused when the plan has no seat
+left; the message points to Plans. Nothing is removed when a plan shrinks (a trial ending): new invites are refused
+until people leave. Two people joining in the same second can go one seat over; accepted for now.
+
+**Writes.** Invitations have no client write policy; joining, role changes and removals write `memberships` with the
+secret key, scoped to the manager's own business (or the invite's business), after the checks above. Removing someone
+also revokes their personal keys and Sign in with Braventa grants for that business (the MCP server already refuses a
+non-member). Every invite, withdrawal, join, role change and removal is recorded in `team_events` (append-only, read by
+`team.manage`), the start of SECURITY_AND_PRIVACY.md §11's audit log.

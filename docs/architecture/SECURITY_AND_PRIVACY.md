@@ -340,8 +340,10 @@ What is undecided / not implemented:
 - Server `console.error` for failed jobs and failed usage inserts (Vercel function logs in production).
   Error messages can include upstream response bodies (e.g. OpenRouter errors) and are shown to the user on
   the analysis page.
-- Not implemented: an audit log of sensitive operations (sign-in events beyond Supabase's own auth logs,
-  membership/role changes, approvals history, integration connect/disconnect, platform-admin access,
+- `team_events` (2026-11-07): invites, withdrawn invites, joins, role changes and removals, append-only, written by
+  the server, readable by `team.manage` ([ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §8).
+- Not implemented: an audit log of other sensitive operations (sign-in events beyond Supabase's own auth logs,
+  approvals history, integration connect/disconnect, platform-admin access,
   exports/deletions). Recommended: an `audit_events` table (M-read, admin-client writes) before multi-user
   orgs or integrations.
 

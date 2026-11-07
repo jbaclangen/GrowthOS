@@ -6,12 +6,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { mcpAccess } from "@/lib/mcp/access";
 import { MCP_PATH } from "@/lib/oauth/server-metadata";
 import { originFromHeaders } from "@/lib/oauth/request-origin";
-import { can, roleSentence } from "@/lib/team/roles";
+import { can, deniedMessage, roleSentence } from "@/lib/team/roles";
 import { revokeAccessKey } from "./actions";
 import { KeyForm } from "./key-form";
 import { ConnectionsSection } from "./connections-section";
 import { ConnectInstructions } from "./connect-instructions";
 import { ConnectedApps, ServiceKeys } from "./integrations-sections";
+import { TeamSection } from "./team-section";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -49,13 +50,17 @@ async function Settings() {
   const orgNames = new Map(orgs.map((m) => [m.org.id, m.org.name]));
   // Businesses where the user may disconnect anyone's app (keys.manage_any, owner only: lib/team/roles.ts).
   const managesKeysOf = new Set(orgs.filter((m) => can(m.role, "keys.manage_any")).map((m) => m.org.id));
-  // The user's role in words (D-046). No role can be changed in the app yet.
+  // The user's role in words (D-046); Settings → Team lists everyone and lets owners and admins manage roles.
   const role = org ? roleSentence(org.role, org.name) : null;
+  // Personal keys need keys.manage_own once someone is in a business (copywriters, content creators and analysts don't).
+  const mayCreateKeys = !org || can(org.role, "keys.manage_own");
 
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
       {role && <p className="mt-1 text-sm text-muted">{role}</p>}
+
+      {org && <TeamSection org={org} userId={user.id} />}
 
       <div id="integrations" className="mt-8 scroll-mt-20">
         <h2 className="text-xl font-semibold">Integrations</h2>
@@ -102,7 +107,11 @@ async function Settings() {
             <p className="mt-2 text-sm text-muted">
               A personal key you paste into the app&apos;s setup. Useful when the app can&apos;t open a browser to sign in.
             </p>
-            {access && !access.allowed ? null : <KeyForm serverUrl={serverUrl} needsBusiness={!org} />}
+            {access && !access.allowed ? null : mayCreateKeys ? (
+              <KeyForm serverUrl={serverUrl} needsBusiness={!org} />
+            ) : (
+              <p className="mt-2 text-sm text-muted">{deniedMessage("keys.manage_own")}</p>
+            )}
 
             {(keys ?? []).length > 0 && (
               <div className="mt-6 pb-2">

@@ -115,6 +115,24 @@ export function permissionsOf(role: Role): Permission[] {
   return PERMISSIONS.filter((p) => ROLE_PERMISSIONS[p].includes(role));
 }
 
+// Team management (Settings → Team): someone with team.manage may invite, re-role or remove only people whose role
+// holds strictly fewer permissions than their own, and only give such a role. So an owner manages admins, an admin
+// manages everyone below admin but not other admins, no one manages an owner, and no one changes their own role.
+// Client approvers can't be invited until D-047's approval link exists.
+export const INVITABLE_ROLES: readonly Role[] = ROLES.filter((r) => r !== "client_approver");
+
+export function canManageRole(actor: string | null | undefined, target: string | null | undefined): boolean {
+  if (!can(actor, "team.manage") || !isRole(actor) || !isRole(target)) return false;
+  const mine = new Set(permissionsOf(actor));
+  const theirs = permissionsOf(target);
+  return theirs.length < mine.size && theirs.every((p) => mine.has(p));
+}
+
+// The roles this person may give in an invite or a role change, in ROLES order.
+export function assignableRoles(actor: string | null | undefined): Role[] {
+  return INVITABLE_ROLES.filter((r) => canManageRole(actor, r));
+}
+
 // The refusal a web action or MCP tool returns when the role lacks the permission.
 export function deniedMessage(permission: Permission): string {
   return `Your role in this business can't ${PERMISSION_ACTIONS[permission]}. Ask the business owner.`;

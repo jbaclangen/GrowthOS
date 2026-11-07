@@ -568,8 +568,9 @@ phase 1"); the founder confirms or overrides it before it goes live. Built, not 
   [research README](../research/README.md) §2, decision 1.
 
 ## D-046 — Team seats: eight fixed roles and seat allowances
-**Status:** Founder (2026-10-18, in chat). Foundation built 2026-10-23 (research README §4 step 4); seats,
-invitations and the role UI are not.
+**Status:** Founder (2026-10-18, in chat). Foundation built 2026-10-23 (research README §4 step 4);
+invitations by copied link, seat limits, role changes and removals built 2026-11-07 (founder chose link invites and
+blocking at the limit that day; ROLES_AND_PERMISSIONS.md §8).
 - **Built:** `member_role` holds the eight roles (the old `member` value became `analyst`, the least privilege; 0
   rows in production were affected: 2 owners, nothing else); the permission matrix as pure, unit-tested code in
   `web/src/lib/team/roles.ts` (`can(role, permission)`) and as `has_permission(org, perm)` in the database, with a
@@ -580,7 +581,7 @@ invitations and the role UI are not.
   the `content_items` trigger, which also records `created_by`; the MCP connection acts with the key's user's role
   (service keys keep their rule, D-044); Settings shows the user's role. Spec and open items:
   [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md).
-- **Remains:** invitations (Q-010), seat limits and charging (Stripe), a role UI and audit log, client approvers
+- **Remains:** invite emails (Q-010), charging for extra seats (Stripe), more than one business per account (Q-051), client approvers
   (D-047), `keys.manage_own` on personal keys, `plan_items.update_own` (needs an assignee), RLS write policies per
   permission. Matrix cells that differ from the research (Admin and keys, client approver, Admin and integrations)
   are listed there for the founder to confirm or widen (Q-050).

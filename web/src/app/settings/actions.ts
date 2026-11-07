@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { displayPrefix, generateKey, hashKey } from "@/lib/mcp/keys";
+import { can, deniedMessage } from "@/lib/team/roles";
 
 // Personal access keys for the AI assistant connection (MCP, D-036). Writes go through the signed-in user's
 // client: RLS and column grants only let owners add and revoke their own keys, and never read the hash.
@@ -30,6 +31,8 @@ export async function createAccessKey(_: CreateKeyState, formData: FormData): Pr
     if (error || !orgId) return { error: "Your business wasn't created. Try again." };
     org = { id: orgId as string, name: businessName, role: "owner" };
   }
+  // D-046: personal keys need keys.manage_own (not copywriters, content creators or analysts).
+  if (!can(org.role, "keys.manage_own")) return { error: deniedMessage("keys.manage_own") };
 
   const { count } = await supabase
     .from("mcp_access_keys")
