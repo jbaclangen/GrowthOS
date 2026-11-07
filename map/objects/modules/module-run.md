@@ -35,7 +35,7 @@ Citations: `supabase/migrations/20261023063253_feature_modules.sql:12-13,41-65,7
 
 ## If you change this
 
-- **Hits:** `recordModuleRuns` and the three step writers; the composite FKs to `ai_jobs` and `audit_runs`; `docs/architecture/DATA_MODEL.md:103`, `docs/architecture/FEATURE_MODULES.md` §5.
+- **Hits:** `recordModuleRuns` and the three step writers; the composite FKs to `ai_jobs` and `audit_runs`; `docs/architecture/DATA_MODEL.md:105`, `docs/architecture/FEATURE_MODULES.md` §5.
 - **Does not hit:** the growth score or the report page — neither reads this table; `organization_modules`.
 
 ## Surfaces

@@ -38,7 +38,7 @@ Citations: `supabase/migrations/20261011161133_search_console.sql:47-72`, `web/s
 
 ## If you change this
 
-- **Hits:** [sync-search-console](../../processes/sync-search-console.md), [score-and-diagnose](../../processes/score-and-diagnose.md), [revise-diagnosis](../../processes/revise-diagnosis.md), `docs/architecture/FEATURE_MODULES.md` §9; what is stored, kept, shown to whom or summarized for the model (`summarizeSnapshot`) → the hand-written disclosures on `/legal/privacy` (`site/src/app/legal/privacy/page.tsx:91-153`), `/legal/subprocessors` (`site/src/app/legal/subprocessors/page.tsx:12,14,16,54-58`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:76-80`), and `docs/architecture/SECURITY_AND_PRIVACY.md` §6, §9, §10
+- **Hits:** [sync-search-console](../../processes/sync-search-console.md), [score-and-diagnose](../../processes/score-and-diagnose.md), [revise-diagnosis](../../processes/revise-diagnosis.md), `docs/architecture/FEATURE_MODULES.md` §9; what is stored, kept, shown to whom or summarized for the model (`summarizeSnapshot`) → the hand-written disclosures on `/legal/privacy` (`site/src/app/legal/privacy/page.tsx:96-158`), `/legal/subprocessors` (`site/src/app/legal/subprocessors/page.tsx:12,14,16,54-58`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:76-80`), and `docs/architecture/SECURITY_AND_PRIVACY.md` §6, §9, §10
 - **Does not hit:** [connect-search-console](../../processes/connect-search-console.md) up to `saveConnection`, the MCP and OAuth tables
 
 ## Surfaces

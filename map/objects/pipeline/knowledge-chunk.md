@@ -19,7 +19,7 @@ The foundation schema laid out retrieval for an AI marketing assistant before an
 ## Shape
 
 - Table `supabase/migrations/20261010061028_foundation.sql:123-131`: `document_id` cascade `:126`, `chunk_index`, `content`, `embedding vector(1536)` `:129`; HNSW cosine index `:133-134`; document index `supabase/migrations/20261010061126_advisor_fixes.sql:20`.
-- `match_knowledge(org, query_embedding, match_count)` `foundation.sql:137-148`, invoker rights (RLS applies). No revoke or grant follows it, unlike `create_organization` `:71-72` (`docs/architecture/DATA_MODEL.md:141`).
+- `match_knowledge(org, query_embedding, match_count)` `foundation.sql:137-148`, invoker rights (RLS applies). No revoke or grant follows it, unlike `create_organization` `:71-72` (`docs/architecture/DATA_MODEL.md:143`).
 - RLS "members all" `foundation.sql:300-309`.
 - No reference to `knowledge_chunks` or `match_knowledge` anywhere in `web/src` or `web/scripts`.
 - Planned use: knowledge-base retrieval for the assistant (BI-8, BI-11) `docs/product/ROADMAP.md:73-74`.

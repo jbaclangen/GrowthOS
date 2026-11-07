@@ -14,7 +14,7 @@ One row per organization and provider holding the Google Search Console link, it
 
 ## Why this shape
 
-The refresh token is the only secret, so it sits in one column clients can never select (`supabase/migrations/20261011161133_search_console.sql:41-45`) and is written only by server code that has already authorised the organization (`web/src/app/api/integrations/google/callback/route.ts:69-70`). One row per provider (`search_console.sql:28`) means reconnecting replaces rather than accumulates.
+The refresh token is the only secret, so it sits in one column clients can never select (`supabase/migrations/20261011161133_search_console.sql:41-45`) and is written only by server code that has already authorised the organization (`web/src/app/api/integrations/google/callback/route.ts:70-71`). One row per provider (`search_console.sql:28`) means reconnecting replaces rather than accumulates.
 
 ## Shape
 

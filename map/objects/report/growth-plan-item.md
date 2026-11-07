@@ -32,7 +32,7 @@ Citations: `supabase/migrations/20261010164133_diagnosis_and_plan.sql:54-92`, `:
 - **owns:** nothing.
 - **owned-by:** [diagnosis](diagnosis.md) (`:87-88`).
 - **joins:** [diagnosis-finding](diagnosis-finding.md) through `finding_positions` (`:61-62`); [module](../modules/module-registry.md) (`module_id`); the solution catalog `web/src/lib/onboarding/catalog.ts` through `solution_ids` (`priority.ts:1`, `:172`); [onboarding-response](../onboarding/onboarding-response.md) through `pain_point_ids` and `customer_priority`.
-- **looks-like-but-is-not:** [content-item](content-item.md), the 30-day plan's posts; `reports.data.opportunities`, the pre-2026-10-11 shape (`docs/architecture/DATA_MODEL.md:93`).
+- **looks-like-but-is-not:** [content-item](content-item.md), the 30-day plan's posts; `reports.data.opportunities`, the pre-2026-10-11 shape (`docs/architecture/DATA_MODEL.md:95`).
 
 ## If you change this
 
@@ -50,4 +50,4 @@ Citations: `supabase/migrations/20261010164133_diagnosis_and_plan.sql:54-92`, `:
 ## See
 
 - Source: `supabase/migrations/20261010164133_diagnosis_and_plan.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:101`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:103`)

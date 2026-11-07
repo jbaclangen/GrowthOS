@@ -32,7 +32,7 @@ The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md
 | `GOOGLE_API_KEY` | `:16` | no | |
 | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` | `:19-20`, optional `:17-18` | no | |
 | `INTEGRATIONS_ENCRYPTION_KEY` | `:22-24` (32 bytes, base64) | no | |
-| `NEXT_PUBLIC_APP_URL` | `:25` (defaults to localhost) | yes | `web/src/app/login/actions.ts:37`, `web/src/lib/integrations/google-oauth.ts:50`, `web/src/lib/pipeline/dispatch.ts:44`, `web/src/lib/oauth/server-metadata.ts:12` |
+| `NEXT_PUBLIC_APP_URL` | `:25` (defaults to localhost) | yes | `web/src/app/login/actions.ts:41`, `web/src/lib/integrations/google-oauth.ts:50`, `web/src/lib/pipeline/dispatch.ts:44`, `web/src/lib/oauth/server-metadata.ts:12` |
 | `JOB_CONTINUE_SECRET` | `:28`, optional `:26-27` | no | `web/src/app/api/health/integrations/route.ts:93` |
 | `JOB_DISPATCH` | `:32`, optional `:29-31` | no | |
 

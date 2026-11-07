@@ -51,4 +51,4 @@ Citations: `supabase/migrations/20261011160802_website_audit.sql:6-33`, `:64-68`
 ## See
 
 - Source: `supabase/migrations/20261011160802_website_audit.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:98`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:100`)

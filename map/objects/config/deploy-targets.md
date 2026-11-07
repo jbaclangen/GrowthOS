@@ -44,7 +44,7 @@ Live:
   `NEXT_PUBLIC_APP_URL`; preview URLs don't work (`docs/architecture/SEARCH_CONSOLE_SETUP.md:54-59`;
   `docs/architecture/INTEGRATIONS.md:74-77`; `web/.env.example:24-26`; `web/src/lib/integrations/google-oauth.ts:18,49-50`).
 - **Supabase Auth email links** → `/auth/callback?next=` and the Site URL root `/`
-  (`web/src/app/login/actions.ts:37,41`; `web/src/app/page.tsx:5,16`; `docs/architecture/SECURITY_AND_PRIVACY.md:96-97`;
+  (`web/src/app/login/actions.ts:41,45`; `web/src/app/page.tsx:5,16`; `docs/architecture/SECURITY_AND_PRIVACY.md:96-97`;
   `docs/architecture/SYSTEM_ARCHITECTURE.md:261-263`).
 - **MCP clients** (Claude Code, Claude Desktop, claude.ai, ChatGPT, MCP Inspector, n8n HTTP node) → `/api/mcp`,
   `/oauth/*`, `/.well-known/*` (`docs/developers/MCP_AND_API.md:13,41-45,103,145-147`;
