@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 00d230f
+commit: c507e16
 entity: site/src/app/sitemap.ts
 ---
 
@@ -52,7 +52,7 @@ Citations: `site/src/app/sitemap.ts:4-19`, `site/src/app/robots.ts:5-8`, `site/n
 
 ## If you change this
 
-- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-19` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:69`); a price or tier change is made in `web/src/lib/plans/tiers.ts`, never on the page; a new vendor → `/legal/subprocessors`; a scored module or evidence source added, removed or reweighted → the hand-written score and source copy on `/` (`site/src/app/page.tsx:65,223-225`), `/product` (`site/src/app/product/page.tsx:30`), `/how-it-works` (`site/src/app/how-it-works/page.tsx:39-43,47-48,57`), `/pricing` FAQ (`site/src/app/pricing/page.tsx:27`), `/trust` (`site/src/app/trust/page.tsx:32-33`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:29-30,76-80`), which must match [growth-score](../report/growth-score.md) and the app's `BLEND` list (`web/src/lib/modules/score.ts:165-169`); the site imports neither; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
+- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-19` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:69`); a price or tier change is made in `web/src/lib/plans/tiers.ts`, never on the page; a new vendor → `/legal/subprocessors`; data a connected account stores or sends to a model → `/legal/privacy` (Search Console: `site/src/app/legal/privacy/page.tsx:67-129`) and the vendor rows on `/legal/subprocessors` (`site/src/app/legal/subprocessors/page.tsx:12,14,16,51-55`); a scored module or evidence source added, removed or reweighted → the hand-written score and source copy on `/` (`site/src/app/page.tsx:65,223-225`), `/product` (`site/src/app/product/page.tsx:30`), `/how-it-works` (`site/src/app/how-it-works/page.tsx:39-43,47-48,57`), `/pricing` FAQ (`site/src/app/pricing/page.tsx:27`), `/trust` (`site/src/app/trust/page.tsx:32-33`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:29-30,76-80`), which must match [growth-score](../report/growth-score.md) and the app's `BLEND` list (`web/src/lib/modules/score.ts:165-169`); the site imports neither; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
 - **Does not hit:** app routes, RLS, the schema (only anonymous inserts into `contact_requests`).
 
 ## Surfaces
