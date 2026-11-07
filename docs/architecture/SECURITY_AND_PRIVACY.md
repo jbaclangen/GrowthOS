@@ -306,9 +306,14 @@ human approval, unless the client has explicitly configured an authorised automa
 What exists:
 - Deleting an organization cascades to every tenant table (profiles, knowledge, calendars, items, jobs,
   usage, reports, integrations, subscriptions).
-- Deleting an `auth.users` row cascades memberships and platform-admin rows, but `content_items.approved_by`
-  and `ai_jobs.created_by` reference `auth.users` with no `on delete` action, so deleting a user who approved
-  content or started a job **fails** until those references are cleared.
+- Deleting an `auth.users` row cascades the person's own rows (memberships, platform-admin rows, personal access
+  keys, OAuth grants, codes and tokens, `assistant_usage`) and sets every "by" column to null (who approved a draft,
+  wrote it, started a job or an analysis, confirmed a diagnosis, changed a plan item, asked for an upgrade, created a
+  service key, connected Search Console, sent or accepted an invite, and the actor and subject of team events). The
+  business's drafts, jobs and reports stay with the organization. `content_items.approved_by` and
+  `ai_jobs.created_by` gained their `on delete set null` in `20261107224152_user_deletion_foreign_keys.sql` (Q-056, applied
+  2026-11-08); before that, deleting a user who approved a draft or started a job failed.
+  `web/src/lib/supabase/user-deletion.test.ts` fails if a new reference to `auth.users` has no `on delete` action.
 
 What is undecided / not implemented:
 - No user-facing account or organization deletion, no data export.

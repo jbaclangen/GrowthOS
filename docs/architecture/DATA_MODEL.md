@@ -36,8 +36,8 @@ of record (see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)); security impli
 | `20261023092945_roles_and_permissions.sql` | Roles and permissions foundation (D-046; [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md)). Replaces the `member_role` enum with the eight fixed roles (`member` rows become `analyst`; default `analyst`; the old type, renamed `member_role_v1`, was dropped from the SQL editor the same day because the MCP tool refuses destructive statements); function `has_permission(org, perm)` (security definer, `authenticated` only, no platform-staff bypass) holding the same matrix as `web/src/lib/team/roles.ts`; `content_items.created_by` (the author, set by the guard on client inserts); `guard_content_item_write` now also requires `content.approve` for a status change and `content.approve_own` (owner only) to approve one's own draft |
 | `20261023063253_feature_modules.sql` | Feature modules (D-051 steps 1–5; [FEATURE_MODULES.md](FEATURE_MODULES.md)). Domain `module_id` (the registry's ids); tables `organization_modules` (per-organization overrides `enabled` and `config`; members read, server writes) and `module_runs` (one row per module that ran in an analysis job, with `sub_score`, `audit_run_id`, `report_id`, `rules_version`; members read, pipeline writes; same-organization composite FKs to `ai_jobs` and `audit_runs`); columns `diagnosis_findings.module_id` and `growth_plan_items.module_id`, backfilled by provenance and by area |
 | `20261010164133_diagnosis_and_plan.sql` | Tables `diagnoses`, `diagnosis_findings`, `growth_plan_items` (ON-7, ON-8, MS-5): RLS read and update for members, no client inserts or deletes, and column grants so owners can change only verdicts, notes, statuses, confirmation and final priority; same-organization composite FKs |
-
 | `20261011160802_website_audit.sql` | Tables `audit_runs` and `audit_findings` (Website Intelligence Phase 1): M-read, no client writes (pipeline writes with the admin client scoped to the job's organization), same-organization composite FKs; adds `diagnosis_findings.audit_refs text[]` |
+| `20261107224152_user_deletion_foreign_keys.sql` | `content_items.approved_by` and `ai_jobs.created_by` become `on delete set null` (Q-056), so deleting a user who approved a draft or started a job no longer fails; indexes on both columns |
 
 All files above are applied to the Supabase project. Local file names match the versions recorded there
 (`list_migrations`); name new files with the version the project records, or apply them with the
@@ -185,8 +185,8 @@ erDiagram
 Implicit (jsonb, not FK) links used by current code: `ai_jobs.input.businessProfileId`,
 `reports.data.business_profile_id`, `content_calendars.strategy.business_profile_id` all point at
 `business_profiles.id`. All tenant tables cascade-delete with their organization; `auth.users` deletion
-cascades memberships and platform-admin rows and leaves `approved_by` / `created_by` pointing at a missing
-user (no `on delete` clause, so user deletion fails while such references exist — see
+cascades the person's own rows (memberships, platform-admin rows, personal keys, OAuth rows, `assistant_usage`) and sets every "by" column (`approved_by`, `created_by`, `confirmed_by`, …) to null; `content_items.approved_by` and
+`ai_jobs.created_by` have done so since `20261107224152_user_deletion_foreign_keys.sql`, before which deleting a user who approved a draft or started a job failed (Q-056; see
 [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#10-data-retention-and-deletion)).
 
 ## 8. Observations
