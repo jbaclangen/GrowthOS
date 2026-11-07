@@ -133,7 +133,7 @@ Braventa publishes. Publishing is a Pro feature (D-030, D-041).
    snapshot is a fenced evidence block (ref `G2`) in the diagnosis prompt, findings that cite it are Verified and
    carry `module_id` `analytics`, and the Analytics module adds 0.10 to the score from four parts (`SCORE_VERSION` 3,
    provisional weights; scores without GA4 evidence are unchanged). Spec:
-   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10. Before production: migration `20261108120000`, the two
+   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10. Before production: migration `20261107224123`, the two
    GA4 APIs and the scope in Google Cloud ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)), and
    the privacy pages (Q-052). Tag Manager stays Coming soon.
 4. HubSpot read-only (D-048): the unlisted HubSpot app, a wider `integration_connections` provider check, OAuth start

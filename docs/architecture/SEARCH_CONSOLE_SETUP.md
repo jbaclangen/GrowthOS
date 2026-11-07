@@ -100,7 +100,7 @@ Apply `supabase/migrations/20261011161133_search_console.sql` to the Supabase pr
 with the Supabase CLI (`supabase db push`) or the dashboard SQL editor, then run the security advisor. It creates
 `integration_connections` (the refresh-token column isn't readable by clients) and `search_console_snapshots`.
 
-For GA4, apply `supabase/migrations/20261108120000_google_analytics.sql` the same way, **before** the GA4 code is
+For GA4, `supabase/migrations/20261107224123_google_analytics.sql` (applied 2026-11-08) must be in place **before** the GA4 code is
 deployed: it allows the `google_analytics` provider, adds `integration_connections.property_labels` and creates
 `analytics_snapshots`. The connect code writes `property_labels` for both products, so without this migration
 connecting Search Console fails too.

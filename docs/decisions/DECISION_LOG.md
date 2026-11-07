@@ -824,7 +824,7 @@ migration applied to production 2026-11-08. Spec: [LEGAL_ACCEPTANCE.md](../archi
 
 ## D-058 — Google Analytics 4 through one Google connection, scored as the Analytics module
 **Status:** Founder (2026-11-08, in chat). Built 2026-11-08 (commit `818e5f6`, branch `ga4-module`); migration
-`20261108120000_google_analytics.sql` not yet applied. Item 3 of D-041's order
+`20261107224123_google_analytics.sql` applied 2026-11-08. Item 3 of D-041's order
 ([INTEGRATIONS_ROADMAP.md](../product/INTEGRATIONS_ROADMAP.md) §5).
 - **One Google connection for Search Console and GA4.** One consent screen asks for `webmasters.readonly` and
   `analytics.readonly`; the owner may untick either. The callback keeps only the scopes granted and stores one
