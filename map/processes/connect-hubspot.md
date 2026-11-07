@@ -1,7 +1,9 @@
 ---
 type: process
 universe: live
-status: stale
+status: verified
+verified: 2026-11-08
+commit: acc6bc5
 consumes: ["[[organization]]", "[[membership]]", "[[member-role]]", "[[plan-tier]]", "[[legal-acceptance]]"]
 produces: ["[[integration-connection]]", "[[hubspot-snapshot]]", "[[legal-acceptance]]"]
 ---

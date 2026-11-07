@@ -4,7 +4,7 @@ cluster: access
 universe: live
 status: verified
 verified: 2026-11-08
-commit: fe535cb
+commit: acc6bc5
 entity: supabase/migrations/20261107224300_legal_acceptances.sql
 ---
 
