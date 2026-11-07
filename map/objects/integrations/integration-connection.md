@@ -4,7 +4,7 @@ cluster: integrations
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 1d58a87
+commit: 2dd74b3
 entity: supabase/migrations/20261011161133_search_console.sql
 ---
 
@@ -14,7 +14,7 @@ One row per organization and Google product (Search Console, Google Analytics 4)
 
 ## Why this shape
 
-The refresh token is the only secret, so it sits in one column clients can never select (`supabase/migrations/20261011161133_search_console.sql:41-45`) and is written only by server code that has already authorised the organization (`web/src/app/api/integrations/google/callback/route.ts:73-74`). One row per provider (`search_console.sql:28`) means reconnecting replaces rather than accumulates; one consent screen covers both products, but each granted product gets its own row with the same token encrypted separately, so each keeps its own property, status and refresh guard (`web/src/lib/integrations/google-connection.ts:6-10`).
+The refresh token is the only secret, so it sits in one column clients can never select (`supabase/migrations/20261011161133_search_console.sql:41-45`) and is written only by server code that has already authorised the organization (`web/src/app/api/integrations/google/callback/route.ts:74-75`). One row per provider (`search_console.sql:28`) means reconnecting replaces rather than accumulates; one consent screen covers both products, but each granted product gets its own row with the same token encrypted separately, so each keeps its own property, status and refresh guard (`web/src/lib/integrations/google-connection.ts:6-10`).
 
 ## Shape
 
@@ -25,7 +25,7 @@ The refresh token is the only secret, so it sits in one column clients can never
 - `available_properties`, `selected_property`, `last_error`, `last_synced_at`, `last_attempted_at` (10-minute guard) — `search_console.sql:18-25`; `property_labels` jsonb (GA4 display names for the property picker, granted to clients) — `20261107224123_google_analytics.sql:18-20`
 - RLS "members read"; column grants exclude the token — `search_console.sql:38-45`
 - Writers (service client): `saveGoogleConnection` (one upsert per granted product; products not granted this time are cleared) `web/src/lib/integrations/google-connection.ts:40-81`; `disconnectGoogle` clears both rows `:102-112` through `clearConnection` `:82-99`; Search Console sync `web/src/lib/integrations/search-console.ts:388-389`, property choice `:479-483`; GA4 sync `web/src/lib/integrations/google-analytics.ts:396-397`, property choice `:496-500`
-- Readers (user client, non-secret columns): `web/src/components/connections/search-console-card.tsx:59-64`, `web/src/components/connections/analytics-card.tsx:56-61`; Ask Braventa `web/src/lib/assistant/context.ts:56-61` (Search Console row only: `status`, `selected_property`)
+- Readers (user client, non-secret columns): `web/src/components/connections/search-console-card.tsx:59-64`, `web/src/components/connections/analytics-card.tsx:57-62`; Ask Braventa `web/src/lib/assistant/context.ts:56-61` (Search Console row only: `status`, `selected_property`)
 
 Citations: `supabase/migrations/20261011161133_search_console.sql:10-45`, `supabase/migrations/20261107224123_google_analytics.sql:13-20`, `web/src/lib/integrations/google-connection.ts:6-113`
 
@@ -38,7 +38,7 @@ Citations: `supabase/migrations/20261011161133_search_console.sql:10-45`, `supab
 
 ## If you change this
 
-- **Hits:** [connect-search-console](../../processes/connect-search-console.md), [sync-search-console](../../processes/sync-search-console.md), [sync-google-analytics](../../processes/sync-google-analytics.md), the Settings and connect-step cards (each says its data feeds the diagnosis and the growth score, `web/src/components/connections/search-console-card.tsx:162-165`, `web/src/components/connections/analytics-card.tsx:171-174`), `docs/architecture/SEARCH_CONSOLE_SETUP.md`. The GA4 migration adds `property_labels`, which `saveGoogleConnection` and `clearConnection` write for both providers (`google-connection.ts:71,93`), so the Search Console connect and disconnect also need it applied.
+- **Hits:** [connect-search-console](../../processes/connect-search-console.md), [sync-search-console](../../processes/sync-search-console.md), [sync-google-analytics](../../processes/sync-google-analytics.md), the Settings and connect-step cards (each says its data feeds the diagnosis and the growth score, `web/src/components/connections/search-console-card.tsx:162-165`, `web/src/components/connections/analytics-card.tsx:170-173`), `docs/architecture/SEARCH_CONSOLE_SETUP.md`. The GA4 migration adds `property_labels`, which `saveGoogleConnection` and `clearConnection` write for both providers (`google-connection.ts:71,93`), so the Search Console connect and disconnect also need it applied.
 - **Does not hit:** [mcp-access-key](../access/mcp-access-key.md), the OAuth tables, the job step machine
 
 ## Surfaces

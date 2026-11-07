@@ -4,7 +4,7 @@ cluster: integrations
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 1d58a87
+commit: 2dd74b3
 entity: supabase/migrations/20261107224123_google_analytics.sql
 ---
 
@@ -25,7 +25,7 @@ Same reasons and same rules as [search-console-snapshot](search-console-snapshot
 - Shapes: `AnalyticsTotals`, `AnalyticsRows`, `AnalyticsSnapshot` — `web/src/lib/integrations/google-analytics.ts:38-57`; built by `fetchSnapshot` (Data API `batchRunReports`, Admin API property details and key events, both optional) `:315-362`
 - Insert: `syncAnalytics` `web/src/lib/integrations/google-analytics.ts:438-447`
 - Delete: Google account changed `web/src/lib/integrations/google-connection.ts:58-61`, disconnect `:83` (`clearConnection`, table from `SNAPSHOT_TABLES` `:16-19`), another property chosen `google-analytics.ts:497-499`, prune `:464-478`
-- Read: `latestAnalyticsSnapshot` `google-analytics.ts:509-518`; the Settings and connect-step card `web/src/components/connections/analytics-card.tsx:62-68`
+- Read: `latestAnalyticsSnapshot` `google-analytics.ts:509-518`; the Settings and connect-step card `web/src/components/connections/analytics-card.tsx:63-69`
 - Into the model and score: `summarizeAnalytics` `google-analytics.ts:237-264` (`new_property` for a property created inside the window, `:203-207`) ← `analyticsSummaryForPrompt` (active connection, Pro access, latest row) `:519-527` ← `analyticsModuleEvidence` `web/src/lib/pipeline/website-intel.ts:442-444` (only when `analytics` is enabled); score parts `analyticsEvidence` `web/src/lib/modules/score.ts:99-129`; the report records which snapshot was used `web/src/lib/pipeline/website-intel.ts:682-684`
 - Prompt ref `G2` `web/src/lib/modules/registry.ts:285`, fenced block `web/src/lib/pipeline/prompts.ts:312-320`, citable `:153`; findings citing it map to `analytics` `registry.ts:294`; the finding's basis line names Google Analytics 4 `web/src/app/analysis/[id]/plan-section.tsx:89`
 - Downstream, not the row: the module's sub-score `reports.data.module_scores.analytics` is stored, and the blend wording names "your website analytics" when it counted (`score.ts:209`), but no report bar and no Ask Braventa line show it at this commit (`web/src/app/analysis/[id]/infographic.tsx:171`, `web/src/app/analysis/[id]/report-sections.tsx:56`, `web/src/lib/assistant/context.ts:180` read only `search_visibility`)

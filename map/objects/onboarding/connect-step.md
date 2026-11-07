@@ -4,7 +4,7 @@ cluster: onboarding
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 1d58a87
+commit: 2dd74b3
 entity: web/src/lib/integrations/connect-step.ts
 ---
 
@@ -46,7 +46,7 @@ Ghost: every tool other than Search Console and Google Analytics 4 is a Coming s
 |---|---|
 | `/onboarding/[sessionId]/connect` (`web/src/app/onboarding/[sessionId]/connect/page.tsx:41`) | reads session, organization, responses, profile |
 | Continue → `continueAfterConnect` (`web/src/app/onboarding/[sessionId]/actions.ts:84`) | writes (follow-up round or session completed) |
-| Google OAuth start/callback (`integrations.connect`: `web/src/app/api/integrations/google/start/route.ts:36`, `web/src/app/api/integrations/google/callback/route.ts:51`; Pro/trial) | writes `integration_connections` (one row per granted Google product) |
+| Google OAuth start/callback (`integrations.connect`: `web/src/app/api/integrations/google/start/route.ts:37`, `web/src/app/api/integrations/google/callback/route.ts:52`; Pro/trial) | writes `integration_connections` (one row per granted Google product) |
 | MCP tools | none (step skipped) |
 
 ## See

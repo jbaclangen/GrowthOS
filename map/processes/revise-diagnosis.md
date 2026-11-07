@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 818e5f6
+commit: 2dd74b3
 consumes: ["[[diagnosis]]", "[[diagnosis-finding]]", "[[report]]", "[[business-profile]]", "[[audit-run]]", "[[audit-finding]]", "[[search-console-snapshot]]", "[[analytics-snapshot]]", "[[ai-worker]]", "[[member-role]]"]
 produces: ["[[ai-job]]", "[[diagnosis]]", "[[diagnosis-finding]]", "[[growth-plan-item]]", "[[ai-usage]]"]
 ---

@@ -4,7 +4,7 @@ cluster: access
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 1d58a87
+commit: 2dd74b3
 entity: web/src/lib/assistant/knowledge.ts
 ---
 

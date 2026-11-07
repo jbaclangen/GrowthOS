@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 818e5f6
+commit: 2dd74b3
 entity: docs/architecture/SYSTEM_ARCHITECTURE.md
 ---
 
@@ -35,16 +35,16 @@ Live:
   `site/src/lib/hubspot.ts:9-10`). Deploy state is read with `gh api repos/jbaclangen/GrowthOS/commits/main/statuses`
   (`.claude/agents/braventa-health-check.md:18`).
 - **Supabase project `mlztvhvmsullvwawwamc`**: Postgres + Auth + RLS for every environment (`CLAUDE.md:71`;
-  `docs/architecture/SYSTEM_ARCHITECTURE.md:22,253`; `.mcp.json:5`; `docs/architecture/SEARCH_CONSOLE_SETUP.md:97`).
+  `docs/architecture/SYSTEM_ARCHITECTURE.md:22,253`; `.mcp.json:5`; `docs/architecture/SEARCH_CONSOLE_SETUP.md:99`).
 - **Postgres → `POST /api/jobs/continue`**: `pg_net` from an insert trigger, `pg_cron` sweeper every minute; the URL
   must be `https://…/api/jobs/continue` (`supabase/migrations/20261017110000_job_dispatches.sql:55-56,68,103-105,339-340`;
   `web/src/lib/pipeline/dispatch.ts:52,68-72`).
 - **Google OAuth client** (GCP project `growth-os-511206`, `docs/architecture/SYSTEM_ARCHITECTURE.md:255`): redirect
   URIs `https://app.braventa.io/api/integrations/google/callback` and the localhost:3000 one, plus the origin of
-  `NEXT_PUBLIC_APP_URL`; preview URLs don't work (`docs/architecture/SEARCH_CONSOLE_SETUP.md:68-73`;
+  `NEXT_PUBLIC_APP_URL`; preview URLs don't work (`docs/architecture/SEARCH_CONSOLE_SETUP.md:70-75`;
   `docs/architecture/INTEGRATIONS.md:77-80`; `web/.env.example:24-26`; `web/src/lib/integrations/google-oauth.ts:21,52-53`).
 - **Supabase Auth email links** → `/auth/callback?next=` and the Site URL root `/`
-  (`web/src/app/login/actions.ts:41,45`; `web/src/app/page.tsx:5,16`; `docs/architecture/SECURITY_AND_PRIVACY.md:96-97`;
+  (`web/src/app/login/actions.ts:45,54`; `web/src/app/page.tsx:5,16`; `docs/architecture/SECURITY_AND_PRIVACY.md:96-97`;
   `docs/architecture/SYSTEM_ARCHITECTURE.md:261-263`).
 - **MCP clients** (Claude Code, Claude Desktop, claude.ai, ChatGPT, MCP Inspector, n8n HTTP node) → `/api/mcp`,
   `/oauth/*`, `/.well-known/*` (`docs/developers/MCP_AND_API.md:13,41-45,103,145-147`;
@@ -76,7 +76,7 @@ Citations: `docs/architecture/SYSTEM_ARCHITECTURE.md:246-255`
 
 ## If you change this
 
-- **Hits:** a new public route → `PUBLIC_PATHS` and this list; a new redirect URI → the GCP client and `docs/architecture/SEARCH_CONSOLE_SETUP.md:68-70`; a new env var → both the Vercel project and `web/.env.example`; moving `NEXT_PUBLIC_APP_URL` → Supabase Auth Site URL / redirect allow-list (`docs/architecture/SYSTEM_ARCHITECTURE.md:261-263`), the Google client and `job_dispatches` URL check; a second Supabase project → Q-009 and every migration.
+- **Hits:** a new public route → `PUBLIC_PATHS` and this list; a new redirect URI → the GCP client and `docs/architecture/SEARCH_CONSOLE_SETUP.md:70-72`; a new env var → both the Vercel project and `web/.env.example`; moving `NEXT_PUBLIC_APP_URL` → Supabase Auth Site URL / redirect allow-list (`docs/architecture/SYSTEM_ARCHITECTURE.md:261-263`), the Google client and `job_dispatches` URL check; a second Supabase project → Q-009 and every migration.
 - **Does not hit:** tokens, page copy.
 
 ## Surfaces

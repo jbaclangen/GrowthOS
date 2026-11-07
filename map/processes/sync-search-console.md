@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 1d58a87
+commit: 2dd74b3
 consumes: ["[[integration-connection]]", "[[organization]]", "[[plan-tier]]", "[[business-profile]]", "[[module-registry]]", "[[member-role]]"]
 produces: ["[[search-console-snapshot]]", "[[report]]", "[[growth-score]]", "[[module-run]]"]
 ---
@@ -29,7 +29,7 @@ The pipeline never calls Google: it reads the latest stored row, so a slow or fa
 5. List verified properties; keep the selected one or `pickProperty` from the business website; none → `needs-property` — `:413-422`.
 6. `fetchSnapshot` (28-day ranges, top 25 queries and pages, devices, sitemaps, URL Inspection) — `:423`, `:324-330`.
 7. Insert the snapshot, prune to `KEEP_SNAPSHOTS`, mark the connection `active` with `last_synced_at` — `:424-444`, `:452-466`; errors → `describeError` → status + `last_error` — `:445-449`.
-8. Callers: callback (`skipGuard`) `web/src/app/api/integrations/google/callback/route.ts:115` (only when the Search Console scope was granted); Settings refresh (any member, no permission) `web/src/app/settings/connections-actions.ts:33-38`; choose property (a first choice skips the guard) `:40-50`, needs `integrations.connect` (owner only) `:42`; `selectProperty` `search-console.ts:470-486`.
+8. Callers: callback (`skipGuard`) `web/src/app/api/integrations/google/callback/route.ts:125` (only when the Search Console scope was granted); Settings refresh (any member, no permission) `web/src/app/settings/connections-actions.ts:33-38`; choose property (a first choice skips the guard) `:40-50`, needs `integrations.connect` (owner only) `:42`; `selectProperty` `search-console.ts:470-486`.
 9. Into scoring: `searchConsoleEvidence` only when `search_visibility` is enabled → `searchConsoleSummaryForPrompt` (active connection, plan access, latest snapshot) → `summarizeSnapshot` — `web/src/lib/pipeline/website-intel.ts:436-438,639-640`; `search-console.ts:503-511,254`; the prompt cites it as `G1` — `web/src/lib/pipeline/prompts.ts:152`, `web/src/lib/modules/registry.ts:283`.
 10. Score parts from the summary (`searchVisibilityEvidence`; none with `little_data`) — `web/src/lib/modules/score.ts:77-94`; the module counts only with parts — `score.ts:171-178`; the report records property, period and `fetched_at` — `website-intel.ts:678-680`, and `score_modules`/`module_scores` — `:668-669`; the diagnosis-update step reads the same evidence without recomputing the score — `:595-598`.
 11. Shown when `search_visibility` counted: the score tile and Scores section add "your search data" to the blend (`scoreBlend`) and a Search visibility bar from `module_scores.search_visibility` — `web/src/app/analysis/[id]/infographic.tsx:169-171,185`, `report-sections.tsx:55-56,78`, `score.ts:205-215`; Ask Braventa's summary gets `searchVisibility` — `web/src/lib/assistant/context.ts:180`, `prompt.ts:137`.

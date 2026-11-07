@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 1d58a87
+commit: 2dd74b3
 consumes: ["[[organization]]", "[[membership]]", "[[member-role]]", "[[plan-tier]]"]
 produces: ["[[integration-connection]]", "[[search-console-snapshot]]", "[[analytics-snapshot]]"]
 ---
@@ -18,25 +18,25 @@ Input: a signed-in owner of a Pro, Premium or trial organization opening "Connec
 
 ## Why this shape
 
-Without the sealed cookie bound to user and organization, a callback could attach a stranger's Google account to a tenant (`web/src/lib/integrations/google-oauth.ts:82-93,112-113`). Without the exact return-to allowlist, `?returnTo=` would be an open redirect (`web/src/lib/integrations/return-to.ts:1-12`). Google lets the owner untick either scope, so the callback keeps only what was granted, and with neither it revokes and stores nothing (`web/src/app/api/integrations/google/callback/route.ts:84-93`). One sign-in means one token: revoking it at Google ends both products, so the two rows are saved and cleared together (`web/src/lib/integrations/google-connection.ts:6-10`).
+Without the sealed cookie bound to user and organization, a callback could attach a stranger's Google account to a tenant (`web/src/lib/integrations/google-oauth.ts:82-95,114-115`). Without the exact return-to allowlist, `?returnTo=` would be an open redirect (`web/src/lib/integrations/return-to.ts:1-12`). Google lets the owner untick either scope, so the callback keeps only what was granted, and with neither it revokes and stores nothing (`web/src/app/api/integrations/google/callback/route.ts:85-94`). One sign-in means one token: revoking it at Google ends both products, so the two rows are saved and cleared together (`web/src/lib/integrations/google-connection.ts:6-10`).
 
 ## Steps
 
-1. `GET /api/integrations/google/start`: resolve `returnTo` against the allowlist; refuse when not configured — `web/src/app/api/integrations/google/start/route.ts:29-30`.
-2. `can(role, "integrations.connect")` (owner only, `web/src/lib/team/roles.ts:86`; [member-role](../objects/tenancy/member-role.md)), else `owner-only`; plan gate `searchConsoleAccess` read through the user's client (the same Pro rule as `googleAnalyticsAccess`, `web/src/lib/integrations/google-analytics-access.ts:12-15`) — `start/route.ts:32-40` (permission `:36`); `web/src/lib/integrations/search-console-access.ts:12-15`.
-3. Random state + PKCE verifier; redirect to Google with `openid email`, `webmasters.readonly` and `analytics.readonly` — `start/route.ts:45-50`; `web/src/lib/integrations/google-oauth.ts:16-19,64-69`.
-4. Seal `{state, verifier, userId, orgId, redirectUri, expiresAt, returnTo}` into the `brv_google_oauth` cookie (httpOnly, 600 s, path-scoped) — `start/route.ts:51-61`; `google-oauth.ts:22-23,93`.
-5. `GET /api/integrations/google/callback`: open the cookie, `integrations.connect` again, `stateMatches` on state + user + org; failures return to Settings — `web/src/app/api/integrations/google/callback/route.ts:46-54` (permission `:51`).
+1. `GET /api/integrations/google/start`: resolve `returnTo` against the allowlist; refuse when not configured — `web/src/app/api/integrations/google/start/route.ts:30-31`.
+2. `can(role, "integrations.connect")` (owner only, `web/src/lib/team/roles.ts:86`; [member-role](../objects/tenancy/member-role.md)), else `owner-only`; plan gate `searchConsoleAccess` read through the user's client (the same Pro rule as `googleAnalyticsAccess`, `web/src/lib/integrations/google-analytics-access.ts:12-15`) — `start/route.ts:33-43` (permission `:36`); `web/src/lib/integrations/search-console-access.ts:12-15`.
+3. Random state + PKCE verifier; redirect to Google with `openid email`, `webmasters.readonly` and `analytics.readonly` — `start/route.ts:48-53`; `web/src/lib/integrations/google-oauth.ts:16-19,64-69`.
+4. Seal `{state, verifier, userId, orgId, redirectUri, expiresAt, returnTo}` into the `brv_google_oauth` cookie (httpOnly, 600 s, path-scoped) — `start/route.ts:54-64`; `google-oauth.ts:22-23,95`.
+5. `GET /api/integrations/google/callback`: open the cookie, `integrations.connect` again, `stateMatches` on state + user + org; failures return to Settings — `web/src/app/api/integrations/google/callback/route.ts:47-55` (permission `:51`).
 6. Google error or missing code → outcome code — `:56-59`; plan gate again (`searchConsoleAccess`) — `:61-72`.
 7. Exchange the code with the verifier — `:76-82`; keep the products whose scope was granted, none → revoke and `scope-missing`; no refresh token → revoke — `:84-97`.
-8. `saveGoogleConnection` (service client, scoped to the authorised org): revoke the old tokens once each, clear the products not granted this time, drop a product's snapshots if the Google account changed, upsert one row per granted product with `encryptSecret` — `callback/route.ts:99-112`; `web/src/lib/integrations/google-connection.ts:40-81`; `web/src/lib/integrations/secret-box.ts:36`.
-9. First sync of each granted product with `skipGuard: true`, in parallel; outcome `connected` when all succeed, `choose-property` when one needs a property, else `connected-sync-failed` — `callback/route.ts:114-124` → [sync-search-console](sync-search-console.md), [sync-google-analytics](sync-google-analytics.md).
-10. Both cards build the start link with `searchConsoleStartHref` — `return-to.ts:25-31`; outcome codes starting `ga-` scroll to the Google Analytics card — `:14-23`.
+8. `saveGoogleConnection` (service client, scoped to the authorised org): revoke the old tokens once each, clear the products not granted this time, drop a product's snapshots if the Google account changed, upsert one row per granted product with `encryptSecret` — `callback/route.ts:100-113`; `web/src/lib/integrations/google-connection.ts:40-81`; `web/src/lib/integrations/secret-box.ts:36`.
+9. First sync of each granted product with `skipGuard: true`, in parallel; outcome `connected` when all succeed, `choose-property` when one needs a property, else `connected-sync-failed` — `callback/route.ts:124-134` → [sync-search-console](sync-search-console.md), [sync-google-analytics](sync-google-analytics.md).
+10. Both cards build the start link with `searchConsoleStartHref` — `return-to.ts:25-26`; outcome codes starting `ga-` scroll to the Google Analytics card — `:14-23`.
 11. Disconnect ("Disconnect Google", on either card): revoke at Google, then clear both rows and both products' snapshots — `web/src/app/settings/connections-actions.ts:79-89` (needs `integrations.connect` `:82`); `google-connection.ts:102-113`.
 
 ## Human gate
 
-The owner approves on Google's consent screen and may untick either product (between steps 4 and 5). Nothing else waits; the first syncs run before the redirect (`callback/route.ts:32-33`).
+The owner approves on Google's consent screen and may untick either product (between steps 4 and 5). Nothing else waits; the first syncs run before the redirect (`callback/route.ts:33-34`).
 
 ## If you change this
 

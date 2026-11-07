@@ -4,7 +4,7 @@ cluster: report
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 818e5f6
+commit: 2dd74b3
 entity: supabase/migrations/20261010164133_diagnosis_and_plan.sql
 ---
 
