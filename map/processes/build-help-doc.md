@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 consumes: ["[[assistant-knowledge]]", "[[app-routes]]"]
 produces: ["[[assistant-knowledge]]"]
 ---
@@ -34,9 +34,9 @@ checkable.
 2. In `web/`, run `npm run help:doc` (`web/package.json:15`): `web/scripts/build-help-doc.mts:8-9,24-25` writes
    `docs/help/APP_GUIDE.md`, whose first line marks it generated (`docs/help/APP_GUIDE.md:1`).
 3. Run `npm run help:doc:check` (`web/package.json:16`; `web/scripts/build-help-doc.mts:11-21`) or `npm test`:
-   `web/src/lib/assistant/assistant.test.ts:316-318` asserts the file equals `renderGuide()`.
+   `web/src/lib/assistant/assistant.test.ts:333-335` asserts the file equals `renderGuide()`.
 4. The same test walks every `page.tsx` under `web/src/app` and fails when a route is missing from `APP_ROUTES` or an
-   `APP_ROUTES` entry no longer exists (`web/src/lib/assistant/assistant.test.ts:216-242`).
+   `APP_ROUTES` entry no longer exists (`web/src/lib/assistant/assistant.test.ts:233-259`).
 5. Commit `knowledge.ts` and `docs/help/APP_GUIDE.md` together.
 
 Must run after: any edit to `knowledge.ts`; adding, moving or removing a page under `web/src/app`; a change to any
@@ -59,7 +59,7 @@ reviewed by whoever edits `knowledge.ts` (`CLAUDE.md:38-39`).
 |---|---|
 | Developer in `web/` | runs `help:doc`, commits both files |
 | `web/scripts/build-help-doc.mts` | renders and checks |
-| `web/src/lib/assistant/assistant.test.ts:216-242,316-318` | refuses drift |
+| `web/src/lib/assistant/assistant.test.ts:233-259,333-335` | refuses drift |
 | `POST /api/assistant` (`web/src/app/api/assistant/route.ts:35`) | answers users from the same sections (`knowledgeForPrompt()`, `web/src/lib/assistant/knowledge.ts:273`) |
 
 ## See

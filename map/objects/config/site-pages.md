@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: site/src/app/sitemap.ts
 ---
 
@@ -30,7 +30,7 @@ mirrors, and the pricing page imports the tier list the app enforces instead of 
 | `/` | `docs/marketing/WEBSITE_MESSAGING.md` §3, D-005 tagline, D-035 brief | `site/src/app/page.tsx:6-9` |
 | `/about` | company story, no names (founder 2026-10-11) | `site/src/app/about/page.tsx:10-11` |
 | `/contact` | form token from `site/src/lib/spam.ts`; action inserts `contact_requests` with the publishable key, then posts to HubSpot | `site/src/app/contact/page.tsx:5-6`; `site/src/app/contact/actions.ts:11-14,47-54`; `site/src/lib/hubspot.ts:9-10,22-23,49-53` |
-| `/how-it-works` | onboarding steps + `STEPS` in `web/src/lib/pipeline/website-intel.ts`; `computeGrowthScore` + `docs/architecture/FEATURE_MODULES.md` §9; `docs/product/BUSINESS_METHODOLOGY.md` | `site/src/app/how-it-works/page.tsx:10-11,39-42,63-64` |
+| `/how-it-works` | onboarding steps + `STEPS` in `web/src/lib/pipeline/website-intel.ts`; `computeGrowthScore` + `docs/architecture/FEATURE_MODULES.md` §9; `docs/product/BUSINESS_METHODOLOGY.md` | `site/src/app/how-it-works/page.tsx:10-11,39-43,64-65` |
 | `/legal/cookies` | `docs/marketing/SITEMAP.md` §4 (no trackers, no banner) | `site/src/app/legal/cookies/page.tsx:6-7` |
 | `/legal/privacy` | `docs/architecture/SECURITY_AND_PRIVACY.md`; lawyer pending (Q-032) | `site/src/app/legal/privacy/page.tsx:10` |
 | `/legal/subprocessors` | `docs/architecture/INTEGRATIONS.md`; update before adding a provider | `site/src/app/legal/subprocessors/page.tsx:10` |
@@ -52,7 +52,7 @@ Citations: `site/src/app/sitemap.ts:4-19`, `site/src/app/robots.ts:5-8`, `site/n
 
 ## If you change this
 
-- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-19` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:69`); a price or tier change is made in `web/src/lib/plans/tiers.ts`, never on the page; a new vendor → `/legal/subprocessors`; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
+- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-19` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:69`); a price or tier change is made in `web/src/lib/plans/tiers.ts`, never on the page; a new vendor → `/legal/subprocessors`; a scored module or evidence source added, removed or reweighted → the hand-written score and source copy on `/` (`site/src/app/page.tsx:65,223-225`), `/product` (`site/src/app/product/page.tsx:30`), `/how-it-works` (`site/src/app/how-it-works/page.tsx:39-43,47-48,57`), `/pricing` FAQ (`site/src/app/pricing/page.tsx:27`), `/trust` (`site/src/app/trust/page.tsx:32-33`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:29-30,76-80`), which must match [growth-score](../report/growth-score.md) and the app's `BLEND` list (`web/src/lib/modules/score.ts:165-169`); the site imports neither; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
 - **Does not hit:** app routes, RLS, the schema (only anonymous inserts into `contact_requests`).
 
 ## Surfaces

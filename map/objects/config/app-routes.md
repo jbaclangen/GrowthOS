@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: web/src/proxy.ts
 ---
 
@@ -20,7 +20,7 @@ authorization itself is RLS (`web/src/proxy.ts:4-5`). Paths that external caller
 Postgres hand-offs, OAuth, metadata) are listed once in `PUBLIC_PATHS` and check their own credential
 (`web/src/proxy.ts:6-22`). Every page must also be described to the in-app assistant: a unit test fails when a
 `page.tsx` under `web/src/app` is missing from `APP_ROUTES` or a listed route no longer exists
-(`web/src/lib/assistant/assistant.test.ts:216-242`, `web/src/lib/assistant/knowledge.ts:27`).
+(`web/src/lib/assistant/assistant.test.ts:233-259`, `web/src/lib/assistant/knowledge.ts:27`).
 
 ## Shape
 
@@ -61,7 +61,7 @@ API routes:
 | `GET /auth/callback` | PKCE code / OTP hash | `web/src/app/auth/callback/route.ts:6-9` |
 | `POST /oauth/register`, `/oauth/token`, `/oauth/revoke` | open (DB rate limit), client auth, client auth | `web/src/app/oauth/register/route.ts:9-13,21`; `web/src/app/oauth/token/route.ts:8-11`; `web/src/app/oauth/revoke/route.ts:6-8` |
 | `GET /.well-known/oauth-authorization-server/[[...path]]`, `/.well-known/oauth-protected-resource/[[...path]]` | none | each `route.ts:5-7` |
-| `/api/n8n/*` | **ghost**: no route under `web/src/app/api/`; planned in `CLAUDE.md:81-82`, `docs/architecture/SYSTEM_ARCHITECTURE.md:237-239` | |
+| `/api/n8n/*` | **ghost**: no route under `web/src/app/api/`; planned in `CLAUDE.md:81-82`, `docs/architecture/SYSTEM_ARCHITECTURE.md:239-241` | |
 
 Server actions that write: `web/src/app/analysis/actions.ts:26,72,112,142` (`create_organization`, `ai_jobs`,
 `content_items`, `business_profiles`); `web/src/app/analysis/plan-actions.ts:13-16,24,59,104,152`
@@ -80,7 +80,7 @@ Which of these check a D-046 permission, and which one (matrix: [member-role](..
 `assignableRoles`, then `canManageRole` per target); `acceptInvitation` checks the invite, not a permission; the plans
 and OAuth-consent actions check none.
 
-Citations: `web/src/proxy.ts:11-22`, `web/src/lib/assistant/assistant.test.ts:216-242`
+Citations: `web/src/proxy.ts:11-22`, `web/src/lib/assistant/assistant.test.ts:233-259`
 
 ## Connected to
 

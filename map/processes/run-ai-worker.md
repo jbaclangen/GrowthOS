@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 consumes: ["[[ai-worker]]", "[[organization]]", "[[ai-usage]]"]
 produces: ["[[ai-usage]]"]
 ---
@@ -29,7 +29,7 @@ If features called OpenRouter directly, the budget, the zero-data-retention mode
 5. On error: insert `ai_usage` with `status: "error"`, the first model and a 200-char summary, then rethrow — `:130-134`; `summarizeError` `:147-150`.
 6. On success: insert `ai_usage` with model, tokens, cost, `status: "ok"`, `latency_ms` — `:109-118,136-143`.
 7. `runWorkerJson`: two attempts with `json: true`, `parseJsonLoose`, validate; a `length` finish retries with 1.5× `maxTokens` — `:163-184`; `:153-160`.
-8. Callers at this commit: `web/src/lib/pipeline/website-intel.ts:298,446,739,802`, `web/src/lib/onboarding/classify.ts:25`, `web/src/lib/onboarding/next-questions.ts:99` (all `runWorkerJson`); `web/src/app/api/assistant/route.ts:90` (`runWorker`). Only `router.ts` imports `chat` in `web/src` (`:2`); the dev script `web/scripts/compare-models.mts:9,15` calls it directly on purpose (no budget, no log); the health route imports `keyInfo` for a key check (`web/src/app/api/health/integrations/route.ts:2`).
+8. Callers at this commit: `web/src/lib/pipeline/website-intel.ts:299,447,740,803`, `web/src/lib/onboarding/classify.ts:25`, `web/src/lib/onboarding/next-questions.ts:99` (all `runWorkerJson`); `web/src/app/api/assistant/route.ts:90` (`runWorker`). Only `router.ts` imports `chat` in `web/src` (`:2`); the dev script `web/scripts/compare-models.mts:9,15` calls it directly on purpose (no budget, no log); the health route imports `keyInfo` for a key check (`web/src/app/api/health/integrations/route.ts:2`).
 
 ## Human gate
 

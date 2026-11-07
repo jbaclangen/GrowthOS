@@ -3,8 +3,8 @@ type: object
 cluster: onboarding
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: supabase/migrations/20261010155911_onboarding_discovery.sql
 ---
 
@@ -21,10 +21,10 @@ Pain points are stable catalog ids, never free text, so the pipeline can rank th
 - `kind` `pain_point`/`statement`; `pain_point_id` present exactly when `kind = 'pain_point'`; `source` `owner_selected`/`ai_suggested` (statements are always owner-selected); `confirmed`; `original_text` ≤ 1000; `ai_confidence`; `customer_priority` 1–3 — `supabase/migrations/20261010155911_onboarding_discovery.sql:29-48`.
 - Unique (session, pain point) and (session, priority) — `supabase/migrations/20261010155911_onboarding_discovery.sql:51-54`; composite FK to the session `:44-45`; RLS "members all" `:61-62`.
 - Writers: `saveDiscovery` replaces the session's rows and follow-ups, adding AI-suggested rows from `classifyStatement` — `web/src/lib/onboarding/service.ts:61-104` (model call `web/src/lib/onboarding/classify.ts:24-34`); `saveReview` clears and sets `confirmed` and `customer_priority` — `web/src/lib/onboarding/service.ts:122-154`.
-- Readers: `reviewCandidates` `web/src/lib/onboarding/service.ts:107-120`; `addNextRound` `web/src/lib/onboarding/next-questions.ts:57-60`; scoring `loadDiscovery` `web/src/lib/pipeline/website-intel.ts:389-394`; connect step `web/src/app/onboarding/[sessionId]/connect/page.tsx:54-58`; questions page `web/src/app/onboarding/[sessionId]/questions/page.tsx:45-49`; report `web/src/app/analysis/[id]/report-data.ts:143`.
+- Readers: `reviewCandidates` `web/src/lib/onboarding/service.ts:107-120`; `addNextRound` `web/src/lib/onboarding/next-questions.ts:57-60`; scoring `loadDiscovery` `web/src/lib/pipeline/website-intel.ts:390-395`; connect step `web/src/app/onboarding/[sessionId]/connect/page.tsx:54-58`; questions page `web/src/app/onboarding/[sessionId]/questions/page.tsx:45-49`; report `web/src/app/analysis/[id]/report-data.ts:143`.
 - Gate (D-046): `submitDiscovery` and `submitReview` need `profile.edit` (`web/src/app/onboarding/[sessionId]/actions.ts:21,43,66`); MCP `braventa_submit_discovery` and `braventa_confirm_priorities` carry it (`web/src/lib/mcp/tools.ts:247,288`). Matrix: [member-role](../tenancy/member-role.md).
 
-Citations: `supabase/migrations/20261010155911_onboarding_discovery.sql:29-54,61-62`; `web/src/lib/onboarding/service.ts:61-154`; `web/src/lib/onboarding/classify.ts:24-34`; `web/src/lib/pipeline/website-intel.ts:389-394`; `web/src/app/onboarding/[sessionId]/actions.ts:21,43,66`; `web/src/lib/mcp/tools.ts:247,268,288,310`
+Citations: `supabase/migrations/20261010155911_onboarding_discovery.sql:29-54,61-62`; `web/src/lib/onboarding/service.ts:61-154`; `web/src/lib/onboarding/classify.ts:24-34`; `web/src/lib/pipeline/website-intel.ts:390-395`; `web/src/app/onboarding/[sessionId]/actions.ts:21,43,66`; `web/src/lib/mcp/tools.ts:247,268,288,310`
 
 ## Connected to
 
@@ -45,7 +45,7 @@ Citations: `supabase/migrations/20261010155911_onboarding_discovery.sql:29-54,61
 | `/onboarding/[sessionId]` discovery form → `submitDiscovery` | writes |
 | `/onboarding/[sessionId]/review` → `submitReview` | writes `confirmed`, `customer_priority` |
 | MCP `braventa_submit_discovery`, `braventa_confirm_priorities` (`web/src/lib/mcp/tools.ts:268,310`) | writes |
-| Scoring step (`web/src/lib/pipeline/website-intel.ts:389-394`) | reads |
+| Scoring step (`web/src/lib/pipeline/website-intel.ts:390-395`) | reads |
 | Report "What you told us" (`web/src/app/analysis/[id]/report-data.ts:143`) | reads |
 
 ## See

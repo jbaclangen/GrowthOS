@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 consumes: ["[[content-item]]", "[[content-status]]", "[[membership]]", "[[member-role]]"]
 produces: ["[[content-item]]"]
 ---
@@ -31,7 +31,7 @@ The "members all" policy would otherwise let any member set `published`, name so
 7. Rule: status moves only among `needs_approval`/`approved`/`rejected` — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:40-44`.
 8. Rule: any status change needs `content.approve`; approving one's own draft needs `content.approve_own` — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:46-55` (`has_permission` `supabase/migrations/20261023092945_roles_and_permissions.sql:30-60`).
 9. Rule: `approved_by`/`approved_at` from `auth.uid()`/`now()` on becoming approved, kept while approved, cleared otherwise — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:57-68`.
-10. The enum has `scheduled` and `published` — `supabase/migrations/20261010061028_foundation.sql:177-178` — but no code path sets them; drafts arrive at `needs_approval` from the pipeline, with no author — `web/src/lib/pipeline/website-intel.ts:830`.
+10. The enum has `scheduled` and `published` — `supabase/migrations/20261010061028_foundation.sql:177-178` — but no code path sets them; drafts arrive at `needs_approval` from the pipeline, with no author — `web/src/lib/pipeline/website-intel.ts:831`.
 11. Ghost: scheduling and publishing are roadmap item 9 (Outstand behind a `Publisher`, in-app scheduler) — `docs/product/ROADMAP.md:87-92`. Nothing in the repo publishes.
 
 ## Human gate

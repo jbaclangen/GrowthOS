@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 consumes: ["[[ai-job]]", "[[job-step]]", "[[business-profile]]"]
 produces: ["[[ai-job]]", "[[job-step]]", "[[job-dispatch]]"]
 ---
@@ -29,11 +29,11 @@ Vercel Hobby stops an invocation at 300 s with no cleanup; a full analysis took 
 5. Database: `recordDispatch` inserts `job_dispatches` (23505 = already recorded) — `web/src/lib/pipeline/dispatch.ts:152-178`; table and checks `supabase/migrations/20261017110000_job_dispatches.sql:63-77`; insert trigger `job_dispatches_send` → `post_job_dispatch` → `net.http_post` — `:89-130`.
 6. Token: key from `JOB_CONTINUE_SECRET` else HKDF of `SUPABASE_SECRET_KEY` — `web/src/lib/pipeline/continue-token.ts:11-19`; sign `:21-23`; verify with `timingSafeEqual` `:25-30`.
 7. Route: `maxDuration = 300` — `web/src/app/api/jobs/continue/route.ts:13`; zod body `:15-19`; 400 / 500 / 401 — `:21-37`; `after(runAnalysisJob)` + 202 — `:38-39`.
-8. `runAnalysisJob` never throws — `web/src/lib/pipeline/website-intel.ts:875-881`. `runClaimedStep`: load, skip unless active, `canClaim` — `:883-895`; `claimStep` — `:898-901`, conditional UPDATE at `web/src/lib/pipeline/claims.ts:17-35`.
-9. Owner inputs read fresh each run — `web/src/lib/pipeline/website-intel.ts:903-917`; `runStep` dispatch by step — `:855-868`.
-10. Error path: `failed`, `output: {step}` — `web/src/lib/pipeline/website-intel.ts:922-934`.
-11. Final: `ownedUpdate` to `succeeded` — `web/src/lib/pipeline/website-intel.ts:937-943` (`ownedUpdate` at `web/src/lib/pipeline/claims.ts:39-48`); evidence job then `startPlanIfReady` — `:945-951`.
-12. Otherwise `advanceState`, one retry, fail on second error, then `handOff(next)` — `web/src/lib/pipeline/website-intel.ts:956-973`.
+8. `runAnalysisJob` never throws — `web/src/lib/pipeline/website-intel.ts:876-882`. `runClaimedStep`: load, skip unless active, `canClaim` — `:884-896`; `claimStep` — `:899-902`, conditional UPDATE at `web/src/lib/pipeline/claims.ts:17-35`.
+9. Owner inputs read fresh each run — `web/src/lib/pipeline/website-intel.ts:904-918`; `runStep` dispatch by step — `:856-869`.
+10. Error path: `failed`, `output: {step}` — `web/src/lib/pipeline/website-intel.ts:923-935`.
+11. Final: `ownedUpdate` to `succeeded` — `web/src/lib/pipeline/website-intel.ts:938-944` (`ownedUpdate` at `web/src/lib/pipeline/claims.ts:39-48`); evidence job then `startPlanIfReady` — `web/src/lib/pipeline/website-intel.ts:946-952`.
+12. Otherwise `advanceState`, one retry, fail on second error, then `handOff(next)` — `web/src/lib/pipeline/website-intel.ts:957-974`.
 
 ## Human gate
 

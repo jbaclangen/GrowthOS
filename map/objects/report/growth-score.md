@@ -3,8 +3,8 @@ type: object
 cluster: report
 universe: live
 status: verified
-verified: 2026-11-07
-commit: dde2f04
+verified: 2026-11-08
+commit: 00d230f
 entity: web/src/lib/modules/score.ts
 ---
 
@@ -22,23 +22,24 @@ Modules can be absent (no PageSpeed, no Search Console) or switched off per orga
 - Parts and weights: conversion 0.25 / 0.25 / 0.15 `score.ts:29-38` (module weight 0.65, `web/src/lib/modules/registry.ts:89-91`); website SEO from PageSpeed mobile 0.15 / 0.12 / 0.04 / 0.04 `score.ts:42-54` (0.35, `registry.ts:76-77`); search visibility 0.04 / 0.02 / 0.02 / 0.01 / 0.01 `score.ts:75-93` (0.1, `registry.ts:115-118`; no parts with `little_data` `score.ts:77`).
 - `scoreEvidence` fixes the summing order `score.ts:95-108`; `weightedMean` `:110-116`; `subScore` `:118-121`; `computeGrowthScore` over enabled modules with parts `:131-140`; `modulesUsed` for older reports `:142-147`.
 - Explained in words for readers without the report page: `growthScoreNote` over `modulesUsed`, module labels (`registry.ts:245-247`) plus `SCORE_SOURCES` — `score.ts:149-160`.
+- Blend wording on the report: `scoreBlend(modules, "short" | "long")` joins the `BLEND` phrases of the modules used only, fixed order measured / assessed / search data — `score.ts:162-174` (`BLEND` `:165-169`).
 - Enabled set: `enabledModuleIds` `registry.ts:257-266`; `enabledModules` `web/src/lib/modules/server.ts:9-19`.
-- Computed in the scoring step `web/src/lib/pipeline/website-intel.ts:625-633` (null result fails the step `:632`); not recomputed by the diagnosis update `:583-584`.
-- Stored: `business_profiles.growth_score` 0–100 and `analyzed_at` (`supabase/migrations/20261010061028_foundation.sql:90-91`, written `website-intel.ts:635-639`); `reports.data` `growth_score`, `score_version`, `score_modules`, `module_scores` `:650-655`; `module_runs.sub_score` (`supabase/migrations/20261023063253_feature_modules.sql:54-56`; `website-intel.ts:348`, `:687`, `:699`).
-- Shown: "Based on N modules" `web/src/app/analysis/[id]/infographic.tsx:203`; dashboard `web/src/app/dashboard/page.tsx:33`.
+- Computed in the scoring step `web/src/lib/pipeline/website-intel.ts:626-634` (null result fails the step `:633`); not recomputed by the diagnosis update `:584-585`.
+- Stored: `business_profiles.growth_score` 0–100 and `analyzed_at` (`supabase/migrations/20261010061028_foundation.sql:90-91`, written `website-intel.ts:636-640`); `reports.data` `growth_score`, `score_version`, `score_modules`, `module_scores` `:651-656`; `module_runs.sub_score` (`supabase/migrations/20261023063253_feature_modules.sql:54-56`; `website-intel.ts:349`, `:688`, `:700`).
+- Shown: score tile `web/src/app/analysis/[id]/infographic.tsx` — short blend `:169`, `:205-207`; "Based on N modules" `:208-210`; Search visibility row from `reports.data.module_scores.search_visibility` only when it counted `:170-171`, `:183`. Scores section `web/src/app/analysis/[id]/report-sections.tsx` — long blend "A blend of …" / "Based on … only" `:53-61`; Search visibility bar `:56`, `:77`. Dashboard `web/src/app/dashboard/page.tsx:33`.
 
-Citations: `web/src/lib/modules/score.ts:20-160`, `web/src/lib/modules/registry.ts:77`, `:91`, `:118`, `:245-247`, `:263-266`, `web/src/lib/pipeline/website-intel.ts:625-655`, `web/src/lib/mcp/tools.ts:446-448`.
+Citations: `web/src/lib/modules/score.ts:20-174`, `web/src/lib/modules/registry.ts:77`, `:91`, `:118`, `:245-247`, `:263-266`, `web/src/lib/pipeline/website-intel.ts:626-656`, `web/src/lib/mcp/tools.ts:446-448`.
 
 ## Connected to
 
 - **owns:** nothing.
 - **owned-by:** [business-profile](../onboarding/business-profile.md) (the column); [report](report.md) (`data`).
-- **joins:** [module](../modules/module-registry.md) (`scoreWeight`); [module-run](../modules/module-run.md) (`sub_score`); [search-console-snapshot](../integrations/search-console-snapshot.md) through `searchConsoleSummaryForPrompt` (`web/src/lib/integrations/search-console.ts:575-583`); PageSpeed mobile from the crawl evidence (`website-intel.ts:258`).
-- **looks-like-but-is-not:** `calculated_priority` on plan items (`web/src/lib/plan/priority.ts:37-41`); the model's assessed `scores`, an input kept in the report (`website-intel.ts:656`); `audit_findings.severity`.
+- **joins:** [module](../modules/module-registry.md) (`scoreWeight`); [module-run](../modules/module-run.md) (`sub_score`); [search-console-snapshot](../integrations/search-console-snapshot.md) through `searchConsoleSummaryForPrompt` (`web/src/lib/integrations/search-console.ts:575-583`); PageSpeed mobile from the crawl evidence (`website-intel.ts:259`).
+- **looks-like-but-is-not:** `calculated_priority` on plan items (`web/src/lib/plan/priority.ts:37-41`); the model's assessed `scores`, an input kept in the report (`website-intel.ts:657`); `audit_findings.severity`.
 
 ## If you change this
 
-- **Hits:** the `SCORE_VERSION` bump rule (`score.ts:16-19`; `CLAUDE.md` feature-module rule); `score.test.ts` equivalence (stated at `score.ts:14`); the scoring step `website-intel.ts:628-634`; `module_runs.details.score_version` (`:351`, `:690`, `:703`); `docs/architecture/FEATURE_MODULES.md` §4; the infographic label; the MCP status note, built by `growthScoreNote` (`score.ts:149-160`; a scored module without a `SCORE_SOURCES` entry is named by its label only, `:158`) and returned at `web/src/lib/mcp/tools.ts:448`.
+- **Hits:** the `SCORE_VERSION` bump rule (`score.ts:16-19`; `CLAUDE.md` feature-module rule); `score.test.ts` equivalence (stated at `score.ts:14`); the scoring step `website-intel.ts:629-634`; `module_runs.details.score_version` (`:352`, `:691`, `:704`); `docs/architecture/FEATURE_MODULES.md` §4; the report's blend wording (a scored module without a `BLEND` entry, `score.ts:165-169`, is left out of the tile and Scores section text, `:172`); the per-module bars (only Search visibility has one, `infographic.tsx:183`, `report-sections.tsx:77`); the assistant summary (only Search visibility's sub-score is passed, `web/src/lib/assistant/context.ts:180`, `web/src/lib/assistant/prompt.ts:137`); the help text naming parts and weights (`web/src/lib/assistant/knowledge.ts:158`, then `npm run help:doc`); the MCP status note, built by `growthScoreNote` (`score.ts:149-160`; a scored module without a `SCORE_SOURCES` entry is named by its label only, `:158`) and returned at `web/src/lib/mcp/tools.ts:448`.
 - **Does not hit:** diagnosis findings and plan items (model output); `audit_runs.audit_version` (a separate version, `web/src/lib/audit/checks.ts:12-13`).
 
 ## Surfaces
@@ -47,7 +48,7 @@ Citations: `web/src/lib/modules/score.ts:20-160`, `web/src/lib/modules/registry.
 |---|---|
 | Scoring step → [score-and-diagnose](../../processes/score-and-diagnose.md) | computes; writes |
 | `/analysis/[id]` and `/dashboard` | reads |
-| `POST /api/assistant` → [ask-braventa](../../processes/ask-braventa.md) | reads `business_profiles.growth_score` (`web/src/lib/assistant/context.ts:38`, `:79`, `:170`) |
+| `POST /api/assistant` → [ask-braventa](../../processes/ask-braventa.md) | reads `business_profiles.growth_score` (`web/src/lib/assistant/context.ts:40`, `:81`, `:176`) and `reports.data.score_modules` / `module_scores` through `modulesUsed` and `moduleLabel` (`:152-159`, `:177`, `:180`); prompt lines "Growth score based on" and Search visibility (`web/src/lib/assistant/prompt.ts:130`, `:137`) |
 | MCP `braventa_get_status` → [mcp-onboarding](../../processes/mcp-onboarding.md) | reads `reports.data.growth_score` (`web/src/lib/mcp/tools.ts:446`) with a note naming the modules the score used, `growthScoreNote(modulesUsed(report.data))`, null without `data` (`:448`) |
 
 ## See

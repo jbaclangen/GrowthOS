@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: web/package.json
 ---
 
@@ -53,7 +53,7 @@ Citations: `web/package.json:5-22`, `site/package.json:6-11`
 
 ## If you change this
 
-- **Hits:** `tokens.json` → run `tokens` and commit both CSS files; brand colours or the mark → rerun `build-brand-assets.mjs` and commit its outputs; `knowledge.ts` or any `page.tsx` → run `help:doc` (the test at `web/src/lib/assistant/assistant.test.ts:316-318` fails otherwise); a new card or `map/CLAUDE.md` edit → `map:sync`, then `map:check`; `tokens:check` is part of verify (`CLAUDE.md:62`).
+- **Hits:** `tokens.json` → run `tokens` and commit both CSS files; brand colours or the mark → rerun `build-brand-assets.mjs` and commit its outputs; `knowledge.ts` or any `page.tsx` → run `help:doc` (the test at `web/src/lib/assistant/assistant.test.ts:333-335` fails otherwise); a new card or `map/CLAUDE.md` edit → `map:sync`, then `map:check`; `tokens:check` is part of verify (`CLAUDE.md:62`).
 - **Does not hit:** the database (only `pipeline:local` writes, into its test organization).
 
 ## Surfaces

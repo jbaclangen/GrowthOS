@@ -3,8 +3,8 @@ type: object
 cluster: integrations
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: supabase/migrations/20261011161133_search_console.sql
 ---
 
@@ -25,7 +25,7 @@ The refresh token is the only secret, so it sits in one column clients can never
 - `available_properties`, `selected_property`, `last_error`, `last_synced_at`, `last_attempted_at` (10-minute guard) — `search_console.sql:18-25`
 - RLS "members read"; column grants exclude the token — `:38-45`
 - Writers (service client): upsert `web/src/lib/integrations/search-console.ts:388-403`; sync `:427-428`; property choice `:518-522`; disconnect `:544-556`
-- Readers (user client, non-secret columns): `web/src/components/connections/search-console-card.tsx:59-64`; Ask Braventa `web/src/lib/assistant/context.ts:54-59` (`status`, `selected_property`)
+- Readers (user client, non-secret columns): `web/src/components/connections/search-console-card.tsx:59-64`; Ask Braventa `web/src/lib/assistant/context.ts:56-61` (`status`, `selected_property`)
 
 Citations: `supabase/migrations/20261011161133_search_console.sql:10-45`, `web/src/lib/integrations/search-console.ts:367-405`
 
@@ -38,7 +38,7 @@ Citations: `supabase/migrations/20261011161133_search_console.sql:10-45`, `web/s
 
 ## If you change this
 
-- **Hits:** [connect-search-console](../../processes/connect-search-console.md), [sync-search-console](../../processes/sync-search-console.md), the Settings and connect-step cards, `docs/architecture/SEARCH_CONSOLE_SETUP.md`
+- **Hits:** [connect-search-console](../../processes/connect-search-console.md), [sync-search-console](../../processes/sync-search-console.md), the Settings and connect-step cards (the Settings card says the data feeds the diagnosis and the growth score, `web/src/components/connections/search-console-card.tsx:162-164`), `docs/architecture/SEARCH_CONSOLE_SETUP.md`
 - **Does not hit:** [mcp-access-key](../access/mcp-access-key.md), the OAuth tables, the job step machine
 
 ## Surfaces

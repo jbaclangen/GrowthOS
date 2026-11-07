@@ -3,8 +3,8 @@ type: object
 cluster: onboarding
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -20,17 +20,17 @@ The foundation schema gave brand voice its own table beside the business profile
 
 - Columns: `business_profile_id` (FK, cascade), `voice`, `tone_rules[]`, `messaging_pillars[]`, `visual_guidelines` jsonb, timestamps — `supabase/migrations/20261010061028_foundation.sql:97-107`; index on the profile FK — `supabase/migrations/20261010061126_advisor_fixes.sql:23`.
 - RLS "members all" — `supabase/migrations/20261010061028_foundation.sql:301-307`; `touch_updated_at` trigger — `:337`.
-- The one writer: the profiling step inserts `voice` and `tone_rules` from the business analyst's output — `web/src/lib/pipeline/website-intel.ts:324-329`. `messaging_pillars` and `visual_guidelines` are never set.
+- The one writer: the profiling step inserts `voice` and `tone_rules` from the business analyst's output — `web/src/lib/pipeline/website-intel.ts:325-330`. `messaging_pillars` and `visual_guidelines` are never set.
 - No reader in `web/src` (grep at this commit); no uniqueness, so re-runs append — `docs/architecture/DATA_MODEL.md:200`.
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:97-107,301-307,337`; `supabase/migrations/20261010061126_advisor_fixes.sql:23`; `web/src/lib/pipeline/website-intel.ts:319,324-329`; `web/src/lib/pipeline/prompts.ts:373`; `docs/architecture/DATA_MODEL.md:82,200`
+Citations: `supabase/migrations/20261010061028_foundation.sql:97-107,301-307,337`; `supabase/migrations/20261010061126_advisor_fixes.sql:23`; `web/src/lib/pipeline/website-intel.ts:320,325-330`; `web/src/lib/pipeline/prompts.ts:373`; `docs/architecture/DATA_MODEL.md:82,200`
 
 ## Connected to
 
 - **owns:** nothing
 - **owned-by:** [business-profile](business-profile.md), [organization](../tenancy/organization.md)
 - **joins:** [job-step](../pipeline/job-step.md) `profiling` (the step that writes it)
-- **looks-like-but-is-not:** `business_profiles.intelligence.brand_voice` — the copy the prompts read (`web/src/lib/pipeline/website-intel.ts:319,327-328`)
+- **looks-like-but-is-not:** `business_profiles.intelligence.brand_voice` — the copy the prompts read (`web/src/lib/pipeline/website-intel.ts:320,328-329`)
 
 ## If you change this
 
@@ -41,7 +41,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:97-107,301-307,337
 
 | Surface | Role |
 |---|---|
-| Profiling step (`web/src/lib/pipeline/website-intel.ts:324-329`) | writes |
+| Profiling step (`web/src/lib/pipeline/website-intel.ts:325-330`) | writes |
 | App pages, routes, assistant | none |
 
 ## See

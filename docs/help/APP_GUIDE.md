@@ -1,7 +1,7 @@
 <!-- GENERATED from web/src/lib/assistant/knowledge.ts by `npm run help:doc` (in web/). Do not edit by hand. -->
 # Braventa app guide
 
-**Audience:** business owners using app.braventa.io. **Version:** 2026-11-07. The in-app assistant
+**Audience:** business owners using app.braventa.io. **Version:** 2026-11-08. The in-app assistant
 ("Ask Braventa") answers from the same content. Links are app routes (relative to app.braventa.io).
 
 - [What Braventa is](#about)

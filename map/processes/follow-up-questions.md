@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 consumes: ["[[onboarding-session]]", "[[onboarding-response]]", "[[business-profile]]", "[[connect-step]]", "[[ai-worker]]", "[[member-role]]"]
 produces: ["[[onboarding-follow-up]]", "[[onboarding-session]]", "[[ai-job]]", "[[ai-usage]]"]
 ---
@@ -32,7 +32,7 @@ The plan needs both the owner's answers and the crawl, and they finish in either
 8. `completeSession` sets `completed` and `startPlanAfterResponse` runs `startPlanIfReady` + `handOff` in `after()` — `web/src/lib/onboarding/service.ts:44-50`, `:33-42`.
 9. `startPlanIfReady` guards: no `plan_job_id`, `evidence_job_id` set — `web/src/lib/onboarding/orchestrate.ts:18`; status `completed`/`skipped` — `:19`; evidence job `succeeded` — `:21-27`.
 10. Insert `website_plan` job at `initialState` — `web/src/lib/onboarding/orchestrate.ts:29-47`; conditional claim `.is('plan_job_id', null)`, duplicate job deleted — `:50-59`.
-11. The other caller: the evidence job's final step — `web/src/lib/pipeline/website-intel.ts:945-951`.
+11. The other caller: the evidence job's final step — `web/src/lib/pipeline/website-intel.ts:946-952`.
 
 ## Human gate
 

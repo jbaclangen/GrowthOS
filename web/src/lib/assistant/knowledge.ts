@@ -10,7 +10,7 @@ import { ASSISTANT_LIMITS } from "./access";
 // can't drift. Keep every sentence true of the current code: never describe a planned feature as live.
 // Links are relative app routes; the assistant repeats them as markdown links.
 
-export const KNOWLEDGE_VERSION = "2026-11-07";
+export const KNOWLEDGE_VERSION = "2026-11-08";
 
 // The tools on "Connect your tools" that can't be connected yet, from the same catalog the page uses.
 const COMING_SOON_TOOLS = TOOLS.filter((t) => t.status === "coming_soon").map((t) => t.name);

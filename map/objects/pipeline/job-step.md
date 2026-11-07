@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-08
+commit: 00d230f
 entity: web/src/lib/pipeline/steps.ts
 ---
 
@@ -22,11 +22,11 @@ Vercel Hobby stops an invocation at 300 s with no cleanup, so each step claims i
 - `JobState` = `step`, `step_state` (`pending` | `running`), `step_started_at`, `claim`, plus step artifacts: `:44-53`. `initialState` `:55-57`, `readState` `:59-69`, `canClaim` `:71-75`, `advanceState` `:77-80`.
 - `STALE_JOB_MS` 10 min `:82-85`; `staleFilter` `:87-91`.
 - Conditional writes: `claimStep` `web/src/lib/pipeline/claims.ts:14-35`, `ownedUpdate` `:37-48`, `failPendingStep` `:50-65`, `markResent` `:67-83`.
-- Step bodies: `runStep` `web/src/lib/pipeline/website-intel.ts:855-868`; `crawlStep` `:255`, `profileStep` `:293`, `scoreStep` `:605` (`reviseStep` `:598` for `diagnosis_update`), `planStep` `:733`, `writeStep` `:787`. Progress labels the report shows `:70-77`.
-- Run loop `runAnalysisJob` / `runClaimedStep` `:875-974`: claim `:895-901`, failure `:924-933`, final `:937-953`, advance and hand on `:956-973`.
-- Artifacts handed between steps: `:289`, `:357`, `:713-721`, `:783`.
+- Step bodies: `runStep` `web/src/lib/pipeline/website-intel.ts:856-869`; `crawlStep` `:256`, `profileStep` `:294`, `scoreStep` `:606` (`reviseStep` `:599` for `diagnosis_update`), `planStep` `:734`, `writeStep` `:788`. Progress labels the report shows `:70-77`.
+- Run loop `runAnalysisJob` / `runClaimedStep` `:876-975`: claim `:896-902`, failure `:925-934`, final `:938-954`, advance and hand on `:957-974`.
+- Artifacts handed between steps: `:290`, `:358`, `:714-722`, `:784`.
 
-Citations: `web/src/lib/pipeline/steps.ts:9-91`, `web/src/lib/pipeline/claims.ts:17-83`, `web/src/lib/pipeline/website-intel.ts:855-974`.
+Citations: `web/src/lib/pipeline/steps.ts:9-91`, `web/src/lib/pipeline/claims.ts:17-83`, `web/src/lib/pipeline/website-intel.ts:856-975`.
 
 ## Connected to
 
