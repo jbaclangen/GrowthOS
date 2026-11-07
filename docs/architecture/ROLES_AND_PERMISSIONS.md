@@ -167,7 +167,7 @@ can still create a key, which creates the business with them as owner (D-036).
 Built 2026-11-07 (founder choices that day: invite by copied link, block at the seat limit). Code:
 `web/src/lib/team/invitations.ts`, `seats.ts`, `team-server.ts`, `canManageRole()` in `roles.ts`,
 `web/src/app/settings/team-*.tsx` and `team-actions.ts`, `web/src/app/invite/[token]/`. Migration
-`20261107130000_team_invitations.sql`.
+`20261107154953_team_invitations.sql`.
 
 **Who manages whom.** `team.manage` (owner, admin) opens Settings → Team's controls. A manager may invite, re-role or
 remove only people whose role holds strictly fewer permissions than their own, and give only such a role
