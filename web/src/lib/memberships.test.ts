@@ -36,11 +36,13 @@ describe("memberships", () => {
     expect(await firstOrganization(db, "someone-else")).toBeNull();
   });
 
-  it("throw when the first-business read fails, so it isn't taken for 'no business'", async () => {
+  it("throw when a first-business read fails, so it isn't taken for 'no business'", async () => {
     const failing = { maybeSingle: async () => ({ data: null, error: { message: "connection reset" } }) };
     const chain = { select: () => chain, eq: () => chain, order: () => chain, limit: () => failing };
     const db = { from: () => chain } as unknown as Parameters<typeof firstOrganization>[0];
     await expect(firstOrganization(db, "member-2")).rejects.toThrow("connection reset");
+    // currentMembership too: a caller that took null for "no business" would create a second one.
+    await expect(currentMembership(db, "member-2")).rejects.toThrow("connection reset");
   });
 
   it("list each business once, and only the user's own", async () => {
