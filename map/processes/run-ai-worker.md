@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-07
-commit: dde2f04
+commit: 5757423
 consumes: ["[[ai-worker]]", "[[organization]]", "[[ai-usage]]"]
 produces: ["[[ai-usage]]"]
 ---
@@ -18,7 +18,7 @@ Input: `runWorker({ organizationId, worker, messages, jobId?, json?, maxTokens?,
 
 ## Why this shape
 
-If features called OpenRouter directly, the budget, the zero-data-retention model list and the usage log would each have several homes; CLAUDE.md makes the router the only caller (`CLAUDE.md:83-84`). The budget check fails closed, so an unreadable budget never means unlimited spend (`web/src/lib/ai/router.ts:94-102`). Failed calls are logged with cost 0, so failure rates are visible per worker and model (`:130-134`).
+If features called OpenRouter directly, the budget, the zero-data-retention model list and the usage log would each have several homes; CLAUDE.md makes the router the only caller (`CLAUDE.md:84-85`). The budget check fails closed, so an unreadable budget never means unlimited spend (`web/src/lib/ai/router.ts:94-102`). Failed calls are logged with cost 0, so failure rates are visible per worker and model (`:130-134`).
 
 ## Steps
 

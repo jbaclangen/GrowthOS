@@ -4,7 +4,7 @@ cluster: onboarding
 universe: live
 status: verified
 verified: 2026-11-07
-commit: dde2f04
+commit: 5757423
 entity: supabase/migrations/20261010163029_onboarding_follow_ups.sql
 ---
 
@@ -35,7 +35,7 @@ Citations: `supabase/migrations/20261010163029_onboarding_follow_ups.sql:2,8-33`
 
 ## If you change this
 
-- **Hits:** `followUpStep` (pending count decides connect vs questions, `web/src/lib/onboarding/steps.ts:31-37`), `continueAfterConnect`, the questions page, `loadDiscovery`, MCP `braventa_get_follow_up_questions`/`braventa_answer_follow_up_questions`, `docs/architecture/DATA_MODEL.md:93` (which says rounds 1–2).
+- **Hits:** `followUpStep` (pending count decides connect vs questions, `web/src/lib/onboarding/steps.ts:31-37`), `continueAfterConnect`, the questions page, `loadDiscovery`, MCP `braventa_get_follow_up_questions`/`braventa_answer_follow_up_questions`, `docs/architecture/DATA_MODEL.md:96` (which says rounds 1–2).
 - **Does not hit:** [onboarding-response](onboarding-response.md) rows — answers never write back to responses.
 
 ## Surfaces

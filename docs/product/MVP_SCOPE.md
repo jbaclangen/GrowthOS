@@ -58,7 +58,7 @@ All paths relative to the repository root.
 | Tiers and trial | 14-day Pro trial from organization creation, then Basic; plan chip in the header; `/plans` compares Basic, Pro and Premium with Live / Coming soon labels and a "Talk to us" request; owners can't change plan, trial or AI budget (D-030) | `web/src/lib/plans/`, `web/src/app/plans/`, `upgrade_requests` |
 | AI routing, budget, usage log | Logical workers mapped to models; free/paid modes; monthly budget check; per-call usage log | `web/src/lib/ai/router.ts`, `ai_usage`, `ai_spend_mtd` |
 | Tenant isolation | RLS on every tenant table via `is_member()` | both files in `supabase/migrations/` |
-| Roles and permissions foundation | Eight fixed roles (`member_role`) with a fixed permission matrix, checked in server actions with `can()` and in the database with `has_permission()`; the owner-only gates (connect tools, service keys) and the new write gates (run analysis, edit answers, correct the diagnosis, update plan items, approve drafts) go through it; the MCP connection acts with the key's user's role; Settings shows the user's role. No invitations, role changes or seat limits (D-046, out of the MVP) | `web/src/lib/team/roles.ts`, `supabase/migrations/20261023092945_roles_and_permissions.sql`, [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) |
+| Roles and permissions foundation | Eight fixed roles (`member_role`) with a fixed permission matrix, checked in server actions with `can()` and in the database with `has_permission()`; the owner-only gates (connect tools, service keys) and the new write gates (run analysis, edit answers, correct the diagnosis, update plan items, approve drafts) go through it; the MCP connection acts with the key's user's role; Settings shows the user's role. Settings → Team (2026-11-07): owners and admins invite by a copied one-time link, change or remove people below their own role, and seat limits per plan refuse an invite when the seats are used; no invite emails (Q-010), no buying extra seats, no client approvers | `web/src/lib/team/roles.ts`, `supabase/migrations/20261023092945_roles_and_permissions.sql`, [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) |
 | Integration health check (developer tool) | Checks Supabase, OpenRouter, n8n, PageSpeed; disabled in production | `web/src/app/api/health/integrations/route.ts` |
 
 **Observed in real use (2026-10-10):** 2 analysis runs — 1 succeeded in 129 s with 5 drafts saved; 1
@@ -137,9 +137,9 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
   [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9).
 - Billing and Stripe (prices decided in D-039, not built; Q-010). The trial clock and tier checks are in (D-030);
   paying is not.
-- Team invitations, a roles UI, seat limits, organization switching, client portals for agencies. The roles and
-  permissions foundation is built (D-046, 2026-10-23: the eight roles, the matrix, `has_permission()`); invitations,
-  seats, client approvers and account types stay for after the MVP (D-045, D-046, D-047).
+- Invite emails, buying extra seats, organization switching, client portals for agencies. The roles and permissions
+  foundation (D-046, 2026-10-23) and invitations by link, seat limits and role changes (2026-11-07) are built; client
+  approvers and account types stay for after the MVP (D-045, D-046, D-047).
 - Long-form content (blogs, email campaigns, video scripts), repurposing, image generation.
 - Automated QA reviewer step (manual approval is the MVP quality gate).
 - Knowledge-base embeddings and document upload (the read-only in-app assistant shipped without them — D-043).

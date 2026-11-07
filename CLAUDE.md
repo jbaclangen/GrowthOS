@@ -41,7 +41,8 @@ decision. Never describe the product as doing something the code doesn't do, wha
   trial organizations) in Settings or on the optional "Connect your tools" onboarding step (other tools there are
   Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon); eight fixed member roles
   with a permission matrix (D-046 foundation: owner-only connect and service keys, no one approves their own draft
-  except the owner; Settings shows the role; no invitations, role changes or seats). No CRM, publishing,
+  except the owner; Settings → Team: invite by copied link, change or remove roles below your own, seat limits per plan; no invite
+  emails, no buying seats). No CRM, publishing,
   email sending, automation, analytics, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
 - Research before building (D-052): a change that adds an integration, a paid vendor, a table, a price or a public claim

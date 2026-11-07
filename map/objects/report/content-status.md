@@ -3,8 +3,8 @@ type: object
 cluster: report
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -14,16 +14,16 @@ The Postgres enum on `content_items.status`: eight values, of which the code set
 
 ## Why this shape
 
-The enum was cut for a full brief → draft → QA → approval → schedule → publish lifecycle before the MVP narrowed to drafts and approval, so half of it is reserved: `supabase/migrations/20261010061028_foundation.sql:177-178`, `docs/architecture/DATA_MODEL.md:60`.
+The enum was cut for a full brief → draft → QA → approval → schedule → publish lifecycle before the MVP narrowed to drafts and approval, so half of it is reserved: `supabase/migrations/20261010061028_foundation.sql:177-178`, `docs/architecture/DATA_MODEL.md:61`.
 
 ## Shape
 
 - Enum `supabase/migrations/20261010061028_foundation.sql:177-178`: `brief`, `draft`, `in_qa`, `needs_approval`, `approved`, `scheduled`, `published`, `rejected`. Column default `brief` `:192`.
 - Set in code: `brief` `web/src/lib/pipeline/website-intel.ts:776`; `needs_approval` `:830`; `approved`, `rejected`, `needs_approval` `web/src/app/analysis/actions.ts:112`.
 - The guard trigger allows `authenticated` inserts as `brief` or `draft` and moves only among `needs_approval`, `approved`, `rejected`: current function body `supabase/migrations/20261023224450_content_guard_pins_organization.sql:22-30`, `:40-44` (it replaces the bodies in `20261010121043_content_approval_guard.sql` and `20261023092945_roles_and_permissions.sql:69`); `scheduled` and `published` are named as blocked in `supabase/migrations/20261010121043_content_approval_guard.sql:8-13`.
-- Those moves are gated by `content.approve` / `content.approve_own` (D-046): `content_guard_pins_organization.sql:46-55`, `actions.ts:117-123`; the rule's home is [content-item](content-item.md) and `docs/architecture/ROLES_AND_PERMISSIONS.md:113-131`.
+- Those moves are gated by `content.approve` / `content.approve_own` (D-046): `content_guard_pins_organization.sql:46-55`, `actions.ts:117-123`; the rule's home is [content-item](content-item.md) and `docs/architecture/ROLES_AND_PERMISSIONS.md:114-132`.
 - Labels exist for four values only: `web/src/app/analysis/[id]/report-sections.tsx:299-304`; tones `:307-310`.
-- Leftover, never set anywhere in `web/src`: `draft`, `in_qa`, `scheduled`, `published` (`docs/architecture/DATA_MODEL.md:60`, `docs/product/MVP_SCOPE.md:83-84`). Their planned uses are ghost: a QA gate (CS-9) `docs/product/ROADMAP.md:75`; the planner, scheduler and publishing (CS-12) `docs/product/ROADMAP.md:86-91`.
+- Leftover, never set anywhere in `web/src`: `draft`, `in_qa`, `scheduled`, `published` (`docs/architecture/DATA_MODEL.md:61`, `docs/product/MVP_SCOPE.md:83-84`). Their planned uses are ghost: a QA gate (CS-9) `docs/product/ROADMAP.md:75`; the planner, scheduler and publishing (CS-12) `docs/product/ROADMAP.md:87-92`.
 
 Citations: `supabase/migrations/20261010061028_foundation.sql:177-178`, `supabase/migrations/20261023224450_content_guard_pins_organization.sql:22-55`, `web/src/app/analysis/actions.ts:112-123`, `web/src/lib/pipeline/website-intel.ts:776`, `:830`.
 
@@ -36,7 +36,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:177-178`, `supabas
 
 ## If you change this
 
-- **Hits:** the guard's value lists in its current body (`content_guard_pins_organization.sql:23`, `:41-42`); the `setContentStatus` union (`actions.ts:112`), the `approvalAllowed` union (`web/src/lib/team/roles.ts:130`) and `ContentActions` (`web/src/app/analysis/[id]/controls.tsx:36`, `:44`); `STATUS_LABEL` / `STATUS_TONE`; `docs/architecture/DATA_MODEL.md:60`.
+- **Hits:** the guard's value lists in its current body (`content_guard_pins_organization.sql:23`, `:41-42`); the `setContentStatus` union (`actions.ts:112`), the `approvalAllowed` union (`web/src/lib/team/roles.ts:148`) and `ContentActions` (`web/src/app/analysis/[id]/controls.tsx:36`, `:44`); `STATUS_LABEL` / `STATUS_TONE`; `docs/architecture/DATA_MODEL.md:61`.
 - **Does not hit:** `content_calendars`; `job_status`.
 
 ## Surfaces
@@ -50,4 +50,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:177-178`, `supabas
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:60`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:61`)

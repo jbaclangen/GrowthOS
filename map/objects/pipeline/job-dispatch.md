@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: supabase/migrations/20261017110000_job_dispatches.sql
 ---
 
@@ -34,7 +34,7 @@ Citations: `supabase/migrations/20261017110000_job_dispatches.sql:55-340`, `web/
 - **owns:** nothing.
 - **owned-by:** [ai-job](ai-job.md) (cascade `:76`); [organization](../tenancy/organization.md) (`:65`).
 - **joins:** [job-step](job-step.md) (the sweeper acts only on the pending step `:172-174`); `net._http_response` and `net.http_request_queue` (`:149`, `:296`, `:320`); [env](../config/env-config.md) (`JOB_DISPATCH`, `JOB_CONTINUE_SECRET`, `NEXT_PUBLIC_APP_URL`).
-- **looks-like-but-is-not:** `ai_jobs.n8n_execution_id` (a planned n8n execution, `docs/product/ROADMAP.md:97-98`); the report page's 4 s poll (`auto-refresh.tsx:7-12`), which re-sends but never posts a token itself.
+- **looks-like-but-is-not:** `ai_jobs.n8n_execution_id` (a planned n8n execution, `docs/product/ROADMAP.md:98-99`); the report page's 4 s poll (`auto-refresh.tsx:7-12`), which re-sends but never posts a token itself.
 
 ## If you change this
 
@@ -54,4 +54,4 @@ Citations: `supabase/migrations/20261017110000_job_dispatches.sql:55-340`, `web/
 ## See
 
 - Source: `supabase/migrations/20261017110000_job_dispatches.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (rows at `:110`, `:140-145`)
+- As built: `docs/architecture/DATA_MODEL.md` (rows at `:113`, `:143-148`)

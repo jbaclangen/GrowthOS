@@ -19,13 +19,16 @@ async function LoginContent({ searchParams }: { searchParams: PageProps<"/login"
   const raw = (await searchParams).next;
   const next = typeof raw === "string" ? safeNext(raw, "") || null : null;
   const connecting = next?.startsWith("/oauth/authorize") ?? false;
+  const invited = next?.startsWith("/invite/") ?? false;
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Welcome to Braventa</h1>
       <p className="mt-2 text-sm text-muted">
         {connecting
           ? "Sign in to connect your AI assistant to Braventa. You'll choose the business and approve the access next."
-          : "Enter a website and get a growth score, five opportunities, a 30-day plan and your first content."}
+          : invited
+            ? "You've been invited to join a business on Braventa. Sign in, or create an account, with the email address the invite was sent to."
+            : "Enter a website and get a growth score, five opportunities, a 30-day plan and your first content."}
       </p>
       <AuthForm next={next} />
     </>

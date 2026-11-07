@@ -4,7 +4,7 @@ cluster: onboarding
 universe: live
 status: verified
 verified: 2026-11-07
-commit: dde2f04
+commit: 5757423
 entity: supabase/migrations/20261010155911_onboarding_discovery.sql
 ---
 
@@ -14,7 +14,7 @@ One AI-assisted onboarding run per business profile: its status says which setup
 
 ## Why this shape
 
-Discovery runs alongside the website analysis, so the session must know both jobs and the plan may start only when the evidence job has succeeded and the owner has finished or skipped discovery (`web/src/lib/onboarding/orchestrate.ts:7-10`, D-028). The owner can leave and come back, so routing is by status (`web/src/lib/onboarding/steps.ts:1`). The connect step got no status of its own (`docs/decisions/DECISION_LOG.md:731-736`, D-054).
+Discovery runs alongside the website analysis, so the session must know both jobs and the plan may start only when the evidence job has succeeded and the owner has finished or skipped discovery (`web/src/lib/onboarding/orchestrate.ts:7-10`, D-028). The owner can leave and come back, so routing is by status (`web/src/lib/onboarding/steps.ts:1`). The connect step got no status of its own (`docs/decisions/DECISION_LOG.md:732-737`, D-054).
 
 ## Shape
 

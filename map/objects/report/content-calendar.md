@@ -3,8 +3,8 @@ type: object
 cluster: report
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -48,4 +48,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:165-175`, `web/src
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:83`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:86`)
