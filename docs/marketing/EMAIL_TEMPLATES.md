@@ -2,7 +2,7 @@
 
 This document holds the reusable email templates for Braventa, split by consent class: transactional/account email (sent to every account holder as part of the service, no marketing content) and marketing/lifecycle email (sent only to people who have explicitly opted in, always with an unsubscribe link), plus support and sales templates sent one-to-one. Use it when building email flows, configuring the email provider, or writing a one-off message. Voice and claim rules come from [`../brand/VOICE_AND_MESSAGING.md`](../brand/VOICE_AND_MESSAGING.md); the consent rule is D-014 and approval-by-default is D-013 in [`../decisions/DECISION_LOG.md`](../decisions/DECISION_LOG.md); feature status comes from [`../product/MVP_SCOPE.md`](../product/MVP_SCOPE.md). Visual treatment of HTML email follows [`../brand/VISUAL_IDENTITY.md`](../brand/VISUAL_IDENTITY.md).
 
-**Status / last reviewed: 2026-10-10** · Templates ready; most cannot be sent yet (see §2)
+**Status / last reviewed: 2026-11-08** · Templates ready; most cannot be sent yet (see §2). Report wording describes the diagnosis and one growth plan (D-028/D-029), not the earlier five opportunities.
 
 ---
 
@@ -18,7 +18,8 @@ This document holds the reusable email templates for Braventa, split by consent 
 | `{{analysis_url}}` | Link to `/analysis/{id}` | https://app.braventa.io/analysis/… |
 | `{{dashboard_url}}` | Link to `/dashboard` | https://app.braventa.io/dashboard |
 | `{{growth_score}}` | Overall growth score, 0–100 | 62 |
-| `{{top_opportunity}}` | Title of opportunity #1 | Add a tap-to-call button on mobile |
+| `{{top_plan_item}}` | Title of the top open action in the growth plan (proposed or accepted, in plan order): the one the report's **Do this first** card shows | Add a tap-to-call button on mobile |
+| `{{top_plan_first_step}}` | That action's first step (`growth_plan_items.first_action`), shown as "First step" on the report | Put your phone number as a tap-to-call link at the top of every mobile page |
 | `{{draft_count}}` | Number of drafts awaiting approval | 5 |
 | `{{error_reason}}` | Plain-language failure reason (never a raw error) | the AI service was busy |
 | `{{confirm_url}}` | Email confirmation link (Supabase auth) | — |
@@ -36,7 +37,7 @@ This document holds the reusable email templates for Braventa, split by consent 
 | `{{company_address}}` | Postal address (mandatory on marketing in many jurisdictions) | — |
 | `{{year}}` | Current year | 2026 |
 
-Fallback rule: if a placeholder has no value, rewrite the sentence rather than leaving a gap (for example, omit the score line if `{{growth_score}}` is empty).
+Fallback rule: if a placeholder has no value, rewrite the sentence rather than leaving a gap (for example, omit the score line if `{{growth_score}}` is empty, or omit the plan line if every action in the plan is done or dismissed and `{{top_plan_item}}` is empty).
 
 ## 2. Sending status today
 
@@ -108,17 +109,18 @@ Consent class for all templates in this section: **Transactional** — sent rega
 - **Trigger:** `ai_jobs` row for an analysis reaches `done`.
 - **Subject:** Your growth assessment for {{business_name}} is ready
 - **Alternative:** {{business_name}}: growth score {{growth_score}}
-- **Preheader:** Your top opportunity, a 30-day plan, and {{draft_count}} drafts to review.
+- **Preheader:** Your diagnosis, a growth plan, and {{draft_count}} drafts to review.
 - **Body:**
   > Hi {{first_name}},
   >
   > Braventa has finished analyzing {{website_url}}.
   >
   > - **Growth score:** {{growth_score}} / 100
-  > - **Top opportunity:** {{top_opportunity}}
+  > - **Diagnosis:** what's holding {{business_name}} back, for you to confirm or correct
+  > - **Growth plan:** starts with {{top_plan_item}}
   > - **Ready for you:** a 30-day content plan and {{draft_count}} drafted posts
   >
-  > The drafts are waiting for your approval. Nothing is published automatically.
+  > Start with the diagnosis: confirm what's right and correct what isn't, and Braventa updates the plan to match. The drafts are waiting for your approval. Nothing is published automatically.
   >
   > **[See your results]({{analysis_url}})**
 - **CTA:** See your results
@@ -210,7 +212,7 @@ Consent class for all templates in this section: **Marketing** — requires reco
   >
   > Welcome to Braventa. You'll hear from us occasionally with product updates and practical growth ideas for service businesses.
   >
-  > If you haven't yet, start with your website. In about four minutes Braventa builds a profile of your business, gives you a growth score, finds your top five opportunities, and drafts your first posts for approval.
+  > If you haven't yet, start with your website. Braventa reads it, asks what's holding your business back, and gives you a growth score with a diagnosis you confirm or correct. It turns that into one prioritized growth plan, plans 30 days of content, and drafts your first five posts for you to approve.
   >
   > **[Analyze your website]({{app_url}}/onboarding)**
 - **CTA:** Analyze your website
@@ -274,24 +276,27 @@ Consent class for all templates in this section: **Marketing** — requires reco
 - **Trigger:** Opted-in user, account 3 days old, no analysis.
 - **Subject:** Your first growth assessment takes 4 minutes
 - **Alternative:** Start with your website
-- **Preheader:** One URL. Five priorities.
+- **Preheader:** One website. One growth plan.
 - **Body:**
-  > Hi {{first_name}}, you haven't run your first analysis yet. Enter your website and Braventa will show you the five opportunities worth your time, plus a 30-day plan.
+  > Hi {{first_name}}, you haven't run your first analysis yet. Enter your website and tell Braventa what's holding the business back. You'll get a diagnosis you confirm or correct, one prioritized growth plan with a first step for each action, and a 30-day content plan.
   >
   > **[Analyze your website]({{app_url}}/onboarding)**
 - **CTA:** Analyze your website
 
 #### Nudge B — Analysis done, nothing reviewed
-- **Purpose:** Encourage acting on the first opportunity (distinct from the transactional draft reminder: this one is educational).
-- **Trigger:** Opted-in user, analysis complete 7 days ago, no approvals.
+- **Purpose:** Encourage acting on the first action in the growth plan (distinct from the transactional draft reminder: this one is educational).
+- **Trigger:** Opted-in user, analysis complete 7 days ago, no draft approved and no plan action accepted or marked done.
 - **Subject:** One thing to do for {{business_name}} this week
 - **Alternative:** Your first step is already written
-- **Preheader:** {{top_opportunity}}
+- **Preheader:** {{top_plan_item}}
 - **Body:**
-  > Hi {{first_name}}, the top opportunity Braventa found for {{business_name}} was: **{{top_opportunity}}**. The first step is in your results.
+  > Hi {{first_name}}, the first action in the growth plan Braventa built for {{business_name}} is: **{{top_plan_item}}**.
   >
-  > **[See the first step]({{analysis_url}})**
-- **CTA:** See the first step
+  > First step: {{top_plan_first_step}}
+  >
+  > **[Open your growth plan]({{analysis_url}})**
+- **CTA:** Open your growth plan
+- **Note:** If the diagnosis isn't confirmed yet, add before the CTA: "Confirm the diagnosis first. Until you do, the plan is a proposal." The plan's order puts the owner's own priorities first, so don't call this action "the biggest win" or "the most important fix".
 
 ### 5.3 Product update (monthly)
 - **Purpose:** Summarize what changed.
@@ -362,7 +367,7 @@ Consent class for all templates in this section: **Marketing** — requires reco
   >
   > I'm {{sender_name}} from Braventa. It's been a few weeks since you analyzed {{business_name}}, and I wanted to check in.
   >
-  > Did the opportunities feel right? Was anything missing or wrong? Reply with a sentence or two, or book time and we'll go through it together.
+  > Did the diagnosis and growth plan feel right? Was anything missing or wrong? Reply with a sentence or two, or book time and we'll go through it together.
   >
   > **[Book a call]({{booking_url}})**
   >
@@ -454,7 +459,7 @@ Sent one-to-one by a named person. No marketing content. Structure: acknowledge 
   >
   > **What you told us:** {{customer_goal}}; {{main_pain_1}}; {{main_pain_2}}.
   >
-  > **What Braventa found:** your growth score is {{growth_score}}, and the top opportunities are {{opportunity_1}} and {{opportunity_2}}. [Attach or link the analysis.]
+  > **What Braventa found:** your growth score is {{growth_score}}, and the first actions in your growth plan are {{plan_item_1}} and {{plan_item_2}}. [Attach or link the analysis.]
   >
   > **What we'd do together:**
   > 1. {{step_1 — e.g. run the analysis on your main site and review it on a call}}
