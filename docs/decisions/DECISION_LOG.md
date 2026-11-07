@@ -771,3 +771,31 @@ arXiv:2603.16021): folders carry sequencing, hierarchy carries context, plain fi
   in the dated backup, following the existing `99 Backups/<date> (<commit>)` convention.
 - Not changed: `docs/` layout, `CLAUDE.md`'s working rules (slimming it toward a pure routing file is a later step),
   any code path, any user-facing copy.
+
+## D-056 — Legal pages: operator, liability cap, law, customers, uptime, refunds, insurance
+**Status:** Founder (2026-11-08, in chat; answers to the legal review's questions). Drafts only: every legal page stays
+a draft until counsel reviews it (Q-032). Review and gap list:
+[LEGAL_AND_PRIVACY_REVIEW_2026-11-08.md](../research/LEGAL_AND_PRIVACY_REVIEW_2026-11-08.md).
+- **Operator:** the pages name "Braventa LLC [pending registration]" until the US LLC exists (Q-052).
+- **Liability cap:** the greater of the fees paid in the 6 months before the event and US$100. Indirect losses and
+  data loss are excluded, and there are carve-outs for what the law doesn't allow to be limited (Australian Consumer
+  Law, UK, Canada). It lives in one place, Terms §§11–13; the MSA and DPA refer to it. It matches the Vercel cap; the
+  Supabase and Stripe caps are 12 months.
+- **Governing law:** Delaware, USA, with Delaware courts. Customers keep the protections of their own country's laws
+  that can't be waived.
+- **Customers:** businesses only; every user is 18 or older.
+- **Uptime:** none during early access or the trial. Paid plans, once billing launches, get a 99.5% monthly target,
+  with service credits of 5%, 10% or 25% of the month's fee (capped at 25%) as the only remedy. Hosting and database
+  outages count. An uptime monitor is needed first (Q-058).
+- **Refunds:** monthly plans, cancel anytime, no refunds for partial periods. Exceptions: billing errors; Braventa
+  ending the service without cause, or an unresolved sub-processor objection (the unused part is refunded); and what
+  the law requires (Australian Consumer Law).
+- **Connected apps:** the customer is responsible for the apps and systems they connect and the data in them. Braventa
+  isn't liable for harm there, except harm it directly causes by breaching the agreement, and then within the cap
+  (MSA §8).
+- **Cyber insurance:** clauses drafted and **parked** in [CYBER_INSURANCE_PARKED.md](../legal/CYBER_INSURANCE_PARKED.md).
+  They include a separate data protection cap tied to the policy limit. Activate them once a policy is bound (Q-057).
+- **New pages** (`site/src/app/legal/`): `msa`, `dpa`, `gdpr`, `refunds`. `terms` and `privacy` are rewritten;
+  `cookies` and `subprocessors` are updated.
+- Why: the founder asked to limit Braventa's capital exposure, cover privacy law in the markets it targets (US, UK,
+  Australia, Canada, maybe the EU) and publish the documents business customers expect.

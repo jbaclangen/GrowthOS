@@ -22,7 +22,10 @@ export default function Subprocessors() {
   return (
     <>
       <h1 className="text-4xl">Sub-processors</h1>
-      <DraftNotice>Last updated November 2026. We&apos;ll update this list before adding a new provider.</DraftNotice>
+      <DraftNotice>
+        Last updated November 2026. We&apos;ll update this list at least 30 days before adding or replacing a provider
+        (see our <Link href="/legal/dpa">Data Processing Agreement</Link>).
+      </DraftNotice>
       <div className="not-prose overflow-x-auto">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="text-xs text-muted">

@@ -32,12 +32,15 @@ Priority: **Launch** = before the first paying customers; **Soon** = shortly aft
 | AI use | `/trust/ai` | Which AI providers, what data they see, human approval | Launch | Name OpenRouter and the model providers; drafts are AI-assisted |
 | About | `/about` | Story, mission, founder | Launch | No invented team size or customer counts |
 | Contact / Book a call | `/contact` | Booking plus form | Launch | Marketing opt-in unticked (D-014) |
-| Terms of Service | `/legal/terms` | Linked from sign-up | Launch | Lawyer drafts or reviews |
-| Privacy Policy | `/legal/privacy` | Linked from sign-up | Launch | Lists the real processors |
+| Terms of Service | `/legal/terms` | Linked from sign-up; holds the liability cap (D-056) | Launch — **drafted** | Lawyer drafts or reviews |
+| Master Services Agreement | `/legal/msa` | What the service does, SLA for paid plans, incidents, connected apps (D-056) | Launch — **drafted** | Service list must match what is live |
+| Privacy Policy | `/legal/privacy` | Linked from sign-up; GDPR / UK GDPR standard plus APPs, PIPEDA, CalOPPA | Launch — **drafted** | Lists the real processors |
+| GDPR | `/legal/gdpr` | Guide for EU and UK customers | Launch — **drafted** | No "GDPR compliant" claims; names Art. 27 representatives once appointed (Q-053) |
+| Refund policy | `/legal/refunds` | Cancellation and refunds for paid plans (D-056) | Launch — **drafted** | Says nothing is charged until billing exists |
 | Cookie policy + banner | `/legal/cookies` | Consent before non-essential cookies; "Cookie settings" footer link | Launch | Banner defaults to declining |
 | Acceptable use | `/legal/acceptable-use` | Limits on analysis and generated content | Launch | |
 | Sub-processors | `/legal/subprocessors` | Supabase, Vercel, OpenRouter and model providers, Google | Launch | Must match what is used |
-| DPA | `/legal/dpa` | Processor terms for business customers | Soon (before CRM integrations) | |
+| DPA | `/legal/dpa` | Processor terms for business customers (SCCs, UK Addendum, CCPA service provider) | Launch — **drafted** 2026-11-08 | Annex 2 lists only built measures |
 | Trial terms | `/legal/trial` | Trial and downgrade rules | With billing | |
 | Accessibility statement | `/accessibility` | WCAG 2.2 AA commitment | Soon | Target, not certification |
 | Changelog | `/changelog` | Shipped changes only | Soon | |
