@@ -17,10 +17,5 @@ export function connectionOutcomeUrl(returnTo: unknown, code: string): string {
   return `${path}?gsc=${encodeURIComponent(code)}#${path === SETTINGS_RETURN ? "connections" : "search-console"}`;
 }
 
-// The "Connect Google Search Console" link. Settings is the start route's default, so it needs no parameter.
-export function searchConsoleStartHref(returnTo: string): string {
-  const path = connectionReturnPath(returnTo);
-  return path === SETTINGS_RETURN
-    ? "/api/integrations/google/start"
-    : `/api/integrations/google/start?returnTo=${encodeURIComponent(path)}`;
-}
+// The connect button is a form with a required checkbox (D-057, components/connections/connect-form.tsx), not a link:
+// the start route refuses a request without it.

@@ -48,4 +48,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:165-175`, `web/src
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:86`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:88`)

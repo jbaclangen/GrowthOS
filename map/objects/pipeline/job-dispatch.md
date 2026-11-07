@@ -54,4 +54,4 @@ Citations: `supabase/migrations/20261017110000_job_dispatches.sql:55-340`, `web/
 ## See
 
 - Source: `supabase/migrations/20261017110000_job_dispatches.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (rows at `:113`, `:143-148`)
+- As built: `docs/architecture/DATA_MODEL.md` (rows at `:115`, `:145-150`)

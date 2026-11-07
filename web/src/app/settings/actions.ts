@@ -5,6 +5,8 @@ import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { displayPrefix, generateKey, hashKey } from "@/lib/mcp/keys";
 import { can, deniedMessage } from "@/lib/team/roles";
+import { CONSENT_REQUIRED, consentGiven } from "@/lib/legal/documents";
+import { recordAcceptance } from "@/lib/legal/acceptances";
 
 // Personal access keys for the AI assistant connection (MCP, D-036). Writes go through the signed-in user's
 // client: RLS and column grants only let owners add and revoke their own keys, and never read the hash.
@@ -18,6 +20,8 @@ export async function createAccessKey(_: CreateKeyState, formData: FormData): Pr
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Name the key, for example \"Claude Desktop on my laptop\"." };
   if (name.length > 60) return { error: "Keep the name under 60 characters." };
+  // D-057, Terms §3.
+  if (!consentGiven(formData)) return { error: CONSENT_REQUIRED.access_key };
 
   const supabase = await createSupabaseServerClient();
   let org = await getCurrentOrg(user.id);
@@ -46,6 +50,7 @@ export async function createAccessKey(_: CreateKeyState, formData: FormData): Pr
     .from("mcp_access_keys")
     .insert({ organization_id: org.id, name, key_prefix: displayPrefix(key), key_hash: hashKey(key) });
   if (error) return { error: "The key wasn't created. Try again." };
+  await recordAcceptance({ userId: user.id, organizationId: org.id, context: "access_key", subject: displayPrefix(key) });
   refresh();
   // Shown once; only the hash is stored.
   return { key, name, prefix: displayPrefix(key) };

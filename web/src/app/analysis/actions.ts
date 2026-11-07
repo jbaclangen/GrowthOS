@@ -11,6 +11,8 @@ import { analysesInLastDay, createOnboarding, MAX_ANALYSES_PER_DAY, queueJob, RA
 import { parseOwnerInputs, toProfileColumns } from "@/lib/owner-inputs";
 import { approvalAllowed, can, deniedMessage } from "@/lib/team/roles";
 import { hasPermission, memberRole } from "@/lib/team/server";
+import { CONSENT_REQUIRED, consentGiven } from "@/lib/legal/documents";
+import { recordAcceptance } from "@/lib/legal/acceptances";
 
 // Role checks (D-046, lib/team/roles.ts): starting or re-running an analysis needs analysis.run, changing the
 // owner's answers needs profile.edit, and a draft's status needs content.approve (own drafts: content.approve_own).
@@ -30,6 +32,8 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
     businessName: formData.get("businessName") || undefined,
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+  // D-057, Terms §7: the person confirms they own the website or may act for its business.
+  if (!consentGiven(formData)) return { error: CONSENT_REQUIRED.website_authorization };
   const owner = parseOwnerInputs(formData);
   if ("error" in owner) return { error: owner.error };
 
@@ -64,6 +68,7 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
     owner: owner.data,
   });
   if ("error" in started) return { error: started.error };
+  await recordAcceptance({ userId: user.id, organizationId: org.id, context: "website_authorization", subject: websiteUrl });
   redirect(`/onboarding/${started.sessionId}`);
 }
 

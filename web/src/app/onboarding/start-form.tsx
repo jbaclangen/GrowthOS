@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { startAnalysis, type StartState } from "../analysis/actions";
 import { OwnerQuestions } from "@/components/owner-questions";
+import { ConsentCheckbox, LegalLink } from "@/components/legal/consent";
 
 export function StartForm() {
   const [state, action, pending] = useActionState<StartState, FormData>(startAnalysis, undefined);
@@ -40,6 +41,12 @@ export function StartForm() {
           <OwnerQuestions />
         </div>
       </div>
+
+      {/* D-057, Terms §7: only websites the person owns or may act for. */}
+      <ConsentCheckbox id="website-authorized">
+        I own this website, or I&apos;m authorized to act for the business that does (
+        <LegalLink doc="terms">Terms of Service</LegalLink>, section 7).
+      </ConsentCheckbox>
 
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
       <button type="submit" disabled={pending} className="btn-primary w-full">

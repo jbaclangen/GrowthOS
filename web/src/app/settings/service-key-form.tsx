@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { createServiceKey, type CreateServiceKeyState } from "./integrations-actions";
 import { CopyBlock } from "./copy-block";
+import { ConsentCheckbox, LegalLink } from "@/components/legal/consent";
 
 // Owner-only: create an organization-level key for automation. Shown once.
 export function ServiceKeyForm({ serverUrl }: { serverUrl: string }) {
@@ -27,6 +28,13 @@ export function ServiceKeyForm({ serverUrl }: { serverUrl: string }) {
         <button type="submit" disabled={pending} className="btn-primary">
           {pending ? "Creating…" : "Create service key"}
         </button>
+        {/* D-057, Terms §3. */}
+        <div className="sm:col-span-3">
+          <ConsentCheckbox id="service-key-agree">
+            Anything with this key can use Braventa for this business. I&apos;ll keep it private, and I&apos;m responsible
+            for what uses it (<LegalLink doc="terms">Terms of Service</LegalLink>, section 3).
+          </ConsentCheckbox>
+        </div>
       </form>
       {state?.error && (
         <p className="mt-2 text-sm text-danger" role="alert">

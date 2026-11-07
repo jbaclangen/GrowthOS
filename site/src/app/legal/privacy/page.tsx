@@ -57,6 +57,11 @@ export default function Privacy() {
         <li>A log of AI usage (which task, which model, tokens and cost) so we can enforce usage limits.</li>
         <li>If you connect an AI assistant: your access keys, stored only as a one-way hash, when each was last used, and a record of which actions it ran.</li>
         <li>
+          A record of each time you agree to our terms or give a confirmation they require, such as that you may act for
+          the website you analyze or that you&apos;re responsible for a tool you connect: what you agreed to, the version
+          and when.
+        </li>
+        <li>
           If you use the in-app assistant (Ask Braventa): a record that you asked a question and when, to apply its daily
           limit. We don&apos;t store your questions or the answers. Each question is sent, with a short summary of your
           account and latest report, to our AI providers to write the answer.

@@ -24,7 +24,7 @@ Discovery runs alongside the website analysis, so the session must know both job
 - Lifecycle writers: `discovering` `web/src/lib/onboarding/start.ts:76-86` (then `evidence_job_id` with the admin client `:97-101`); `reviewing` `web/src/lib/onboarding/service.ts:102`; `following_up` `:152`; `completed` `:44-49`; `skipped` `:52-57`; `plan_job_id` claimed conditionally `web/src/lib/onboarding/orchestrate.ts:50-58`.
 - Routing: `SessionStatus`, `OPEN_STATUSES`, `onboardingPath` — `web/src/lib/onboarding/steps.ts:3-26`; `followUpStep` picks connect or questions by pending count — `:31-37`.
 - Plan gate: `web/src/lib/onboarding/orchestrate.ts:18-19,27`. A re-run with no session uses the latest `completed` one — `web/src/lib/pipeline/website-intel.ts:381-388`.
-- Permissions (D-046): creating a session needs `analysis.run` (`web/src/app/analysis/actions.ts:55`; MCP `web/src/lib/mcp/tools.ts:165`); every onboarding page action needs `profile.edit` (`web/src/app/onboarding/[sessionId]/actions.ts:15-25`; MCP write tools `web/src/lib/mcp/tools.ts:247,288,341`).
+- Permissions (D-046): creating a session needs `analysis.run` (`web/src/app/analysis/actions.ts:59`; MCP `web/src/lib/mcp/tools.ts:165`); every onboarding page action needs `profile.edit` (`web/src/app/onboarding/[sessionId]/actions.ts:15-25`; MCP write tools `web/src/lib/mcp/tools.ts:247,288,341`).
 
 Citations: `supabase/migrations/20261010155911_onboarding_discovery.sql:7-27,59-60`; `supabase/migrations/20261010155931_onboarding_sessions_column_grants.sql:3-6`; `supabase/migrations/20261010163029_onboarding_follow_ups.sql:4-6`; `web/src/lib/onboarding/service.ts:44-57,102,152`; `web/src/lib/onboarding/orchestrate.ts:18-58`; `web/src/lib/onboarding/steps.ts:3-37`
 

@@ -30,11 +30,11 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:252-261`, `web/src
 - **owns:** nothing (the plan is in [growth-plan-item](growth-plan-item.md), not in `data`).
 - **owned-by:** [organization](../tenancy/organization.md).
 - **joins:** [business-profile](../onboarding/business-profile.md) by jsonb key only (`website-intel.ts:650`, no foreign key); [diagnosis](diagnosis.md) (`diagnosis_and_plan.sql:9`); [module-run](../modules/module-run.md) (`feature_modules.sql:50`); [audit-run](../pipeline/audit-run.md) (`data.audit_run_id`); [search-console-snapshot](../integrations/search-console-snapshot.md) (`data.search_console`, `website-intel.ts:665-667`); [growth-score](growth-score.md) (`data.growth_score`, `score_version`).
-- **looks-like-but-is-not:** `reports.data.opportunities`, present only in reports from before 2026-10-11 (`docs/architecture/DATA_MODEL.md:93`); `business_profiles.growth_score`, the same number kept on the profile (`website-intel.ts:636-640`); the `reports.view` and `reports.export` permissions, which mean performance reports, not this table (`docs/architecture/ROLES_AND_PERMISSIONS.md:71-72`, `:75-76`).
+- **looks-like-but-is-not:** `reports.data.opportunities`, present only in reports from before 2026-10-11 (`docs/architecture/DATA_MODEL.md:95`); `business_profiles.growth_score`, the same number kept on the profile (`website-intel.ts:636-640`); the `reports.view` and `reports.export` permissions, which mean performance reports, not this table (`docs/architecture/ROLES_AND_PERMISSIONS.md:71-72`, `:75-76`).
 
 ## If you change this
 
-- **Hits:** the insert `website-intel.ts:642-675`; the loader select and `ReportData` use in `report-data.ts:97-103`, `:131`; `reviseDiagnosis` `website-intel.ts:553-575`; `context.ts:99-107`, `:152-159`, `:177-180`; `modulesUsed` `score.ts:144-147` (the score tile, the Scores section, Ask Braventa and the MCP status note); the `module_scores.search_visibility` reads `infographic.tsx:171`, `report-sections.tsx:56`, `context.ts:180`; a new scored module needs a row in `scoreBlend`'s `BLEND` list `score.ts:165-169`, or the tile and Scores section leave it out of the blend wording; `docs/architecture/DATA_MODEL.md:93`.
+- **Hits:** the insert `website-intel.ts:642-675`; the loader select and `ReportData` use in `report-data.ts:97-103`, `:131`; `reviseDiagnosis` `website-intel.ts:553-575`; `context.ts:99-107`, `:152-159`, `:177-180`; `modulesUsed` `score.ts:144-147` (the score tile, the Scores section, Ask Braventa and the MCP status note); the `module_scores.search_visibility` reads `infographic.tsx:171`, `report-sections.tsx:56`, `context.ts:180`; a new scored module needs a row in `scoreBlend`'s `BLEND` list `score.ts:165-169`, or the tile and Scores section leave it out of the blend wording; `docs/architecture/DATA_MODEL.md:95`.
 - **Does not hit:** `diagnoses` rows (`report_id` is set null on delete, `diagnosis_and_plan.sql:9`); `content_calendars`, which the loader finds by its own jsonb key (`report-data.ts:104-110`).
 
 ## Surfaces
@@ -50,4 +50,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:252-261`, `web/src
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:93`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:95`)

@@ -35,7 +35,7 @@ export const APP_ROUTES: RouteEntry[] = [
     route: "/login",
     title: "Sign in",
     purpose:
-      "Sign in with your email and password, or create an account. New accounts get a confirmation email first. When an AI app sent you here to connect to Braventa, you go on to its approval screen after signing in.",
+      "Sign in with your email and password, or create an account. Creating an account asks you to tick a box agreeing to Braventa's Terms of Service, Master Services Agreement and Data Processing Agreement, and confirming you're 18 or older and using Braventa for a business. New accounts get a confirmation email first. When an AI app sent you here to connect to Braventa, you go on to its approval screen after signing in. Accounts made before the terms were published see a banner asking to accept them.",
     howToGetThere: "Open app.braventa.io when you're signed out, or select Sign out in the header.",
   },
   {
@@ -49,7 +49,7 @@ export const APP_ROUTES: RouteEntry[] = [
     route: "/onboarding",
     title: "Analyze your business (step 1 of 5)",
     purpose:
-      "Enter a website address and, optionally, the business name, your main goal for the next few months, where you serve customers and the tools you already use. Braventa starts reading the website and opens discovery.",
+      "Enter a website address and, optionally, the business name, your main goal for the next few months, where you serve customers and the tools you already use. Tick the box to confirm you own the website or are authorized to act for the business that does. Braventa starts reading the website and opens discovery.",
     howToGetThere: "Select Analyze a website on the dashboard.",
   },
   {
@@ -68,7 +68,7 @@ export const APP_ROUTES: RouteEntry[] = [
   {
     route: "/onboarding/[sessionId]/connect",
     title: "Connect your tools (step 4 of 5)",
-    purpose: `Optional. Today only Google Search Console can be connected here, as in Settings: it's a Pro feature included in the Pro trial, and only the business owner can connect it. On Basic it shows as paused. Its data appears on Search performance and goes into your diagnosis and growth score (the Search visibility module). Other tools are marked Coming soon, with nothing to connect yet: ${comingSoonToolList}. Tools that fit your answers are marked Suggested, with the reason. Select **Continue** to go on, whether or not you connected anything, or **Change your priorities** to go back.`,
+    purpose: `Optional. Today only Google Search Console can be connected here, as in Settings: it's a Pro feature included in the Pro trial, and only the business owner can connect it, after ticking a box confirming they're authorized to connect the Google account and responsible for it. On Basic it shows as paused. Its data appears on Search performance and goes into your diagnosis and growth score (the Search visibility module). Other tools are marked Coming soon, with nothing to connect yet: ${comingSoonToolList}. Tools that fit your answers are marked Suggested, with the reason. Select **Continue** to go on, whether or not you connected anything, or **Change your priorities** to go back.`,
     howToGetThere:
       "Comes after confirming your priorities. To resume an unfinished setup, open the business from the dashboard and select the continue button. An AI assistant connected to Braventa skips this step: only the owner can connect tools, in Braventa.",
   },

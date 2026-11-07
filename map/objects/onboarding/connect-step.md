@@ -46,7 +46,7 @@ Ghost: every tool other than Search Console is a Coming soon card with no connec
 |---|---|
 | `/onboarding/[sessionId]/connect` (`web/src/app/onboarding/[sessionId]/connect/page.tsx:39`) | reads session, organization, responses, profile |
 | Continue → `continueAfterConnect` (`web/src/app/onboarding/[sessionId]/actions.ts:84`) | writes (follow-up round or session completed) |
-| Google OAuth start/callback (`integrations.connect`: `web/src/app/api/integrations/google/start/route.ts:36`, `web/src/app/api/integrations/google/callback/route.ts:47`; Pro/trial) | writes `integration_connections` |
+| Google OAuth start/callback (`integrations.connect`: `web/src/app/api/integrations/google/start/route.ts:37`, `web/src/app/api/integrations/google/callback/route.ts:48`; Pro/trial) | writes `integration_connections` |
 | MCP tools | none (step skipped) |
 
 ## See

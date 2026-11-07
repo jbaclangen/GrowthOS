@@ -347,6 +347,10 @@ What is undecided / not implemented:
   the analysis page.
 - `team_events` (2026-11-07): invites, withdrawn invites, joins, role changes and removals, append-only, written by
   the server, readable by `team.manage` ([ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §8).
+- `legal_acceptances` (2026-11-08, D-057): each agreement to the legal documents and each confirmation they require
+  (sign-up, terms banner, analysis start, Search Console connect, access keys, OAuth approval), with version,
+  documents and subject; append-only, written by the server with the secret key, each person reads their own rows;
+  deleted with the user or the organization ([LEGAL_ACCEPTANCE.md](LEGAL_ACCEPTANCE.md)).
 - Not implemented: an audit log of other sensitive operations (sign-in events beyond Supabase's own auth logs,
   approvals history, integration connect/disconnect, platform-admin access,
   exports/deletions). Recommended: an `audit_events` table (M-read, admin-client writes) before multi-user

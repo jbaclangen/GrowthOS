@@ -34,7 +34,7 @@ The tools wrap the existing onboarding service instead of adding a second write 
 
 ## Human gate
 
-Credential creation: a member makes a personal key in Settings (`web/src/app/settings/actions.ts:16`, refused without `keys.manage_own` at `:35`; service keys: owner only, `web/src/app/settings/integrations-actions.ts:25`) or approves the consent page at `/oauth/authorize`. After that the client acts with that member's role, or for the business with a service key (`web/src/lib/mcp/principal.ts:59-63`), without a per-call approval; confirming the diagnosis and approving posts still happen only in the app (`tools.ts:393`).
+Credential creation: a member makes a personal key in Settings (`web/src/app/settings/actions.ts:18`, refused without `keys.manage_own` at `:39`; service keys: owner only, `web/src/app/settings/integrations-actions.ts:27`) or approves the consent page at `/oauth/authorize`. After that the client acts with that member's role, or for the business with a service key (`web/src/lib/mcp/principal.ts:59-63`), without a per-call approval; confirming the diagnosis and approving posts still happen only in the app (`tools.ts:393`).
 
 ## If you change this
 
