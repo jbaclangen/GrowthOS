@@ -3,8 +3,8 @@ type: object
 cluster: access
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: web/src/lib/assistant/knowledge.ts
 ---
 
@@ -18,7 +18,7 @@ The assistant must never describe a feature the code doesn't have, so the knowle
 
 ## Shape
 
-- `KNOWLEDGE_VERSION` (`"2026-10-23"`) — `web/src/lib/assistant/knowledge.ts:13`
+- `KNOWLEDGE_VERSION` (`"2026-11-07"`) — `web/src/lib/assistant/knowledge.ts:13`
 - `APP_ROUTES`: every `page.tsx` route with title, purpose, how to get there — `:19-27`
 - `knowledgeSections()` — `:165-262`; `knowledgeForPrompt()` joins them for the system message — `:265-269`, used in `web/src/lib/assistant/prompt.ts:160-161`
 - `renderGuide()` writes the GENERATED header, version and sections — `:271-284`
@@ -26,13 +26,13 @@ The assistant must never describe a feature the code doesn't have, so the knowle
 - Test: guide equals `renderGuide()` — `web/src/lib/assistant/assistant.test.ts:316-318`; imports `:8`
 - "Coming soon" tools come from `tool-catalog.ts` `status: "coming_soon"` — `knowledge.ts:15-17`; `web/src/lib/integrations/tool-catalog.ts:24`
 
-Citations: `web/src/lib/assistant/knowledge.ts:7-27,265-284`, `web/scripts/build-help-doc.mts:6-26`
+Citations: `web/src/lib/assistant/knowledge.ts:7-27,273-292`, `web/scripts/build-help-doc.mts:6-26`
 
 ## Connected to
 
 - **owns:** `docs/help/APP_GUIDE.md` (generated)
 - **owned-by:** nothing
-- **joins:** [plan-tier](../tenancy/plan-tier.md) (`FEATURES`, `TIERS`, `TRIAL_DAYS`), [connect-step](../onboarding/connect-step.md) (tool catalog), [assistant-usage](assistant-usage.md) (limits text), [member-role](../tenancy/member-role.md) (the "Roles" section `knowledge.ts:232-236` is prose, not imported from `web/src/lib/team/roles.ts`), [ai-worker](../pipeline/ai-worker.md) (`app_assistant` system prompt, `web/src/lib/ai/router.ts:52-64`)
+- **joins:** [plan-tier](../tenancy/plan-tier.md) (`FEATURES`, `TIERS`, `TRIAL_DAYS`), [connect-step](../onboarding/connect-step.md) (tool catalog), [assistant-usage](assistant-usage.md) (limits text), [member-role](../tenancy/member-role.md) (the "Roles" section `knowledge.ts:240-244` is prose, not imported from `web/src/lib/team/roles.ts`), [ai-worker](../pipeline/ai-worker.md) (`app_assistant` system prompt, `web/src/lib/ai/router.ts:52-64`)
 - **looks-like-but-is-not:** [knowledge-document](../pipeline/knowledge-document.md) (crawled customer pages); `map/` itself (for editors, not users)
 
 ## If you change this

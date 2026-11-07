@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: design-system/tokens.json
 ---
 
@@ -30,11 +30,11 @@ import the same output (`web/src/app/globals.css:2-3`, `site/src/app/globals.css
   (`web/src/styles/tokens.css:59-60`).
 - Logo D-027 (`docs/decisions/DECISION_LOG.md:265-270`): rendered from generated geometry
   (`web/src/components/brand/logo.tsx:1`, `web/src/components/brand/logo-geometry.ts:1`), never typeset
-  (`CLAUDE.md:53`).
+  (`CLAUDE.md:54`).
 - Compiler: reads `:12`, writes both outputs `:13,145`, contrast pairs and minimums `:41-60`, check mode `:132-143`,
   `@theme` emit `:86-99`.
 - Rules for components: semantic roles and shared primitives only, no HEX, no `dark:` overrides, change values only
-  in `tokens.json` then `npm run tokens` (`CLAUDE.md:50-52`). Pipeline doc: `design-system/DESIGN_TOKENS.md:7-19`.
+  in `tokens.json` then `npm run tokens` (`CLAUDE.md:51-53`). Pipeline doc: `design-system/DESIGN_TOKENS.md:7-19`.
 
 Citations: `design-system/tokens.json:2,4-27,377-385`, `web/scripts/build-tokens.mjs:12-13,41-75,132-145`
 
@@ -47,7 +47,7 @@ Citations: `design-system/tokens.json:2,4-27,377-385`, `web/scripts/build-tokens
 
 ## If you change this
 
-- **Hits:** `npm run tokens` in `web/` and commit both `tokens.css`; `npm run tokens:check` in verify (`CLAUDE.md:61`); a `color.brand.*` change → rerun `design-system/scripts/build-brand-assets.mjs` (it reads the colours, `:30-32`) and commit `web/public/brand/**`, the icon files and both `logo-geometry.ts`; a contrast failure blocks the compile until the value is fixed; a font or logo change is a founder decision (D-015, D-027) and `docs/brand/VISUAL_IDENTITY.md`.
+- **Hits:** `npm run tokens` in `web/` and commit both `tokens.css`; `npm run tokens:check` in verify (`CLAUDE.md:62`); a `color.brand.*` change → rerun `design-system/scripts/build-brand-assets.mjs` (it reads the colours, `:30-32`) and commit `web/public/brand/**`, the icon files and both `logo-geometry.ts`; a contrast failure blocks the compile until the value is fixed; a font or logo change is a founder decision (D-015, D-027) and `docs/brand/VISUAL_IDENTITY.md`.
 - **Does not hit:** the database, `docs/help/APP_GUIDE.md`, env.
 
 ## Surfaces

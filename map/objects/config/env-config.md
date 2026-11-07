@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: web/src/lib/env.ts
 ---
 
@@ -18,7 +18,7 @@ Names only; values live in `web/.env.local` and the Vercel projects, never in th
 `web/src/lib/env.ts` imports `server-only` (`:1`), so a client component that touches it fails the build; each
 variable is validated on first use and trimmed, so one missing integration doesn't take the others down and a pasted
 line break can't break a key silently (`:4-7,37-47`). `envConfigured()` lets optional integrations degrade (`:49-52`).
-The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md:85`).
+The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md:86`).
 
 ## Shape
 
@@ -51,7 +51,7 @@ Where names are listed: `web/.env.example:1-49` (complete, with server-only mark
 `JOB_CONTINUE_SECRET` and `JOB_DISPATCH` are missing there, a doc lag to fix). Which project holds which:
 `docs/architecture/SYSTEM_ARCHITECTURE.md:247-248`, `docs/marketing/CONTACT_PIPELINE.md:25`.
 
-Citations: `web/src/lib/env.ts:1,8-33,37-52`, `CLAUDE.md:85`
+Citations: `web/src/lib/env.ts:1,8-33,37-52`, `CLAUDE.md:86`
 
 ## Connected to
 

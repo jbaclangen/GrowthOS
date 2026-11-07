@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: web/package.json
 ---
 
@@ -39,7 +39,7 @@ be committed and diffed without becoming a second source of truth.
 
 Generated, never hand-edit: `web/src/styles/tokens.css:1-2`, `site/src/styles/tokens.css:1-2`,
 `docs/help/APP_GUIDE.md:1`, `web/src/components/brand/logo-geometry.ts:1`, `site/src/components/brand/logo-geometry.ts:1`
-(each says so in its first lines); `web/public/brand/**` and the icon files (`CLAUDE.md:54,66-67`);
+(each says so in its first lines); `web/public/brand/**` and the icon files (`CLAUDE.md:55,67-68`);
 `map/objects/_index.md`, `map/AGENTS.md`, `map/routing.md` (`map/_meta/schema.md:38-40`).
 
 Citations: `web/package.json:5-22`, `site/package.json:6-11`
@@ -53,7 +53,7 @@ Citations: `web/package.json:5-22`, `site/package.json:6-11`
 
 ## If you change this
 
-- **Hits:** `tokens.json` → run `tokens` and commit both CSS files; brand colours or the mark → rerun `build-brand-assets.mjs` and commit its outputs; `knowledge.ts` or any `page.tsx` → run `help:doc` (the test at `web/src/lib/assistant/assistant.test.ts:316-318` fails otherwise); a new card or `map/CLAUDE.md` edit → `map:sync`, then `map:check`; `tokens:check` is part of verify (`CLAUDE.md:61`).
+- **Hits:** `tokens.json` → run `tokens` and commit both CSS files; brand colours or the mark → rerun `build-brand-assets.mjs` and commit its outputs; `knowledge.ts` or any `page.tsx` → run `help:doc` (the test at `web/src/lib/assistant/assistant.test.ts:316-318` fails otherwise); a new card or `map/CLAUDE.md` edit → `map:sync`, then `map:check`; `tokens:check` is part of verify (`CLAUDE.md:62`).
 - **Does not hit:** the database (only `pipeline:local` writes, into its test organization).
 
 ## Surfaces

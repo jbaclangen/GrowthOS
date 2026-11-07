@@ -4,7 +4,7 @@ cluster: onboarding
 universe: live
 status: verified
 verified: 2026-11-07
-commit: dde2f04
+commit: 5757423
 entity: web/src/lib/integrations/connect-step.ts
 ---
 
@@ -14,7 +14,7 @@ The optional onboarding step between confirming priorities and the follow-up que
 
 ## Why this shape
 
-D-041 asks Pro owners to connect tools during discovery; D-054 built it without a new status: `following_up` with no pending question means the connect step comes next, and its Continue is what generates the follow-up round (`docs/decisions/DECISION_LOG.md:723-736`, `web/src/lib/onboarding/steps.ts:5-7,28-33`). The card rules are pure logic so the role, Pro, trial and Basic cases are unit-tested rather than buried in JSX (`web/src/lib/integrations/connect-step.ts:4-6`).
+D-041 asks Pro owners to connect tools during discovery; D-054 built it without a new status: `following_up` with no pending question means the connect step comes next, and its Continue is what generates the follow-up round (`docs/decisions/DECISION_LOG.md:724-737`, `web/src/lib/onboarding/steps.ts:5-7,28-33`). The card rules are pure logic so the role, Pro, trial and Basic cases are unit-tested rather than buried in JSX (`web/src/lib/integrations/connect-step.ts:4-6`).
 
 ## Shape
 
@@ -35,10 +35,10 @@ Citations: `web/src/lib/integrations/connect-step.ts:4-76`; `web/src/app/onboard
 
 ## If you change this
 
-- **Hits:** `followUpStep`/`followUpPath`, `continueAfterConnect`, the questions page's forward, the review redirect, `ONBOARDING_STEP_COUNT` and "Step 4 of 5" (`web/src/lib/onboarding/steps.ts:7`, page `:93`), MCP `braventa_get_status` wording, the return-to allowlist for Google's consent screen (`docs/decisions/DECISION_LOG.md:740-742`).
+- **Hits:** `followUpStep`/`followUpPath`, `continueAfterConnect`, the questions page's forward, the review redirect, `ONBOARDING_STEP_COUNT` and "Step 4 of 5" (`web/src/lib/onboarding/steps.ts:7`, page `:93`), MCP `braventa_get_status` wording, the return-to allowlist for Google's consent screen (`docs/decisions/DECISION_LOG.md:741-743`).
 - **Does not hit:** [onboarding-session](onboarding-session.md) status values — by design none was added (D-054).
 
-Ghost: every tool other than Search Console is a Coming soon card with no connect action — `docs/decisions/DECISION_LOG.md:728-730`; connecting for a business that is not the user's first membership is open (Q-047) — `:744`.
+Ghost: every tool other than Search Console is a Coming soon card with no connect action — `docs/decisions/DECISION_LOG.md:729-731`; connecting for a business that is not the user's first membership is open (Q-047) — `:745`.
 
 ## Surfaces
 

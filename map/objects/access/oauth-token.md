@@ -3,8 +3,8 @@ type: object
 cluster: access
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: supabase/migrations/20261017030000_mcp_oauth.sql
 ---
 

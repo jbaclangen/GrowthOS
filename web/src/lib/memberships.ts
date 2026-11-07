@@ -7,22 +7,24 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type MemberOrganization = { id: string; name: string; plan: string; trial_ends_at: string; role: string };
 
-// The user's first organization (MVP: one per user) and their role in it.
+// The user's first organization (MVP: one per user) and their role in it. A failed read throws: callers treat null as
+// "no business yet" and create one (settings/actions.ts, analysis/actions.ts), so a lost read must not look like that.
 export async function currentMembership(db: SupabaseClient, userId: string) {
-  const { data } = await db
+  const { data, error } = await db
     .from("memberships")
     .select("role, organizations(id, name)")
     .eq("user_id", userId)
     .order("created_at")
     .limit(1)
     .maybeSingle();
+  if (error) throw new Error(error.message);
   const org = data?.organizations as unknown as { id: string; name: string } | null;
   return org ? { id: org.id, name: org.name, role: data!.role as string } : null;
 }
 
 // The user's first organization (MVP: one per user) with its plan and trial: what the tier (lib/plans/access.ts)
-// and the in-app assistant read. Unlike the two reads beside it, a failed read throws, so a caller can tell a failed
-// lookup from "no organization".
+// and the in-app assistant read. Like currentMembership, a failed read throws, so a caller can tell a failed lookup
+// from "no organization".
 export async function firstOrganization(db: SupabaseClient, userId: string): Promise<MemberOrganization | null> {
   const { data, error } = await db
     .from("memberships")

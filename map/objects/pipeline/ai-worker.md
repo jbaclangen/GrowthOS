@@ -4,7 +4,7 @@ cluster: pipeline
 universe: live
 status: verified
 verified: 2026-11-07
-commit: dde2f04
+commit: 5757423
 entity: web/src/lib/ai/router.ts
 ---
 

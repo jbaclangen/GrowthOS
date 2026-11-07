@@ -4,7 +4,7 @@ cluster: modules
 universe: live
 status: verified
 verified: 2026-11-07
-commit: dde2f04
+commit: 5757423
 entity: web/src/lib/modules/registry.ts
 ---
 
@@ -38,7 +38,7 @@ Citations: `web/src/lib/modules/registry.ts:4-13,15-53,58-118,124-230,233-300`; 
 - **Hits:** the `module_id` domain (a new id needs a migration replacing the constraint, `supabase/migrations/20261023063253_feature_modules.sql:27`); `migration.test.ts` and `registry.test.ts`; `SCORE_VERSION` if a weight or part moves (`web/src/lib/modules/score.ts:16-19`); `enabledModules`; `moduleForFinding`/`moduleForArea` and so every new finding and plan item; the module names on the report's score tile and in the MCP status note (`moduleLabel` `web/src/lib/modules/registry.ts:245-247`; a newly scored module needs a `SCORE_SOURCES` entry, `web/src/lib/modules/score.ts:149-154`); `docs/architecture/FEATURE_MODULES.md`.
 - **Does not hit:** [plan-tier](../tenancy/plan-tier.md)'s `FEATURES` list — a module's `live` flag does not flip a feature's status (the test only requires they agree, `web/src/lib/modules/registry.ts:38-39`).
 
-Ghost: a module switch in the app and the permission that would gate it (the D-046 roles foundation has no module permission yet, [member-role](../tenancy/member-role.md)) — `docs/architecture/FEATURE_MODULES.md:125`, `docs/architecture/ROLES_AND_PERMISSIONS.md:156`; per-module report sections, `audit_findings.module_id`, prompt fragments — `docs/decisions/DECISION_LOG.md:681-684`.
+Ghost: a module switch in the app and the permission that would gate it (the D-046 roles foundation has no module permission yet, [member-role](../tenancy/member-role.md)) — `docs/architecture/FEATURE_MODULES.md:125`, `docs/architecture/ROLES_AND_PERMISSIONS.md:161`; per-module report sections, `audit_findings.module_id`, prompt fragments — `docs/decisions/DECISION_LOG.md:682-685`.
 
 ## Surfaces
 

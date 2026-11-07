@@ -3,8 +3,8 @@ type: object
 cluster: report
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: supabase/migrations/20261010164133_diagnosis_and_plan.sql
 ---
 
@@ -22,7 +22,7 @@ The spec keeps the owner's priority, the model's ranking, a score computed in co
 - RLS `:104-106`; the client grant allows only `status`, `status_changed_*`, `final_priority` `:112`; `touch_updated_at` `:118-119`.
 - Maths: `calculatedPriority` `web/src/lib/plan/priority.ts:37-41`; `OWNER_URGENCY` `:29-30`; `MAX_PLAN_ITEMS` `:33`; `toPlanItems` `:123`, `orderPlan` `:150`, `finalPriorities` `:162`.
 - Pipeline insert `web/src/lib/pipeline/website-intel.ts:503`, `:526-534` (`moduleForArea` `web/src/lib/modules/registry.ts:268-276`); titles handed to the planning step `:718`, `:737`.
-- Status and order: `setPlanItemStatus` `web/src/app/analysis/plan-actions.ts:151-171` (needs `plan_items.update_any` `:158`; `plan_items.update_own` waits on an assignee, `docs/architecture/ROLES_AND_PERMISSIONS.md:65-66`; holders per [member-role](../tenancy/member-role.md)); `final_priority` set on confirm `:77-83` (gated by `diagnosis.correct` `:63`); buttons `web/src/app/analysis/[id]/plan-controls.tsx:166-171`.
+- Status and order: `setPlanItemStatus` `web/src/app/analysis/plan-actions.ts:151-171` (needs `plan_items.update_any` `:158`; `plan_items.update_own` waits on an assignee, `docs/architecture/ROLES_AND_PERMISSIONS.md:66-67`; holders per [member-role](../tenancy/member-role.md)); `final_priority` set on confirm `:78-84` (gated by `diagnosis.correct` `:64`); buttons `web/src/app/analysis/[id]/plan-controls.tsx:166-171`.
 - Readers: `web/src/app/analysis/[id]/report-data.ts:163-170`; row type `web/src/app/analysis/[id]/plan-section.tsx:50-55`.
 
 Citations: `supabase/migrations/20261010164133_diagnosis_and_plan.sql:54-92`, `:104-119`, `web/src/lib/plan/priority.ts:37-41`, `web/src/lib/pipeline/website-intel.ts:526-534`, `web/src/app/analysis/plan-actions.ts:77-83`, `:152-171`.
@@ -32,7 +32,7 @@ Citations: `supabase/migrations/20261010164133_diagnosis_and_plan.sql:54-92`, `:
 - **owns:** nothing.
 - **owned-by:** [diagnosis](diagnosis.md) (`:87-88`).
 - **joins:** [diagnosis-finding](diagnosis-finding.md) through `finding_positions` (`:61-62`); [module](../modules/module-registry.md) (`module_id`); the solution catalog `web/src/lib/onboarding/catalog.ts` through `solution_ids` (`priority.ts:1`, `:172`); [onboarding-response](../onboarding/onboarding-response.md) through `pain_point_ids` and `customer_priority`.
-- **looks-like-but-is-not:** [content-item](content-item.md), the 30-day plan's posts; `reports.data.opportunities`, the pre-2026-10-11 shape (`docs/architecture/DATA_MODEL.md:90`).
+- **looks-like-but-is-not:** [content-item](content-item.md), the 30-day plan's posts; `reports.data.opportunities`, the pre-2026-10-11 shape (`docs/architecture/DATA_MODEL.md:93`).
 
 ## If you change this
 
@@ -50,4 +50,4 @@ Citations: `supabase/migrations/20261010164133_diagnosis_and_plan.sql:54-92`, `:
 ## See
 
 - Source: `supabase/migrations/20261010164133_diagnosis_and_plan.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:98`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `:101`)

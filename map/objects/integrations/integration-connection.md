@@ -3,8 +3,8 @@ type: object
 cluster: integrations
 universe: live
 status: verified
-verified: 2026-10-24
-commit: 2214b05
+verified: 2026-11-07
+commit: 5757423
 entity: supabase/migrations/20261011161133_search_console.sql
 ---
 
@@ -50,7 +50,7 @@ Citations: `supabase/migrations/20261011161133_search_console.sql:10-45`, `web/s
 | `web/src/app/settings/connections-actions.ts` (refresh, choose property, disconnect) | writes |
 | scoring / diagnosis_update steps (`searchConsoleSummaryForPrompt`) | reads `status` |
 | `POST /api/assistant` → [ask-braventa](../../processes/ask-braventa.md) (`loadBusinessSummary`) | reads `status`, `selected_property` |
-| Owner (`integrations.connect`, `web/src/lib/team/roles.ts:86`; where it is checked: `docs/architecture/ROLES_AND_PERMISSIONS.md:59`) | connects, chooses the property, disconnects |
+| Owner (`integrations.connect`, `web/src/lib/team/roles.ts:86`; where it is checked: `docs/architecture/ROLES_AND_PERMISSIONS.md:60`) | connects, chooses the property, disconnects |
 
 ## See
 
