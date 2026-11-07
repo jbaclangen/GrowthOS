@@ -165,7 +165,7 @@ export function growthScoreNote(modules: ModuleId[]): string {
 const BLEND: { id: ModuleId; short: string; long: string }[] = [
   { id: "website_seo", short: "measured site quality", long: "measured site quality (Google PageSpeed)" },
   { id: "conversion", short: "assessed marketing readiness", long: "Braventa's assessment of your marketing readiness" },
-  { id: "search_visibility", short: "Google search data", long: "your search data (Google Search Console)" },
+  { id: "search_visibility", short: "your search data", long: "your search data (Google Search Console)" },
 ];
 
 export function scoreBlend(modules: readonly ModuleId[], form: "short" | "long"): string {

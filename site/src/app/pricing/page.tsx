@@ -24,7 +24,7 @@ const FAQ = [
   },
   {
     q: "What does Pro add?",
-    a: "Today, your Google Search Console data: shown in Braventa and used in your diagnosis and growth score. Coming soon: connections to your other tools and AI agents that carry out approved changes for you.",
+    a: "Pro connects your Google Search Console: your search data is shown in Braventa and used in your diagnosis and growth score. Coming soon: connections to your other tools and AI agents that carry out approved changes for you.",
   },
   {
     q: "Will anything happen without my approval?",

@@ -99,7 +99,9 @@ Builds and maintains the structured business profile used by every other module.
 
 **MVP acceptance criteria**
 - Every opportunity cites evidence from the crawl, PageSpeed, or profile, and gives one concrete first step.
-- The growth score is reproducible from the stored component scores using the documented weights.
+- The growth score is reproducible from the stored component scores using the documented weights. Search visibility is
+  stored as its sub-score only (`module_scores`, `module_runs.sub_score`), not its parts, so a score that includes it
+  can be checked down to that sub-score but not recomputed exactly.
 - When PageSpeed is unavailable, the score is computed from the other modules' evidence (the assessed dimensions,
   plus Search visibility when a Pro, Premium or trial organization has Search Console data) and the page says
   PageSpeed data was unavailable.

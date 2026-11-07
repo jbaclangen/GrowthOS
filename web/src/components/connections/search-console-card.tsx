@@ -160,7 +160,8 @@ function WhatWeAccess() {
     <div className="mt-3 text-sm text-muted">
       <p>
         Connect the Google account that manages your website in Search Console, and Braventa shows how people find you on
-        Google Search: clicks, impressions, top search queries and pages.
+        Google Search: clicks, impressions, top search queries and pages. A summary also goes into your diagnosis, which
+        Braventa&apos;s AI writes, and into your growth score as Search visibility.
       </p>
       <ul className="mt-2 list-disc space-y-1 pl-5">
         <li>

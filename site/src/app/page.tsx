@@ -62,7 +62,7 @@ const STEPS = [
 const TRUST = [
   { title: "Approval by default.", body: "Every draft waits for you. Braventa does not publish or send anything on your behalf." },
   { title: "Your data, kept separate.", body: "Each organization's data is isolated from every other. Secret keys never leave our servers." },
-  { title: "Clear about evidence.", body: "Every finding says where it came from: your website, Google PageSpeed, your answers, or Braventa's inference." },
+  { title: "Clear about evidence.", body: "Every finding says where it came from: your website, Google PageSpeed, your Google Search Console data on Pro, your answers, or Braventa's inference." },
 ];
 
 export default function Home() {

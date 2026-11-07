@@ -29,8 +29,8 @@ const SECTIONS = [
   {
     title: "Clear about where answers come from",
     points: [
-      "Every finding is marked Verified (your website or Google PageSpeed), From you (your answers), or Inferred (Braventa's reasoning), with a confidence level.",
-      "Scores from Google PageSpeed are labelled as Google's. Other scores are Braventa's assessment, not a prediction of revenue.",
+      "Every finding is marked Verified (your website, Google PageSpeed or, on Pro, your Google Search Console data), From you (your answers), or Inferred (Braventa's reasoning), with a confidence level.",
+      "Scores from Google PageSpeed are labelled as Google's, and on Pro the search visibility score is labelled with Google Search Console, its source. Other scores are Braventa's assessment, not a prediction of revenue.",
     ],
   },
   {

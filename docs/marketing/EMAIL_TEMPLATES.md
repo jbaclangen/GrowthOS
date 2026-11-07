@@ -230,7 +230,7 @@ Consent class for all templates in this section: **Marketing** — requires reco
   > - **Assessed by Braventa:** content clarity, conversion readiness, online presence.
   > - **On Pro, from your Google Search Console:** search position, click-through rate, the trend in clicks, and how many of your pages show up in search.
   >
-  > The number matters less than the five opportunities underneath it. Start with the one marked high impact and low effort.
+  > The number matters less than the growth plan underneath it. Confirm the diagnosis, then start with the first action in your plan.
   >
   > **[Open your dashboard]({{dashboard_url}})**
 - **CTA:** Open your dashboard

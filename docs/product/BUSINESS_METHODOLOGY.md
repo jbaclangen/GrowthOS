@@ -73,7 +73,7 @@ reusable profile so the AI does not rediscover the business on every request (br
 | Target customers and buying motivations | Customers yes; motivations no | Website (AI) | Customer input, CRM |
 | Brand identity and tone of voice | Tone and traits | Website (AI) | Customer edits, brand documents |
 | Products, offers, differentiators | Yes | Website (AI) | Customer edits |
-| Website and digital presence | Signals and PageSpeed | Crawl, Google PageSpeed | Search Console, GA4 |
+| Website and digital presence | Signals and PageSpeed | Crawl, Google PageSpeed, Google Search Console (Pro, read-only) | GA4 |
 | Acquisition channels | Social links only | Crawl | Analytics, CRM |
 | Sales process and CRM structure | No | — | HubSpot |
 | Existing marketing assets | Crawled pages | Crawl | Uploads, connected tools |
@@ -96,7 +96,7 @@ they told it, what it guessed, and what it suggests.
 
 **Current implementation:** only partial. The guided onboarding answers (main goal, service area, tools; BI-12) are stored in their own columns and labelled "From you" on the results page; the pipeline never overwrites them and tells the AI they outrank the website. The analysis page marks PageSpeed bars with a "Google"
 note and explains the growth score as a blend of the sources it used ("measured site quality, assessed marketing
-readiness and Google search data" when Search visibility counted; `scoreBlend` in `web/src/lib/modules/score.ts`);
+readiness and your search data" when Search visibility counted; `scoreBlend` in `web/src/lib/modules/score.ts`);
 drafts are labelled with approval status. Profile fields are not labelled as inferred,
 and provenance is not stored per field. The growth score is a mixed value (deterministic weighting of
 verified PageSpeed scores, inferred AI scores and, for Pro, Premium and trial organizations with Search Console data,
@@ -115,7 +115,7 @@ never claim an integration or automated action exists before it is built and tes
 |---|---|---|---|
 | Growth opportunities | Five opportunities with first steps | Turn into tracked tasks | Live (recommendation only) |
 | Website and conversion recommendations | Inside the five opportunities | Dedicated prioritised website plan | Partial |
-| SEO priorities | Inside the opportunities (PageSpeed SEO score, crawl signals) | Search Console data, keyword priorities | Partial |
+| SEO priorities | Inside the diagnosis and growth plan (PageSpeed SEO score, crawl signals and, on Pro, Search Console data) | Keyword priorities | Partial |
 | Content strategies and calendars | 30-day plan | Edit, schedule, publish via connected tools | Live (plan) |
 | Campaign briefs and marketing assets | First five drafts | Campaigns (`campaigns` table exists, unused), more formats | Partial |
 | Lead-management and CRM workflow recommendations | None | HubSpot read-only summary, then tasks | Planned |

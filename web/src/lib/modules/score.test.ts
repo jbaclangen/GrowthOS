@@ -298,7 +298,7 @@ describe("scoreBlend (the score tile and the Scores section)", () => {
   it("names only the sources whose modules the score used, measured first", () => {
     expect(scoreBlend(["conversion", "website_seo"], "short")).toBe("measured site quality and assessed marketing readiness");
     expect(scoreBlend(["conversion", "website_seo", "search_visibility"], "short")).toBe(
-      "measured site quality, assessed marketing readiness and Google search data",
+      "measured site quality, assessed marketing readiness and your search data",
     );
     expect(scoreBlend(["conversion", "website_seo", "search_visibility"], "long")).toBe(
       "measured site quality (Google PageSpeed), Braventa's assessment of your marketing readiness and your search data (Google Search Console)",
