@@ -132,6 +132,10 @@ const HELP = [
     body: "When you sign up, start an analysis, connect a tool or create an access key, Braventa shows what you're agreeing to and keeps a record.",
   },
   {
+    title: "Several businesses, one account",
+    body: "Own up to 2 businesses on Basic, 4 on Pro and 8 on Premium, and switch between them from the app header. Removing one frees its place. Need more? Talk to us about a custom plan.",
+  },
+  {
     title: "Remove a business",
     body: "The owner can remove a business from Settings by typing DELETE APPROVED. Its data is deleted at once and can't be recovered, and Braventa's access to Google and HubSpot is revoked.",
   },

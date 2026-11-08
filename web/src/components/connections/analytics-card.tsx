@@ -80,6 +80,8 @@ export async function AnalyticsCard({
     allowed: Boolean(orgRow && googleAnalyticsAccess(orgRow).allowed),
     connection,
   });
+  // The business the forms act on (D-062): the connect routes and actions read it back and check the role there.
+  const organizationId = org?.id ?? "";
   const headingId = `${ANALYTICS_CARD_ID}-heading`;
 
   return (
@@ -122,6 +124,7 @@ export async function AnalyticsCard({
           allowed={state === "connected"}
           canConnect={canConnect}
           returnTo={returnTo}
+          organizationId={organizationId}
         />
       ) : (
         <>
@@ -137,7 +140,7 @@ export async function AnalyticsCard({
           ) : state === "owner-only" ? (
             <p className="mt-4 text-sm text-muted">Ask the business owner to connect Google Analytics.</p>
           ) : (
-            <SearchConsoleConnectForm id="ga-connect-agree" returnTo={returnTo} label="Connect Google" buttonClassName={connectClassName} />
+            <SearchConsoleConnectForm id="ga-connect-agree" returnTo={returnTo} organizationId={organizationId} label="Connect Google" buttonClassName={connectClassName} />
           )}
         </>
       )}
@@ -194,12 +197,14 @@ function Connected({
   allowed,
   canConnect,
   returnTo,
+  organizationId,
 }: {
   connection: Connection;
   latest: Latest | null;
   allowed: boolean;
   canConnect: boolean;
   returnTo: string;
+  organizationId: string;
 }) {
   const choices = connection.available_properties;
   const label = (id: string) => connection.property_labels?.[id] ?? id;
@@ -252,6 +257,7 @@ function Connected({
       {canConnect && choices.length > 0 && (choices.length > 1 || !connection.selected_property) && (
         <form action={chooseAnalyticsProperty} className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
           <input type="hidden" name="returnTo" value={returnTo} />
+          <input type="hidden" name="organizationId" value={organizationId} />
           <label className="block flex-1 text-sm">
             <span className="font-medium">Google Analytics property for your website</span>
             <select name="property" defaultValue={connection.selected_property ?? ""} required className="input mt-1">
@@ -273,13 +279,14 @@ function Connected({
         {allowed && connection.selected_property && (
           <form action={refreshAnalytics}>
             <input type="hidden" name="returnTo" value={returnTo} />
+            <input type="hidden" name="organizationId" value={organizationId} />
             <SubmitButton label="Refresh Google Analytics data" pendingLabel="Refreshing…" />
           </form>
         )}
         {canConnect && connection.status === "error" && allowed && (
-          <SearchConsoleConnectForm id="ga-reconnect-agree" returnTo={returnTo} label="Reconnect Google" buttonClassName="btn-secondary" />
+          <SearchConsoleConnectForm id="ga-reconnect-agree" returnTo={returnTo} organizationId={organizationId} label="Reconnect Google" buttonClassName="btn-secondary" />
         )}
-        {canConnect && <DisconnectButton returnTo={returnTo} />}
+        {canConnect && <DisconnectButton returnTo={returnTo} organizationId={organizationId} />}
       </div>
       <p className="mt-3 text-xs text-muted">
         Read-only access. Braventa can&apos;t change anything in Google. Disconnecting Google also disconnects Search Console.

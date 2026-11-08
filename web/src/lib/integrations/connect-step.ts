@@ -8,8 +8,8 @@ import { can } from "@/lib/team/roles";
 export type SearchConsoleCardState =
   // The Google OAuth client or the encryption key isn't configured for this deployment.
   | "not-configured"
-  // The onboarding session belongs to a business other than the user's first membership, which is the one the
-  // OAuth routes and actions act on (or the user has no membership at all). The card shows nothing of `org`.
+  // The onboarding session's business isn't one the user belongs to (canConnectHere false). Since D-062 the cards
+  // carry the session's business id, so a member never sees this. The card shows nothing of `org`.
   | "other-business"
   // The signed-in user has no business yet (Settings).
   | "no-business"

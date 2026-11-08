@@ -37,18 +37,29 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/dashboard
   const supabase = await createSupabaseServerClient();
   if (org) await failStaleJobs(org.id);
 
-  const [{ data: profiles }, { data: jobs }, { data: sessions }] = await Promise.all([
-    supabase
-      .from("business_profiles")
-      .select("id, company_name, website_url, industry, growth_score, analyzed_at, created_at")
-      .order("created_at", { ascending: false }),
-    supabase.from("ai_jobs").select("input, status, created_at").order("created_at", { ascending: false }).limit(100),
-    supabase
-      .from("onboarding_sessions")
-      .select("business_profile_id, status, created_at")
-      .order("created_at", { ascending: false })
-      .limit(100),
-  ]);
+  // Only the business the user is working on (D-062): RLS would also return every other business they belong to.
+  const none = Promise.resolve({ data: null });
+  const [{ data: profiles }, { data: jobs }, { data: sessions }] = org
+    ? await Promise.all([
+        supabase
+          .from("business_profiles")
+          .select("id, company_name, website_url, industry, growth_score, analyzed_at, created_at")
+          .eq("organization_id", org.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("ai_jobs")
+          .select("input, status, created_at")
+          .eq("organization_id", org.id)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("onboarding_sessions")
+          .select("business_profile_id, status, created_at")
+          .eq("organization_id", org.id)
+          .order("created_at", { ascending: false })
+          .limit(100),
+      ])
+    : await Promise.all([none, none, none]);
 
   const latestStatus = new Map<string, string>();
   for (const j of jobs ?? []) {
@@ -78,11 +89,18 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/dashboard
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{org?.name ?? "Your businesses"}</h1>
-          <p className="mt-1 text-sm text-muted">Businesses you&apos;ve analyzed</p>
+          <p className="mt-1 text-sm text-muted">{org ? "Websites you've analyzed for this business" : "Businesses you've analyzed"}</p>
         </div>
-        <Link href="/onboarding" className="btn-primary">
-          Analyze a website
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {org && (
+            <Link href="/onboarding?business=new" className="btn-secondary">
+              Add a business
+            </Link>
+          )}
+          <Link href="/onboarding" className="btn-primary">
+            Analyze a website
+          </Link>
+        </div>
       </div>
 
       {latest && latestReport?.data && (
@@ -115,7 +133,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/dashboard
         </div>
       ) : (
         <>
-        <h2 className="mt-10 text-lg font-semibold">All businesses</h2>
+        <h2 className="mt-10 text-lg font-semibold">Analyzed websites</h2>
         <ul className="mt-3 grid gap-3 sm:grid-cols-2">
           {profiles.map((p) => {
             const status = latestStatus.get(p.id);

@@ -93,6 +93,10 @@ const TEAM: { title: string; body: string }[] = [
     body: "If you use Claude Desktop or Claude Code, it can fill in your setup for you with an access key you can revoke at any time.",
   },
   {
+    title: "Run more than one business.",
+    body: "One account can own up to 2 businesses on Basic, 4 on Pro and 8 on Premium. Switch between them from the app header.",
+  },
+  {
     title: "Leave cleanly.",
     body: "The owner can remove a business from Settings. Its data is deleted at once, and Braventa's access to Google and HubSpot is revoked.",
   },
@@ -256,7 +260,7 @@ export default function Home() {
         <SectionIntro head="Made for small teams" title="Your whole team, in the same system." id="team-title">
           The people who help you grow work from the same plan, with access that fits their job.
         </SectionIntro>
-        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {TEAM.map((t) => (
             <li key={t.title} className="card bg-background">
               <StatusBadge status="live" />

@@ -48,9 +48,11 @@ export async function GET(request: NextRequest) {
   const saved = openState(request.cookies.get(STATE_COOKIE)?.value);
   const user = await getUser();
   if (!user) return NextResponse.redirect(new URL("/login?next=/settings", request.url), 303);
-  const org = await getCurrentOrg(user.id);
+  if (!saved || !stateMatches(saved, params.get("state"), user.id, saved.orgId)) return toOutcome(request, SETTINGS_RETURN, "expired");
+  // The business the owner started from, sealed in the state (D-062), not whichever business is current now: they may
+  // have switched in another tab while on the consent screen. Their role there is read again.
+  const org = await getCurrentOrg(user.id, saved.orgId);
   if (!org || !can(org.role, "integrations.connect")) return toOutcome(request, SETTINGS_RETURN, "owner-only");
-  if (!stateMatches(saved, params.get("state"), user.id, org.id) || !saved) return toOutcome(request, SETTINGS_RETURN, "expired");
   // The state is verified from here on, so every outcome returns to the page the flow started from.
   const back = saved.returnTo;
 

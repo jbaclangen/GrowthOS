@@ -47,7 +47,6 @@ async function Invite({ params }: PageProps<"/invite/[token]">) {
     invitedEmail: invite.email,
     userEmail: user.email,
     alreadyMember: mine.some((o) => o.id === invite.organizationId),
-    otherBusiness: mine.find((o) => o.id !== invite.organizationId)?.name ?? null,
     organizationName: invite.organizationName,
   });
   const wrongAccount = !blocker ? false : (user.email ?? "").toLowerCase() !== invite.email;

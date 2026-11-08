@@ -71,16 +71,18 @@ is recommended for the MVP ([MVP_SCOPE.md](MVP_SCOPE.md#3-in-the-mvp-but-not-bui
 **What the data model supports today:** organizations, memberships with roles (`owner`, `admin`,
 `member`), and several business profiles per organization. Platform admins can read every tenant.
 
-**What the product does today:** a user gets one organization (created on first analysis), and
-`getCurrentOrg()` in `web/src/lib/auth.ts` always uses the first membership. Within that organization the
-user can analyse several websites; the dashboard lists them all.
+**What the product does today (D-062):** one account can own several businesses (organizations): Basic 2,
+Pro 4, Premium 8, more on a custom plan. The header switcher and Settings → Businesses choose the business the app
+works on (`getCurrentOrg()` in `web/src/lib/auth.ts` reads that choice, else the oldest membership). Each business
+has its own team, plan, AI budget and connections. Within one business the user can still analyse several websites;
+the dashboard lists the current business's.
 
 | # | Step | Status | Notes |
 |---|---|---|---|
-| 1 | Analyze several client websites from one account | Live | All clients sit in the agency's single organization |
-| 2 | Keep clients isolated from one another | Partial | Business profiles are separate records, but all share one organization, AI budget, and member list. A client given access would see every other client |
-| 3 | One organization per client, with an organization switcher | Planned (PL-6) | Requires a decision on the tenancy model for agencies (see open questions) |
-| 4 | Invite colleagues or client approvers with roles | Planned (PL-6, CS-13) | RLS and roles exist; no invitation UI |
+| 1 | Analyze several client websites from one account | Live | One business per client, up to the plan's limit (D-062) |
+| 2 | Keep clients isolated from one another | Live (D-062) | Each client is its own organization: its own members, AI budget and connections |
+| 3 | One organization per client, with an organization switcher | Partial (PL-6) | Header switcher and Settings → Businesses (D-062) |
+| 4 | Invite colleagues or client approvers with roles | Partial (PL-6, CS-13) | Invites by copied link for every role except client approver (D-046) |
 | 5 | Client approves drafts in a client view | Future vision | |
 | 6 | Agency-level billing across clients | Planned (PL-7) | Pricing framework treats "businesses" as a usage dimension ([ROADMAP.md](ROADMAP.md)) |
 

@@ -41,15 +41,14 @@ export function invitationState(row: InvitationRow, now = new Date()): Invitatio
   return "open";
 }
 
-// Why a signed-in person can't accept this invite, in words, or null when they can. MVP: one business per person
-// (lib/memberships.ts reads the first membership), so someone who already belongs to another business can't join a
-// second one yet (Q-047).
+// Why a signed-in person can't accept this invite, in words, or null when they can. Belonging to other businesses
+// doesn't stop anyone (D-062): the business switcher chooses which one they work on, and joining one doesn't count
+// toward their own business limit (that counts businesses they own, and no invite makes someone an owner).
 export function acceptBlocker(input: {
   state: InvitationState;
   invitedEmail: string;
   userEmail: string | null | undefined;
   alreadyMember: boolean;
-  otherBusiness: string | null;
   organizationName: string;
 }): string | null {
   if (input.alreadyMember) return `You're already in ${input.organizationName}.`;
@@ -58,9 +57,6 @@ export function acceptBlocker(input: {
   if (input.state === "expired") return `This invite expired (invites last ${INVITE_TTL_DAYS} days). Ask for a new one.`;
   if ((input.userEmail ?? "").toLowerCase() !== input.invitedEmail) {
     return `This invite is for ${input.invitedEmail}. Sign out, open this link again and sign in or create an account with that email address.`;
-  }
-  if (input.otherBusiness) {
-    return `Your account already belongs to ${input.otherBusiness}, and an account can belong to only one business for now. Ask to be invited with another email address.`;
   }
   return null;
 }

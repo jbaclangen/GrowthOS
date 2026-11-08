@@ -34,6 +34,7 @@ of record (see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)); security impli
 | `20261107154953_team_invitations.sql` | Team invitations by link and the team audit log (D-046; [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §8): tables `team_invitations` (token hash only, one open invite per address, never owner or client approver) and `team_events` (append-only); both readable by `has_permission(org, 'team.manage')`, written by the server only |
 | `20261107224300_legal_acceptances.sql` | Agreement checkboxes (D-057; [LEGAL_ACCEPTANCE.md](LEGAL_ACCEPTANCE.md)): table `legal_acceptances`, append-only, each person reads their own rows, written by the server only. Applied 2026-11-08 |
 | `20261108091111_remove_business.sql` | Removing a business (D-061; [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §9): `has_permission()` replaced whole to add `organization.delete` (owner only); table `organization_deletions` (one row per removed business, no personal data, no foreign key; RLS on, no policies, no client privileges: service role only). Applied 2026-11-08 (version 20261108091111) |
+| `20261108103906_business_limits.sql` | Applied 2026-11-08 (version 20261108103906). Several businesses per account (D-062; [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §10): table `account_trials` (one row per person who started the 14-day trial; RLS: read own row; written only by `create_organization()` and the service role), backfilled for every current owner; `account_business_limit(uid)` (Basic 2, Pro 4, Premium 8 from the highest effective plan the person owns; service only); `create_organization()` replaced: per-account lock, refuses at the limit with SQLSTATE `BRV01`, new business on the account's highest paid plan, else on the account's one trial |
 | `20261023224450_content_guard_pins_organization.sql` | `guard_content_item_write` refuses a client change of `content_items.organization_id`, so a draft can't be moved to a business where the caller holds `content.approve`, approved there and moved back (D-046). Otherwise the function is unchanged |
 | `20261023092945_roles_and_permissions.sql` | Roles and permissions foundation (D-046; [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md)). Replaces the `member_role` enum with the eight fixed roles (`member` rows become `analyst`; default `analyst`; the old type, renamed `member_role_v1`, was dropped from the SQL editor the same day because the MCP tool refuses destructive statements); function `has_permission(org, perm)` (security definer, `authenticated` only, no platform-staff bypass) holding the same matrix as `web/src/lib/team/roles.ts`; `content_items.created_by` (the author, set by the guard on client inserts); `guard_content_item_write` now also requires `content.approve` for a status change and `content.approve_own` (owner only) to approve one's own draft |
 | `20261023063253_feature_modules.sql` | Feature modules (D-051 steps 1–5; [FEATURE_MODULES.md](FEATURE_MODULES.md)). Domain `module_id` (the registry's ids); tables `organization_modules` (per-organization overrides `enabled` and `config`; members read, server writes) and `module_runs` (one row per module that ran in an analysis job, with `sub_score`, `audit_run_id`, `report_id`, `rules_version`; members read, pipeline writes; same-organization composite FKs to `ai_jobs` and `audit_runs`); columns `diagnosis_findings.module_id` and `growth_plan_items.module_id`, backfilled by provenance and by area |
@@ -51,7 +52,9 @@ Supabase CLI so the two stay in step.
   one of eight fixed roles (`owner`, `admin`, `marketing_manager`, `social_media_manager`, `copywriter`,
   `content_creator`, `analyst`, `client_approver`; D-046). What each role may do is the matrix in
   [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md), held in `web/src/lib/team/roles.ts` and `has_permission()`.
-- MVP behaviour: one organization per user, created on first analysis by `create_organization()`.
+- A person can belong to several organizations and own up to their plan's limit (D-062): Basic 2, Pro 4, Premium 8,
+  enforced by `create_organization()`. The app works on the one chosen in the `brv_business` cookie (else the oldest
+  membership).
   `getCurrentOrg()` (`web/src/lib/auth.ts`) takes the oldest membership.
 - **Platform admins** (`platform_admins`) pass `is_member()` and `is_org_admin()` for **every** organization.
   There is no UI for this; rows are inserted manually.
@@ -143,7 +146,7 @@ promote these to real `business_profile_id` FK columns before scale.
 | `is_org_admin(org uuid)` | Same | True for `owner`/`admin` members or platform admins | `authenticated` only | Org update and membership write policies |
 | `is_org_owner(org uuid)` | SQL, `stable`, `security definer`, empty `search_path` | True for `owner` members of `org` (no platform-admin bypass) | `authenticated` only | Service-key policies on `mcp_access_keys` |
 | `has_permission(org uuid, perm text)` | SQL, `stable`, `security definer`, empty `search_path` | True when the caller's membership role in `org` holds `perm` (the matrix in [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md), equal to `can()` in `web/src/lib/team/roles.ts`; an unknown `perm` is false; no platform-admin bypass) | `authenticated` only | `guard_content_item_write`; RLS write policies later |
-| `create_organization(org_name text)` | plpgsql, `security definer` | Creates an org and an `owner` membership for `auth.uid()`; raises if unauthenticated | `authenticated` only | `startAnalysis` |
+| `create_organization(org_name text)` | plpgsql, `security definer` | Creates an org and an `owner` membership for `auth.uid()`; raises if unauthenticated; since D-062: refuses past the account's business limit (SQLSTATE `BRV01`) and picks the plan and the account's one trial | `authenticated` only | `startAnalysis`, `createAccessKey` (`lib/organizations/create.ts`) |
 | `match_knowledge(org, query_embedding, match_count)` | SQL, `stable`, invoker | Cosine similarity search over `knowledge_chunks` for an org; RLS still applies because it is not definer | Default (public) | **Not used** |
 | `touch_updated_at()` | Trigger | Sets `updated_at = now()` | n/a | Triggers |
 | `post_job_dispatch(p_id bigint)` | plpgsql, `security definer`, empty `search_path` | POSTs one `job_dispatches` row (`net.http_post`, 10 s timeout) and records `attempts`, `last_sent_at`, `last_request_id` | None (owner only) | Trigger `job_dispatches_send` (`AFTER INSERT`), the sweeper, `resend_job_dispatch` |
@@ -202,8 +205,8 @@ cascades the person's own rows (memberships, platform-admin rows, personal keys,
   guarded by a trigger (migration `20261010121043`, D-018): clients can only
   move between `needs_approval`/`approved`/`rejected`, and `approved_by` is always `auth.uid()`. Acceptable
   while one user = one org; revisit before multi-user orgs (role-based write policies).
-- **Unbounded org creation.** `create_organization` can be called repeatedly by any authenticated user;
-  each new org gets a fresh $5 AI budget.
+- **Org creation.** Since `20261108103906_business_limits.sql` (applied 2026-11-08), an account owns at most 8
+  businesses (D-062), each still with its own $5 AI budget, and gets one trial.
 - **No uniqueness on per-run artefacts.** Each re-run appends a new `brand_profiles`, `reports`,
   `content_calendars` and 20–30 `content_items`; old ones are kept indefinitely.
 

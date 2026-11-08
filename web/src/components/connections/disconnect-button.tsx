@@ -12,11 +12,14 @@ const GOOGLE_EXPLANATION =
 
 export function DisconnectButton({
   returnTo,
+  organizationId,
   action = disconnectGoogleAction,
   label = "Disconnect Google",
   explanation = GOOGLE_EXPLANATION,
 }: {
   returnTo: string;
+  // The business it acts on (D-062); the route or action checks the user's role there.
+  organizationId: string;
   action?: (formData: FormData) => Promise<void>;
   label?: string;
   explanation?: string;
@@ -32,6 +35,7 @@ export function DisconnectButton({
   return (
     <form action={action} className="w-full rounded-md border border-border p-3 text-sm">
       <input type="hidden" name="returnTo" value={returnTo} />
+      <input type="hidden" name="organizationId" value={organizationId} />
       <p>{explanation}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         <ConfirmButton />

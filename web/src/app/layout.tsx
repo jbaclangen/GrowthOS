@@ -6,7 +6,12 @@ import { Comfortaa, Quicksand } from "next/font/google";
 import { Logo } from "@/components/brand/logo";
 import { AccountMenu } from "@/components/account-menu";
 import { AssistantLauncher } from "@/components/assistant";
+import { BusinessSwitcher } from "@/components/business-switcher";
 import { getUser } from "@/lib/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { memberOrganizations } from "@/lib/memberships";
+import { planLabel } from "@/lib/plans/label";
+import { effectiveAccess } from "@/lib/plans/tiers";
 import { getOrgAccess } from "@/lib/plans/access";
 import { TermsBanner } from "@/components/legal/terms-banner";
 import { signOut } from "./login/actions";
@@ -53,17 +58,14 @@ async function UserMenu() {
   await connection();
   const user = await getUser();
   if (!user) return null;
-  const access = await getOrgAccess(user.id);
-  // D-030: the current tier, with the days left in a Pro trial.
-  const planLabel = !access
-    ? null
-    : access.trial?.active
-      ? `Pro trial · ${access.trial.daysLeft} day${access.trial.daysLeft === 1 ? "" : "s"} left`
-      : access.tier === "basic"
-        ? "Basic"
-        : access.tier === "pro"
-          ? "Pro"
-          : "Premium";
+  const [access, orgs] = await Promise.all([
+    getOrgAccess(user.id),
+    memberOrganizations(await createSupabaseServerClient(), user.id),
+  ]);
+  // D-030: the current business's tier, with the days left in a Pro trial.
+  const plan = access ? planLabel(access) : null;
+  // D-062: the businesses the person belongs to, for the switcher.
+  const businesses = orgs.map((o) => ({ id: o.id, name: o.name, plan: planLabel(effectiveAccess(o)) }));
   // The in-app assistant (D-043): an active trial or a plan; otherwise the bar says what unlocks it.
   const assistant = !access ? "needs_business" : access.subscribed ? "enabled" : "needs_plan";
   // Every item keeps its size (shrink-0, no wrapping) except the email, which truncates; on phones the account items
@@ -71,9 +73,10 @@ async function UserMenu() {
   return (
     <div className="flex min-w-0 items-center gap-2 text-sm sm:gap-3">
       <AssistantLauncher state={assistant} />
-      {planLabel && (
-        <Link href="/plans" className="chip hidden shrink-0 whitespace-nowrap bg-accent-soft text-accent-soft-foreground hover:underline sm:inline-flex">
-          {planLabel}
+      {businesses.length > 0 && <BusinessSwitcher businesses={businesses} currentId={access?.orgId ?? null} className="hidden sm:inline-flex" />}
+      {plan && (
+        <Link href="/plans" className="chip hidden shrink-0 whitespace-nowrap bg-accent-soft text-accent-soft-foreground hover:underline md:inline-flex">
+          {plan}
         </Link>
       )}
       <span className="hidden min-w-0 truncate text-muted lg:block">{user.email}</span>
@@ -85,7 +88,7 @@ async function UserMenu() {
           Sign out
         </button>
       </form>
-      <AccountMenu email={user.email ?? ""} plan={planLabel} signOut={signOut} />
+      <AccountMenu email={user.email ?? ""} plan={plan} business={access?.orgName ?? null} signOut={signOut} />
     </div>
   );
 }

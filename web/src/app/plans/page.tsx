@@ -3,6 +3,9 @@ import { Suspense } from "react";
 import { requireUser } from "@/lib/auth";
 import { getOrgAccess } from "@/lib/plans/access";
 import { FEATURES, TIERS, proHasLiveFeatures, type Tier } from "@/lib/plans/tiers";
+import { BUSINESS_LIMITS, businessesLabel, limitMessage } from "@/lib/plans/business-limit";
+import { accountUsage } from "@/lib/organizations/limit-server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { RequestForm } from "./request-form";
 
 export const metadata: Metadata = { title: "Plans" };
@@ -22,7 +25,10 @@ const PREVIOUS: Record<Tier, string | null> = { basic: null, pro: "Everything in
 
 async function Plans() {
   const user = await requireUser();
-  const access = await getOrgAccess(user.id);
+  const [access, usage] = await Promise.all([
+    getOrgAccess(user.id),
+    createSupabaseServerClient().then((db) => accountUsage(db, user.id)),
+  ]);
   const trial = access?.trial;
 
   return (
@@ -37,6 +43,15 @@ async function Plans() {
               ? "Your Pro trial has ended. You're on Basic, a paid plan: Braventa recommends, and you carry out the changes yourself. Talk to us to set up your subscription."
               : `You're on ${TIERS[access.tier].label}.`}
       </p>
+      {access && <p className="mt-1 text-sm text-muted">This is the plan of {access.orgName}, the business you&apos;re working on.</p>}
+      {/* D-062: the account's business limit, from the highest plan among the businesses it owns. */}
+      {usage && usage.used > 0 && (
+        <p className="mt-3 rounded-md bg-surface-muted px-3 py-2 text-sm">
+          You own {businessesLabel(usage.used)}, and your account can have up to {usage.limit} (the highest plan among
+          them sets it).{" "}
+          {usage.atLimit ? limitMessage(usage) : null}
+        </p>
+      )}
       {!proHasLiveFeatures() && (
         <p className="mt-3 rounded-md bg-surface-muted px-3 py-2 text-sm">
           Pro and Premium features are coming soon. Today every plan, including the trial, has the same tools: the ones
@@ -65,7 +80,12 @@ async function Plans() {
                 )}
               </div>
               <p className="mt-1 text-sm text-muted">{TIERS[tier].summary}</p>
-              <p className="mt-3 text-xs text-muted">Pricing to be announced.</p>
+              <p className="mt-3 text-sm font-medium">
+                {tier === "premium"
+                  ? `Up to ${BUSINESS_LIMITS.premium} businesses; more on a custom plan`
+                  : `Up to ${BUSINESS_LIMITS[tier]} businesses`}
+              </p>
+              <p className="mt-1 text-xs text-muted">Pricing to be announced.</p>
 
               {PREVIOUS[tier] && <p className="mt-4 text-sm font-medium">{PREVIOUS[tier]}</p>}
               <ul className="mt-2 flex-1 space-y-3">

@@ -13,12 +13,14 @@ import { approvalAllowed, can, deniedMessage } from "@/lib/team/roles";
 import { hasPermission, memberRole } from "@/lib/team/server";
 import { CONSENT_REQUIRED, consentGiven } from "@/lib/legal/documents";
 import { recordAcceptance } from "@/lib/legal/acceptances";
+import { createOwnedBusiness } from "@/lib/organizations/limit-server";
+import { rememberBusiness } from "@/lib/organizations/current";
 
 // Role checks (D-046, lib/team/roles.ts): starting or re-running an analysis needs analysis.run, changing the
 // owner's answers needs profile.edit, and a draft's status needs content.approve (own drafts: content.approve_own).
 // The AI assistant connection's tools check the same permissions (lib/mcp/tools.ts).
 
-export type StartState = { error?: string } | undefined;
+export type StartState = { error?: string; atLimit?: boolean } | undefined;
 
 const startSchema = z.object({
   website: z.string().trim().min(3, "Enter a website address"),
@@ -45,13 +47,17 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
   }
 
   const supabase = await createSupabaseServerClient();
-  let org = await getCurrentOrg(user.id);
+  // "business" = "new" adds a business to the account (D-062); otherwise the website goes to the business the user is
+  // working on, as before. Someone with no business yet always gets a new one.
+  let org = formData.get("business") === "new" ? null : await getCurrentOrg(user.id);
   if (!org) {
     const name = parsed.data.businessName || new URL(websiteUrl).hostname.replace(/^www\./, "");
-    const { data: orgId, error } = await supabase.rpc("create_organization", { org_name: name });
-    if (error) return { error: error.message };
-    // create_organization makes the caller the owner.
-    org = { id: orgId as string, name, role: "owner" };
+    // Refused past the account's business limit (create_organization, D-062); the form then links to /plans.
+    const created = await createOwnedBusiness(supabase, user.id, name);
+    if ("error" in created) return { error: created.error, atLimit: created.atLimit };
+    // create_organization makes the caller the owner. The new business becomes the one they're working on.
+    org = { id: created.id, name, role: "owner" };
+    await rememberBusiness(created.id);
     // The header (root layout) shows the plan chip and the assistant only once an organization exists; refresh it so
     // the redirect below re-renders the layout instead of keeping "Analyze a website first" from before.
     refresh();
