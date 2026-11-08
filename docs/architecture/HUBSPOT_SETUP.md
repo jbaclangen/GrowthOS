@@ -39,12 +39,13 @@ Not relied on: the account-info currency endpoint (if it fails, amounts show wit
 
 ## 3. Setup (founder)
 
-### 3.1 Apply the migration
+### 3.1 Apply the migration (done 2026-11-08)
 
-Apply `supabase/migrations/20261108120000_hubspot_connection.sql` (adds `hubspot` to the provider check, the
-`external_account_id` and `external_account_name` columns, and the `hubspot_snapshots` table). Apply it before you
-set the environment variables in §3.3: without them the card never queries the new table, so the code can deploy
-first.
+`supabase/migrations/20261108043117_hubspot_connection.sql` was applied to production on 2026-11-08 (it adds
+`hubspot` to the provider check next to the two Google products, the `external_account_id` and
+`external_account_name` columns, the `hubspot_snapshots` table and the `hubspot_connect` agreement context). On a new
+database, apply it before you set the environment variables in §3.3: without them the card never queries the new
+table, so the code can deploy first.
 
 ### 3.2 Create and upload the app
 

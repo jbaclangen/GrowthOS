@@ -13,7 +13,7 @@ alter table public.integration_connections add constraint integration_connection
   check (provider in ('google_search_console', 'google_analytics', 'hubspot'));
 
 -- The connected account at a provider without a Google email: for HubSpot, the portal (hub) id and its domain, shown so
--- the owner can see which portal is connected. Null for Search Console.
+-- the owner can see which portal is connected. Null for the Google products.
 alter table public.integration_connections
   add column external_account_id text check (external_account_id is null or char_length(external_account_id) <= 64),
   add column external_account_name text check (external_account_name is null or char_length(external_account_name) <= 255);
@@ -54,7 +54,7 @@ alter table public.legal_acceptances add constraint legal_acceptances_context_ch
     'hubspot_connect'
   ));
 
-comment on table public.integration_connections is 'OAuth connections to external services (Google Search Console, HubSpot). Refresh tokens are AES-256-GCM ciphertext written by the server; never selectable by clients.';
-comment on column public.integration_connections.external_account_id is 'HubSpot portal (hub) id. Null for Search Console.';
-comment on column public.integration_connections.external_account_name is 'HubSpot portal domain, for display. Null for Search Console.';
+comment on table public.integration_connections is 'OAuth connections to external services (Google Search Console, Google Analytics 4, HubSpot). Refresh tokens are AES-256-GCM ciphertext written by the server; never selectable by clients.';
+comment on column public.integration_connections.external_account_id is 'HubSpot portal (hub) id. Null for the Google products.';
+comment on column public.integration_connections.external_account_name is 'HubSpot portal domain, for display. Null for the Google products.';
 comment on table public.hubspot_snapshots is 'HubSpot CRM counts and totals, one row per fetch (no names, emails or record ids, D-059). The 12 most recent are kept; deleted on disconnect.';

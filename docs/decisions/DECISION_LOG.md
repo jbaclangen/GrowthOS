@@ -855,8 +855,9 @@ migration applied to production 2026-11-08. Spec: [LEGAL_ACCEPTANCE.md](../archi
   the privacy and sub-processors pages (Q-060), and extend Google's OAuth verification to the new scope (Q-061).
 
 ## D-059 — HubSpot connection: aggregates only, built ahead of the CRM module
-**Status:** Founder (2026-11-08, in chat: "aggregates only", "connection first"). Built, not set up: live once the
-HubSpot app is uploaded and its env vars are set ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). Amends D-048.
+**Status:** Founder (2026-11-08, in chat: "aggregates only", "connection first"). Built; migration
+`20261108043117_hubspot_connection.sql` applied 2026-11-08. Not set up: live once the HubSpot app is uploaded and its
+env vars are set ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). Amends D-048.
 - **Store aggregates only.** Braventa reads contacts, companies, deals and deal pipelines from the owner's portal but
   stores only counts, sums and the portal's own stage and source labels (`hubspot_snapshots.metrics`). No names,
   email addresses, phone numbers, deal names, record ids or owner names are stored, logged or shown. This keeps the
