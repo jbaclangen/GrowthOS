@@ -6,15 +6,17 @@ import { SOLUTIONS, getPainPoint, type SolutionId } from "@/lib/onboarding/catal
 
 export type Level = "high" | "medium" | "low";
 export type Provenance = "verified" | "customer_provided" | "inferred";
-export type Source = "owner" | "website" | "pagespeed" | "search_console" | "inference";
+export type Source = "owner" | "website" | "pagespeed" | "search_console" | "analytics" | "inference";
 
 // The spec's evidence types mapped onto Braventa's provenance classes (D-028). Search Console data is measured by
-// Google (D-051 step 6), so a finding that cites it is verified, like one citing the checks or PageSpeed.
+// Google (D-051 step 6), and so is Google Analytics 4 data (2026-11-08), so a finding that cites either is verified,
+// like one citing the checks or PageSpeed.
 export const PROVENANCE: Record<Source, Provenance> = {
   owner: "customer_provided",
   website: "verified",
   pagespeed: "verified",
   search_console: "verified",
+  analytics: "verified",
   inference: "inferred",
 };
 

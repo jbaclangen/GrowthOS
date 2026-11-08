@@ -38,7 +38,8 @@ public page (CLAUDE.md: never present planned features as live).
 | Connect your AI assistant (MCP): Claude fills in onboarding (D-036) | Basic | Live — every plan during the trial; paused after it until the business is on a plan |
 | Full marketing audit (SEO, search ads, social, email, video) | Pro | Coming soon |
 | Google Search Console connection: read-only clicks, impressions, top queries and pages, shown on `/search` | Pro | Live (founder decision 2026-10-11) — the first live Pro feature; set up in production and first connected and synced on 2026-10-11 ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)). Paused after the trial on Basic: data kept, nothing new fetched, resumes on Pro/Premium. Connected in Settings, and also offered during setup on the optional "Connect your tools" step (owner only; Basic sees it paused; D-054). Since 2026-10-23 its latest snapshot feeds the diagnosis and the growth score as the Search visibility module (D-051 step 6, §6) |
-| Analytics connections: GA4, Tag Manager | Pro | Coming soon |
+| Google Analytics 4 connection: read-only sessions, engagement, key events, traffic channels and landing pages, shown in the Google Analytics card (Settings → Connections and the "Connect your tools" step) | Pro | Live in the code (founder decisions 2026-11-08, D-058); production needs its migration and Google Cloud setup ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)). Through the same Google sign-in as Search Console (one consent screen; "Disconnect Google" ends both). Same Pro rule: owner only, paused after the trial on Basic, data kept. Its latest snapshot feeds the diagnosis and the growth score as the Analytics module ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10) |
+| Tag Manager connection | Pro | Coming soon |
 | Creative tool connections: Canva, HeyGen, Higgsfield | Pro | Coming soon |
 | Website and social connections: WordPress, social accounts | Pro | Coming soon |
 | AI agents that carry out approved fixes (n8n workflows and/or Opus-assisted execution) | Pro | Coming soon |
@@ -62,7 +63,7 @@ verification of the OAuth client ([SEARCH_CONSOLE_SETUP.md](../architecture/SEAR
 ## 5. Proposed build order for Pro (not yet approved)
 
 1. **Billing** (Stripe is the working assumption, Q-010) so a trial can convert.
-2. **Google connections** (Search Console built 2026-10-11; GA4 next) — read-only, the audit gets real traffic and search data.
+2. **Google connections** (Search Console built 2026-10-11; GA4 built 2026-11-08 through the same sign-in) — read-only, the audit gets real traffic and search data.
 3. **WordPress connection + first agent**: approved website fixes (meta descriptions, alt text) applied as
    drafts the owner publishes; audit log per action.
 4. **Social accounts** — publish approved drafts (CS-7 / publishing).
@@ -122,19 +123,24 @@ only in the PR that ships it (§4). Detail: [DECISION_LOG.md](../decisions/DECIS
 
 Built (2026-10-23, D-051 steps 1–6): the module registry (`web/src/lib/modules/registry.ts`), with the growth score a
 renormalized weighted mean of the enabled modules that have evidence, shown as "Based on N modules" on the report's
-score tile. The four Basic modules and Search visibility are live; a score without Search Console evidence is
-unchanged, since the same parts feed it ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)). Modules can't be
+score tile. The four Basic modules, Search visibility and Analytics (2026-11-08) are live; a score without Search
+Console or Google Analytics 4 evidence is unchanged, since the same parts feed it ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)). Modules can't be
 switched on or off from the app yet.
 
 | Lowest tier | Modules |
 |---|---|
 | Basic | Business intelligence; website and technical SEO; conversion and messaging; content studio |
-| Pro | Search visibility; local SEO; social media; search ads; email marketing; video; CRM intelligence; analytics; automation |
+| Pro | Search visibility; analytics; local SEO; social media; search ads; email marketing; video; CRM intelligence; automation |
 | Premium | Custom integrations |
 
 - The first new module, Search visibility, is live (2026-10-23): the latest Search Console snapshot goes to the
   diagnosis and adds a modest 0.10 to the growth score (about a tenth) for Pro, Premium and trial organizations with
   the connection active and data in the window ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §9). Basic
   keeps the connection paused and its score as it was.
+- The second, Analytics, is live (2026-11-08, D-058): the latest Google Analytics 4 snapshot goes to the diagnosis
+  and adds 0.10 to the growth score (provisional) for Pro, Premium and trial organizations with the connection
+  active, a snapshot and a property older than 28 days. It measures whether tracking works and counts inquiries
+  (data flowing, key events, engagement rate, the sessions trend), not traffic volume
+  ([FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10).
 - Module names stay descriptive (D-010). The public growth score explanation (D-035) now says the score is based on
   the modules with evidence, named on the report.

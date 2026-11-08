@@ -169,6 +169,8 @@ export function ReportInfographic({ report, href }: { report: Report; href: stri
   const blend = scoreBlend(modules, "short");
   // Search visibility's sub-score (Google Search Console), when it counted in this score.
   const searchScore = modules.includes("search_visibility") ? data.module_scores?.search_visibility : undefined;
+  // Analytics' sub-score (Google Analytics 4), when it counted.
+  const analyticsScore = modules.includes("analytics") ? data.module_scores?.analytics : undefined;
 
   const scoreRows = [
     { label: "Content clarity", value: data.scores.content_clarity },
@@ -181,6 +183,7 @@ export function ReportInfographic({ report, href }: { report: Report; href: stri
         ]
       : []),
     ...(searchScore != null ? [{ label: "Search visibility", value: searchScore, note: "Search Console" }] : []),
+    ...(analyticsScore != null ? [{ label: "Analytics", value: analyticsScore, note: "Google Analytics" }] : []),
   ];
 
   const confirmed = diagnosis?.status === "confirmed";

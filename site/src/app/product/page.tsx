@@ -27,7 +27,7 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
     status: "live",
     summary: "A growth score, a diagnosis you confirm, and one prioritized growth plan.",
     today: [
-      "Growth score from measured site quality, assessed marketing readiness and, on Pro, your Google Search Console data",
+      "Growth score from measured site quality, assessed marketing readiness and, on Pro, your Google Search Console and Google Analytics 4 data",
       "Findings marked Verified, From you, or Inferred, with confidence",
       "One plan: your priorities first, each action with a first step and a way to measure it",
       "Accept, dismiss or mark each action done",
@@ -46,8 +46,8 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
     name: "Website Intelligence",
     status: "partial",
     summary: "Speed, SEO basics, and conversion gaps from your own site.",
-    today: ["Google PageSpeed mobile and desktop scores", "Signals such as contact forms, phone numbers, meta descriptions and image alt text", "On Pro: your Google Search Console data in the diagnosis and the growth score"],
-    notYet: "Reads the home page and up to 24 more pages. No traffic data, and no search data without Search Console connected.",
+    today: ["Google PageSpeed mobile and desktop scores", "Signals such as contact forms, phone numbers, meta descriptions and image alt text", "On Pro: your Google Search Console and Google Analytics 4 data in the diagnosis and the growth score"],
+    notYet: "Reads the home page and up to 24 more pages. No search or traffic data unless you connect Google Search Console or Google Analytics 4 on Pro.",
     why: "Your website is often your first salesperson. Fix what's costing you inquiries first.",
   },
   {
@@ -69,7 +69,7 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
     status: "next",
     summary: "What you did, what it achieved, and what to do next.",
     today: [],
-    why: "Results from your connected tools will feed back into the plan.",
+    why: "Results from your connected tools will feed back into the plan. On Pro, Braventa already reads your Google Analytics 4 data for the diagnosis and the growth score.",
   },
 ];
 

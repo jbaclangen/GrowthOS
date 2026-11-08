@@ -30,10 +30,11 @@ describe("the module registry", () => {
     expect(byTier("premium")).toEqual(["custom_integrations"]);
   });
 
-  it("marks live only what the current pipeline does: the four Basic modules and Search visibility (D-051 step 6)", () => {
-    expect(liveModules().map((m) => m.id)).toEqual(["business_intel", "website_seo", "conversion", "content_studio", "search_visibility"]);
-    for (const m of liveModules()) expect(m.tier, m.id).toBe(m.id === "search_visibility" ? "pro" : "basic");
+  it("marks live only what the current pipeline does: the four Basic modules, Search visibility and Analytics", () => {
+    expect(liveModules().map((m) => m.id)).toEqual(["business_intel", "website_seo", "conversion", "content_studio", "search_visibility", "analytics"]);
+    for (const m of liveModules()) expect(m.tier, m.id).toBe(["search_visibility", "analytics"].includes(m.id) ? "pro" : "basic");
     expect(getModule("search_visibility")).toMatchObject({ live: true, tier: "pro", featureId: "search_console" });
+    expect(getModule("analytics")).toMatchObject({ live: true, tier: "pro", featureId: "google_analytics" });
     expect(getModule("local_seo").live).toBe(false);
   });
 
@@ -57,15 +58,16 @@ describe("the module registry", () => {
       }
     }
     // The Basic modules carry the whole score on Basic: PageSpeed about a third, the assessment about two-thirds
-    // (D-035). Search visibility adds a modest 0.10 for an organization with Search Console evidence
-    // (FEATURE_MODULES.md §9), about 9% of a full score once renormalized.
+    // (D-035). Search visibility and Analytics each add a modest 0.10 for an organization with Search Console or
+    // GA4 evidence (FEATURE_MODULES.md §9, §10), about 8% each of a full score once renormalized.
     const basic = MODULES.filter((m) => m.tier === "basic").reduce((s, m) => s + (m.scoreWeight ?? 0), 0);
     expect(basic).toBeCloseTo(1, 10);
     expect(getModule("website_seo").scoreWeight).toBeCloseTo(0.35, 10);
     expect(getModule("conversion").scoreWeight).toBeCloseTo(0.65, 10);
     expect(getModule("search_visibility").scoreWeight).toBeCloseTo(0.1, 10);
+    expect(getModule("analytics").scoreWeight).toBeCloseTo(0.1, 10);
     const total = MODULES.reduce((s, m) => s + (m.scoreWeight ?? 0), 0);
-    expect(total).toBeCloseTo(1.1, 10);
+    expect(total).toBeCloseTo(1.2, 10);
   });
 
   it("recognises ids and labels them", () => {
@@ -77,10 +79,10 @@ describe("the module registry", () => {
 });
 
 describe("enabledModuleIds", () => {
-  it("gives every tier the four Basic modules, and Pro and Premium Search visibility as well", () => {
+  it("gives every tier the four Basic modules, and Pro and Premium Search visibility and Analytics as well", () => {
     const basic = enabledModuleIds("basic");
     expect([...basic]).toEqual(["business_intel", "website_seo", "conversion", "content_studio"]);
-    expect([...enabledModuleIds("pro")]).toEqual([...basic, "search_visibility"]);
+    expect([...enabledModuleIds("pro")]).toEqual([...basic, "search_visibility", "analytics"]);
     expect(enabledModuleIds("premium")).toEqual(enabledModuleIds("pro"));
   });
 

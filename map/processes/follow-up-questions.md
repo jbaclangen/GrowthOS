@@ -22,7 +22,7 @@ The plan needs both the owner's answers and the crawl, and they finish in either
 
 ## Steps
 
-1. Connect page's form posts `continueAfterConnect` — `web/src/app/onboarding/[sessionId]/connect/page.tsx:127`; `maxDuration = 300` — `:25-27`; MCP skips this step — `:22`.
+1. Connect page's form posts `continueAfterConnect` — `web/src/app/onboarding/[sessionId]/connect/page.tsx:137`; `maxDuration = 300` — `:25-27`; MCP skips this step — `:22`.
 2. `continueAfterConnect`: status must be `following_up`; pending questions redirect to `/questions`; else `continueFollowUps` — `web/src/app/onboarding/[sessionId]/actions.ts:84-96`, redirect helper `:30-34`. Every action here needs `profile.edit`, checked in `loadSession` — `:18-23`; refusals `:88`, `:102`, `:122`.
 3. `continueFollowUps` calls `addNextRound`, logging failures; zero questions → `completeSession` — `web/src/lib/onboarding/service.ts:158-168`.
 4. `addNextRound`: round size from `nextRoundSize` — `web/src/lib/onboarding/next-questions.ts:68-70`, sizes at `web/src/lib/onboarding/followups.ts:133`, `:173-176`; extractor worker chooses, `fallbackSelection` on failure (first round only) — `web/src/lib/onboarding/next-questions.ts:98-112`; insert `onboarding_follow_ups` with `round` — `:115-126`; `round` check 1–3 at `supabase/migrations/20261010163029_onboarding_follow_ups.sql:15`.

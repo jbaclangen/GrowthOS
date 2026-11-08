@@ -36,6 +36,7 @@ export type FeatureId =
   | "assistant_connection"
   | "full_audit"
   | "search_console"
+  | "google_analytics"
   | "analytics_integrations"
   | "creative_integrations"
   | "channel_integrations"
@@ -60,7 +61,11 @@ export const FEATURES: Feature[] = [
   // Read-only; paused after the trial on Basic, data kept (founder decision 2026-10-11, lib/integrations/search-console-access.ts).
   // Its data feeds the diagnosis and the growth score as the Search visibility module (D-051 step 6).
   { id: "search_console", label: "Google Search Console connection", detail: "Read-only clicks, impressions, top search queries and pages for your website, shown in Braventa and used in your diagnosis and growth score.", minTier: "pro", status: "live" },
-  { id: "analytics_integrations", label: "Analytics connections", detail: "Google Analytics 4 and Tag Manager.", minTier: "pro", status: "coming_soon" },
+  // Read-only, through the same Google connection as Search Console (one consent screen, founder decision
+  // 2026-11-08); paused after the trial on Basic, data kept. Feeds the diagnosis and the growth score as the
+  // Analytics module (FEATURE_MODULES.md §10).
+  { id: "google_analytics", label: "Google Analytics 4 connection", detail: "Read-only sessions, engagement, key events, traffic channels and landing pages for your website, shown in Braventa and used in your diagnosis and growth score.", minTier: "pro", status: "live" },
+  { id: "analytics_integrations", label: "Tag Manager connection", detail: "Google Tag Manager checks.", minTier: "pro", status: "coming_soon" },
   { id: "creative_integrations", label: "Creative tool connections", detail: "Canva, HeyGen and Higgsfield.", minTier: "pro", status: "coming_soon" },
   { id: "channel_integrations", label: "Website and social connections", detail: "WordPress and your social media accounts.", minTier: "pro", status: "coming_soon" },
   { id: "ai_agents", label: "AI agents that carry out fixes", detail: "Agents apply recommended changes in your connected tools, each one only after you approve it.", minTier: "pro", status: "coming_soon" },

@@ -300,8 +300,9 @@ describe("knowledge base", () => {
     ].join("\n");
     const card = source("../../components/connections/search-console-card.tsx");
     for (const label of ["Continue", "Change your priorities", "Connect your tools"]) expect(step, label).toContain(label);
-    expect(card).toContain("Connect Google Search Console");
-    expect(section("search-console")).toContain("**Connect Google Search Console**");
+    expect(card).toContain("Connect Google");
+    expect(section("search-console")).toContain("**Connect Google**");
+    expect(source("../../components/connections/disconnect-button.tsx")).toContain("Disconnect Google");
 
     // Every bold label in the step's route entry and in getting-started step 4 is on the page or its card.
     const route = APP_ROUTES.find((r) => r.route === "/onboarding/[sessionId]/connect")!;
@@ -311,10 +312,10 @@ describe("knowledge base", () => {
     expect(quoted.length).toBeGreaterThan(1);
     for (const label of quoted) expect(`${step}\n${card}`, label).toContain(label);
 
-    // Only Search Console is live and its data feeds the diagnosis and the score (D-051 step 6); every other tool
-    // is named as coming soon.
+    // Search Console and Google Analytics 4 are live (one Google sign-in) and their data feeds the diagnosis and the
+    // score; every other tool is named as coming soon.
     expect(route.purpose).toMatch(/goes into your diagnosis and growth score/);
-    expect(route.purpose).toMatch(/Coming soon[^.]*: Google Analytics 4, .*HubSpot.* and HeyGen\./);
+    expect(route.purpose).toMatch(/Coming soon[^.]*: Google Business Profile, .*HubSpot.* and HeyGen\./);
     expect(route.howToGetThere).toMatch(/AI assistant connected to Braventa skips this step/);
   });
 

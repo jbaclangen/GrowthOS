@@ -32,8 +32,8 @@ Status definitions:
 | Google PageSpeed Insights | Lighthouse performance / SEO / accessibility / best-practice scores | **Live** | `web/src/lib/integrations/google.ts` (`pageSpeed`, `pageSpeedReport`), pipeline step 1 | `GOOGLE_API_KEY` (GCP project `growth-os-511206`, key restricted to PageSpeed) | Mobile **and** desktop in parallel, 180 s timeout each (Google's time varies run to run: thebenefitlink.com's mobile run took 86 s once and over 120 s another time on 2026-10-17; desktop 41 s). They run alongside the 45 s crawl in their own `crawling` step and function invocation (D-042), so 180 s still leaves about two minutes of the 300 s limit for the writes after it. Past it, the report says PageSpeed timed out and the score uses the other modules' parts (Braventa's assessment, plus Search visibility when it has Search Console evidence). Steps cut off by the hosting limit are marked failed 10 minutes after their last progress (`lib/pipeline/jobs.ts`, `failStaleJobs`). Reads CrUX field data (`loadingExperience`: LCP, INP, CLS, overall category; may be missing or whole-site) separately from Lighthouse lab scores and metrics, plus the top 5 Lighthouse opportunities by estimated savings. Either strategy may fail on its own; the growth score still uses the mobile lab scores, as before. Key goes in the query string to Google (normal for this API) |
 | Website crawler | Reads up to 25 same-site pages of the customer's site and runs deterministic checks | **Live** | `web/src/lib/integrations/crawler.ts` (cheerio), `robots.ts`, `sitemap.ts`; checks in `web/src/lib/audit/checks.ts` | None | User-Agent `Braventa/0.1; +https://braventa.io` (robots.txt product token `Braventa`). Fetches and **respects robots.txt** for every URL and redirect hop (RFC 9309: the `Braventa` group, else `*`; longest match, `*` and `$`; 4xx = no rules; 5xx or no answer = everything disallowed). If the home page is disallowed, nothing is crawled and the analysis continues with PageSpeed and the owner's answers; the report says so and shows the `User-agent: Braventa` / `Allow: /` fix. Reads sitemaps (robots.txt `Sitemap:` lines, else `/sitemap.xml`; index → up to 3 children, page sitemaps first; 200 URLs; same site only). Candidates from the sitemap and home-page links, business pages first; 4 at a time, ~45 s total budget, 15 s and 2 MB per page; up to 10 quick checks of linked pages it didn't crawl; checks the `http://` and www/non-www home page variants. Every candidate is recorded as scanned / excluded (reason) / failed (status or error) with redirect chains. No JS rendering. SSRF protections unchanged (see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#7-prompt-injection-posture)). Dry run without AI or DB: `npm run audit:site -- example.com` |
 | n8n | Workflow execution, scheduling, orchestration | **Configured only** | `web/src/lib/integrations/n8n.ts` (`listWorkflows`, `triggerWebhook`, `verifyCallback`); used only by the dev health route | `N8N_BASE_URL`, `N8N_API_KEY`, `N8N_WEBHOOK_SECRET` (>= 32 chars) | Instance `n8nautomations.pixelmarketingdesign.com`. `n8n/` folder empty: no workflows exported. **No `/api/n8n/*` routes exist**, and `proxy.ts` would redirect them to `/login` until `/api/n8n` is made public. `triggerWebhook` and `verifyCallback` are unused |
-| Google Analytics 4 (Data/Admin API) | Traffic and conversion data for reporting | **Configured only** (API enabled in GCP; no code) | None | OAuth per customer property (planned); current API key is PageSpeed-only | Enablement recorded in infrastructure notes, not verifiable from the repo. `integrations.provider` comment lists `google_analytics` |
-| Google Search Console | Read-only clicks, impressions, top queries and pages, device split, sitemaps, home-page URL Inspection (Pro) | **Live** for Pro in production: connected and synced on 2026-10-11 (setup: [SEARCH_CONSOLE_SETUP.md](SEARCH_CONSOLE_SETUP.md)); since 2026-10-23 its latest snapshot feeds the diagnosis and the growth score as the Search visibility module (D-051 step 6, [FEATURE_MODULES.md](FEATURE_MODULES.md) §9) | `web/src/lib/integrations/{google-oauth,search-console,search-console-access,secret-box}.ts`, `web/src/app/api/integrations/google/{start,callback}/route.ts`, `web/src/app/settings/connections-*.tsx`, `web/src/app/search/` | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `INTEGRATIONS_ENCRYPTION_KEY` (server-only); per-org OAuth refresh token, encrypted | See [Google Search Console](#google-search-console-pro) below. The scoring step calls `searchConsoleSummaryForPrompt` for organizations whose enabled modules include Search visibility (Pro, Premium, the trial). `braventa.io` itself is verified in Search Console (TXT record) — that is Braventa's own domain, not this integration |
+| Google Analytics 4 (Data/Admin API) | Read-only sessions, engagement, key events, channels, landing pages and devices for the website's property (Pro) | **Built** 2026-11-08 (D-058): live in the code for Pro, Premium and the trial; production needs migration `20261107224123`, the two APIs enabled and the `analytics.readonly` scope on the consent screen ([SEARCH_CONSOLE_SETUP.md](SEARCH_CONSOLE_SETUP.md)). Its latest snapshot feeds the diagnosis and the growth score as the Analytics module ([FEATURE_MODULES.md](FEATURE_MODULES.md) §10) | `web/src/lib/integrations/{google-analytics,google-analytics-access,google-connection}.ts`, the same Google OAuth routes as Search Console, `web/src/components/connections/analytics-card.tsx` | The same Google OAuth client and `INTEGRATIONS_ENCRYPTION_KEY` as Search Console; per-org refresh token, encrypted | See [Google Analytics 4](#google-analytics-4-pro) below. One Google sign-in covers both products |
+| Google Search Console | Read-only clicks, impressions, top queries and pages, device split, sitemaps, home-page URL Inspection (Pro) | **Live** for Pro in production: connected and synced on 2026-10-11 (setup: [SEARCH_CONSOLE_SETUP.md](SEARCH_CONSOLE_SETUP.md)); since 2026-10-23 its latest snapshot feeds the diagnosis and the growth score as the Search visibility module (D-051 step 6, [FEATURE_MODULES.md](FEATURE_MODULES.md) §9) | `web/src/lib/integrations/{google-oauth,google-connection,search-console,search-console-access,secret-box}.ts`, `web/src/app/api/integrations/google/{start,callback}/route.ts`, `web/src/app/settings/connections-*.tsx`, `web/src/app/search/` | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `INTEGRATIONS_ENCRYPTION_KEY` (server-only); per-org OAuth refresh token, encrypted | See [Google Search Console](#google-search-console-pro) below. The scoring step calls `searchConsoleSummaryForPrompt` for organizations whose enabled modules include Search visibility (Pro, Premium, the trial). `braventa.io` itself is verified in Search Console (TXT record) — that is Braventa's own domain, not this integration |
 | HubSpot | First CRM integration: pipeline and lead summaries | **Planned** (priority) | None. Health route returns a "Sprint 5" placeholder | HubSpot public app (OAuth client id/secret), `INTEGRATIONS_ENCRYPTION_KEY`; per-org OAuth refresh token, encrypted | See plan below |
 | HubSpot (Braventa's own CRM) | braventa.io contact requests: notification, CRM record, replies from hello@braventa.io via Hostinger SMTP (D-034, Pixelmarketingdesign portal 247150427). Not the customer-facing integration above | **Live** (submissions arrive since the 2026-10-11 `pageUri` fix) | `site/src/lib/hubspot.ts` (Forms API, no secret; form `ce8aca1a-…`) | `HUBSPOT_PORTAL_ID`, `HUBSPOT_FORM_GUID` on Vercel `braventa-site` | [CONTACT_PIPELINE.md](../marketing/CONTACT_PIPELINE.md) |
 | Braventa MCP server (inbound) | Owners' AI assistants (Claude Code, Claude Desktop) fill in onboarding (D-036) | **Live, phase 1** | `web/src/app/api/mcp/route.ts`, `web/src/lib/mcp/` | None (owners' personal access keys, hashed in `mcp_access_keys`) | [MCP_SERVER.md](MCP_SERVER.md). OAuth for claude.ai/ChatGPT not built (Q-039) |
@@ -53,12 +53,13 @@ the connection is **paused** (data kept, nothing new fetched, Settings and `/sea
 `web/src/lib/integrations/search-console-access.ts` (= `canUse(effectiveAccess(org).tier, "search_console")`).
 
 **Scopes.** `https://www.googleapis.com/auth/webmasters.readonly` plus `openid email` (only to show which
-Google account is connected). No write scope. `include_granted_scopes=false`, so no other Google scopes are
-merged in. If the owner unticks the Search Console permission on the consent screen, the callback revokes the
+Google account is connected), and since 2026-11-08 `https://www.googleapis.com/auth/analytics.readonly` on the same
+consent screen (GA4, below). No write scope. `include_granted_scopes=false`, so no other Google scopes are
+merged in. The callback keeps only the products the owner granted; if the owner unticks both, it revokes the
 grant and nothing is stored (`?gsc=scope-missing`).
 
 **Flow.**
-1. Settings → Connections → **Connect Google Search Console** (a plain link; only the organization's owner,
+1. Settings → Connections → **Connect Google** (a plain link; only the organization's owner,
    only with Pro access). `GET /api/integrations/google/start` creates a random `state` and a PKCE verifier,
    stores them with the user id, organization id and redirect URI in an **AES-GCM-encrypted, httpOnly,
    SameSite=Lax cookie** (`brv_google_oauth`, path `/api/integrations/google`, 10 minutes), and redirects to
@@ -68,8 +69,10 @@ grant and nothing is stored (`?gsc=scope-missing`).
    user and organization match the cookie, owner role and Pro access, then exchanges the code with the verifier.
    Denied consent → `/settings?gsc=denied`; other errors → `?gsc=error` / `expired` / `paused`.
 3. The refresh token is encrypted and upserted into `integration_connections` with the service client, scoped
-   to the authorised organization. A token it replaces is revoked first.
-4. The first fetch runs before the redirect: list the account's sites, match the property, store a snapshot.
+   to the authorised organization, one row per granted product (`saveGoogleConnection`). A token it replaces is
+   revoked first; a product not granted this time is cleared.
+4. The first fetch of each granted product runs before the redirect: list the account's sites, match the property,
+   store a snapshot (and the same for GA4).
 
 **Redirect URIs.** Derived from the request origin and accepted only if registered:
 `https://app.braventa.io/api/integrations/google/callback` and
@@ -101,9 +104,10 @@ one. A 429 keeps the connection active and shows "Google's Search Console limit 
 (< 10 in 28 days) → "little or no search data … normal for a new website". The UI always states the property and
 date range and that Search Console doesn't show every query.
 
-**Disconnect.** Revokes the refresh token at `https://oauth2.googleapis.com/revoke`, sets
-`refresh_token_ciphertext = null`, `status = 'revoked'` and clears the email and properties, and deletes all of
-the organization's `search_console_snapshots`.
+**Disconnect.** "Disconnect Google" (`disconnectGoogle`) revokes the refresh token at
+`https://oauth2.googleapis.com/revoke`, which ends both products, sets `refresh_token_ciphertext = null`,
+`status = 'revoked'` and clears the email and properties on both rows, and deletes all of the organization's
+`search_console_snapshots` and `analytics_snapshots`.
 
 **In the diagnosis and the score (2026-10-23, D-051 step 6).** The pipeline's scoring step (and a correction's
 diagnosis-update step) calls `searchConsoleSummaryForPrompt(db, orgId)` when the organization's enabled modules
@@ -114,6 +118,42 @@ nothing under 10 impressions). Nothing is fetched from Google during an analysis
 
 **Not built yet:** a sync during the analysis, scheduled syncs, country and search-appearance dimensions, manual
 actions and security issues, URL Inspection beyond the home page, an audit log of connect/disconnect.
+
+## Google Analytics 4 (Pro)
+
+Optional, read-only, through the same Google connection as Search Console (founder decisions 2026-11-08, D-058).
+Same Pro rule: the trial counts as Pro; on Basic the connection is paused (data kept, nothing fetched). Gate:
+`googleAnalyticsAccess()` in `web/src/lib/integrations/google-analytics-access.ts` (feature `google_analytics` in
+`tiers.ts`). Code: `web/src/lib/integrations/google-analytics.ts`; card: `analytics-card.tsx` in Settings →
+Connections and on the "Connect your tools" step.
+
+**Connection.** The consent screen of "Connect Google" also asks for `analytics.readonly`. The callback stores a
+`google_analytics` row in `integration_connections` with its own encrypted copy of the refresh token, its own
+property, status and 10-minute refresh guard (`web/src/lib/integrations/google-connection.ts`).
+
+**Property matching.** Admin API `accountSummaries` lists the GA4 properties the account can read (up to 200);
+the web streams of up to 25 of them (`dataStreams`) are matched to the analyzed website's host. Picked
+automatically only when one property matches; otherwise the owner chooses in the card (labels from
+`property_labels`). Choosing another property deletes the old property's snapshots.
+
+**Data fetched per sync** (one row in `analytics_snapshots`): one Data API `batchRunReports` call with five
+reports for the last 28 days ending two days ago (and the 28 before for the totals): totals (sessions, users,
+engaged sessions, engagement rate, key events, views), top 10 channels, top 10 landing pages, devices and the top 10
+recorded key events; plus the Admin API property (creation time, display name) and its key events. The 12 most
+recent snapshots per organization are kept. Refresh: "Refresh Google Analytics data" in the card, at most once per
+10 minutes. There is no scheduled sync.
+
+**Errors.** `invalid_grant` or 401 → status `error`, "Reconnect Google". 403 → `error`, the account can't read
+the property. 429 / 5xx → stays `active` with a message.
+
+**In the diagnosis and the score.** The scoring step (and a correction's diagnosis update) calls
+`analyticsSummaryForPrompt(db, orgId)` when the organization's enabled modules include Analytics: the summary goes
+to the diagnosis model as one fenced block with the ref `G2`, marked as third-party data, and its measures give the
+module's sub-score (0.10 of the growth score, provisional; nothing for a property under 28 days old). Spec:
+[FEATURE_MODULES.md](FEATURE_MODULES.md) §10.
+
+**Not built yet:** Tag Manager checks, scheduled syncs, a sync during the analysis, a health-route check for the
+GA4 APIs, GA4 data in the plan and writer prompts.
 
 ## HubSpot-first plan (Planned)
 

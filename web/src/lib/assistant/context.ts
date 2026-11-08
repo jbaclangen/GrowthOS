@@ -178,6 +178,7 @@ export async function loadBusinessSummary(
     scores: data?.scores ?? null,
     pagespeed: data?.pagespeed ?? null,
     searchVisibility: scoreModules.includes("search_visibility") ? (data?.module_scores?.search_visibility ?? null) : null,
+    analytics: scoreModules.includes("analytics") ? (data?.module_scores?.analytics ?? null) : null,
     diagnosis: diagnosis
       ? {
           status: diagnosis.status,

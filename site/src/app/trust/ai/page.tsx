@@ -27,7 +27,7 @@ export default function AiUse() {
           <p>
             The business profile, growth assessment, diagnosis, growth plan, content plan and drafted posts are
             AI-generated from your website, Google PageSpeed scores and your answers; on Pro, with Google Search Console
-            connected, the diagnosis and growth plan also use a summary of your search data. They can be wrong. That&apos;s why
+            or Google Analytics 4 connected, the diagnosis and growth plan also use a summary of that data. They can be wrong. That&apos;s why
             each finding shows its evidence and confidence, and why nothing is used for your business until you confirm or
             approve it.
           </p>
@@ -77,6 +77,11 @@ export default function AiUse() {
               On Pro, with Google Search Console connected, for the diagnosis and growth plan: a summary of the latest
               search data Braventa fetched (28 days against the 28 before: totals, your top 10 searches and pages, clicks
               by device, sitemap status and whether your home page is indexed).
+            </li>
+            <li>
+              On Pro, with Google Analytics 4 connected, for the diagnosis and growth plan: a summary of the latest
+              analytics data Braventa fetched (28 days against the 28 before: visits, engagement and key events, your top
+              10 traffic channels, landing pages and key events, and visits by device).
             </li>
             <li>The answers you give during setup, and any corrections you make to the diagnosis.</li>
             <li>The business profile built from those, so drafts match your brand voice.</li>
