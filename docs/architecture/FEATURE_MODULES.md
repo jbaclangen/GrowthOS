@@ -2,7 +2,8 @@
 
 **Status:** built 2026-10-23 (D-051 steps 1–6; the spec step of D-052). Describes the code as it is. The first new
 module, Search visibility (D-051 step 6), is live: §9 is its spec. The second, Analytics (Google Analytics 4,
-D-058), is live since 2026-11-08: §10 is its spec. What is still open is listed in §8.
+D-058), is live since 2026-11-08: §10 is its spec. What is still open is listed in §8. §11 proposes the third, CRM
+intelligence (HubSpot counts, D-060): **proposed, not built**, waiting for the founder's decision.
 
 Braventa's analysis is made of feature modules: capability areas that each collect evidence, produce findings and
 plan items, and may carry a sub-score. The growth plan is the core that combines them, not a module. Research:
@@ -34,7 +35,7 @@ module has:
 | Basic | Content studio (`content_studio`) | Yes: 30-day plan, drafts | No (an output) |
 | Pro | Search visibility (`search_visibility`) | Yes: the latest Google Search Console snapshot in the diagnosis and the score (§9) | 0.10: average position 0.04, click-through rate 0.02, clicks against the previous 28 days 0.02, pages with impressions 0.01, home page indexed 0.01 |
 | Pro | Analytics (`analytics`) | Yes: the latest Google Analytics 4 snapshot in the diagnosis and the score (§10) | 0.10: data flowing 0.03, key events 0.03, engagement rate 0.02, sessions against the previous 28 days 0.02 |
-| Pro | Local SEO, Social media, Search ads, Email marketing, Video, CRM intelligence, Automation | No | Later, each with its own sub-score (Automation isn't scored) |
+| Pro | Local SEO, Social media, Search ads, Email marketing, Video, CRM intelligence, Automation | No | Later, each with its own sub-score (Automation isn't scored). CRM intelligence is proposed in §11 (not built) |
 | Premium | Custom integrations | No | Per contract |
 
 "Online presence" is assessed from the website (social links, schema, listings) and stays with Conversion and
@@ -260,3 +261,223 @@ counts the module and the blend names "your website analytics"; a finding's basi
 **Not in this change (§8).** A report bar and an Ask Braventa summary for the Analytics sub-score (it is stored in
 `reports.data.module_scores` but not shown), Tag Manager checks (still Coming soon), GA4 data in the plan and writer
 prompts, a sync during the analysis, and a module switch in the app.
+
+## 11. CRM intelligence (proposed)
+
+**Status: proposed 2026-11-08, not built.** Everything in this section describes the change to build once the founder
+approves it (D-060, Proposed; it answers Q-063 and Q-064). Until then nothing reads the HubSpot counts: they show on
+the HubSpot card only, and the CRM intelligence module stays `live: false`. The research steps of D-052 are folded in
+below (repo, outside sources, options); the decision is the founder's.
+
+**What exists today.** The HubSpot connection (D-048, D-059) stores one `hubspot_snapshots` row per sync, on connect
+and on Refresh HubSpot counts (at most every 10 minutes; nothing runs in the background). `metrics` is `HubSpotMetrics`
+version 1 (`web/src/lib/integrations/hubspot-metrics.ts`): counts, sums and the portal's own stage and source labels,
+never records. The registry already has the module: `crm`, "CRM intelligence", Pro, sub-score "Lead follow-up",
+`planAreas` `["crm"]`, `featureId` null, `scoreWeight` null, `live: false`. The `module_id` domain has listed `crm`
+since the feature-modules migration (`20261023063253_feature_modules.sql`), and `moduleForArea` already gives plan
+items with the area `crm` the module id `crm`.
+
+### 11.1 Which counts feed the diagnosis, and which are scored
+
+Recommendation: the diagnosis gets every count except money; the score gets two follow-up measures. Lead volume,
+outcomes and setup hygiene stay out of the score, because their "good" value depends on the business's size and on
+how it uses HubSpot, which counts alone can't show.
+
+| `HubSpotMetrics` field | In the diagnosis | Scored | Why |
+|---|---|---|---|
+| `contacts.newCurrent`, `contacts.newNotContacted` | Yes | **Yes**: `follow_up` | The share of new contacts with a logged sales activity is the most direct lead follow-up measure Braventa stores. It is the module's sub-score ("Lead follow-up", research §5) |
+| `deals.open.count`, `deals.staleOpen`, `deals.truncated` | Yes | **Yes**: `deals_moving` | The share of open deals changed in the last 30 days shows whether opportunities are being worked |
+| `contacts.newPrevious` (with `newCurrent`: the trend) | Yes | No | Lead volume, not follow-up. Imports inflate it, and the Search visibility and Analytics modules already score demand trends, so a third trend would count demand three times |
+| `contacts.total`, `companies.total` | Yes | No | Size: a service business has no size-free baseline for them |
+| `contacts.byLifecycle` (including "No lifecycle stage") | Yes | No | Forms, imports and workflows set lifecycle stages differently in each portal; it describes setup, not follow-up |
+| `contacts.newBySource` | Yes | No | Where new contacts come from: context for the plan, with no better or worse value |
+| `contacts.unassigned` | Yes | No | In a one-person business every contact is unassigned unless the owner assigns themselves. Braventa doesn't read HubSpot users (no owners scope), so it can't tell a team from a solo owner |
+| `deals.createdCurrent`, `deals.createdPrevious`, `deals.wonCurrent.count`, `deals.lostCurrent` | Yes | No | Volume, which depends on size |
+| `deals.won90`, `deals.lost90`, `deals.winRate90` | Yes | No | An outcome that depends on when a business creates a deal (some log only jobs they're about to win), with small samples in a small business. Published win-rate benchmarks are measured on B2B sales teams, with definitions that differ (new business or the whole pipeline) |
+| `deals.byStage` (count per pipeline and stage, stages with deals only) | Yes | No | Shows where deals pile up; labels are the portal's own |
+| `deals.open.amount`, `deals.wonCurrent.amount`, `deals.byStage[].amount`, `currency` | **No** | No | Data minimization: the diagnosis judges follow-up, not revenue. Leaving money out keeps deal values out of findings that every member of the business can read, and out of what the AI providers receive. The HubSpot card still shows them |
+| `deals.read`, `notes`, `version` | `truncated` and `notes` only, as caveats | No | Bookkeeping. A summary refuses a `version` it doesn't know |
+
+### 11.2 Evidence and freshness
+
+`crmSummaryForPrompt(db, organizationId)` (in `hubspot.ts`, mirroring `analyticsSummaryForPrompt`) returns
+`summarizeHubSpot(snapshot)`, or null when the connection isn't `active`, `hubspotAccess` refuses (Basic after the
+trial), there is no snapshot, the snapshot's `metrics.version` isn't 1, or the latest snapshot was fetched more than 7
+days before the analysis (`CRM_MAX_AGE_DAYS`). The scoring step and the diagnosis update call it only when `crm` is
+among the organization's enabled modules.
+
+**Refresh at analysis time (recommended).** Unlike Search Console and GA4 data, HubSpot follow-up counts change daily,
+and nothing syncs them in the background. So the scoring step first calls `syncHubSpot` for the organization (best
+effort, under its 10-minute guard and the Pro gate), with an overall time limit of 60 seconds; when it fails or runs
+out of time, the step goes on with the latest snapshot under the 7-day rule. A typical sync is about 25 searches spaced
+250 ms apart plus one deal page per 100 deals, well inside the step's 300 s alongside the model call; the build PR
+measures it. At most 10 analyses a day per organization means at most 10 extra syncs a day, far below HubSpot's limits
+(5 searches a second, 110 requests per 10 seconds per portal). On a first analysis the connect step has usually just
+synced, and the guard skips a second sync when the first ran less than 10 minutes earlier. The diagnosis update
+doesn't refresh: it re-runs the diagnosis with the latest snapshot, like Search Console and GA4, and doesn't rescore.
+
+Without the refresh (option B), the 7-day rule alone would leave most re-runs without CRM evidence unless the owner
+had just refreshed the card.
+
+### 11.3 In the diagnosis
+
+The summary goes to the diagnosis model as one fenced block, `<hubspot_crm>`, with the ref `H1` (`CRM_REF` in the
+registry, next to `SEARCH_CONSOLE_REF` and `ANALYTICS_REF`). It is labelled as counts read from the owner's HubSpot
+portal at the fetch time, for the 28 days up to that day against the 28 before (90 days for the win rate), and marked
+as third-party data. Its caveats, stated in the prompt:
+
+- "Logged follow-up" means a call, one-to-one email, meeting, chat or manually logged message recorded in HubSpot
+  (HubSpot's "Last contacted" property). Follow-up done outside HubSpot isn't counted, so a gap is phrased as "no
+  logged follow-up in HubSpot", never as a fact about what the business did.
+- New contacts include imports and contacts added by hand.
+- An open deal counts as untouched when none of its properties changed in 30 days; any change, including one made by a
+  workflow, resets that clock.
+- Stage, pipeline and source names are the portal's own configuration text: untrusted input, like crawled text and GA4
+  event names. They can, rarely, contain a name someone typed into a label.
+- When `deals.truncated` is true, the deal figures cover only the most recently changed 5,000 deals.
+
+The model may give a finding the source `crm` (added to the source enum in `prompts.ts` and to `PROVENANCE` in
+`web/src/lib/plan/priority.ts` as `verified`); it is stored as Verified only when it cites `H1`. The instruction line:
+use the HubSpot counts to say whether new contacts get a logged follow-up, whether open deals are moving and where
+deals pile up; counts describe the past window, never a promise; no deal values (they aren't provided). Without a
+summary the prompt is byte-for-byte what it is today. The summary goes only to the diagnosis model, which never uses
+the backup model (sub-processors page), through OpenRouter with zero data retention (D-037), in line with Q-007's
+default.
+
+### 11.4 Sub-score: Lead follow-up (0–100)
+
+`crmEvidence(summary)` in `score.ts`. The parts, each 0–100, each with its own minimum so one record can't move a part
+by more than 20 points:
+
+| Part | Weight | Value | Only when |
+|---|---|---|---|
+| `follow_up` | 0.04 | Share of the new contacts in the 28 days with a logged sales activity, `(newCurrent − newNotContacted) / newCurrent` (clamped to 0–1): 90% or more = 100, 0% = 0, linear | `newCurrent` is 5 or more |
+| `deals_moving` | 0.02 | Share of open deals changed in the last 30 days, `(open.count − staleOpen) / open.count`: 90% or more = 100, 0% = 0, linear | `open.count` is 5 or more and `deals.truncated` is false (a truncated list holds the most recently changed deals, which would hide stale ones) |
+
+No parts (nothing scored; the other modules' weights renormalize) when there is no summary or neither part qualifies:
+a portal with few new contacts and few open deals is small or new, not poor.
+
+**Why these thresholds** (sources in §11.9):
+
+- *Scoring follow-up at all.* A response audit of 2,241 US companies' web leads (HBR, 2011) found that only about a
+  third answered within an hour and about a quarter took more than a day, and that companies answering within an hour
+  were several times more likely to qualify the lead. Leads go cold within hours, so a new contact with no logged
+  follow-up after up to four weeks is the clearest lead follow-up gap the counts can show. (Figures as reported by
+  secondary summaries; the original is paywalled and wasn't checked.)
+- *Full marks at 90%, not 100%.* The snapshot counts contacts created today and yesterday, who may not be contacted
+  yet: with leads spread evenly, that is about 4 to 7% of a 28-day window. And not every new contact is a lead
+  (suppliers, colleagues, newsletter sign-ups), which counts can't tell apart. 90% leaves room for both, so a business
+  that follows up every real lead gets full marks; below it, each unanswered contact costs the same.
+- *30 days for a deal.* `STALE_DEAL_DAYS` is already 30 in code and on the card. CRM practice has no single default:
+  Pipedrive lets each stage set its own "rotting" days, and vendor guides for Salesforce pipelines most often flag 30
+  days without activity, with 14 days for active stages (vendor blogs, unverified). HubSpot's "Last modified date"
+  changes on any property update, including automated ones, so this measure undercounts stalled deals; 30 days with no
+  change of any kind is a conservative, unambiguous stall. Full marks at 90% because a few deals legitimately wait on
+  the client.
+- *A minimum of 5.* Search visibility and Analytics need 10 impressions or sessions; a small service business can have
+  fewer than 10 new contacts or open deals in a month, so 5 keeps the part usable while capping one record's effect
+  at 20 points.
+
+**Weight 0.06** (follow-up 0.04, deals 0.02): smaller than Search visibility's and Analytics' 0.10 because both
+measures depend on how diligently the business logs its work in HubSpot, and the owner can't correct a score (a
+correction re-runs the diagnosis, not the score). With full evidence from all three Pro modules, CRM intelligence
+carries about 5% of the growth score (0.06 of 1.26); with CRM evidence and no Search Console or GA4 evidence, about
+6% (0.06 of 1.06). The weights are provisional and reviewed once testers have scores (D-052 step 8), with the Search
+visibility and Analytics weights (Q-062).
+
+Option B, not recommended: put the counts in the diagnosis and score nothing until testers' data is in. It carries no
+score risk, but the module's sub-score would stay empty, and the score wouldn't reflect the gap the diagnosis names.
+
+### 11.5 Tier gating
+
+Pro, Premium and the trial, like Search visibility and Analytics. The registry entry gets `featureId: "hubspot"` (the
+`hubspot` feature in `web/src/lib/plans/tiers.ts` is Pro and live, which `registry.test.ts` requires), so
+`enabledModuleIds` includes `crm` for those tiers and leaves it out on Basic. On Basic after the trial the connection
+is paused (`hubspotAccess`), `crmSummaryForPrompt` returns null and no `crm` module run is recorded. An
+`organization_modules` override with `enabled = false` keeps the counts out of the prompt and the score, as for the
+other Pro modules.
+
+### 11.6 Module id, migration and score version
+
+- **Module id:** `crm`, the existing id. No new id: the brief for this spec asked for one, but the registry and the
+  domain have had `crm` since D-051.
+- **Migration: none.** The domain already lists `crm` (`migration.test.ts` keeps it equal to the registry);
+  `module_runs`, `diagnosis_findings.module_id` and `growth_plan_items.module_id` already accept it; a finding's
+  source isn't stored (only its provenance, whose check doesn't change); the new behavior on an uninstalled portal
+  (§11.7) needs no schema.
+- **Registry:** `live: true`, `featureId: "hubspot"`, `scoreWeight: 0.06`, a summary that names HubSpot and lead
+  follow-up, and `CRM_REF = "H1"`. `moduleForFinding`: a verified finding that cites `H1` belongs to `crm`, checked
+  before `G2` and `G1`, so a finding that compares GA4 key events with new HubSpot contacts (inquiries reaching the
+  CRM) belongs to CRM intelligence.
+- **`SCORE_VERSION` 4.** The parts are summed after Analytics', so an organization without CRM evidence (Basic, not
+  connected, no snapshot, a snapshot older than 7 days, neither part qualifying, or the module switched off) gets
+  exactly the version 3 score. `score.test.ts` checks it, and the stored-report, grid and random-input proofs run with
+  the Pro module set, which then includes `crm`. With evidence a score can move, so a version 4 report isn't compared
+  with a version 3 one.
+
+### 11.7 Uninstall detection (Q-064)
+
+Today, when an owner uninstalls Braventa's app in HubSpot, Braventa finds out only on the next refresh (HubSpot refuses
+the refresh token with `invalid_grant`; the card then says access ended and asks to reconnect) and keeps the stored
+counts until the owner disconnects. HubSpot's Developer Terms §4 ask for deletion when a customer stops.
+
+HubSpot's way to learn about uninstalls is the webhooks journal: an app subscribes to `APP_LIFECYCLE_EVENT` (event type
+`4-1916193` for an uninstall, `4-1909196` for an install) with a client-credentials token holding the
+`developer.webhooks_journal.*` scopes, then reads the journal. It is pull-based (Braventa fetches journal files; HubSpot
+doesn't push them) and keeps 3 days of events. Building it means a scheduled poller (a `pg_cron` job calling a new
+route at least daily), a stored journal offset (a new table or column: D-052), the app's config and scopes changed and
+uploaded again with the HubSpot CLI, and processing of each event.
+
+**Recommendation: ship use-time detection with the module; build the journal poller later.**
+
+- *With the module:* the refresh at analysis time (§11.2) mints a token before any CRM data reaches a diagnosis, so an
+  uninstalled portal's counts never feed one: the refresh fails, the connection leaves `active`, and
+  `crmSummaryForPrompt` returns null. In the same change, when the token is refused with `invalid_grant` (on any
+  refresh, from the card or an analysis), `syncHubSpot` deletes the organization's snapshots and the stored token, and
+  leaves the connection in `error` with the existing "access ended" message. This is the deletion `disconnectHubSpot`
+  does, without the uninstall call HubSpot has already made. No new table, route or scheduler.
+- *Later, before the app passes 25 installs or applies for a marketplace listing:* the journal poller, so deletion
+  doesn't wait for the next refresh or analysis. At about 3 testers, what it would close is small: counts kept after
+  an uninstall, visible only to members on the card, until the next refresh, analysis or disconnect.
+
+### 11.8 Records, UI and the rest of the change
+
+- **Records.** `module_runs` gets a `crm` row from the scoring step whenever the module is enabled: `completed` when a
+  summary was used (`sub_score` null when neither part qualified), `partial` with no sub-score when there is no
+  summary, and no row when the organization can't use the module. `details` holds the score version, whether there was
+  a snapshot, its fetch time, its window, whether the analysis refreshed it, and `truncated`. `reports.data.hubspot`
+  keeps the fetch time, window and `truncated` of the summary used, or null; no counts are copied into the report.
+- **UI and copy.** The score tile counts the module; `scoreBlend` gets "your lead follow-up" (long form: "your lead
+  follow-up (HubSpot)"); `SCORE_SOURCES` gets "the latest HubSpot counts: logged follow-up of new contacts and open
+  deals changed in the last 30 days"; a finding's basis line names HubSpot when it cites `H1`. No report bar in the
+  first cut (like Analytics: the sub-score is stored in `reports.data.module_scores` but not shown). The build PR also
+  changes the `hubspot` feature's detail and the Pro summary in `tiers.ts`, the HubSpot card, Ask Braventa's knowledge
+  base (`npm run help:doc`), the public score explanation (D-035), MVP_SCOPE.md (CRM data in the diagnosis is Next
+  phase today), PLANS_AND_TIERS.md, HUBSPOT_SETUP.md (fetches also happen at analysis time), this file and
+  DATA_MODEL.md.
+- **Before customers' CRM counts reach the diagnosis:** the privacy policy, the sub-processors page (the OpenRouter
+  row lists what the AI providers receive: add a summary of the HubSpot counts for the diagnosis), the DPA and the MSA
+  (both say the counts aren't used in the diagnosis) describe the new use. These pages are drafts pending counsel
+  (Q-032), the same path as GA4 (Q-060).
+
+### 11.9 Not in this change, and sources
+
+**Not in this change.** CRM data in the plan and writer prompts; a report bar and an Ask Braventa summary for the
+sub-score; the journal poller (§11.7); CRMs other than HubSpot (D-048); any CRM write. Candidates for a
+`HubSpotMetrics` version 2, each a code change to the sync and a new decision on what is stored: new contacts not
+contacted, created between 28 and 2 days ago (removes the recency allowance); new contacts excluding imports; a deal's
+"Last activity date" instead of its last modified date for staleness (it counts only logged sales activity, not
+automated edits).
+
+**Sources (checked 2026-11-08).**
+
+| Fact | Source | Note |
+|---|---|---|
+| Response audit of 2,241 US companies' web leads: about a third answered within an hour, about a quarter took more than a day; answering within an hour made qualifying several times more likely | Oldroyd, McElheran and Elkington, "The Short Life of Online Sales Leads", Harvard Business Review, March 2011 ([hbr.org](https://hbr.org/2011/03/the-short-life-of-online-sales-leads); record at [BYU ScholarsArchive](https://scholarsarchive.byu.edu/facpub/9711)) | Paywalled; figures from secondary summaries ([CustomerThink](https://customerthink.com/how-to-improve-sales-response-times-with-content/)), unverified against the original |
+| "Last contacted": the latest logged chat, call, non-forwarded one-to-one email, meeting, or manually entered LinkedIn, SMS or WhatsApp message; set by HubSpot; form submissions and marketing email don't set it | [HubSpot's default contact properties](https://knowledge.hubspot.com/properties/hubspots-default-contact-properties) | Official |
+| A deal's "Last modified date" changes on any property update, from any source, including workflows and the API | [HubSpot's default deal properties](https://knowledge.hubspot.com/deals/hubspots-default-deal-properties) | Official |
+| Pipedrive's rotting threshold is set per stage, in days; any update to the deal resets it | [Pipedrive: the Rotting feature](https://support.pipedrive.com/en/article/the-rotting-feature) | Official; no default number |
+| Salesforce stalled-deal practice: 30 days without activity is the most cited flag, 14 days for active stages, or thresholds scaled to the sales cycle | [Coefficient](https://coefficient.io/use-cases/salesforce-stale-opportunity-alerts-no-fields), [Outreach](https://www.outreach.ai/resources/blog/sales-pipeline-ageing) | Vendor blogs, unverified |
+| Win-rate benchmarks are measured on B2B sales teams, with new-business and whole-pipeline definitions | [Ebsta × Pavilion 2025 GTM Benchmarks](https://benchmarks.ebsta.com/2025-gtm-benchmarks) | Used only to explain why the win rate isn't scored |
+| Webhooks journal: `APP_LIFECYCLE_EVENT` subscriptions (`4-1909196` install, `4-1916193` uninstall), client-credentials token with `developer.webhooks_journal.*` scopes, pull-based, 3 days of history | [Webhooks journal (2026-09)](https://developers.hubspot.com/docs/api-reference/latest/webhooks-journal/guide), [Webhooks journal subscriptions](https://developers.hubspot.com/docs/api-reference/latest/webhooks-journal/subscriptions/guide) | Official |
+| Store data only as long as needed; delete data and tokens when a customer stops | [HubSpot Developer Terms](https://legal.hubspot.com/hs-developer-terms) §4 | Official, already relied on (HUBSPOT_SETUP.md §2) |
