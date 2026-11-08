@@ -14,11 +14,11 @@ Braventa fetches one snapshot of HubSpot counts for an organization and keeps th
 
 ## Input → Movement → Output
 
-Input: an active HubSpot connection, triggered by the OAuth callback or Settings "Refresh HubSpot counts". Movement: `syncHubSpot` re-checks plan access, applies the 10-minute guard, mints an access token (keeping a rotated refresh token), runs throttled CRM searches and a deal list, aggregates, inserts, prunes and updates the connection. Output: a new `hubspot_snapshots` row and connection status. Nothing downstream reads it into the diagnosis yet (Q-060).
+Input: an active HubSpot connection, triggered by the OAuth callback or Settings "Refresh HubSpot counts". Movement: `syncHubSpot` re-checks plan access, applies the 10-minute guard, mints an access token (keeping a rotated refresh token), runs throttled CRM searches and a deal list, aggregates, inserts, prunes and updates the connection. Output: a new `hubspot_snapshots` row and connection status. Nothing downstream reads it into the diagnosis yet (Q-063).
 
 ## Why this shape
 
-Records are summed in memory and only counts are stored (D-058), so the search totals and a fixed deal property list are all the sync asks for (`web/src/lib/integrations/hubspot.ts:67-102`; `web/src/lib/integrations/hubspot-metrics.ts:128`). Searches wait 250 ms each because HubSpot's search API allows 5 a second per portal (`hubspot.ts:33,67-68`). The plan gate runs on every sync, so an ended trial pauses instead of fetching (`hubspot.ts:274-277`).
+Records are summed in memory and only counts are stored (D-059), so the search totals and a fixed deal property list are all the sync asks for (`web/src/lib/integrations/hubspot.ts:67-102`; `web/src/lib/integrations/hubspot-metrics.ts:128`). Searches wait 250 ms each because HubSpot's search API allows 5 a second per portal (`hubspot.ts:33,67-68`). The plan gate runs on every sync, so an ended trial pauses instead of fetching (`hubspot.ts:274-277`).
 
 ## Steps
 

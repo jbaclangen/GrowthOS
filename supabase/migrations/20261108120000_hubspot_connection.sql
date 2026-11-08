@@ -1,4 +1,4 @@
--- HubSpot connection, read-only (D-048), storing aggregates only (D-058). Pro, Premium and the Pro trial; owner only
+-- HubSpot connection, read-only (D-048), storing aggregates only (D-059). Pro, Premium and the Pro trial; owner only
 -- (integrations.connect, D-046). An owner installs Braventa's unlisted HubSpot app in their own portal; the refresh
 -- token is encrypted by the app (AES-256-GCM, INTEGRATIONS_ENCRYPTION_KEY) like the Search Console token, and access
 -- tokens are minted per sync and never stored. Spec: docs/architecture/HUBSPOT_SETUP.md.
@@ -56,4 +56,4 @@ alter table public.legal_acceptances add constraint legal_acceptances_context_ch
 comment on table public.integration_connections is 'OAuth connections to external services (Google Search Console, HubSpot). Refresh tokens are AES-256-GCM ciphertext written by the server; never selectable by clients.';
 comment on column public.integration_connections.external_account_id is 'HubSpot portal (hub) id. Null for Search Console.';
 comment on column public.integration_connections.external_account_name is 'HubSpot portal domain, for display. Null for Search Console.';
-comment on table public.hubspot_snapshots is 'HubSpot CRM counts and totals, one row per fetch (no names, emails or record ids, D-058). The 12 most recent are kept; deleted on disconnect.';
+comment on table public.hubspot_snapshots is 'HubSpot CRM counts and totals, one row per fetch (no names, emails or record ids, D-059). The 12 most recent are kept; deleted on disconnect.';

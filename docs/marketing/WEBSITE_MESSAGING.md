@@ -41,7 +41,7 @@ connect is described as such in its copy. Badges come from `StatusBadge` in `sit
 | Marketing Strategy (growth score, diagnosis, one growth plan) | Live | `computeGrowthScore`, `diagnosisPrompt`, `web/src/lib/plan/priority.ts` |
 | Content Studio (30-day plan, five drafts, approve/reject) | Live, gaps named (rest of plan stays as topics; no editing or publishing) | `website-intel.ts`, `setContentStatus` |
 | Website Intelligence | Limited (up to 25 pages, robots.txt respected; PageSpeed mobile and desktop; crawl signals) | `web/src/lib/integrations/crawler.ts`, `google.ts` |
-| HubSpot connection (read-only counts of contacts and deals; Pro and the trial; owner only) | Live once the HubSpot app is set up (built 2026-11-08, D-058); counts only, not used in the diagnosis | `web/src/lib/integrations/hubspot*.ts`, `HUBSPOT_SETUP.md` |
+| HubSpot connection (read-only counts of contacts and deals; Pro and the trial; owner only) | Live once the HubSpot app is set up (built 2026-11-08, D-059); counts only, not used in the diagnosis | `web/src/lib/integrations/hubspot*.ts`, `HUBSPOT_SETUP.md` |
 | CRM Intelligence (CRM data in the diagnosis), Automation, Analytics | Coming soon | nothing user-facing |
 | Connect your AI assistant (MCP) — Claude Desktop and Claude Code | Live once the MCP PR merges; every plan during the trial, then any subscribed plan | MCP phase 1 (`/api/mcp`); claude.ai and ChatGPT connectors Coming soon |
 | In-app AI assistant ("Ask Braventa" in the app header) | Live (D-043) once its migration is applied and the PR merges; every plan during the trial, then any subscribed plan | `/api/assistant`, `web/src/lib/assistant/*`; read-only |

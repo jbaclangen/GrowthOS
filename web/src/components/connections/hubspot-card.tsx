@@ -16,7 +16,7 @@ import { SubmitButton } from "./submit-button";
 // The HubSpot connection card (Pro, read-only, D-048), shared by Settings → Connections and the onboarding step
 // "Connect your tools", built like the Search Console card. Reads through the signed-in user's client, so RLS and
 // column grants apply: the encrypted refresh token is never selected here. Braventa stores only counts and totals
-// from HubSpot (D-058), so that is all this card can show. The counts don't reach the diagnosis yet (the CRM module,
+// from HubSpot (D-059), so that is all this card can show. The counts don't reach the diagnosis yet (the CRM module,
 // D-051, is the next step), so nothing here says they do.
 
 type Connection = {

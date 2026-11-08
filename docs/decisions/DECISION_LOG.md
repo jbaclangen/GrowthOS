@@ -611,7 +611,7 @@ blocking at the limit that day; ROLES_AND_PERMISSIONS.md §8).
   [research README](../research/README.md) §2, decision 3.
 
 ## D-048 — First CRM: HubSpot, read-only
-**Status:** Founder (2026-10-18, in chat). Resolves Q-011. Connection built 2026-11-08, amended by D-058 (aggregates
+**Status:** Founder (2026-10-18, in chat). Resolves Q-011. Connection built 2026-11-08, amended by D-059 (aggregates
 only, scopes without `crm.lists.read`, no PKCE); the CRM module is not built.
 - HubSpot read-only comes first (the owner's own portal; unrelated to D-034's contact pipeline), over direct REST with
   per-tenant OAuth, not vendor MCP servers. It ships as an unlisted marketplace app on platform 2026.09, API version
@@ -823,7 +823,7 @@ migration applied to production 2026-11-08. Spec: [LEGAL_ACCEPTANCE.md](../archi
 - Resolves Q-055. The documents are still drafts pending counsel (Q-032). Change `LEGAL_VERSION` whenever they change
   materially.
 
-## D-058 — HubSpot connection: aggregates only, built ahead of the CRM module
+## D-059 — HubSpot connection: aggregates only, built ahead of the CRM module
 **Status:** Founder (2026-11-08, in chat: "aggregates only", "connection first"). Built, not set up: live once the
 HubSpot app is uploaded and its env vars are set ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). Amends D-048.
 - **Store aggregates only.** Braventa reads contacts, companies, deals and deal pipelines from the owner's portal but
@@ -833,7 +833,7 @@ HubSpot app is uploaded and its env vars are set ([HUBSPOT_SETUP.md](../architec
   decision, retention rules and privacy-policy changes.
 - **Connection first.** This step ships the connection (OAuth, snapshots, the Settings and onboarding cards, Pro gate
   `hubspot` in `tiers.ts`). The counts don't reach the diagnosis or the growth score; the CRM module (D-051) is the
-  next step (Q-060).
+  next step (Q-063).
 - **The app is code.** `hubspot/` holds the HubSpot project (platform 2026.09, unlisted marketplace distribution); the
   founder uploads it with the HubSpot CLI. No developer account is needed (standard accounts have Development).
 - **Scopes, amending D-048:** `crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`
@@ -841,7 +841,7 @@ HubSpot app is uploaded and its env vars are set ([HUBSPOT_SETUP.md](../architec
 - **No PKCE:** HubSpot documents none for app OAuth; the client secret (server-only) and the sealed, user- and
   organization-bound state cookie protect the flow.
 - **Disconnect uninstalls** the app from the portal (HubSpot emails its admins), revokes the token and deletes every
-  snapshot, as HubSpot's Developer Terms §4 ask. Uninstall detection is open (Q-061).
+  snapshot, as HubSpot's Developer Terms §4 ask. Uninstall detection is open (Q-064).
 - **Agreement checkbox (D-057):** the connect form asks the owner to confirm they're authorized to connect the portal
   and responsible for it (MSA §8); the start route refuses without it and the callback records it as the new
   `hubspot_connect` context in `legal_acceptances` (the migration widens its check).

@@ -200,7 +200,7 @@ RLS. Rules:
     `search_console_snapshots`. Reconnecting with a different Google account deletes the old snapshots.
   - After the Pro trial, on Basic, the connection is paused: the token and snapshots are kept, nothing is fetched.
 - The foundation's `integrations` table (`vault_secret_id`, Supabase Vault) is still unused. Search Console chose
-  app-level encryption to avoid a Vault dependency. HubSpot (built 2026-11-08, D-048/D-058) follows the same pattern:
+  app-level encryption to avoid a Vault dependency. HubSpot (built 2026-11-08, D-048/D-059) follows the same pattern:
   the refresh token encrypted in `integration_connections` (provider `hubspot`, portal id and domain in
   `external_account_id`/`external_account_name`), access tokens minted per sync, the state cookie sealed and bound to
   user and organization (HubSpot documents no PKCE for apps). `hubspot_snapshots` holds counts and totals only: no

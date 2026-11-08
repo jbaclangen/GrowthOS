@@ -17,7 +17,7 @@ import {
   type HubSpotMetrics,
 } from "./hubspot-metrics";
 
-// HubSpot client and sync for the read-only HubSpot connection (D-048), storing aggregates only (D-058): contact and
+// HubSpot client and sync for the read-only HubSpot connection (D-048), storing aggregates only (D-059): contact and
 // company counts from the CRM search API, deal totals summed in memory from a deal list (only DEAL_PROPERTIES are
 // requested), and the portal's own stage and source labels. Record content is never stored or logged. Every function
 // that touches the database takes an organization id the caller has already authorised; `db` is the service client

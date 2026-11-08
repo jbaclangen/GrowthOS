@@ -10,7 +10,7 @@ entity: supabase/migrations/20261108120000_hubspot_connection.sql
 
 # HubSpot snapshot (`hubspot_snapshots`)
 
-One row per fetch of counts and totals from an organization's HubSpot portal (contacts, companies, deals); the latest row is what the HubSpot card shows. Holds no CRM records (D-058).
+One row per fetch of counts and totals from an organization's HubSpot portal (contacts, companies, deals); the latest row is what the HubSpot card shows. Holds no CRM records (D-059).
 
 ## Why this shape
 
@@ -30,11 +30,11 @@ Braventa reads CRM records only to count them, so the row has one `metrics` json
 - **owns:** nothing
 - **owned-by:** [integration-connection](integration-connection.md), [organization](../tenancy/organization.md)
 - **joins:** [plan-tier](../tenancy/plan-tier.md) through `hubspotAccess` (`web/src/lib/integrations/hubspot-access.ts:12`)
-- **looks-like-but-is-not:** [search-console-snapshot](search-console-snapshot.md) (Google data, feeds the diagnosis); the CRM module in [module-registry](../modules/module-registry.md) (`crm`, not live: nothing reads these rows into the diagnosis yet, Q-060); [contact-request](contact-request.md) (Braventa's own HubSpot portal)
+- **looks-like-but-is-not:** [search-console-snapshot](search-console-snapshot.md) (Google data, feeds the diagnosis); the CRM module in [module-registry](../modules/module-registry.md) (`crm`, not live: nothing reads these rows into the diagnosis yet, Q-063); [contact-request](contact-request.md) (Braventa's own HubSpot portal)
 
 ## If you change this
 
-- **Hits:** [sync-hubspot](../../processes/sync-hubspot.md); what is stored, kept or shown → the hand-written disclosures on `/legal/privacy` (HubSpot section), `/legal/subprocessors`, `/legal/dpa`, `docs/architecture/SECURITY_AND_PRIVACY.md` §6 and `docs/architecture/HUBSPOT_SETUP.md`; storing anything beyond counts needs a new decision (D-058)
+- **Hits:** [sync-hubspot](../../processes/sync-hubspot.md); what is stored, kept or shown → the hand-written disclosures on `/legal/privacy` (HubSpot section), `/legal/subprocessors`, `/legal/dpa`, `docs/architecture/SECURITY_AND_PRIVACY.md` §6 and `docs/architecture/HUBSPOT_SETUP.md`; storing anything beyond counts needs a new decision (D-059)
 - **Does not hit:** the pipeline steps, the growth score, Ask Braventa
 
 ## Surfaces
