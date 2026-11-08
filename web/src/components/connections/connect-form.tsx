@@ -1,5 +1,6 @@
 import { ConsentCheckbox, LegalLink } from "@/components/legal/consent";
 import { SETTINGS_RETURN, connectionReturnPath } from "@/lib/integrations/return-to";
+import { ConnectSubmit } from "./connect-submit";
 
 // "Connect Google" (Search Console and Google Analytics 4, one consent screen; and "Reconnect"): a GET form to the start route, which redirects to Google's
 // consent screen. The checkbox (D-057, MSA §8) is required here and checked again by the start route; the callback
@@ -24,9 +25,7 @@ export function SearchConsoleConnectForm({
         data, as the <LegalLink doc="msa">Master Services Agreement</LegalLink> (section 8) describes, and I&apos;ve read
         how Braventa uses Search Console and Google Analytics data in the <LegalLink doc="privacy" />.
       </ConsentCheckbox>
-      <button type="submit" className={buttonClassName}>
-        {label}
-      </button>
+      <ConnectSubmit label={label} provider="Google" className={buttonClassName} />
     </form>
   );
 }
@@ -54,9 +53,7 @@ export function HubSpotConnectForm({
         data, as the <LegalLink doc="msa">Master Services Agreement</LegalLink> (section 8) describes, and I&apos;ve read
         how Braventa uses HubSpot data in the <LegalLink doc="privacy" />.
       </ConsentCheckbox>
-      <button type="submit" className={buttonClassName}>
-        {label}
-      </button>
+      <ConnectSubmit label={label} provider="HubSpot" className={buttonClassName} />
     </form>
   );
 }

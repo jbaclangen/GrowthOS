@@ -221,8 +221,8 @@ Migrations `20261011140425_mcp_access.sql` (phase 1) and `20261017030000_mcp_oau
   keeps the full message. A non-ASCII header value would make the 401 a 500.
 - Login `?next=` accepts same-site paths only (`lib/safe-next.ts`).
 - The token endpoint isn't rate-limited: codes and tokens are 256-bit random values. Registration is.
-- Known gap: the consent form relies on JavaScript to follow the redirect; without it, the browser's `form-action
-  'self'` CSP may block the redirect to the app.
+- Known gap: the consent form relies on JavaScript to follow the redirect; without it, the browser's CSP `form-action`
+  (`'self'` plus the Google and HubSpot consent hosts, `web/next.config.ts`) may block the redirect to the app.
 
 ## 11. Still to do
 
