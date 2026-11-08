@@ -4,7 +4,7 @@ cluster: integrations
 universe: live
 status: verified
 verified: 2026-11-08
-commit: acc6bc5
+commit: 0393a75
 entity: supabase/migrations/20261108120000_hubspot_connection.sql
 ---
 

@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-08
-commit: acc6bc5
+commit: 0393a75
 entity: web/src/lib/env.ts
 ---
 
