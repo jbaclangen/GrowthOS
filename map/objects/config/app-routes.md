@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 2dd74b3
+commit: a922b5e
 entity: web/src/proxy.ts
 ---
 
