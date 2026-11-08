@@ -910,8 +910,8 @@ or redirects it. Answers Q-063 and Q-064 once decided. Spec: [FEATURE_MODULES.md
 
 ## D-061 — Owners can remove a business, after typing DELETE APPROVED
 **Status:** Founder (2026-11-08, in chat: owners remove a business from Settings, guarded by typing "DELETE
-APPROVED"); the details below are Provisional. Built; migration `20261108090000_remove_business.sql` not applied yet
-(the code works without it: the log row goes to the server log). D-060 is taken by the CRM module spec (PR #65).
+APPROVED"); the details below are Provisional. Built; migration `20261108091111_remove_business.sql` applied
+2026-11-08 (version 20261108091111). D-060 is taken by the CRM module spec (PR #65).
 Spec: [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) §9. Moves PL-8 to Partial.
 - **A destructive capability, owner only.** New permission `organization.delete`, held by the owner alone, in
   `roles.ts` and `has_permission()` (the migration replaces the function whole; `migration.test.ts` reads the newest
