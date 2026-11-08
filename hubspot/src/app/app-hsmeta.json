@@ -15,6 +15,11 @@
       "optionalScopes": [],
       "conditionallyRequiredScopes": []
     },
+    "permittedUrls": {
+      "fetch": [],
+      "iframe": [],
+      "img": []
+    },
     "support": {
       "supportEmail": "hello@braventa.io"
     }
