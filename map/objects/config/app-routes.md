@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 2dd74b3
+commit: a922b5e
 entity: web/src/proxy.ts
 ---
 
@@ -26,8 +26,9 @@ Postgres hand-offs, OAuth, metadata) are listed once in `PUBLIC_PATHS` and check
 
 - Gate: `PUBLIC_PATHS` `web/src/proxy.ts:11-22`; redirect to `/login?next=` `:49-54`; matcher `:58-60`.
 - Root layout: tier/trial badge and assistant bar per request, `web/src/app/layout.tsx:56-72`.
-- Security headers on every path (`X-Robots-Tag` noindex, `X-Frame-Options: DENY`, CSP `form-action 'self'`):
-  `web/next.config.ts:4-14,20-22`. Crawlers disallowed everywhere: `web/src/app/robots.ts:3-6`.
+- Security headers on every path (`X-Robots-Tag` noindex, `X-Frame-Options: DENY`, CSP `form-action` limited to
+  `'self'` and the Google and HubSpot consent hosts the connect forms redirect to, `FORM_ACTION` `:3-7`, kept in step by
+  `web/src/lib/integrations/csp.test.ts`): `web/next.config.ts:9-20,26-28`. Crawlers disallowed everywhere: `web/src/app/robots.ts:3-6`.
 
 Pages (gate = beyond the session cookie):
 
