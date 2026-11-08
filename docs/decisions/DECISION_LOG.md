@@ -3,8 +3,9 @@
 Significant brand, product, and architecture decisions, newest last. Each entry says who decided,
 why, and what it changes. **Status** is one of: `Founder` (explicit founder decision — level 1 in the
 source-of-truth hierarchy), `Approved` (accepted spec), `Provisional` (a reasoned recommendation made
-without an explicit founder decision — valid until the founder confirms or overrides it), or
-`Superseded`.
+without an explicit founder decision — valid until the founder confirms or overrides it), `Proposed` (a
+draft waiting for the founder's decision: nothing is built on it, and it binds nothing until the founder
+approves it, which turns it into a `Founder` entry), or `Superseded`.
 
 To change a decision, add a new entry that references the old one and mark the old one `Superseded`.
 Do not rewrite history.
@@ -878,3 +879,31 @@ env vars are set ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). Amends 
   and responsible for it (MSA §8); the start route refuses without it and the callback records it as the new
   `hubspot_connect` context in `legal_acceptances` (the migration widens its check).
 - Why: the founder chose the smallest privacy load and the same order Search Console used (connection, then module).
+
+## D-060 — CRM intelligence: HubSpot follow-up counts in the diagnosis and the score
+**Status:** Proposed (team, 2026-11-08). **Not approved and not built**: it binds nothing until the founder approves
+or redirects it. Answers Q-063 and Q-064 once decided. Spec: [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md)
+§11. Builds on D-051 (modules), D-058 (how Analytics became a module) and D-059 (aggregates only).
+- **Every stored count goes to the diagnosis, except money.** The latest `hubspot_snapshots` row, summarized, goes to
+  the diagnosis model as one fenced block with the ref `H1` (source `crm`, Verified only when cited), marked as
+  third-party data with the portal's labels as untrusted input. Deal amounts and the currency are left out: the
+  diagnosis judges follow-up, not revenue, and findings are visible to every member.
+- **"Lead follow-up" is scored, weight 0.06, provisional.** Two parts: the share of new contacts in the 28 days with a
+  logged sales activity (0.04; 90% or more = 100; only with 5 or more new contacts) and the share of open deals changed
+  in the last 30 days (0.02; 90% or more = 100; only with 5 or more open deals and an untruncated deal list). Lead
+  volume, lifecycle stages, sources, unassigned contacts and the win rate are evidence only: their good value depends
+  on size and on how the portal is used. About 5% of a full Pro score. Reviewed with testers' data (D-052 step 8,
+  Q-062).
+- **Fresh counts.** The scoring step refreshes the snapshot first (best effort, 10-minute guard, 60-second limit); a
+  snapshot older than 7 days isn't used.
+- **Gating:** Pro, Premium and the trial (`featureId` `hubspot`), like GA4. **Module id:** the existing `crm`; **no
+  migration** (the `module_id` domain has listed `crm` since D-051). **`SCORE_VERSION` 4**; scores without CRM
+  evidence are unchanged.
+- **Uninstall detection (Q-064):** ship use-time detection with the module (the analysis refresh fails on an
+  uninstalled portal, and a refused token deletes the snapshots and the token); build the webhooks journal poller
+  (`APP_LIFECYCLE_EVENT`, pull-based, 3 days of history, needs a scheduler and a stored offset) before the app passes
+  25 installs or applies for a marketplace listing.
+- **For the founder to choose:** score it as above, or option B (counts in the diagnosis, nothing scored until testers'
+  data is in); refresh at analysis time, or only the 7-day rule; the weights.
+- Before customers' counts reach the diagnosis: the privacy, sub-processors, DPA and MSA pages describe the new use
+  (drafts pending counsel, Q-032).
