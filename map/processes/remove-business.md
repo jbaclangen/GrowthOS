@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-08
-commit: de8b338
+commit: c47b5df
 consumes: ["[[organization]]", "[[membership]]", "[[member-role]]", "[[ai-job]]", "[[integration-connection]]"]
 produces: ["[[organization-deletion]]"]
 ---

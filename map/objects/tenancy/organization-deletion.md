@@ -4,7 +4,7 @@ cluster: tenancy
 universe: live
 status: verified
 verified: 2026-11-08
-commit: de8b338
+commit: c47b5df
 entity: supabase/migrations/20261108091111_remove_business.sql
 ---
 
