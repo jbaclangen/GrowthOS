@@ -288,7 +288,7 @@ describe("the scoring step with Search Console (the search visibility module, D-
     expect(prompt()).toContain("<search_console>");
     expect(reportData()).toMatchObject({
       growth_score: 52,
-      score_version: 2,
+      score_version: 3,
       score_modules: ["conversion", "search_visibility"],
       module_scores: { conversion: 50, search_visibility: 65 },
       search_console: { property: "sc-domain:example.com", period: { start: "2026-09-11", end: "2026-10-08" }, little_data: false },
@@ -298,17 +298,19 @@ describe("the scoring step with Search Console (the search visibility module, D-
       ["verified", ["G1"], "search_visibility"],
       ["verified", ["T1"], "website_seo"],
     ]);
-    expect(moduleRuns()).toHaveLength(2);
+    // Conversion, Search visibility, and Analytics as partial (GA4 isn't connected here).
+    expect(moduleRuns()).toHaveLength(3);
     expect(moduleRuns()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ organization_id: ORG, job_id: JOB, module_id: "conversion", status: "completed", sub_score: 50 }),
+        expect.objectContaining({ module_id: "analytics", status: "partial", sub_score: null }),
         expect.objectContaining({
           organization_id: ORG,
           job_id: JOB,
           module_id: "search_visibility",
           status: "completed",
           sub_score: 65,
-          details: expect.objectContaining({ snapshot: true, property: "sc-domain:example.com", little_data: false, score_version: 2 }),
+          details: expect.objectContaining({ snapshot: true, property: "sc-domain:example.com", little_data: false, score_version: 3 }),
         }),
       ]),
     );
@@ -319,7 +321,7 @@ describe("the scoring step with Search Console (the search visibility module, D-
     await runAnalysisJob(JOB, "scoring");
     expect(prompt()).not.toContain("search_console");
     expect(prompt()).not.toContain("G1");
-    expect(reportData()).toMatchObject({ growth_score: 50, score_version: 2, score_modules: ["conversion"], search_console: null });
+    expect(reportData()).toMatchObject({ growth_score: 50, score_version: 3, score_modules: ["conversion"], search_console: null });
     // The model cited G1 with no summary in the prompt: the finding is inferred and belongs to no module.
     expect(findings()[0]).toMatchObject({ provenance: "inferred", audit_refs: [], module_id: null });
     expect(moduleRuns().find((r) => r.module_id === "search_visibility")).toMatchObject({
@@ -355,6 +357,75 @@ describe("the scoring step with Search Console (the search visibility module, D-
     await runAnalysisJob(JOB, "scoring");
     expect(prompt()).not.toContain("search_console");
     expect(reportData()).toMatchObject({ growth_score: 50, score_modules: ["conversion"] });
+    expect(moduleRuns().map((r) => r.module_id)).toEqual(["conversion", "analytics"]);
+  });
+});
+
+// A GA4 snapshot as syncAnalytics stores it (lib/integrations/google-analytics.ts).
+const GA_METRICS = { sessions: 400, users: 320, engagedSessions: 220, engagementRate: 0.55, keyEvents: 12, views: 900 };
+const GA_SNAPSHOT = {
+  organization_id: ORG,
+  connection_id: "conn-2",
+  property: "properties/123456",
+  date_range_start: "2026-09-10",
+  date_range_end: "2026-10-07",
+  totals: { current: GA_METRICS, previous: GA_METRICS, previousRange: { start: "2026-08-13", end: "2026-09-09" } },
+  rows: {
+    channels: [{ key: "Organic Search", sessions: 250, engagedSessions: 150, keyEvents: 8 }],
+    landingPages: [{ key: "/", sessions: 200, engagedSessions: 110, keyEvents: 5 }],
+    devices: [{ key: "mobile", sessions: 260, engagedSessions: 130, keyEvents: 6 }],
+    keyEvents: [{ event: "generate_lead", count: 12 }],
+    keyEventsConfigured: 2,
+    propertyCreated: "2024-01-01T00:00:00Z",
+    propertyName: "Example site",
+    notes: [],
+  },
+  fetched_at: "2026-10-09T15:00:00Z",
+};
+const GA_CONNECTED: Record<string, Row[]> = {
+  integration_connections: [{ id: "conn-2", organization_id: ORG, provider: "google_analytics", status: "active" }],
+  analytics_snapshots: [GA_SNAPSHOT],
+};
+
+describe("the scoring step with Google Analytics 4 (the Analytics module)", () => {
+  it("feeds the summary to the diagnosis, scores it and records the module run on Pro", async () => {
+    scoringSetup("trial", GA_CONNECTED);
+    await runAnalysisJob(JOB, "scoring");
+    expect(prompt()).toContain("G2 GOOGLE ANALYTICS 4 (measured by Google for the property Example site, 2026-09-10 to 2026-10-07");
+    expect(prompt()).toContain("<google_analytics>");
+    expect(prompt()).toContain('"analytics" for what the Google Analytics 4 data shows');
+    expect(prompt()).not.toContain("<search_console>");
+    // Data flowing 100 (0.03), key events 100 (0.03), engagement 92 (0.02), trend 50 (0.02): 88; with the
+    // assessed 50 at 0.65, (32.5 + 8.84) / 0.75 = 55.
+    expect(reportData()).toMatchObject({
+      growth_score: 55,
+      score_version: 3,
+      score_modules: ["conversion", "analytics"],
+      module_scores: { conversion: 50, analytics: 88 },
+      google_analytics: { property: "Example site", period: { start: "2026-09-10", end: "2026-10-07" }, new_property: false },
+    });
+    expect(moduleRuns().find((r) => r.module_id === "analytics")).toMatchObject({
+      status: "completed",
+      sub_score: 88,
+      details: expect.objectContaining({ snapshot: true, new_property: false, score_version: 3 }),
+    });
+  });
+
+  it("leaves the prompt and the score as they were for a Basic organization, even with a connection", async () => {
+    scoringSetup("basic", GA_CONNECTED);
+    await runAnalysisJob(JOB, "scoring");
+    expect(prompt()).not.toContain("google_analytics");
+    expect(prompt()).not.toContain("G2");
+    expect(reportData()).toMatchObject({ growth_score: 50, score_modules: ["conversion"], google_analytics: null });
     expect(moduleRuns().map((r) => r.module_id)).toEqual(["conversion"]);
+  });
+
+  it("scores nothing for a property created inside the window, and says so in the prompt", async () => {
+    const young = { ...GA_SNAPSHOT, rows: { ...GA_SNAPSHOT.rows, propertyCreated: new Date(Date.now() - 5 * 86_400_000).toISOString() } };
+    scoringSetup("trial", { ...GA_CONNECTED, analytics_snapshots: [young] });
+    await runAnalysisJob(JOB, "scoring");
+    expect(prompt()).toContain("The property was created inside this window");
+    expect(reportData()).toMatchObject({ growth_score: 50, score_modules: ["conversion"], google_analytics: { new_property: true } });
+    expect(moduleRuns().find((r) => r.module_id === "analytics")).toMatchObject({ status: "completed", sub_score: null });
   });
 });

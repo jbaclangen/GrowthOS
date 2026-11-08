@@ -6,10 +6,11 @@
 -- Braventa reads contacts, companies and deals but keeps only counts and totals (snapshot `metrics`): no names, email
 -- addresses, phone numbers, deal names or record ids. Disconnecting deletes every snapshot and the token.
 
--- 1. A second provider on the existing connections table (one row per organization and provider).
+-- 1. HubSpot as a provider on the existing connections table (one row per organization and provider), keeping the
+-- Google providers that 20261107224123_google_analytics.sql allows.
 alter table public.integration_connections drop constraint integration_connections_provider_check;
 alter table public.integration_connections add constraint integration_connections_provider_check
-  check (provider in ('google_search_console', 'hubspot'));
+  check (provider in ('google_search_console', 'google_analytics', 'hubspot'));
 
 -- The connected account at a provider without a Google email: for HubSpot, the portal (hub) id and its domain, shown so
 -- the owner can see which portal is connected. Null for Search Console.

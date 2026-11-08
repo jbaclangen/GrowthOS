@@ -52,8 +52,8 @@ did not approve.
   a draft into a business they own, approve it there and move it back.
 - **Role checks (D-046)** are made in server code with `can(role, permission)` from `web/src/lib/team/roles.ts`
   (the eight fixed roles and their permission matrix) and in SQL with `has_permission(org, perm)`, which holds the
-  same matrix (a unit test parses the migration and compares them). Gated today: Search Console connect, property
-  choice and disconnect (`integrations.connect`, owner only), service keys and disconnecting another person's app
+  same matrix (a unit test parses the migration and compares them). Gated today: the Google connection (Search Console and
+  Google Analytics 4) connect, property choice and disconnect (`integrations.connect`, owner only), service keys and disconnecting another person's app
   (`keys.manage_any`, owner only), starting or re-running an analysis (`analysis.run`), the discovery and profile
   answers (`profile.edit`), diagnosis verdicts, updates and confirmation (`diagnosis.correct`), plan item statuses
   (`plan_items.update_any`) and draft approval (`content.approve`, `content.approve_own`). The MCP server applies
@@ -199,6 +199,29 @@ RLS. Rules:
     forbids a revoked row with a token), clears the account email and properties, and deletes the organization's
     `search_console_snapshots`. Reconnecting with a different Google account deletes the old snapshots.
   - After the Pro trial, on Basic, the connection is paused: the token and snapshots are kept, nothing is fetched.
+- **Google Analytics 4 (Pro, D-058)** uses the same Google sign-in (migration `20261107224123`, applied 2026-11-08). One
+  consent screen asks for `webmasters.readonly` and `analytics.readonly`; the callback keeps only the products the
+  owner granted and stores one `integration_connections` row per product (`google_search_console`,
+  `google_analytics`), each holding the same refresh token encrypted on its own with the secret box above
+  (`web/src/lib/integrations/google-connection.ts`). Everything above about encryption, column grants, access tokens,
+  the OAuth state and redirect URIs applies unchanged.
+  - Least privilege: `analytics.readonly`, no write or edit scope; Braventa can't change anything in Google
+    Analytics.
+  - **Stored** per fetch in `analytics_snapshots` (members read, service-client writes): the property id and name,
+    its creation date, how many key events are set up, and aggregate figures for the last 28 days (ending two days
+    ago) against the 28 before: sessions, users, engaged sessions, engagement rate, key events and views, plus the
+    top 10 channels, landing pages and key events and the device split. No visitor-level data, user ids or IP
+    addresses are requested. `property_labels` keeps the display names of the properties the account can read, for
+    the picker. 12 newest snapshots per organization.
+  - Channel names, landing-page paths and event names come from the website's own tracking: untrusted input when
+    they reach a prompt (fenced in `<google_analytics>` and marked as data). `analyticsSummaryForPrompt` returns GA4
+    metrics only, without tokens or the account email.
+  - **Disconnect** is one action for both products ("Disconnect Google", `disconnectGoogle`): it revokes the token at
+    Google, which ends both, nulls both ciphertexts (`status = 'revoked'`), clears emails, properties and labels, and
+    deletes the organization's `search_console_snapshots` and `analytics_snapshots`. Choosing another GA4 property or
+    reconnecting with a different Google account deletes the old GA4 snapshots. A product the owner unticks on a
+    later consent screen is cleared the same way.
+  - Paused on Basic after the trial, like Search Console (`googleAnalyticsAccess`).
 - The foundation's `integrations` table (`vault_secret_id`, Supabase Vault) is still unused. Search Console chose
   app-level encryption to avoid a Vault dependency. HubSpot (built 2026-11-08, D-048/D-059) follows the same pattern:
   the refresh token encrypted in `integration_connections` (provider `hubspot`, portal id and domain in
@@ -312,9 +335,14 @@ human approval, unless the client has explicitly configured an authorised automa
 What exists:
 - Deleting an organization cascades to every tenant table (profiles, knowledge, calendars, items, jobs,
   usage, reports, integrations, subscriptions).
-- Deleting an `auth.users` row cascades memberships and platform-admin rows, but `content_items.approved_by`
-  and `ai_jobs.created_by` reference `auth.users` with no `on delete` action, so deleting a user who approved
-  content or started a job **fails** until those references are cleared.
+- Deleting an `auth.users` row cascades the person's own rows (memberships, platform-admin rows, personal access
+  keys, OAuth grants, codes and tokens, `assistant_usage`) and sets every "by" column to null (who approved a draft,
+  wrote it, started a job or an analysis, confirmed a diagnosis, changed a plan item, asked for an upgrade, created a
+  service key, connected Search Console, sent or accepted an invite, and the actor and subject of team events). The
+  business's drafts, jobs and reports stay with the organization. `content_items.approved_by` and
+  `ai_jobs.created_by` gained their `on delete set null` in `20261107224152_user_deletion_foreign_keys.sql` (Q-056, applied
+  2026-11-08); before that, deleting a user who approved a draft or started a job failed.
+  `web/src/lib/supabase/user-deletion.test.ts` fails if a new reference to `auth.users` has no `on delete` action.
 
 What is undecided / not implemented:
 - No user-facing account or organization deletion, no data export.
@@ -332,8 +360,9 @@ What is undecided / not implemented:
 - In-app assistant (D-043): questions and answers are not stored; the conversation lives only in the browser tab.
   `assistant_usage` keeps one row per question (who, when, answered or failed) for the limits, and `ai_usage` the
   tokens and cost. Both are deleted with the organization (and `assistant_usage` with the user).
-- No retention rule for future CRM data. Search Console: 12 newest snapshots per organization; the token and all
-  snapshots are deleted on disconnect; a paused (Basic) connection keeps both until disconnected.
+- No retention rule for future CRM data. Search Console and Google Analytics 4: 12 newest snapshots per
+  organization each; the token and all snapshots of both are deleted on disconnect (one Google connection); a paused
+  (Basic) connection keeps them until disconnected.
 - Supabase backups (point-in-time recovery) mean deleted data persists in backups for the plan's backup
   window.
 

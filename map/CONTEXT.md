@@ -53,7 +53,7 @@ Eight member roles with one permission matrix — `web/src/lib/team/roles.ts:8-1
 - Decision log: D-007, D-008, D-017, D-020, D-026 superseded; D-023 withdrawn; the index table stops at D-028 (plus a
   D-055 row) while entries run to D-055 (`docs/decisions/DECISION_LOG.md:12-42`).
 - Pre-ON-8 "five opportunities" copy and fields (`web/src/app/analysis/[id]/report-data.ts:18-26`,
-  `report-sections.tsx:234-239`, `web/src/app/login/page.tsx:31`, `start-form.tsx:36`).
+  `report-sections.tsx:236-241`, `web/src/app/login/page.tsx:31`, `start-form.tsx:36`).
 - Single-invocation compatibility: unknown worker falls back to the full sequence (`steps.ts:24-27`), old outputs
   handled at `steps.ts:59-60`, `claims.ts:16`, `report-data.ts:210`. Pre-module scores derived by `modulesUsed`
   (`web/src/lib/modules/score.ts:142-144`); `business_profiles.growth_score` duplicates `reports.data.growth_score`.

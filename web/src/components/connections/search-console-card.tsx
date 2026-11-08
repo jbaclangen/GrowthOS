@@ -161,7 +161,8 @@ function WhatWeAccess() {
       <p>
         Connect the Google account that manages your website in Search Console, and Braventa shows how people find you on
         Google Search: clicks, impressions, top search queries and pages. A summary also goes into your diagnosis, which
-        Braventa&apos;s AI writes, and into your growth score as Search visibility.
+        Braventa&apos;s AI writes, and into your growth score as Search visibility. The same Google sign-in also connects
+        Google Analytics 4; you can untick either one on Google&apos;s consent screen.
       </p>
       <ul className="mt-2 list-disc space-y-1 pl-5">
         <li>
@@ -170,7 +171,10 @@ function WhatWeAccess() {
           which account is connected.
         </li>
         <li>Braventa can&apos;t change anything in your Google account or in Search Console.</li>
-        <li>Disconnect any time. Disconnecting revokes Braventa&apos;s access and deletes the Search Console data it stored.</li>
+        <li>
+          Disconnect any time. Disconnecting Google revokes Braventa&apos;s access for Search Console and Google Analytics and
+          deletes the data it stored from them.
+        </li>
       </ul>
     </div>
   );
@@ -222,7 +226,7 @@ function NotConnected({
         <SearchConsoleConnectForm
           id="gsc-connect-agree"
           returnTo={returnTo}
-          label="Connect Google Search Console"
+          label="Connect Google"
           buttonClassName={connectClassName}
         />
       )}
@@ -309,8 +313,8 @@ function Connected({
         {canConnect && <DisconnectButton returnTo={returnTo} />}
       </div>
       <p className="mt-3 text-xs text-muted">
-        Read-only access. Braventa can&apos;t change anything in Google. Disconnecting deletes the Search Console data Braventa
-        stored.
+        Read-only access. Braventa can&apos;t change anything in Google. Disconnecting Google deletes the Search Console and
+        Google Analytics data Braventa stored.
       </p>
     </>
   );

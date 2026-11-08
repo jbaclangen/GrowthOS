@@ -102,7 +102,7 @@ export async function HubSpotCard({
           ))}
         </ul>
       )}
-      <ConnectionNotice param="hubspot" />
+      <ConnectionNotice product="hubspot" />
 
       {state === "not-configured" ? (
         <p className="mt-4 rounded-md bg-surface-muted px-3 py-2 text-sm" role="status">
@@ -324,7 +324,7 @@ function Connected({
         {canConnect && connection.status === "error" && allowed && (
           <HubSpotConnectForm id="hubspot-reconnect-agree" returnTo={returnTo} label="Reconnect" buttonClassName="btn-secondary" />
         )}
-        {canConnect && <DisconnectButton returnTo={returnTo} action={disconnectHubSpotAction} explanation={DISCONNECT_EXPLANATION} />}
+        {canConnect && <DisconnectButton returnTo={returnTo} action={disconnectHubSpotAction} label="Disconnect HubSpot" explanation={DISCONNECT_EXPLANATION} />}
       </div>
       <p className="mt-3 text-xs text-muted">
         Read-only access. Braventa can&apos;t change anything in HubSpot and stores counts only. Disconnecting deletes them.

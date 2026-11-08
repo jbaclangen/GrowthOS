@@ -14,15 +14,17 @@ import { connectionReturnPath } from "@/lib/integrations/return-to";
 import { suggestTools } from "@/lib/integrations/tool-catalog";
 import { HubSpotCard } from "@/components/connections/hubspot-card";
 import { SearchConsoleCard } from "@/components/connections/search-console-card";
+import { AnalyticsCard } from "@/components/connections/analytics-card";
 import { ToolCardList } from "@/components/connections/tool-cards";
 import { continueAfterConnect } from "../actions";
 import { EvidenceStatus } from "../evidence-status";
 import { ContinueButton, ContinuePendingNote } from "./continue-button";
 
 // "Connect your tools" (D-041, INTEGRATIONS_ROADMAP §2): an optional step between confirming priorities and the
-// follow-up questions. Google Search Console and HubSpot can be connected (Pro and the Pro trial, owner only; paused on
-// Basic); every other tool is Coming soon. Search Console data feeds the diagnosis and the growth score (D-051 step 6);
-// HubSpot's counts (read-only, D-048) don't yet.
+// follow-up questions. Google (one sign-in covers Search Console and Google Analytics 4) and HubSpot can be connected
+// (Pro and the Pro trial, owner only; paused on Basic); every other tool is Coming soon. Google data feeds the
+// diagnosis and the growth score (D-051 step 6; the Analytics module, D-058); HubSpot's counts (read-only, D-048,
+// D-059) don't yet.
 // The AI assistant connection (MCP) skips this step: connections are authorized only in Braventa.
 
 export const metadata: Metadata = { title: "Connect your tools" };
@@ -89,12 +91,13 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
     tools: (profile?.current_tools as string[] | null) ?? [],
   });
   const searchConsole = suggestions.find((s) => s.tool.id === "search_console");
+  const analytics = suggestions.find((s) => s.tool.id === "google_analytics");
   const hubspot = suggestions.find((s) => s.tool.id === "hubspot");
   const comingSoon = suggestions.filter((s) => s.tool.status === "coming_soon");
   const liveNow = gscConfigured && hsConfigured
-    ? "Today that's Google Search Console, whose clicks, impressions, top searches and pages Braventa shows on Search performance and uses in your diagnosis and growth score, and HubSpot, whose contacts and deals Braventa shows as counts."
+    ? "Today that's Google, where one sign-in connects Search Console (clicks, impressions, top searches and pages) and Google Analytics 4 (sessions, engagement, key events and channels), which Braventa uses in your diagnosis and growth score, and HubSpot, whose contacts and deals Braventa shows as counts."
     : gscConfigured
-      ? "Today that's Google Search Console: Braventa shows your clicks, impressions, top searches and pages on Search performance and uses them in your diagnosis and growth score."
+      ? "Today that's Google: one sign-in connects Search Console (clicks, impressions, top searches and pages) and Google Analytics 4 (sessions, engagement, key events and channels), and Braventa uses both in your diagnosis and growth score."
       : "Today that's HubSpot: Braventa shows your contacts and deals as counts.";
   const returnTo = connectionReturnPath(`/onboarding/${session.id}/connect`);
 
@@ -120,6 +123,13 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
           returnTo={returnTo}
           sectionId="search-console"
           reasons={searchConsole?.reasons}
+          connectClassName="btn-secondary"
+        />
+        <AnalyticsCard
+          org={membership}
+          canConnectHere={canConnectHere}
+          returnTo={returnTo}
+          reasons={analytics?.reasons}
           connectClassName="btn-secondary"
         />
         <HubSpotCard

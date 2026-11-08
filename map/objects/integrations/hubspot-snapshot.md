@@ -14,13 +14,13 @@ One row per fetch of counts and totals from an organization's HubSpot portal (co
 
 ## Why this shape
 
-Braventa reads CRM records only to count them, so the row has one `metrics` jsonb of counts, sums and the portal's own stage and source labels, bounded at 32 KB so a bug can't store record lists (`supabase/migrations/20261108120000_hubspot_connection.sql:32`; `web/src/lib/integrations/hubspot-metrics.ts:221`). The composite FK ties each row to a connection of the same organization (`…hubspot_connection.sql:36`).
+Braventa reads CRM records only to count them, so the row has one `metrics` jsonb of counts, sums and the portal's own stage and source labels, bounded at 32 KB so a bug can't store record lists (`supabase/migrations/20261108120000_hubspot_connection.sql:33`; `web/src/lib/integrations/hubspot-metrics.ts:221`). The composite FK ties each row to a connection of the same organization (`…hubspot_connection.sql:37-38`).
 
 ## Shape
 
-- Columns: `connection_id`, `portal_id`, `period_start/end`, `metrics` jsonb, `fetched_at` — `supabase/migrations/20261108120000_hubspot_connection.sql:24-38`
+- Columns: `connection_id`, `portal_id`, `period_start/end`, `metrics` jsonb, `fetched_at` — `supabase/migrations/20261108120000_hubspot_connection.sql:25-39`
 - `metrics` type: `HubSpotMetrics` (`version: 1`) — `web/src/lib/integrations/hubspot-metrics.ts:27`; deal properties read: `DEAL_PROPERTIES` `:128`; aggregation `aggregateDeals` `:151`
-- RLS "members read", select-only grant — `…hubspot_connection.sql:42-46`
+- RLS "members read", select-only grant — `…hubspot_connection.sql:43-47`
 - Insert: `syncHubSpot` `web/src/lib/integrations/hubspot.ts:299`; prune to 12 `:31,319`
 - Delete: another portal connected `:233-234`; disconnect `:353`
 - Read: the HubSpot card (`web/src/components/connections/hubspot-card.tsx`), user client

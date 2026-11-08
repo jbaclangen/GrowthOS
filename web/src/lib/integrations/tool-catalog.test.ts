@@ -10,7 +10,7 @@ const pick = (id: string, priority: number | null = null, confirmed = true) => (
 describe("tool catalog", () => {
   it("has exactly two live tools, Search Console and HubSpot, matching the tier list", () => {
     const live = TOOLS.filter((t) => t.status === "live");
-    expect(live.map((t) => t.id)).toEqual(["search_console", "hubspot"]);
+    expect(live.map((t) => t.id)).toEqual(["search_console", "google_analytics", "hubspot"]);
     for (const t of live) expect(FEATURES.find((f) => f.id === t.id)!.status, t.id).toBe("live");
   });
 

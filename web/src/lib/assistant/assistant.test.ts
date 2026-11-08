@@ -303,9 +303,10 @@ describe("knowledge base", () => {
       source("../../components/connections/hubspot-card.tsx"),
     ].join("\n");
     for (const label of ["Continue", "Change your priorities", "Connect your tools"]) expect(step, label).toContain(label);
-    expect(card).toContain("Connect Google Search Console");
-    expect(section("search-console")).toContain("**Connect Google Search Console**");
-    for (const label of ["Connect HubSpot", "Refresh HubSpot counts", "Disconnect"]) {
+    expect(card).toContain("Connect Google");
+    expect(section("search-console")).toContain("**Connect Google**");
+    expect(source("../../components/connections/disconnect-button.tsx")).toContain("Disconnect Google");
+    for (const label of ["Connect HubSpot", "Refresh HubSpot counts", "Disconnect HubSpot"]) {
       expect(card, label).toContain(label);
       expect(section("hubspot"), label).toContain(`**${label}**`);
     }
@@ -318,11 +319,11 @@ describe("knowledge base", () => {
     expect(quoted.length).toBeGreaterThan(1);
     for (const label of quoted) expect(`${step}\n${card}`, label).toContain(label);
 
-    // Search Console and HubSpot are live; only Search Console data feeds the diagnosis and the score (D-051 step 6);
-    // every other tool is named as coming soon.
+    // Google (Search Console and Google Analytics 4, one sign-in) and HubSpot are live; Google data feeds the diagnosis
+    // and the score, HubSpot's counts don't yet; every other tool is named as coming soon.
     expect(route.purpose).toMatch(/goes into your diagnosis and growth score/);
     expect(route.purpose).toMatch(/HubSpot[^.]*counts[^.]*aren't used in your diagnosis yet/);
-    expect(route.purpose).toMatch(/Coming soon[^.]*: Google Analytics 4, .* and HeyGen\./);
+    expect(route.purpose).toMatch(/Coming soon[^.]*: Google Business Profile, .* and HeyGen\./);
     expect(route.purpose.match(/Coming soon[^.]*: [^.]*\./)![0]).not.toMatch(/HubSpot/);
     expect(route.howToGetThere).toMatch(/AI assistant connected to Braventa skips this step/);
   });

@@ -77,7 +77,8 @@ describe("OAuth helpers", () => {
     const p = url.searchParams;
     expect(url.origin + url.pathname).toBe("https://accounts.google.com/o/oauth2/v2/auth");
     expect(p.get("scope")).toBe(OAUTH_SCOPES.join(" "));
-    expect(p.get("scope")?.split(" ")).toEqual(["openid", "email", SEARCH_CONSOLE_SCOPE]);
+    // One consent screen for Search Console and Google Analytics 4, both read-only (2026-11-08).
+    expect(p.get("scope")?.split(" ")).toEqual(["openid", "email", SEARCH_CONSOLE_SCOPE, "https://www.googleapis.com/auth/analytics.readonly"]);
     expect(p.get("access_type")).toBe("offline");
     expect(p.get("prompt")).toBe("consent");
     expect(p.get("include_granted_scopes")).toBe("false");

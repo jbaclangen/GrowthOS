@@ -3,8 +3,8 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 00d230f
-consumes: ["[[diagnosis]]", "[[diagnosis-finding]]", "[[report]]", "[[business-profile]]", "[[audit-run]]", "[[audit-finding]]", "[[search-console-snapshot]]", "[[ai-worker]]", "[[member-role]]"]
+commit: 2dd74b3
+consumes: ["[[diagnosis]]", "[[diagnosis-finding]]", "[[report]]", "[[business-profile]]", "[[audit-run]]", "[[audit-finding]]", "[[search-console-snapshot]]", "[[analytics-snapshot]]", "[[ai-worker]]", "[[member-role]]"]
 produces: ["[[ai-job]]", "[[diagnosis]]", "[[diagnosis-finding]]", "[[growth-plan-item]]", "[[ai-usage]]"]
 ---
 
@@ -27,12 +27,12 @@ A full re-run would re-crawl and re-plan for a wording correction; reusing the s
 3. Preconditions: `diagnosis.correct` — `web/src/app/analysis/plan-actions.ts:108`; status `proposed` — `:109`; at least one `rejected` finding — `:111-117`.
 4. `failStaleJobs`, then active-job check by `businessProfileId` with no explicit org filter (RLS scopes it) — `web/src/app/analysis/plan-actions.ts:124-131`.
 5. Insert `ai_jobs` (`worker: diagnosis_update`, `input.diagnosisId`, `initialState`) and `startJob` — `web/src/app/analysis/plan-actions.ts:133-146`.
-6. Sequence is `["scoring"]` only — `web/src/lib/pipeline/steps.ts:21`; `runStep` routes `scoring` to `reviseStep` for this worker — `web/src/lib/pipeline/website-intel.ts:863`, `:599-603`.
-7. `reviseDiagnosis` loads the previous diagnosis (must belong to the business) — `web/src/lib/pipeline/website-intel.ts:545-551`; reads `reports.data`, `business_profiles.intelligence`, findings with verdicts — `:553-562`; missing analysis → throw — `:568`.
-8. Audit context rebuilt from `audit_runs`/`audit_findings` — `web/src/lib/pipeline/website-intel.ts:574`, `:208`.
-9. Corrections = confirmed statements + rejected/noted ones — `web/src/lib/pipeline/website-intel.ts:577-582`; latest completed discovery — `:583`; Search Console summary, score not recomputed — `:584-586`.
-10. `diagnose` with corrections; `storeDiagnosis` with `revises: {id, version}` — `web/src/lib/pipeline/website-intel.ts:588-594`; `revises_id`/`version` columns `supabase/migrations/20261010164133_diagnosis_and_plan.sql:11-13`.
-11. Previous diagnosis → `superseded` — `web/src/lib/pipeline/website-intel.ts:595`; statuses `supabase/migrations/20261010164133_diagnosis_and_plan.sql:16`. No `module_runs` are written in this path.
+6. Sequence is `["scoring"]` only — `web/src/lib/pipeline/steps.ts:21`; `runStep` routes `scoring` to `reviseStep` for this worker — `web/src/lib/pipeline/website-intel.ts:899`, `:612-616`.
+7. `reviseDiagnosis` loads the previous diagnosis (must belong to the business) — `web/src/lib/pipeline/website-intel.ts:554-562`; reads `reports.data`, `business_profiles.intelligence`, findings with verdicts — `:564-573`; missing analysis → throw — `:579`.
+8. Audit context rebuilt from `audit_runs`/`audit_findings` — `web/src/lib/pipeline/website-intel.ts:585`, `:210`.
+9. Corrections = confirmed statements + rejected/noted ones — `web/src/lib/pipeline/website-intel.ts:588-593`; latest completed discovery — `:594`; Search Console and GA4 summaries (each only when its module is enabled), score not recomputed — `:595-598`.
+10. `diagnose` with corrections; `storeDiagnosis` with `revises: {id, version}` — `web/src/lib/pipeline/website-intel.ts:600-607`; `revises_id`/`version` columns `supabase/migrations/20261010164133_diagnosis_and_plan.sql:11-13`.
+11. Previous diagnosis → `superseded` — `web/src/lib/pipeline/website-intel.ts:608`; statuses `supabase/migrations/20261010164133_diagnosis_and_plan.sql:16`. No `module_runs` are written in this path.
 
 ## Human gate
 

@@ -1,13 +1,13 @@
 import { PAIN_POINTS, getPainPoint, isActivePainPointId } from "@/lib/onboarding/catalog";
 
 // The tools the onboarding step "Connect your tools" and Settings → Connections show (D-041, INTEGRATIONS_ROADMAP §2).
-// Google Search Console and HubSpot (read-only counts, D-048) are live; every other tool is Coming soon and has no
-// connect action. Each live tool's status must match FEATURES in lib/plans/tiers.ts (a test checks it). Suggestions
-// come from the owner's confirmed pain points and the tools they named at the start (BI-12,
-// business_profiles.current_tools), without an AI call. Pure logic, unit-tested.
+// Google Search Console and Google Analytics 4 (one Google sign-in) and HubSpot (read-only counts, D-048) are live;
+// every other tool is Coming soon and has no connect action. Each live tool's status must match FEATURES in
+// lib/plans/tiers.ts (a test checks it). Suggestions come from the owner's confirmed pain points and the tools they
+// named at the start (BI-12, business_profiles.current_tools), without an AI call. Pure logic, unit-tested.
 //
 // Claim rule (VOICE_AND_MESSAGING §5): present tense means it works today, so every coming-soon "helps" line starts
-// with "Planned:". Search Console data feeds the diagnosis and the growth score (D-051 step 6), so its line may say so;
+// with "Planned:". Search Console and GA4 data feed the diagnosis and the growth score, so their lines may say so;
 // HubSpot's counts don't reach the diagnosis yet, so its line must not.
 
 export type ToolId =
@@ -45,8 +45,8 @@ export const TOOLS: Tool[] = [
   {
     id: "google_analytics",
     name: "Google Analytics 4",
-    status: "coming_soon",
-    helps: "Planned: see which website visits turn into inquiries.",
+    status: "live",
+    helps: "See which website visits turn into inquiries: sessions, engagement, key events and traffic channels, used in your diagnosis and growth score.",
     painPoints: [
       "website.low_conversion",
       "strategy.unclear_priorities",

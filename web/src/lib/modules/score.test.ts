@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MODULES, enabledModuleIds, type ModuleId } from "./registry";
 import {
   SCORE_VERSION,
+  analyticsEvidence,
   computeGrowthScore,
   conversionEvidence,
   growthScoreNote,
@@ -42,6 +43,11 @@ const scorePro = (psi: PageSpeedScores | null, ai: AssessedScores) => computeGro
 // A full Search Console summary, as summarizeSnapshot shapes it: average position 14.3, 2.5% click-through rate,
 // clicks up 20% on the previous 28 days, 4 pages served, home page indexed. Parts: position 58, ctr 50, trend 60,
 // pages_served 40 (of 10 crawled), home_indexed 100 → sub-score (2.32 + 1 + 1.2 + 0.4 + 1) / 0.1 = 59.2 → 59.
+const GA = {
+  totals: { sessions: 400, engagement_rate_percent: 55, key_events: 12, sessions_change_percent: 20 },
+  new_property: false,
+  key_events_configured: 2,
+};
 const GSC: SearchVisibilityMeasures = {
   totals: { ctr_percent: 2.5, average_position: 14.3, clicks_change_percent: 20 },
   little_data: false,
@@ -153,7 +159,7 @@ describe("computeGrowthScore over modules", () => {
     const result = computeGrowthScore(scoreEvidence({ psi, ai, searchConsole: GSC, crawledPages: 10 }), PRO)!;
     expect(result).toEqual({
       score: Math.round((basic + search) / 1.1),
-      version: 2,
+      version: 3,
       modules: ["conversion", "website_seo", "search_visibility"],
       moduleScores: { conversion: 50, website_seo: Math.round((90 * 0.15 + 100 * 0.12 + 80 * 0.04 + 70 * 0.04) / 0.35), search_visibility: 59 },
     });
@@ -197,12 +203,58 @@ describe("computeGrowthScore over modules", () => {
       ai: { content_clarity: 1, conversion_readiness: 1, online_presence: 1 },
       searchConsole: GSC,
       crawledPages: 10,
+      analytics: GA,
     });
     for (const m of MODULES) {
       const evidence = full.find((e) => e.moduleId === m.id);
       if (m.scoreWeight === null) expect(evidence, m.id).toBeUndefined();
       else expect(evidence!.parts.reduce((s, p) => s + p.weight, 0), m.id).toBeCloseTo(m.scoreWeight, 10);
     }
+  });
+});
+
+describe("analyticsEvidence (the Analytics module, FEATURE_MODULES.md §10)", () => {
+  it("scores measurement, key events, engagement and the trend", () => {
+    expect(analyticsEvidence(GA).parts).toEqual([
+      { key: "data_flowing", value: 100, weight: 0.03 },
+      { key: "key_events", value: 100, weight: 0.03 },
+      { key: "engagement", value: 92, weight: 0.02 },
+      { key: "trend", value: 60, weight: 0.02 },
+    ]);
+    expect(subScore(analyticsEvidence(GA).parts)).toBe(90);
+  });
+
+  it("scores key events set up but none recorded at half, and none set up at zero", () => {
+    const none = { ...GA, totals: { ...GA.totals, key_events: 0 } };
+    expect(analyticsEvidence({ ...none, key_events_configured: 3 }).parts.find((p) => p.key === "key_events")?.value).toBe(50);
+    expect(analyticsEvidence({ ...none, key_events_configured: 0 }).parts.find((p) => p.key === "key_events")?.value).toBe(0);
+    // Unknown setup and nothing recorded: no key events part at all.
+    expect(analyticsEvidence({ ...none, key_events_configured: null }).parts.map((p) => p.key)).not.toContain("key_events");
+  });
+
+  it("marks an older property with no sessions as not measuring, and skips the rate and the trend", () => {
+    const silent = { ...GA, totals: { sessions: 0, engagement_rate_percent: 0, key_events: 0, sessions_change_percent: null }, key_events_configured: 0 };
+    expect(analyticsEvidence(silent).parts).toEqual([
+      { key: "data_flowing", value: 0, weight: 0.03 },
+      { key: "key_events", value: 0, weight: 0.03 },
+    ]);
+  });
+
+  it("scores nothing for a new property or without a summary", () => {
+    expect(analyticsEvidence({ ...GA, new_property: true }).parts).toEqual([]);
+    expect(analyticsEvidence(null)).toEqual({ moduleId: "analytics", parts: [] });
+  });
+
+  it("leaves a score without GA4 evidence exactly as it was", () => {
+    const ai = { content_clarity: 60, conversion_readiness: 40, online_presence: 50 };
+    const enabled = enabledModuleIds("pro");
+    const without = computeGrowthScore(scoreEvidence({ psi: null, ai }), enabled);
+    const withNull = computeGrowthScore(scoreEvidence({ psi: null, ai, analytics: null }), enabled);
+    expect(withNull).toEqual(without);
+    expect(computeGrowthScore(scoreEvidence({ psi: null, ai, analytics: GA }), enabled)).toMatchObject({
+      modules: ["conversion", "analytics"],
+      moduleScores: { conversion: 50, analytics: 90 },
+    });
   });
 });
 

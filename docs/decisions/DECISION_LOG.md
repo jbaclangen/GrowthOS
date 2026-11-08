@@ -823,6 +823,37 @@ migration applied to production 2026-11-08. Spec: [LEGAL_ACCEPTANCE.md](../archi
 - Resolves Q-055. The documents are still drafts pending counsel (Q-032). Change `LEGAL_VERSION` whenever they change
   materially.
 
+## D-058 — Google Analytics 4 through one Google connection, scored as the Analytics module
+**Status:** Founder (2026-11-08, in chat). Built 2026-11-08 (branch `ga4-module`, code commit `4676d2c`); migration
+`20261107224123_google_analytics.sql` applied 2026-11-08. Item 3 of D-041's order
+([INTEGRATIONS_ROADMAP.md](../product/INTEGRATIONS_ROADMAP.md) §5).
+- **One Google connection for Search Console and GA4.** One consent screen asks for `webmasters.readonly` and
+  `analytics.readonly`; the owner may untick either. The callback keeps only the scopes granted and stores one
+  `integration_connections` row per product (`google_search_console`, `google_analytics`), each holding the same
+  refresh token encrypted separately, so each keeps its own property, status and refresh guard
+  (`web/src/lib/integrations/google-connection.ts`). Revoking the token at Google ends both, so "Disconnect Google"
+  disconnects both and deletes both products' snapshots. The founder chose this over separate connections; the
+  likely reasons (not stated): one sign-in is simpler for an owner, and Google's
+  revocation can't end one product without the other anyway.
+- **GA4 is Pro**, like Search Console: the trial counts as Pro; on Basic the connection is paused, data kept
+  (`google_analytics` feature in `web/src/lib/plans/tiers.ts`; "Analytics connections" became "Tag Manager
+  connection", still Coming soon). Owner only to connect, choose a property or disconnect (`integrations.connect`).
+- **Data:** each sync stores one `analytics_snapshots` row (aggregates for the last 28 days ending two days ago
+  against the 28 before: sessions, engagement, key events, channels, landing pages, devices; the property's creation
+  date and key events set up), 12 kept, 10-minute refresh guard; the property is matched to the website through its
+  web streams or chosen by the owner. No visitor-level data.
+- **The Analytics module is live and scored, weight 0.10, provisional.** The latest snapshot goes to the diagnosis as
+  a fenced block with the ref `G2` (source `analytics`, Verified only when cited) and gives four parts: data flowing
+  0.03, key events 0.03, engagement rate 0.02, sessions against the previous 28 days 0.02. It measures whether
+  tracking works and counts inquiries, not traffic volume. No parts for a property created within the last 28 days.
+  The weights are reviewed once testers have data (D-052 step 8, Q-062). Spec:
+  [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10.
+- **`SCORE_VERSION` 3.** Scores without GA4 evidence are unchanged (`score.test.ts`); with it a score can move, so
+  version 3 reports aren't compared with version 2 ones.
+- Before customers connect GA4: apply the migration, enable the Google Analytics Data and Admin APIs and add the
+  scope in Google Cloud ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)), describe GA4 data on
+  the privacy and sub-processors pages (Q-060), and extend Google's OAuth verification to the new scope (Q-061).
+
 ## D-059 — HubSpot connection: aggregates only, built ahead of the CRM module
 **Status:** Founder (2026-11-08, in chat: "aggregates only", "connection first"). Built, not set up: live once the
 HubSpot app is uploaded and its env vars are set ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). Amends D-048.

@@ -54,6 +54,7 @@ function Scores({ report }: { report: Report }) {
   const modules = modulesUsed(data);
   const blend = scoreBlend(modules, "long");
   const searchScore = modules.includes("search_visibility") ? data.module_scores?.search_visibility : undefined;
+  const analyticsScore = modules.includes("analytics") ? data.module_scores?.analytics : undefined;
   return (
     <section className="flex flex-col gap-6 md:flex-row md:items-start">
       <div className="flex items-center gap-4 md:w-1/3">
@@ -75,6 +76,7 @@ function Scores({ report }: { report: Report }) {
           <p className="text-sm text-muted">Google PageSpeed scores weren&apos;t available for this run.</p>
         )}
         {searchScore != null && <ScoreBar label="Search visibility" value={searchScore} note="Google Search Console" />}
+        {analyticsScore != null && <ScoreBar label="Analytics" value={analyticsScore} note="Google Analytics 4" />}
       </div>
     </section>
   );

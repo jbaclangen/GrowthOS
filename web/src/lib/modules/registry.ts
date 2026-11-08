@@ -8,7 +8,8 @@ import type { Provenance } from "@/lib/plan/priority";
 // D-051 steps 1–5 (this registry, the organization_modules and module_runs tables, module_id on findings and plan
 // items, the growth score computed over modules in lib/modules/score.ts) change no result an owner sees. The
 // pipeline is four live modules in Basic, plus Search visibility (D-051 step 6, Pro: Google Search Console data in
-// the diagnosis and the score; FEATURE_MODULES.md §9). Every other module stays "coming soon" until the PR that
+// the diagnosis and the score; FEATURE_MODULES.md §9) and Analytics (Pro, 2026-11-08: Google Analytics 4 data in the
+// diagnosis and the score; §10). Every other module stays "coming soon" until the PR that
 // ships it sets `live` (CLAUDE.md: never present a planned feature as live). Adding a module also means a migration
 // that extends the module_id domain in the database (migration.test.ts checks that the two lists agree).
 
@@ -195,11 +196,13 @@ export const MODULES: readonly ModuleDef[] = [
   {
     id: "analytics",
     label: "Analytics",
-    summary: "Tracking and outcomes: Google Analytics 4 and Tag Manager checks, planned against actual.",
+    summary: "Measurement and outcomes from Google Analytics 4: whether tracking works, key events, engagement and the sessions trend, in the diagnosis and the growth score.",
     tier: "pro",
-    featureId: "analytics_integrations",
-    live: false,
-    scoreWeight: null,
+    featureId: "google_analytics",
+    live: true,
+    // Data flowing 0.03, key events set up 0.03, engagement rate 0.02, sessions against the previous 28 days 0.02
+    // (FEATURE_MODULES.md §10, provisional). Nothing without a snapshot or for a property under 28 days old.
+    scoreWeight: 0.1,
     subScore: "Measurement readiness",
     findingCategories: [],
     planAreas: [],
@@ -257,8 +260,8 @@ export type ModuleOverride = { module_id: string; enabled: boolean };
 // The modules whose evidence feeds an organization's growth score: the live modules its tier includes, minus any it
 // switched off (organization_modules, enabled = false). An override can't switch on a module that isn't live or
 // that the tier doesn't include. Nothing writes overrides yet, so today this is the four Basic modules for everyone,
-// plus Search visibility on Pro, Premium and the trial. Overrides affect the score and the Search Console evidence
-// in the diagnosis, and nothing else: the analysis steps still run, because no module can be switched off from the
+// plus Search visibility and Analytics on Pro, Premium and the trial. Overrides affect the score and the Search
+// Console and GA4 evidence in the diagnosis, and nothing else: the analysis steps still run, because no module can be switched off from the
 // app yet.
 export function enabledModuleIds(tier: Tier, overrides: readonly ModuleOverride[] = []): Set<ModuleId> {
   const off = new Set(overrides.filter((o) => !o.enabled).map((o) => o.module_id));
@@ -278,14 +281,17 @@ export function moduleForArea(area: string): ModuleId | null {
 // The ref the diagnosis prompt gives the Google Search Console summary (lib/pipeline/prompts.ts). The prompt
 // reserves it for findings whose source is Search Console, so a finding that cites it rests on that data.
 export const SEARCH_CONSOLE_REF = "G1";
+// The ref of the Google Analytics 4 summary, reserved the same way for findings whose source is GA4.
+export const ANALYTICS_REF = "G2";
 
 // The module a diagnosis finding belongs to, from where its evidence comes from: a verified finding that cites the
-// Search Console summary belongs to search visibility, any other verified finding cites the website checks or
+// GA4 summary belongs to analytics, one that cites the Search Console summary belongs to search visibility, any other verified finding cites the website checks or
 // PageSpeed (website and technical SEO); one the owner provided belongs to business intelligence; an inferred one
 // is the model's reasoning and belongs to no module. Without refs this is the migration's backfill rule.
 export function moduleForFinding(finding: { provenance: Provenance; audit_refs?: readonly string[] }): ModuleId | null {
   switch (finding.provenance) {
     case "verified":
+      if (finding.audit_refs?.includes(ANALYTICS_REF)) return "analytics";
       return finding.audit_refs?.includes(SEARCH_CONSOLE_REF) ? "search_visibility" : "website_seo";
     case "customer_provided":
       return "business_intel";

@@ -2,28 +2,30 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
-import { disconnectSearchConsoleAction } from "@/app/settings/connections-actions";
+import { disconnectGoogleAction } from "@/app/settings/connections-actions";
 
 // Two steps, because disconnecting deletes the stored data. returnTo is the page to come back to (Settings or the
-// onboarding step), checked again on the server. Search Console by default; the HubSpot card passes its own action
-// and explanation.
-const SEARCH_CONSOLE_EXPLANATION =
-  "Disconnecting revokes Braventa's access at Google and deletes the Search Console data Braventa stored for this business. Your Search Console account isn't changed.";
+// onboarding step), checked again on the server. Google by default (one Google sign-in covers Search Console and
+// Google Analytics 4); the HubSpot card passes its own action, label and explanation.
+const GOOGLE_EXPLANATION =
+  "Disconnecting revokes Braventa's access at Google, for both Search Console and Google Analytics, and deletes the data Braventa stored from them for this business. Your Google accounts aren't changed.";
 
 export function DisconnectButton({
   returnTo,
-  action = disconnectSearchConsoleAction,
-  explanation = SEARCH_CONSOLE_EXPLANATION,
+  action = disconnectGoogleAction,
+  label = "Disconnect Google",
+  explanation = GOOGLE_EXPLANATION,
 }: {
   returnTo: string;
   action?: (formData: FormData) => Promise<void>;
+  label?: string;
   explanation?: string;
 }) {
   const [confirming, setConfirming] = useState(false);
   if (!confirming) {
     return (
       <button type="button" className="btn-secondary" onClick={() => setConfirming(true)}>
-        Disconnect
+        {label}
       </button>
     );
   }

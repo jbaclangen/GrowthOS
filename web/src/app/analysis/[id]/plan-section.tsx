@@ -85,6 +85,8 @@ function FindingBasis({ provenance, refs }: { provenance: Provenance; refs: stri
   if (refs.includes("C1")) parts.push("crawl coverage");
   // The Search Console summary (the search visibility module, D-051 step 6).
   if (refs.includes("G1")) parts.push("Google Search Console");
+  // The Google Analytics 4 summary (the Analytics module).
+  if (refs.includes("G2")) parts.push("Google Analytics 4");
   return (
     <p className="mt-1 text-xs text-muted">
       Based on measured data:{" "}

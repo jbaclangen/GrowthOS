@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 00d230f
+commit: 2dd74b3
 entity: web/src/proxy.ts
 ---
 
@@ -25,7 +25,7 @@ Postgres hand-offs, OAuth, metadata) are listed once in `PUBLIC_PATHS` and check
 ## Shape
 
 - Gate: `PUBLIC_PATHS` `web/src/proxy.ts:11-22`; redirect to `/login?next=` `:49-54`; matcher `:58-60`.
-- Root layout: tier/trial badge and assistant bar per request, `web/src/app/layout.tsx:52-68`.
+- Root layout: tier/trial badge and assistant bar per request, `web/src/app/layout.tsx:56-72`.
 - Security headers on every path (`X-Robots-Tag` noindex, `X-Frame-Options: DENY`, CSP `form-action 'self'`):
   `web/next.config.ts:4-14,20-22`. Crawlers disallowed everywhere: `web/src/app/robots.ts:3-6`.
 
@@ -34,17 +34,17 @@ Pages (gate = beyond the session cookie):
 | Path | Purpose | Gate | Citation |
 |---|---|---|---|
 | `/` | entry; forwards a Supabase `code` to `/auth/callback`, else dashboard or login | public | `web/src/app/page.tsx:5,16-17` |
-| `/login` | sign in / sign up; actions `signIn`, `signUp`, `signOut` | public | `web/src/app/login/page.tsx:6,25` (invite copy for `?next=/invite/` `:22,29-30`); `web/src/app/login/actions.ts:21,34,57` |
+| `/login` | sign in / sign up; actions `signIn`, `signUp`, `signOut` | public | `web/src/app/login/page.tsx:6,25` (invite copy for `?next=/invite/` `:22,29-30`); `web/src/app/login/actions.ts:23,36,57` |
 | `/dashboard` | current business, latest report, all businesses | session | `web/src/app/dashboard/page.tsx:12,65,103` |
 | `/onboarding` | start form | session | `web/src/app/onboarding/page.tsx:6,15` |
 | `/onboarding/[sessionId]` | discovery; redirects when the session isn't open | RLS | `web/src/app/onboarding/[sessionId]/page.tsx:10,34-35` |
 | `/onboarding/[sessionId]/review` | confirm priorities; not while `discovering` | RLS | `web/src/app/onboarding/[sessionId]/review/page.tsx:11,32-34` |
-| `/onboarding/[sessionId]/connect` | Connect your tools; Search Console for Pro + trial, `integrations.connect` (owner), paused on Basic | RLS, role, plan | `web/src/app/onboarding/[sessionId]/connect/page.tsx:19-22,53,65-66`; `web/src/lib/integrations/connect-step.ts:38,73` |
+| `/onboarding/[sessionId]/connect` | Connect your tools; Google (Search Console and Google Analytics 4, one sign-in) for Pro + trial, `integrations.connect` (owner), paused on Basic | RLS, role, plan | `web/src/app/onboarding/[sessionId]/connect/page.tsx:20-24,55,67-68,112-126`; `web/src/lib/integrations/connect-step.ts:38,73` |
 | `/onboarding/[sessionId]/questions` | follow-ups; requires status `following_up` | RLS | `web/src/app/onboarding/[sessionId]/questions/page.tsx:12,37` |
 | `/analysis/[id]` | report; another organization's id is `notFound` | RLS | `web/src/app/analysis/[id]/page.tsx:17,36-38` |
 | `/search` | read-only Search Console snapshot; paused on Basic | plan | `web/src/app/search/page.tsx:10,20-21,49,86-89` |
 | `/plans` | tiers, trial countdown, Talk to us | session | `web/src/app/plans/page.tsx:8,25-38,87-89` |
-| `/settings` | your role line, Team (`#team`: every member sees the list and seats; `team.manage` adds invite, withdraw, change role, remove), MCP keys (personal key form needs `keys.manage_own`), connected apps, service keys (`keys.manage_any`, owner), Search Console; MCP paused after the trial | role, plan | `web/src/app/settings/page.tsx:17,46,51-56,61,63,66,83-85,103,110-114,153-155`; `web/src/app/settings/team-section.tsx:12-20,23,44,56-62` |
+| `/settings` | your role line, Team (`#team`: every member sees the list and seats; `team.manage` adds invite, withdraw, change role, remove), MCP keys (personal key form needs `keys.manage_own`), connected apps, service keys (`keys.manage_any`, owner), Google (Search Console and Google Analytics 4 cards, `web/src/app/settings/connections-section.tsx`); MCP paused after the trial | role, plan | `web/src/app/settings/page.tsx:17,46,51-56,61,63,66,83-85,103,110-114,153-155`; `web/src/app/settings/team-section.tsx:12-20,23,44,56-62` |
 | `/invite/[token]` | join a business from an invite link: shows the business and role, or why it can't be used; Join calls `acceptInvitation`; signed-out visitors go through `/login?next=` (not in `PUBLIC_PATHS`) | session, token | `web/src/app/invite/[token]/page.tsx:13,17,27-30,44-53,63-82` ([invite-and-join](../../processes/invite-and-join.md)) |
 | `/oauth/authorize` | OAuth consent; checks the session itself, keeps its query | public | `web/src/app/oauth/authorize/page.tsx:16-23,53,61` |
 
@@ -55,27 +55,27 @@ API routes:
 | `POST /api/mcp` | bearer `brv_at_` (OAuth), `brv_` (personal), `brv_sk_` (service); Origin check; tool calls carry the principal's role; tool calls paused after the trial | `web/src/app/api/mcp/route.ts:8-14,36,40-42,76,82-83,101-103`; `web/src/lib/mcp/access.ts:3-6` |
 | `POST /api/assistant` | session, same origin; plan gate | `web/src/app/api/assistant/route.ts:9-14,35-39`; `web/src/lib/assistant/handler.ts:54`; `web/src/lib/assistant/access.ts:3-6` |
 | `POST /api/jobs/continue` | HMAC of job id + step; 202 then `after()` | `web/src/app/api/jobs/continue/route.ts:6-13,21,35-38` |
-| `GET /api/integrations/google/start` | session, `integrations.connect` (owner), Pro or trial | `web/src/app/api/integrations/google/start/route.ts:20-23,28,33-43` |
-| `GET /api/integrations/google/callback` | same session, `integrations.connect` (owner), state cookie, Pro or trial | `web/src/app/api/integrations/google/callback/route.ts:22-30,39,45-49,69` |
+| `GET /api/integrations/google/start` | session, `integrations.connect` (owner), Pro or trial | `web/src/app/api/integrations/google/start/route.ts:21-24,29,34-46` |
+| `GET /api/integrations/google/callback` | same session, `integrations.connect` (owner), state cookie, Pro or trial | `web/src/app/api/integrations/google/callback/route.ts:22-31,40,46-50,70` |
 | `GET /api/health/integrations` | none; 404 in production | `web/src/app/api/health/integrations/route.ts:21-26` |
 | `GET /auth/callback` | PKCE code / OTP hash | `web/src/app/auth/callback/route.ts:6-9` |
 | `POST /oauth/register`, `/oauth/token`, `/oauth/revoke` | open (DB rate limit), client auth, client auth | `web/src/app/oauth/register/route.ts:9-13,21`; `web/src/app/oauth/token/route.ts:8-11`; `web/src/app/oauth/revoke/route.ts:6-8` |
 | `GET /.well-known/oauth-authorization-server/[[...path]]`, `/.well-known/oauth-protected-resource/[[...path]]` | none | each `route.ts:5-7` |
-| `/api/n8n/*` | **ghost**: no route under `web/src/app/api/`; planned in `CLAUDE.md:81-82`, `docs/architecture/SYSTEM_ARCHITECTURE.md:239-241` | |
+| `/api/n8n/*` | **ghost**: no route under `web/src/app/api/`; planned in `CLAUDE.md:82-83`, `docs/architecture/SYSTEM_ARCHITECTURE.md:239-241` | |
 
-Server actions that write: `web/src/app/analysis/actions.ts:28,77,117,147` (`create_organization`, `ai_jobs`,
+Server actions that write: `web/src/app/analysis/actions.ts:30,82,122,152` (`create_organization`, `ai_jobs`,
 `content_items`, `business_profiles`); `web/src/app/analysis/plan-actions.ts:13-16,24,59,104,152`
 (`diagnosis_findings`, `diagnoses`, `growth_plan_items`, `ai_jobs`); `web/src/app/onboarding/[sessionId]/actions.ts:15-17,36,118`;
 `web/src/app/plans/actions.ts:9-10,20-22` (`upgrade_requests`); `web/src/app/settings/actions.ts:11-12,18,75`
 (`mcp_access_keys`); `web/src/app/settings/integrations-actions.ts:13-14,23,61,77`;
-`web/src/app/settings/connections-actions.ts:11-16,31,38,50`; `web/src/app/oauth/authorize/actions.ts:15-17`;
+`web/src/app/settings/connections-actions.ts:13-18,33,40,60,67,80`; `web/src/app/oauth/authorize/actions.ts:15-17`;
 `web/src/app/settings/team-actions.ts:12-14,33,74,94,126` (`team_invitations`, `memberships`, `team_events`,
 `mcp_access_keys`, `oauth_grants`; secret key); `web/src/app/invite/[token]/actions.ts:13-16` (`team_invitations`,
 `memberships`, `team_events`; secret key).
 Which of these check a D-046 permission, and which one (matrix: [member-role](../tenancy/member-role.md)):
 `web/src/app/analysis/actions.ts:17-19`, `web/src/app/analysis/plan-actions.ts:14-16`,
 `web/src/app/onboarding/[sessionId]/actions.ts:15-17`, `web/src/app/settings/integrations-actions.ts:13-14`,
-`web/src/app/settings/connections-actions.ts:12-13`, the personal-key action `web/src/app/settings/actions.ts:7,38-39`
+`web/src/app/settings/connections-actions.ts:14-15`, the personal-key action `web/src/app/settings/actions.ts:7,38-39`
 (`keys.manage_own`), the team actions `web/src/app/settings/team-actions.ts:18-24` (`team.manage` through
 `assignableRoles`, then `canManageRole` per target); `acceptInvitation` checks the invite, not a permission; the plans
 and OAuth-consent actions check none.
