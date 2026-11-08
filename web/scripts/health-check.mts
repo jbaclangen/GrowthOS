@@ -146,6 +146,7 @@ async function google() {
     add("Google", "PageSpeed API", "FAIL", (e as Error).message);
   }
   add("Google", "Search Console OAuth configured (local env)", env("GOOGLE_OAUTH_CLIENT_ID") && env("INTEGRATIONS_ENCRYPTION_KEY") ? "OK" : "WARN", "production is checked by connecting in Settings");
+  add("HubSpot", "HubSpot app OAuth configured (local env)", env("HUBSPOT_CLIENT_ID") && env("HUBSPOT_CLIENT_SECRET") && env("INTEGRATIONS_ENCRYPTION_KEY") ? "OK" : "WARN", "production is checked by connecting in Settings");
 }
 
 async function emailDns() {

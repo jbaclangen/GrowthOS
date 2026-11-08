@@ -8,11 +8,10 @@ const byId = (s: ReturnType<typeof suggestTools>, id: string) => s.find((x) => x
 const pick = (id: string, priority: number | null = null, confirmed = true) => ({ id, priority, confirmed });
 
 describe("tool catalog", () => {
-  it("has exactly one live tool, Search Console, matching the tier list", () => {
+  it("has exactly two live tools, Search Console and HubSpot, matching the tier list", () => {
     const live = TOOLS.filter((t) => t.status === "live");
-    expect(live.map((t) => t.id)).toEqual(["search_console", "google_analytics"]);
-    expect(live[0].status).toBe(FEATURES.find((f) => f.id === "search_console")!.status);
-    expect(live[1].status).toBe(FEATURES.find((f) => f.id === "google_analytics")!.status);
+    expect(live.map((t) => t.id)).toEqual(["search_console", "google_analytics", "hubspot"]);
+    for (const t of live) expect(FEATURES.find((f) => f.id === t.id)!.status, t.id).toBe("live");
   });
 
   it("uses unique ids and only active catalog pain points", () => {
@@ -29,8 +28,9 @@ describe("tool catalog", () => {
         expect(t.helps, t.id).not.toMatch(/^Planned/);
       }
     }
-    // Search Console data feeds the diagnosis and the growth score (D-051 step 6).
+    // Search Console data feeds the diagnosis and the growth score (D-051 step 6); HubSpot's counts don't yet.
     expect(TOOLS.find((t) => t.id === "search_console")?.helps).toMatch(/diagnosis and growth score/);
+    expect(TOOLS.find((t) => t.id === "hubspot")?.helps).not.toMatch(/diagnos|score/i);
   });
 });
 

@@ -5,11 +5,14 @@
 (D-049), Search Console data reaches the diagnosis as the first new module (D-051), and provider applications start
 now (D-053). The Google Search Console connection is live (PR #23); since 2026-10-23 its data feeds the diagnosis
 and the growth score as the Search visibility module (§5 item 2). Google Analytics 4 is built (2026-11-08, D-058)
-through the same Google sign-in and feeds them as the Analytics module (§5 item 3). The onboarding step "Connect
-your tools" (§2) is built (2026-10-18, `feat/connect-your-tools`, D-054); Search Console and GA4 are its connectable
-tools. Everything else here is **Coming soon** and must stay labeled that way in the app
-and on braventa.io until it ships. Meta (Facebook, Instagram), LinkedIn, Google Business Profile and HubSpot are parked
-until the provider registrations are done (founder, 2026-10-18): Coming soon cards only.
+through the same Google sign-in and feeds them as the Analytics module (§5 item 3). The HubSpot read-only connection
+is built (2026-11-08, D-059; §5 item 4): counts only, not in the diagnosis yet, usable once the founder uploads the
+HubSpot app ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)); the founder unparked it on 2026-11-08 ("proceed
+with the hubspot connector"). The onboarding step "Connect your tools" (§2) is built (2026-10-18,
+`feat/connect-your-tools`, D-054); Search Console, GA4 and HubSpot are its connectable tools. Everything else here is
+**Coming soon** and must stay labeled that way in the app and on braventa.io until it ships. Meta (Facebook,
+Instagram), LinkedIn and Google Business Profile are parked until the provider registrations are done (founder,
+2026-10-18): Coming soon cards only.
 
 ## 1. What the founder wants
 
@@ -47,7 +50,7 @@ several need the provider's app review before real customers can connect.
 | Google Search Console | Google OAuth | `webmasters.readonly` (**live**) | none planned | Google verification before 100 users |
 | Google Analytics 4 | Google OAuth (the same consent screen as Search Console) | `analytics.readonly` (**built 2026-11-08**) | none planned | Google verification must cover the added scope (Q-061) |
 | Google Business Profile | Google OAuth | `business.manage` (no read-only scope exists) | posts, replies to reviews (owner-approved) | Business Profile API access request |
-| HubSpot | HubSpot OAuth, per tenant, over the REST API (not HubSpot's MCP server); an unlisted marketplace app on platform 2026.09, API version `2026-09` (D-048) | contacts, companies, deals, lists: read (`crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`, `crm.lists.read`); not `forms` or `content`, since neither is read-only | create/update contacts and tasks, draft marketing emails (`crm.objects.contacts.write`, …) only after the owner enables an action | None while unlisted (up to 25 installs; sign the Acceptable Use Policy before installing outside test accounts); a marketplace listing and HubSpot's review beyond 25 |
+| HubSpot | HubSpot OAuth, per tenant, over the REST API (not HubSpot's MCP server); an unlisted marketplace app on platform 2026.09, API version `2026-09` (D-048); built 2026-11-08, app config in `hubspot/` | contacts, companies, deals: read (`crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`; HubSpot adds `oauth`); counts only are stored (D-059); not `crm.lists.read` (nothing reads lists), `forms` or `content` | create/update contacts and tasks, draft marketing emails (`crm.objects.contacts.write`, …) only after the owner enables an action | None while unlisted (up to 25 installs; sign the Acceptable Use Policy before installing outside test accounts); a marketplace listing and HubSpot's review beyond 25 |
 | Canva | Canva Connect API OAuth | `design:meta:read`, `design:content:read`, `asset:read`, `brandtemplate:meta:read` | `design:content:write`, `asset:write`; brand-template autofill needs Canva Enterprise on the customer's side | Canva integration review |
 | HeyGen | API key from the customer's account (encrypted like OAuth tokens) | list avatars/videos | create avatar videos from approved scripts | none; usage billed to the customer's HeyGen account |
 | Higgsfield | API key (confirm a public API exists for customers) | — | generate video/image from approved prompts | confirm terms allow use on behalf of customers |
@@ -137,7 +140,9 @@ Braventa publishes. Publishing is a Pro feature (D-030, D-041).
    GA4 APIs and the scope in Google Cloud ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)), and
    the privacy pages (Q-060). Tag Manager stays Coming soon.
 4. HubSpot read-only (D-048): the unlisted HubSpot app, a wider `integration_connections` provider check, OAuth start
-   and callback routes, a CRM snapshot table and a `tiers.ts` gate entry. GoHighLevel replaces it if the testers turn
+   and callback routes, a CRM snapshot table and a `tiers.ts` gate entry. **Built 2026-11-08 (D-059), ahead of GA4:**
+   counts only in `hubspot_snapshots`, the HubSpot card in Settings and on the connect step; setup in
+   [HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md). Next: the CRM module (counts in the diagnosis, Q-063). GoHighLevel replaces it if the testers turn
    out to be agency-managed. Salesforce and Keap ingestion are deferred. D-048 also names a zero-build path for Claude
    users: connecting Claude to both Braventa's MCP server and the vendor's official one.
 5. Canva and HeyGen read + draft actions (approval-gated).

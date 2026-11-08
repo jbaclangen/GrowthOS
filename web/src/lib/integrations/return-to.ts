@@ -1,4 +1,5 @@
-// Where a Google connection flow (consent screen, refresh, property choice, disconnect) sends the owner back to.
+// Where a connection flow (Google or HubSpot: consent screen, refresh, property choice, disconnect) sends the owner
+// back to.
 // An exact allowlist, not a general "safe path" check (safe-next.ts allows any same-site path): Settings, or the
 // onboarding "Connect your tools" step of one session. Anything else, including a tampered value, means Settings.
 // Session ids come from gen_random_uuid(), so only lowercase UUIDs are accepted. Pure logic, unit-tested.
@@ -22,5 +23,11 @@ export function connectionOutcomeUrl(returnTo: unknown, code: string): string {
   return `${path}?gsc=${encodeURIComponent(code)}#${anchor}`;
 }
 
-// The connect button is a form with a required checkbox (D-057, components/connections/connect-form.tsx), not a link:
-// the start route refuses a request without it.
+// The connect buttons are forms with a required checkbox (D-057, components/connections/connect-form.tsx), not links:
+// the start routes refuse a request without it.
+
+// The HubSpot connection (D-048) uses the same allowlist with its own outcome parameter (?hubspot=) and card anchor,
+// so a HubSpot outcome never shows on the Search Console card or the other way round.
+export function hubspotOutcomeUrl(returnTo: unknown, code: string): string {
+  return `${connectionReturnPath(returnTo)}?hubspot=${encodeURIComponent(code)}#hubspot`;
+}

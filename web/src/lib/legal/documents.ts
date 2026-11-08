@@ -20,8 +20,8 @@ export type LegalDoc = keyof typeof LEGAL_DOCS;
 
 export const legalUrl = (doc: LegalDoc, hash?: string) => `${LEGAL_SITE}${LEGAL_DOCS[doc].path}${hash ? `#${hash}` : ""}`;
 
-// Where in the app someone agrees to something. Must equal the check constraint in the legal_acceptances migration
-// (documents.test.ts). Checkout isn't here: billing isn't built (spec: LEGAL_ACCEPTANCE.md §5).
+// Where in the app someone agrees to something. Must equal the latest legal_acceptances context check in the
+// migrations (documents.test.ts). Checkout isn't here: billing isn't built (spec: LEGAL_ACCEPTANCE.md §5).
 export const ACCEPTANCE_CONTEXTS = [
   "signup",
   "terms_update",
@@ -29,6 +29,7 @@ export const ACCEPTANCE_CONTEXTS = [
   "search_console_connect",
   "access_key",
   "assistant_oauth",
+  "hubspot_connect",
 ] as const;
 
 export type AcceptanceContext = (typeof ACCEPTANCE_CONTEXTS)[number];
@@ -42,6 +43,7 @@ export const CONTEXT_DOCUMENTS: Record<AcceptanceContext, LegalDoc[]> = {
   search_console_connect: ["msa", "privacy"],
   access_key: ["terms"],
   assistant_oauth: ["terms"],
+  hubspot_connect: ["msa", "privacy"],
 };
 
 // Every agreement checkbox posts this name and value; the server accepts nothing else.
@@ -60,4 +62,5 @@ export const CONSENT_REQUIRED: Record<AcceptanceContext, string> = {
   search_console_connect: "Confirm that you're authorized to connect this Google account and responsible for it.",
   access_key: "Confirm that you'll keep the key private and are responsible for what uses it.",
   assistant_oauth: "Confirm that you're responsible for what this app does with access to your business.",
+  hubspot_connect: "Confirm that you're authorized to connect this HubSpot portal and responsible for it.",
 };

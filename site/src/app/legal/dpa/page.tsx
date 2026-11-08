@@ -150,7 +150,9 @@ export default function DataProcessingAgreement() {
         <li>
           <strong>Personal data:</strong> names, email addresses and roles; business contact details; text from public web
           pages; your answers during setup; the email address of a connected Google account; Search Console data, which
-          is mostly aggregated (search queries can sometimes contain personal information).
+          is mostly aggregated (search queries can sometimes contain personal information); and, from a connected HubSpot
+          portal, counts and totals only (Braventa reads CRM records to count them but doesn&apos;t store names, email
+          addresses or other record details).
         </li>
         <li>
           <strong>Sensitive data:</strong> none intended. You agree not to enter special category or other sensitive data.

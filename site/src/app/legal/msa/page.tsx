@@ -61,6 +61,10 @@ export default function MasterServicesAgreement() {
           in Braventa and used in your diagnosis and growth score.
         </li>
         <li>
+          <strong>HubSpot:</strong> on Pro, Premium and the trial, a read-only connection that shows counts of your
+          contacts, companies and deals in Braventa. It isn&apos;t used in your diagnosis or growth score yet.
+        </li>
+        <li>
           <strong>Team:</strong> fixed member roles, invitations by a link you share, and seat limits per plan.
         </li>
       </ul>
@@ -201,7 +205,8 @@ export default function MasterServicesAgreement() {
           in them.
         </li>
         <li>
-          Today, connections are read-only (Google Search Console) or send information into Braventa (your AI assistant).
+          Today, connections are read-only (Google Search Console, HubSpot) or send information into Braventa (your AI
+          assistant).
           Braventa doesn&apos;t change data in any connected tool.
         </li>
         <li>

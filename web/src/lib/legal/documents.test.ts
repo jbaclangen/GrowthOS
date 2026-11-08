@@ -17,6 +17,16 @@ const dir = fileURLToPath(new URL("../../../../supabase/migrations/", import.met
 const files = readdirSync(dir).filter((f) => f.endsWith("_legal_acceptances.sql"));
 const code = files.length === 1 ? readFileSync(dir + files[0], "utf8").replace(/--.*$/gm, "") : "";
 const quoted = (s: string) => [...s.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+// A later migration may replace the context check (the HubSpot connection added hubspot_connect): the newest wins.
+const contextChecks = readdirSync(dir)
+  .filter((f) => f.endsWith(".sql"))
+  .sort()
+  .flatMap((f) => {
+    const sql = readFileSync(dir + f, "utf8").replace(/--.*$/gm, "");
+    const create = sql.match(/context text not null check \(context in \(([^)]*)\)\)/);
+    const replaced = sql.match(/add constraint legal_acceptances_context_check\s+check \(context in \(([^)]*)\)\)/);
+    return [create?.[1], replaced?.[1]].filter((x): x is string => Boolean(x));
+  });
 
 describe("legal documents", () => {
   it("links to the published pages on braventa.io", () => {
@@ -52,7 +62,8 @@ describe("the legal_acceptances migration", () => {
   it("allows the same contexts as the code", () => {
     const check = code.match(/context text not null check \(context in \(([^)]*)\)\)/);
     expect(check).toBeTruthy();
-    expect(quoted(check![1])).toEqual([...ACCEPTANCE_CONTEXTS]);
+    expect(contextChecks.length).toBeGreaterThan(0);
+    expect(quoted(contextChecks.at(-1)!)).toEqual([...ACCEPTANCE_CONTEXTS]);
   });
 
   it("allows the same documents as the code", () => {

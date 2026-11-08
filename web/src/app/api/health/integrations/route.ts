@@ -64,7 +64,8 @@ export async function GET() {
     job_handoff: handoff,
     // OAuth needs a signed-in owner, so this only checks the configuration (docs/architecture/SEARCH_CONSOLE_SETUP.md).
     google_search_console: searchConsoleCheck(),
-    hubspot: { ok: false, detail: "Sprint 5: needs a HubSpot public app (OAuth)" },
+    // Same for HubSpot (docs/architecture/HUBSPOT_SETUP.md).
+    hubspot: hubspotCheck(),
     stripe: { ok: false, detail: "Sprint 6: needs Stripe test-mode keys" },
   });
 }
@@ -76,6 +77,13 @@ function searchConsoleCheck(): Check {
   return missing.length
     ? { ok: false, detail: `not set up: missing or invalid ${missing.join(", ")}` }
     : { ok: true, detail: "configured (OAuth client and encryption key set; the OAuth flow itself isn't exercised here)" };
+}
+
+function hubspotCheck(): Check {
+  const missing = (["HUBSPOT_CLIENT_ID", "HUBSPOT_CLIENT_SECRET", "INTEGRATIONS_ENCRYPTION_KEY"] as const).filter((k) => !envConfigured(k));
+  return missing.length
+    ? { ok: false, detail: `not set up: missing or invalid ${missing.join(", ")}` }
+    : { ok: true, detail: "configured (HubSpot app client and encryption key set; the OAuth flow itself isn't exercised here)" };
 }
 
 // Analysis steps hand off to each other through /api/jobs/continue (D-042). Checks the signing key, reports the

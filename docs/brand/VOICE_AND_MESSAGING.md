@@ -87,7 +87,7 @@ Section heads on braventa.io may be short uppercase lines set in Quicksand headi
 (Updated 2026-10-11 for the diagnosis and growth plan, D-028/D-035; the site's copy is `LIVE_TODAY` in `site/src/lib/site.ts`. The short and long descriptions in §7 still describe "five opportunities" — use [`WEBSITE_MESSAGING.md` §0](../marketing/WEBSITE_MESSAGING.md#0-phase-1-messaging-current-d-035) instead until they are rewritten. Status badges: Live · Limited · Coming soon.)
 
 ### What is not live (never imply otherwise)
-HubSpot or any CRM connection · publishing or scheduling to any channel · sending email on the customer's behalf · running automations · analytics and results reporting · team accounts/roles beyond the current organization model · pricing and plans.
+CRM data in the diagnosis or any CRM other than the read-only HubSpot counts (Pro; live once the HubSpot app is set up, D-059) · publishing or scheduling to any channel · sending email on the customer's behalf · running automations · analytics and results reporting · team accounts/roles beyond the current organization model · pricing and plans.
 
 ## 6. Spelling and style conventions
 

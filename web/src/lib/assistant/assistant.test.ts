@@ -298,11 +298,18 @@ describe("knowledge base", () => {
       source("../../app/onboarding/[sessionId]/connect/page.tsx"),
       source("../../app/onboarding/[sessionId]/connect/continue-button.tsx"),
     ].join("\n");
-    const card = source("../../components/connections/search-console-card.tsx");
+    const card = [
+      source("../../components/connections/search-console-card.tsx"),
+      source("../../components/connections/hubspot-card.tsx"),
+    ].join("\n");
     for (const label of ["Continue", "Change your priorities", "Connect your tools"]) expect(step, label).toContain(label);
     expect(card).toContain("Connect Google");
     expect(section("search-console")).toContain("**Connect Google**");
     expect(source("../../components/connections/disconnect-button.tsx")).toContain("Disconnect Google");
+    for (const label of ["Connect HubSpot", "Refresh HubSpot counts", "Disconnect HubSpot"]) {
+      expect(card, label).toContain(label);
+      expect(section("hubspot"), label).toContain(`**${label}**`);
+    }
 
     // Every bold label in the step's route entry and in getting-started step 4 is on the page or its card.
     const route = APP_ROUTES.find((r) => r.route === "/onboarding/[sessionId]/connect")!;
@@ -312,10 +319,12 @@ describe("knowledge base", () => {
     expect(quoted.length).toBeGreaterThan(1);
     for (const label of quoted) expect(`${step}\n${card}`, label).toContain(label);
 
-    // Search Console and Google Analytics 4 are live (one Google sign-in) and their data feeds the diagnosis and the
-    // score; every other tool is named as coming soon.
+    // Google (Search Console and Google Analytics 4, one sign-in) and HubSpot are live; Google data feeds the diagnosis
+    // and the score, HubSpot's counts don't yet; every other tool is named as coming soon.
     expect(route.purpose).toMatch(/goes into your diagnosis and growth score/);
-    expect(route.purpose).toMatch(/Coming soon[^.]*: Google Business Profile, .*HubSpot.* and HeyGen\./);
+    expect(route.purpose).toMatch(/HubSpot[^.]*counts[^.]*aren't used in your diagnosis yet/);
+    expect(route.purpose).toMatch(/Coming soon[^.]*: Google Business Profile, .* and HeyGen\./);
+    expect(route.purpose.match(/Coming soon[^.]*: [^.]*\./)![0]).not.toMatch(/HubSpot/);
     expect(route.howToGetThere).toMatch(/AI assistant connected to Braventa skips this step/);
   });
 

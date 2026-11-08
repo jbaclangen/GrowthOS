@@ -18,6 +18,10 @@ const schema = {
   // docs/architecture/SEARCH_CONSOLE_SETUP.md. Optional: Settings says the connection isn't set up yet when unset.
   GOOGLE_OAUTH_CLIENT_ID: z.string().min(1),
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().min(1),
+  // HubSpot connection (Pro, read-only, D-048). The unlisted HubSpot app's OAuth client (hubspot/ in the repo root;
+  // docs/architecture/HUBSPOT_SETUP.md). Optional: Settings says the connection isn't set up yet when unset.
+  HUBSPOT_CLIENT_ID: z.string().min(1),
+  HUBSPOT_CLIENT_SECRET: z.string().min(1),
   // 32 random bytes, base64. Encrypts stored OAuth refresh tokens (AES-256-GCM, lib/integrations/secret-box.ts).
   INTEGRATIONS_ENCRYPTION_KEY: z
     .string()

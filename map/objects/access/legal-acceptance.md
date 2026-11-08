@@ -4,7 +4,7 @@ cluster: access
 universe: live
 status: verified
 verified: 2026-11-08
-commit: fe535cb
+commit: 0393a75
 entity: supabase/migrations/20261107224300_legal_acceptances.sql
 ---
 
@@ -19,7 +19,7 @@ It is the evidence that the Terms' liability cap and the MSA's connected-app cla
 ## Shape
 
 - Columns: `user_id`, `organization_id` (null for `signup`/`terms_update`), `context`, `documents_version`, `documents[]`, `subject`, `accepted_at` — `supabase/migrations/20261107224300_legal_acceptances.sql:13-26`.
-- Contexts, documents per context, `LEGAL_VERSION`, the checkbox field (`agree=yes`) and the error per step — `web/src/lib/legal/documents.ts:9,25-46,48-54,56-63`. They're kept equal to the SQL check by `web/src/lib/legal/documents.test.ts:52-62`.
+- Contexts, documents per context, `LEGAL_VERSION`, the checkbox field (`agree=yes`) and the error per step — `web/src/lib/legal/documents.ts:9,25-47,50-56,58-66`. They're kept equal to the newest SQL check (the HubSpot migration replaced it to add `hubspot_connect`) by `web/src/lib/legal/documents.test.ts:21-29,57-81`.
 - Write: `recordAcceptance` — `web/src/lib/legal/acceptances.ts:11-30`. Read: `hasAcceptedCurrentTerms` — `:33-45`.
 - Checkbox UI: `ConsentCheckbox`, `LegalLink`, `CoreTermsSentence` — `web/src/components/legal/consent.tsx`.
 
@@ -48,6 +48,7 @@ Citations: `supabase/migrations/20261107224300_legal_acceptances.sql:13-37`, `we
 | Terms banner `web/src/components/legal/terms-banner.tsx`, action `web/src/lib/legal/actions.ts`, root layout `web/src/app/layout.tsx:42-44` | reads, writes `terms_update` |
 | `startAnalysis` `web/src/app/analysis/actions.ts:36,71`, form `web/src/app/onboarding/start-form.tsx:46-49` | writes `website_authorization` |
 | Google start route `web/src/app/api/integrations/google/start/route.ts:39` (checks), callback `.../callback/route.ts:105-113` | writes `search_console_connect` |
+| HubSpot start route `web/src/app/api/integrations/hubspot/start/route.ts` (checks `agree=yes`), callback `.../hubspot/callback/route.ts` (records after the install) | writes `hubspot_connect` |
 | `createAccessKey` `web/src/app/settings/actions.ts:24,53`; `createServiceKey` `web/src/app/settings/integrations-actions.ts:36,55` | writes `access_key` |
 | OAuth approval `web/src/app/oauth/authorize/actions.ts:27,42-45` | writes `assistant_oauth` |
 

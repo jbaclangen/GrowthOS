@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SETTINGS_RETURN, connectionOutcomeUrl, connectionReturnPath } from "./return-to";
+import { SETTINGS_RETURN, connectionOutcomeUrl, connectionReturnPath, hubspotOutcomeUrl } from "./return-to";
 
 const ID = "0b5e3c1a-7f2d-4e8b-9a6c-1d2e3f4a5b6c";
 const CONNECT = `/onboarding/${ID}/connect`;
@@ -65,5 +65,18 @@ describe("the connect form's returnTo field", () => {
   it("round-trips through the start route's check", () => {
     const href = new URL(`/api/integrations/google/start?returnTo=${encodeURIComponent(CONNECT)}&agree=yes`, "https://app.braventa.io");
     expect(connectionReturnPath(href.searchParams.get("returnTo"))).toBe(CONNECT);
+  });
+});
+
+describe("hubspotOutcomeUrl", () => {
+  it("uses its own parameter and the HubSpot card anchor", () => {
+    expect(hubspotOutcomeUrl("/settings", "connected")).toBe("/settings?hubspot=connected#hubspot");
+    expect(hubspotOutcomeUrl(CONNECT, "denied")).toBe(`${CONNECT}?hubspot=denied#hubspot`);
+    expect(hubspotOutcomeUrl("/settings", "a b&c")).toBe("/settings?hubspot=a%20b%26c#hubspot");
+  });
+
+  it("never leaves the app", () => {
+    expect(hubspotOutcomeUrl("https://evil.com", "connected")).toBe("/settings?hubspot=connected#hubspot");
+    expect(hubspotOutcomeUrl("//evil.com", "connected")).toBe("/settings?hubspot=connected#hubspot");
   });
 });

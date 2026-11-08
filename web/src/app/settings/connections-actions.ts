@@ -4,7 +4,9 @@ import { redirect } from "next/navigation";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { searchConsoleConfigured } from "@/lib/integrations/google-oauth";
-import { connectionOutcomeUrl, connectionReturnPath } from "@/lib/integrations/return-to";
+import { hubspotConfigured } from "@/lib/integrations/hubspot-oauth";
+import { disconnectHubSpot, syncHubSpot } from "@/lib/integrations/hubspot";
+import { connectionOutcomeUrl, connectionReturnPath, hubspotOutcomeUrl } from "@/lib/integrations/return-to";
 import { selectProperty, syncSearchConsole } from "@/lib/integrations/search-console";
 import { selectProperty as selectAnalyticsProperty, syncAnalytics } from "@/lib/integrations/google-analytics";
 import { disconnectGoogle } from "@/lib/integrations/google-connection";
@@ -86,4 +88,35 @@ export async function disconnectGoogleAction(formData: FormData) {
     redirect(connectionOutcomeUrl(back, "disconnect-failed"));
   }
   redirect(connectionOutcomeUrl(back, "disconnected"));
+}
+
+// HubSpot (Pro, read-only, D-048): the same rules, with its own outcome parameter (?hubspot=). Refreshing needs no
+// permission; disconnecting needs integrations.connect (owner only).
+async function authorisedHubSpotOrg(permission: Permission | null, back: string) {
+  const user = await requireUser();
+  const org = await getCurrentOrg(user.id);
+  if (!org) redirect(hubspotOutcomeUrl(back, "no-business"));
+  if (permission && !can(org.role, permission)) redirect(hubspotOutcomeUrl(back, "owner-only"));
+  if (!hubspotConfigured()) redirect(hubspotOutcomeUrl(back, "not-configured"));
+  return org;
+}
+
+const HUBSPOT_SYNC_CODES = { "not-connected": "not-connected", paused: "paused", "too-soon": "refresh-wait", error: "sync-failed" } as const;
+
+export async function refreshHubSpot(formData: FormData) {
+  const back = backFrom(formData);
+  const org = await authorisedHubSpotOrg(null, back);
+  const result = await syncHubSpot(createSupabaseAdminClient(), org.id);
+  redirect(hubspotOutcomeUrl(back, result.ok ? "refreshed" : HUBSPOT_SYNC_CODES[result.reason]));
+}
+
+export async function disconnectHubSpotAction(formData: FormData) {
+  const back = backFrom(formData);
+  const org = await authorisedHubSpotOrg("integrations.connect", back);
+  try {
+    await disconnectHubSpot(createSupabaseAdminClient(), org.id);
+  } catch {
+    redirect(hubspotOutcomeUrl(back, "disconnect-failed"));
+  }
+  redirect(hubspotOutcomeUrl(back, "disconnected"));
 }

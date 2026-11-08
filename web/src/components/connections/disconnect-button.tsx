@@ -4,25 +4,35 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { disconnectGoogleAction } from "@/app/settings/connections-actions";
 
-// Two steps, because disconnecting deletes the stored Search Console and Google Analytics data (one Google sign-in
-// covers both). returnTo is the page to come back to
-// (Settings or the onboarding step), checked again on the server.
-export function DisconnectButton({ returnTo }: { returnTo: string }) {
+// Two steps, because disconnecting deletes the stored data. returnTo is the page to come back to (Settings or the
+// onboarding step), checked again on the server. Google by default (one Google sign-in covers Search Console and
+// Google Analytics 4); the HubSpot card passes its own action, label and explanation.
+const GOOGLE_EXPLANATION =
+  "Disconnecting revokes Braventa's access at Google, for both Search Console and Google Analytics, and deletes the data Braventa stored from them for this business. Your Google accounts aren't changed.";
+
+export function DisconnectButton({
+  returnTo,
+  action = disconnectGoogleAction,
+  label = "Disconnect Google",
+  explanation = GOOGLE_EXPLANATION,
+}: {
+  returnTo: string;
+  action?: (formData: FormData) => Promise<void>;
+  label?: string;
+  explanation?: string;
+}) {
   const [confirming, setConfirming] = useState(false);
   if (!confirming) {
     return (
       <button type="button" className="btn-secondary" onClick={() => setConfirming(true)}>
-        Disconnect Google
+        {label}
       </button>
     );
   }
   return (
-    <form action={disconnectGoogleAction} className="w-full rounded-md border border-border p-3 text-sm">
+    <form action={action} className="w-full rounded-md border border-border p-3 text-sm">
       <input type="hidden" name="returnTo" value={returnTo} />
-      <p>
-        Disconnecting revokes Braventa&apos;s access at Google, for both Search Console and Google Analytics, and deletes the
-        data Braventa stored from them for this business. Your Google accounts aren&apos;t changed.
-      </p>
+      <p>{explanation}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         <ConfirmButton />
         <button type="button" className="btn-secondary" onClick={() => setConfirming(false)}>

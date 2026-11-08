@@ -7,9 +7,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ONBOARDING_STEP_COUNT, onboardingPath } from "@/lib/onboarding/steps";
 import { canConnectSearchConsole, connectPlanLine } from "@/lib/integrations/connect-step";
 import { searchConsoleConfigured } from "@/lib/integrations/google-oauth";
+import { hubspotConfigured } from "@/lib/integrations/hubspot-oauth";
+import { hubspotAccess } from "@/lib/integrations/hubspot-access";
 import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
 import { connectionReturnPath } from "@/lib/integrations/return-to";
 import { suggestTools } from "@/lib/integrations/tool-catalog";
+import { HubSpotCard } from "@/components/connections/hubspot-card";
 import { SearchConsoleCard } from "@/components/connections/search-console-card";
 import { AnalyticsCard } from "@/components/connections/analytics-card";
 import { ToolCardList } from "@/components/connections/tool-cards";
@@ -18,9 +21,10 @@ import { EvidenceStatus } from "../evidence-status";
 import { ContinueButton, ContinuePendingNote } from "./continue-button";
 
 // "Connect your tools" (D-041, INTEGRATIONS_ROADMAP §2): an optional step between confirming priorities and the
-// follow-up questions. Only Google can be connected: one sign-in covers Search Console and Google Analytics 4 (Pro
-// and the Pro trial, owner only; paused on Basic); every other tool is Coming soon. Their data feeds the diagnosis and
-// the growth score (D-051 step 6; the Analytics module, D-058).
+// follow-up questions. Google (one sign-in covers Search Console and Google Analytics 4) and HubSpot can be connected
+// (Pro and the Pro trial, owner only; paused on Basic); every other tool is Coming soon. Google data feeds the
+// diagnosis and the growth score (D-051 step 6; the Analytics module, D-058); HubSpot's counts (read-only, D-048,
+// D-059) don't yet.
 // The AI assistant connection (MCP) skips this step: connections are authorized only in Braventa.
 
 export const metadata: Metadata = { title: "Connect your tools" };
@@ -66,17 +70,17 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
   const canConnectHere = membership?.id === session.organization_id;
   // The user's role there decides who may connect (integrations.connect, lib/team/roles.ts).
   const role = canConnectHere ? membership?.role : null;
-  // A deployment without the Google OAuth client or encryption key can't connect anything (the card says so), so the
-  // intro, heading and plan line don't claim Search Console is live there.
-  const configured = searchConsoleConfigured();
+  // A deployment without a provider's OAuth client (or the encryption key) can't connect that tool (its card says so),
+  // so the intro, heading and plan line only claim what is set up there.
+  const gscConfigured = searchConsoleConfigured();
+  const hsConfigured = hubspotConfigured();
+  const configured = gscConfigured || hsConfigured;
   const planLine = connectPlanLine({ configured, canConnectHere, role, org: orgRow });
-  const canConnect = canConnectSearchConsole({
-    configured,
-    hasBusiness: Boolean(membership),
-    canConnectHere,
-    role,
-    allowed: Boolean(orgRow && searchConsoleAccess(orgRow).allowed),
-  });
+  const canConnectWith = (toolConfigured: boolean, allowed: boolean) =>
+    canConnectSearchConsole({ configured: toolConfigured, hasBusiness: Boolean(membership), canConnectHere, role, allowed });
+  const canConnect =
+    canConnectWith(gscConfigured, Boolean(orgRow && searchConsoleAccess(orgRow).allowed)) ||
+    canConnectWith(hsConfigured, Boolean(orgRow && hubspotAccess(orgRow).allowed));
 
   const suggestions = suggestTools({
     painPoints: (answers ?? []).map((a) => ({
@@ -88,7 +92,13 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
   });
   const searchConsole = suggestions.find((s) => s.tool.id === "search_console");
   const analytics = suggestions.find((s) => s.tool.id === "google_analytics");
+  const hubspot = suggestions.find((s) => s.tool.id === "hubspot");
   const comingSoon = suggestions.filter((s) => s.tool.status === "coming_soon");
+  const liveNow = gscConfigured && hsConfigured
+    ? "Today that's Google, where one sign-in connects Search Console (clicks, impressions, top searches and pages) and Google Analytics 4 (sessions, engagement, key events and channels), which Braventa uses in your diagnosis and growth score, and HubSpot, whose contacts and deals Braventa shows as counts."
+    : gscConfigured
+      ? "Today that's Google: one sign-in connects Search Console (clicks, impressions, top searches and pages) and Google Analytics 4 (sessions, engagement, key events and channels), and Braventa uses both in your diagnosis and growth score."
+      : "Today that's HubSpot: Braventa shows your contacts and deals as counts.";
   const returnTo = connectionReturnPath(`/onboarding/${session.id}/connect`);
 
   return (
@@ -97,10 +107,8 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">Connect your tools</h1>
       <p className="mt-2 text-sm text-muted">
         Optional. Connect the tools your business already uses.{" "}
-        {configured
-          ? "Today that's Google: one sign-in connects Search Console (clicks, impressions, top searches and pages) and Google Analytics 4 (sessions, engagement, key events and channels), and Braventa uses both in your diagnosis and growth score. More tools are coming soon."
-          : "None can be connected here yet."}{" "}
-        {canConnect ? "You can skip this step and connect Google later in Settings." : "You can skip this step."}
+        {configured ? `${liveNow} More tools are coming soon.` : "None can be connected here yet."}{" "}
+        {canConnect ? "You can skip this step and connect them later in Settings." : "You can skip this step."}
       </p>
       {planLine && <p className="mt-4 rounded-md bg-surface-muted px-3 py-2 text-sm">{planLine}</p>}
       <EvidenceStatus jobId={session.evidence_job_id} />
@@ -122,6 +130,13 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
           canConnectHere={canConnectHere}
           returnTo={returnTo}
           reasons={analytics?.reasons}
+          connectClassName="btn-secondary"
+        />
+        <HubSpotCard
+          org={membership}
+          canConnectHere={canConnectHere}
+          returnTo={returnTo}
+          reasons={hubspot?.reasons}
           connectClassName="btn-secondary"
         />
       </section>

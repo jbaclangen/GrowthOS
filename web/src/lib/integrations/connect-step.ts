@@ -38,6 +38,10 @@ export function searchConsoleCardState(input: {
   return can(input.role, "integrations.connect") ? "connectable" : "owner-only";
 }
 
+// The HubSpot card (D-048) follows the same rules: configured, the right business, owner only, Pro or the trial.
+export const connectionCardState = searchConsoleCardState;
+export type ConnectionCardState = SearchConsoleCardState;
+
 export const OTHER_BUSINESS_LINE = "Tools for this business can't be connected from this account yet. You can continue without them.";
 export const NON_OWNER_LINE = "Only the business owner can connect tools. You can continue without them.";
 
