@@ -14,7 +14,7 @@ Two places hold the same matrix and a unit test proves they agree:
   Pure logic, unit-tested in `roles.test.ts`, following the `tiers.ts` and `registry.ts` pattern. Server code reads the
   user's role with `memberRole()` in `web/src/lib/team/server.ts`.
 - `public.has_permission(org uuid, perm text)` in the database (created by migration
-  `20261023092945_roles_and_permissions.sql`, applied 2026-10-23; replaced whole by `20261108090000_remove_business.sql`
+  `20261023092945_roles_and_permissions.sql`, applied 2026-10-23; replaced whole by `20261108091111_remove_business.sql`
   to add `organization.delete`): the same matrix for triggers and, later, RLS write policies. `migration.test.ts` in
   `web/src/lib/team/` parses the newest definition and compares every role and permission with `can()`, and checks
   the approval rule in the newest definition of the `content_items` guard. Adding a permission means a migration that
@@ -206,8 +206,8 @@ non-member). Every invite, withdrawal, join, role change and removal is recorded
 Built 2026-11-08 (D-061). Code: `web/src/lib/organizations/removal.ts` (who may, the phrase, the log row; unit-tested
 in `removal.test.ts`), `web/src/app/settings/remove-business-actions.ts` (`removeBusiness`) and
 `remove-business-section.tsx`, `revokeGoogleForRemoval()` in `lib/integrations/google-connection.ts` and
-`revokeHubSpotForRemoval()` in `lib/integrations/hubspot.ts`. Migration `20261108090000_remove_business.sql`
-(`organization.delete` in `has_permission()`, and `organization_deletions`).
+`revokeHubSpotForRemoval()` in `lib/integrations/hubspot.ts`. Migration `20261108091111_remove_business.sql`
+(`organization.delete` in `has_permission()`, and `organization_deletions`), applied 2026-11-08.
 
 **Who and how.** Owners only (`organization.delete`). The section is the last on Settings; its confirm dialog (a native
 modal `<dialog>`) lists what is deleted, says it can't be undone, and keeps its Remove business button disabled until

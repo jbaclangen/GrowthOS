@@ -18,7 +18,7 @@ Input: a signed-in member submitting the Remove business dialog in Settings with
 
 ## Why this shape
 
-`organizations` has no delete policy, so a client can't delete the row with the publishable key and skip the revokes HubSpot's terms ask for (`supabase/migrations/20261108090000_remove_business.sql:3-7`). The phrase and the permission are checked on the server because the dialog's disabled button is only a convenience (`web/src/lib/organizations/removal.ts:7-13,22-26`). A running analysis blocks removal so paid model calls don't continue for a business that is gone (`web/src/app/settings/remove-business-actions.ts:42-53`). A failed revoke doesn't block it: the token is deleted with the business, and the dashboard tells the owner how to end the access themselves (`remove-business-actions.ts:62-70,91-93`; `web/src/app/dashboard/page.tsx:26-31`).
+`organizations` has no delete policy, so a client can't delete the row with the publishable key and skip the revokes HubSpot's terms ask for (`supabase/migrations/20261108091111_remove_business.sql:3-7`). The phrase and the permission are checked on the server because the dialog's disabled button is only a convenience (`web/src/lib/organizations/removal.ts:7-13,22-26`). A running analysis blocks removal so paid model calls don't continue for a business that is gone (`web/src/app/settings/remove-business-actions.ts:42-53`). A failed revoke doesn't block it: the token is deleted with the business, and the dashboard tells the owner how to end the access themselves (`remove-business-actions.ts:62-70,91-93`; `web/src/app/dashboard/page.tsx:26-31`).
 
 ## Steps
 
