@@ -296,12 +296,19 @@ describe("knowledge base", () => {
 
   it("quotes only labels and the phrase the Remove business dialog really has", () => {
     const dialog = source("../../app/settings/remove-business-section.tsx");
-    for (const label of ["Remove business", "Keep the business"]) {
+    const list = source("../../app/settings/businesses-section.tsx");
+    for (const label of ["Remove", "Remove business", "Keep the business"]) {
       expect(dialog, label).toContain(label);
       expect(section("remove-business"), label).toContain(`**${label}**`);
     }
     expect(section("remove-business")).toContain(`**${REMOVE_BUSINESS_PHRASE}**`);
-    expect(dialog).toContain('id="remove-business"');
+    // The dialog opens from each owned business in Settings → Businesses (D-062).
+    expect(list).toContain('id="businesses"');
+    expect(section("remove-business")).toContain("/settings#businesses");
+    // The switcher labels the knowledge base quotes.
+    expect(list).toContain("Switch to");
+    expect(section("businesses")).toContain("**Switch to**");
+    expect(source("../../components/business-switcher.tsx")).toContain("Add a business");
   });
 
   it("quotes only labels the Connect your tools step really has", () => {

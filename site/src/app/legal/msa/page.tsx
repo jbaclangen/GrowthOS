@@ -69,8 +69,8 @@ export default function MasterServicesAgreement() {
         </li>
       </ul>
       <p>
-        What each plan includes is shown on our <Link href="/pricing">Pricing</Link> page. New businesses get a 14-day
-        Pro trial, then continue on Basic.
+        What each plan includes is shown on our <Link href="/pricing">Pricing</Link> page. Each account gets one
+        14-day Pro trial, shared by the businesses it adds while the trial runs; then they continue on Basic.
       </p>
 
       <h2>3. What Braventa doesn&apos;t do</h2>

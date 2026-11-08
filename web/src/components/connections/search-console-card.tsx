@@ -15,8 +15,9 @@ import { SubmitButton } from "./submit-button";
 // The Google Search Console connection card (Pro), shared by Settings → Connections and the onboarding step
 // "Connect your tools" (D-041). Reads through the signed-in user's client, so RLS and column grants apply: the
 // encrypted refresh token is never selected here. Which state it shows is decided in lib/integrations/connect-step.ts.
-// `org` is the user's first membership, the business the OAuth routes and actions act on. When the onboarding session
-// belongs to another business (canConnectHere false), nothing of `org` is loaded or shown.
+// `org` is the business the card shows (the current one in Settings, the session's on the onboarding step); its id goes
+// into every form, so the OAuth routes and actions act on it (D-062). With canConnectHere false, nothing of `org` is
+// loaded or shown.
 
 type Connection = {
   google_account_email: string | null;
@@ -83,6 +84,8 @@ export async function SearchConsoleCard({
     allowed: Boolean(orgRow && searchConsoleAccess(orgRow).allowed),
     connection,
   });
+  // The business the forms act on (D-062): the connect routes and actions read it back and check the role there.
+  const organizationId = org?.id ?? "";
   const headingId = `${sectionId}-heading`;
 
   return (
@@ -119,9 +122,10 @@ export async function SearchConsoleCard({
           allowed={state === "connected"}
           canConnect={canConnect}
           returnTo={returnTo}
+          organizationId={organizationId}
         />
       ) : (
-        <NotConnected state={state} returnTo={returnTo} connectClassName={connectClassName} />
+        <NotConnected state={state} returnTo={returnTo} organizationId={organizationId} connectClassName={connectClassName} />
       )}
     </section>
   );
@@ -209,10 +213,12 @@ function PausedNotConnectedNotice() {
 function NotConnected({
   state,
   returnTo,
+  organizationId,
   connectClassName,
 }: {
   state: "connectable" | "owner-only" | "paused-not-connected";
   returnTo: string;
+  organizationId: string;
   connectClassName: "btn-primary" | "btn-secondary";
 }) {
   return (
@@ -226,6 +232,7 @@ function NotConnected({
         <SearchConsoleConnectForm
           id="gsc-connect-agree"
           returnTo={returnTo}
+          organizationId={organizationId}
           label="Connect Google"
           buttonClassName={connectClassName}
         />
@@ -240,12 +247,14 @@ function Connected({
   allowed,
   canConnect,
   returnTo,
+  organizationId,
 }: {
   connection: Connection;
   latest: Latest | null;
   allowed: boolean;
   canConnect: boolean;
   returnTo: string;
+  organizationId: string;
 }) {
   const choices = connection.available_properties;
   const clicksChange = latest ? formatChange(percentChange(latest.totals.current.clicks, latest.totals.previous.clicks)) : null;
@@ -283,6 +292,7 @@ function Connected({
       {canConnect && choices.length > 0 && (choices.length > 1 || !connection.selected_property) && (
         <form action={chooseSearchConsoleProperty} className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
           <input type="hidden" name="returnTo" value={returnTo} />
+          <input type="hidden" name="organizationId" value={organizationId} />
           <label className="block flex-1 text-sm">
             <span className="font-medium">Search Console property for your website</span>
             <select name="property" defaultValue={connection.selected_property ?? ""} required className="input mt-1">
@@ -304,13 +314,14 @@ function Connected({
         {allowed && connection.selected_property && (
           <form action={refreshSearchConsole}>
             <input type="hidden" name="returnTo" value={returnTo} />
+            <input type="hidden" name="organizationId" value={organizationId} />
             <SubmitButton label="Refresh Search Console data" pendingLabel="Refreshing…" />
           </form>
         )}
         {canConnect && connection.status === "error" && allowed && (
-          <SearchConsoleConnectForm id="gsc-reconnect-agree" returnTo={returnTo} label="Reconnect" buttonClassName="btn-secondary" />
+          <SearchConsoleConnectForm id="gsc-reconnect-agree" returnTo={returnTo} organizationId={organizationId} label="Reconnect" buttonClassName="btn-secondary" />
         )}
-        {canConnect && <DisconnectButton returnTo={returnTo} />}
+        {canConnect && <DisconnectButton returnTo={returnTo} organizationId={organizationId} />}
       </div>
       <p className="mt-3 text-xs text-muted">
         Read-only access. Braventa can&apos;t change anything in Google. Disconnecting Google deletes the Search Console and

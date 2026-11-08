@@ -1,8 +1,9 @@
 # Braventa — plans, tiers and the trial
 
-**Status / last reviewed: 2026-10-18.** Tier structure and trial rules are a founder decision (D-030).
+**Status / last reviewed: 2026-11-08.** Tier structure and trial rules are a founder decision (D-030).
 Prices are decided but not built (D-039: Basic $89, Pro $229, Premium from $599 a month; no billing yet, see
-[PRICING_PROPOSAL.md](PRICING_PROPOSAL.md)). Card-required trial at public launch: D-040. Account types, seats and
+[PRICING_PROPOSAL.md](PRICING_PROPOSAL.md)). Card-required trial at public launch: D-040. Businesses per account and one trial per account: D-062 (§2a; it
+supersedes D-045's account types). Seats and
 roles, publishing and the module map are decided but not built (D-045 to D-047, D-049, D-051; §6). The source of truth
 in code is `web/src/lib/plans/tiers.ts`; this document must match it.
 
@@ -16,11 +17,50 @@ in code is `web/src/lib/plans/tiers.ts`; this document must match it.
 
 ## 2. Trial
 
-- Every new organization starts on `plan = 'trial'` with `trial_ends_at = now() + 14 days`.
+- Each **account** (person) gets one trial (D-062). Their first business starts on `plan = 'trial'` with
+  `trial_ends_at = now() + 14 days`, recorded in `account_trials`; businesses they add later share that end date (§2a).
 - During the trial the organization has **Pro**. On day 15 it has **Basic** automatically; nothing is deleted.
 - There is no billing yet (MVP_SCOPE §4, Q-010). An owner who wants Pro or Premium uses **Talk to us** on
   `/plans`, which stores an `upgrade_requests` row; the Braventa team follows up and can set `plan` or extend
   `trial_ends_at` with the admin client or SQL. Owners cannot change these columns themselves.
+
+## 2a. Businesses per account (D-062)
+
+Founder decisions 2026-11-08; built; migration `20261108103906_business_limits.sql` applied 2026-11-08 (version 20261108103906).
+
+| Plan | Businesses an account can own |
+|---|---|
+| Basic | 2 |
+| Pro (and the trial) | 4 |
+| Premium | 8; more on a custom plan through **Talk to us** |
+
+- **Account** = one person. **Owned** = the organizations where their membership role is `owner`. Businesses they
+  joined by invite don't count. Removing a business (D-061) frees its place at once.
+- **Which plan sets the limit:** the highest effective tier among the businesses the account owns (an active trial
+  counts as Pro, an ended one as Basic); Basic's with none. Plans stay per business. When a trial ends the limit can
+  drop below what the account owns: nothing is removed, and no business can be added until there's room.
+- **One trial per account.** The first business starts the 14-day Pro trial (`account_trials`). A business added
+  while it runs shares its end date. A business added after it ends starts on an ended trial (effective Basic, AI
+  assistant paused until it's on a plan). Deleting and scanning again never restarts it.
+- **A business added while another one is on a plan** (Basic, Pro or Premium, set by the Braventa team) starts on the
+  account's highest plan: the plan covers the account's businesses up to its limit (Provisional, Q-066).
+- **Where it's enforced:** `create_organization()` in the database (refuses with SQLSTATE `BRV01`, counts under a
+  per-account lock, picks the plan and trial). The app checks first to explain it: `web/src/lib/plans/business-limit.ts`
+  (`businessUsage`, `limitMessage`; `business-limit.test.ts` checks the SQL numbers against it). Onboarding turns the
+  "A new business" choice off at the limit and links to `/plans`; Settings → Businesses and `/plans` show the count.
+- **Where it shows:** `/plans` and braventa.io `/pricing` show each plan's limit (pricing has a FAQ). No price changes
+  (D-039).
+
+**Research (D-052).** 1. Brief: let one login own several businesses, priced by the existing tiers, replacing D-045.
+2. Repo: one business per person was assumed by `currentMembership` (oldest membership), the invite refusal (Q-051),
+the OAuth routes (Q-047) and `create_organization()` (no limit, a trial for every new business). 3. Outside: the
+2026-10-17 research ([SEATS_ROLES_MODULES_2026-10-17.md](../research/SEATS_ROLES_MODULES_2026-10-17.md) §1, §4)
+found tools in this space either price per brand (Metricool) or include a number of brands per plan; no new vendor or
+price is involved. 4. Options: an account-type column with per-brand prices (D-045), a fourth tier, or a limit per
+existing tier. 5. Decided: a limit per tier (founder). 6. Spec: this section, D-062 and
+[ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) §10. 7. Build: PR for D-062. 8. Review after launch:
+check with the testers whether agencies hit the limits, and whether any account owns more businesses than its plan
+allows after a trial ends.
 
 ## 3. What each tier includes today
 
@@ -56,7 +96,7 @@ verification of the OAuth client ([SEARCH_CONSOLE_SETUP.md](../architecture/SEAR
 
 1. Add or update its entry in `FEATURES` (`web/src/lib/plans/tiers.ts`) and flip `status` to `live` only in the
    PR that ships it.
-2. Gate it on the server with `canUse(access.tier, featureId)` from `getOrgAccess(user.id)` (`web/src/lib/plans/access.ts`: the signed-in user's own first business), never only in the UI.
+2. Gate it on the server with `canUse(access.tier, featureId)` from `getOrgAccess(user.id)` (`web/src/lib/plans/access.ts`: the business the signed-in user is working on, D-062), never only in the UI.
 3. Any action an agent takes in a customer's tool needs the owner's explicit approval first (D-013), an audit
    record, and the scopes documented in `docs/architecture/INTEGRATIONS.md`.
 4. Update this table, `MVP_SCOPE.md`, the support site's "What Braventa can and can't do", and the pricing page.
@@ -78,12 +118,9 @@ None of this is built. Nothing here appears in the app or on a public page as li
 only in the PR that ships it (§4). Detail: [DECISION_LOG.md](../decisions/DECISION_LOG.md) and the
 [research index](../research/README.md) §2.
 
-### Account types (D-045)
+### Account types (D-045, superseded)
 
-- Basic, Pro and Premium stay the feature tiers. Each organization also gets an account type: **Brand** (one
-  business) or **Agency/Organization** (many businesses, priced per extra brand).
-- Planned build: one column, `organizations.account_type`. No copy changes now.
-- Open: the per-brand price (the research example, +$59 / +$149 per brand by tier, is not decided) and Q-001.
+Replaced on 2026-11-08 by D-062's businesses per account (§2a): no `account_type` column and no per-brand price.
 
 ### Seats and roles (D-046, D-047)
 

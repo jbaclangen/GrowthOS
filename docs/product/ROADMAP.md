@@ -82,11 +82,11 @@ the growth score as the Search visibility module; Google Analytics 4 joined it t
    approves their own work except the Owner; connecting integrations stays Owner-only. The roles and permissions
    foundation is built (2026-10-23: `member_role`, `web/src/lib/team/roles.ts`, `has_permission()`, the gates and
    the approval rule; [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md)). Invitations by copied link,
-   seat limits, role changes and removals are built (2026-11-07, §8 there). Next: invite emails, organization
-   switching (PL-6), and client approvers
+   seat limits, role changes and removals are built (2026-11-07, §8 there). Several businesses per account with a
+   business switcher and limits per plan are built (2026-11-08, D-062). Next: invite
+   emails and client approvers
    (free up to a cap per tier) with a single-use, signed approval link. Invite emails need transactional email
-   (Q-010); charging for extra seats needs Stripe (item 2). Each organization also gets an account type, Brand or
-   Agency/Organization (D-045).
+   (Q-010); charging for extra seats needs Stripe (item 2). D-045's account types were replaced by D-062's businesses per plan.
 9. **Social planner, then publishing (Pro, D-049; CS-12, moved from Later):** first the planner without publishing:
    calendar, per-network variants, media library, internal and client approval, comments, revisions and audit trail.
    Then publishing through Outstand (chosen after a one-week spike) behind a `Publisher` interface, run by an in-app

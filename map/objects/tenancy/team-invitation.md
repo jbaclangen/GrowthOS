@@ -39,7 +39,7 @@ Citations: `supabase/migrations/20261107154953_team_invitations.sql:1-62`; `web/
 - **Hits:** [invite-and-join](../../processes/invite-and-join.md); Settings → Team (`web/src/app/settings/team-section.tsx`, `team-forms.tsx`, `team-actions.ts`); `/invite/[token]` ([app-routes](../config/app-routes.md)); the unit tests `web/src/lib/team/invitations.test.ts`, `seats.test.ts`; the Roles section of [assistant-knowledge](../access/assistant-knowledge.md), which states the seats and invite rules in prose (`web/src/lib/assistant/knowledge.ts:240-244`); `docs/architecture/ROLES_AND_PERMISSIONS.md` §8; `docs/architecture/DATA_MODEL.md`.
 - **Does not hit:** the pipeline, the report, Search Console; `memberships_owner_guard` (secret-key writes bypass it).
 
-Ghost: invite emails (Q-010), buying extra seats (Stripe; prices stay off the app and site), client approver invites (D-047), joining a second business (Q-051) — `docs/architecture/ROLES_AND_PERMISSIONS.md:150,154-157`; `web/src/lib/team/seats.ts:2-3`.
+Ghost: invite emails (Q-010), buying extra seats (Stripe; prices stay off the app and site), client approver invites (D-047) — `docs/architecture/ROLES_AND_PERMISSIONS.md` §7; `web/src/lib/team/seats.ts:2-3`.
 
 ## Surfaces
 

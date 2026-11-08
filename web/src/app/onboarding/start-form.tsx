@@ -1,15 +1,51 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { startAnalysis, type StartState } from "../analysis/actions";
 import { OwnerQuestions } from "@/components/owner-questions";
 import { ConsentCheckbox, LegalLink } from "@/components/legal/consent";
 
-export function StartForm() {
+// For someone who already has a business (D-062): whether this website is for the business they're working on or for
+// a new one, and why a new one isn't possible when the account is at its business limit.
+export type BusinessChoice = { currentName: string; startNew: boolean; atLimit: string | null };
+
+export function StartForm({ choice }: { choice: BusinessChoice | null }) {
   const [state, action, pending] = useActionState<StartState, FormData>(startAnalysis, undefined);
 
   return (
     <form action={action} className="card mt-8 space-y-4">
+      {choice && (
+        <fieldset>
+          <legend className="text-sm font-medium">Which business is this website for?</legend>
+          <div className="mt-2 space-y-2 text-sm">
+            <label className="flex items-start gap-2">
+              <input type="radio" name="business" value="current" defaultChecked={!choice.startNew} className="mt-1" />
+              <span>{choice.currentName}</span>
+            </label>
+            <label className="flex items-start gap-2">
+              <input
+                type="radio"
+                name="business"
+                value="new"
+                defaultChecked={choice.startNew}
+                disabled={Boolean(choice.atLimit)}
+                aria-describedby={choice.atLimit ? "new-business-limit" : undefined}
+                className="mt-1"
+              />
+              <span>A new business</span>
+            </label>
+            {choice.atLimit && (
+              <p id="new-business-limit" className="text-xs text-muted">
+                {choice.atLimit}{" "}
+                <Link href="/plans" className="underline">
+                  See plans
+                </Link>
+              </p>
+            )}
+          </div>
+        </fieldset>
+      )}
       <label className="block">
         <span className="text-sm font-medium">Website</span>
         <input
@@ -48,7 +84,19 @@ export function StartForm() {
         <LegalLink doc="terms">Terms of Service</LegalLink>, section 7).
       </ConsentCheckbox>
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      {state?.error && (
+        <p className="text-sm text-danger" role="alert">
+          {state.error}
+          {state.atLimit && (
+            <>
+              {" "}
+              <Link href="/plans" className="underline">
+                See plans
+              </Link>
+            </>
+          )}
+        </p>
+      )}
       <button type="submit" disabled={pending} className="btn-primary w-full">
         {pending ? "Starting…" : "Analyze website"}
       </button>

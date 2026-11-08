@@ -3,7 +3,8 @@ import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { BudgetExceededError, runWorker, summarizeError } from "@/lib/ai/router";
 import { handleAssistantRequest, type Reservation } from "@/lib/assistant/handler";
 import { loadBusinessSummary } from "@/lib/assistant/context";
-import { firstOrganization } from "@/lib/memberships";
+import { currentOrganization } from "@/lib/memberships";
+import { chosenBusinessId } from "@/lib/organizations/current";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 
 // POST /api/assistant — "Ask Braventa", the in-app assistant (D-043). Body: { question, history? }.
@@ -60,9 +61,9 @@ export async function POST(request: NextRequest) {
       if (error && (isAuthRetryableFetchError(error) || (error.status ?? 0) >= 500)) throw error;
       return data.user?.id ?? null;
     },
-    // The user's first organization (MVP: one per user), filtered by their id: RLS also returns co-members'
-    // memberships, and every organization's for platform staff. Throws when the read fails.
-    getOrg: (userId) => firstOrganization(supabase, userId),
+    // The business the user is working on (the one they chose, else their oldest; D-062), filtered by their id: RLS
+    // also returns co-members' memberships, and every organization's for platform staff. Throws when the read fails.
+    getOrg: async (userId) => currentOrganization(supabase, userId, await chosenBusinessId()),
     reserve: async (orgId, userId, limits): Promise<Reservation> => {
       const { data, error } = await admin.rpc("reserve_assistant_question", {
         p_organization_id: orgId,

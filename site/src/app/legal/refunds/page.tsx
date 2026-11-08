@@ -22,7 +22,7 @@ export default function RefundPolicy() {
 
       <h2>The trial</h2>
       <p>
-        New businesses get a 14-day Pro trial at no cost. When it ends, the business continues on Basic. Nothing is
+        Each account gets one 14-day Pro trial at no cost. When it ends, its businesses continue on Basic. Nothing is
         charged today, and we&apos;ll ask you to agree before we ever charge you.
       </p>
 

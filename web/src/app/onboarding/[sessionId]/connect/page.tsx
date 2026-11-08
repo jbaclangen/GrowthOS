@@ -55,7 +55,9 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
   if (session.status !== "following_up") redirect(onboardingPath(session));
 
   const [membership, { data: orgRow }, { data: answers }, { data: profile }] = await Promise.all([
-    getCurrentOrg(user.id),
+    // This session's business (D-062): the cards, the OAuth routes and the actions all name it, so connecting works
+    // here whichever business is current. Null when the user isn't a member.
+    getCurrentOrg(user.id, session.organization_id),
     supabase.from("organizations").select("plan, trial_ends_at").eq("id", session.organization_id).maybeSingle(),
     supabase
       .from("onboarding_responses")
@@ -65,8 +67,7 @@ async function Connect({ params }: PageProps<"/onboarding/[sessionId]/connect">)
     supabase.from("business_profiles").select("current_tools").eq("id", session.business_profile_id).maybeSingle(),
   ]);
 
-  // The OAuth routes and actions act on the user's first membership, so connecting is offered only when that is the
-  // business this session belongs to.
+  // Always true for a member: the forms carry this business's id (Q-047, resolved by D-062).
   const canConnectHere = membership?.id === session.organization_id;
   // The user's role there decides who may connect (integrations.connect, lib/team/roles.ts).
   const role = canConnectHere ? membership?.role : null;
