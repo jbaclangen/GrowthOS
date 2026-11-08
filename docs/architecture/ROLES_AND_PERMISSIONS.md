@@ -1,7 +1,8 @@
 # Roles and permissions
 
 **Status:** foundation built 2026-10-23 (D-046; research README §4 step 4; the spec step of D-052); invitations by
-link, seat limits, role changes and removals built 2026-11-07 (§8); removing a business built 2026-11-08 (§9, D-061).
+link, seat limits, role changes and removals built 2026-11-07 (§8); removing a business built 2026-11-08 (§9, D-061); several businesses per account built 2026-11-08 (§10, D-062;
+its migration is not applied yet).
 Describes the code as it is. Invite emails (Q-010),
 buying extra seats (Stripe), client approval links (D-047) and seat prices on the site are not built; §7 lists what is
 open.
@@ -147,8 +148,8 @@ tools that write carry the web action's permission (§2). Service keys belong to
 Settings shows the signed-in user's role in words under the page title ("Your role in Acme Plumbing is owner."), then
 the Team section (§8). Personal access keys need `keys.manage_own` since invitations exist: copywriters, content
 creators and analysts see why instead of the key form, and `createAccessKey` refuses them. A user with no business yet
-can still create a key, which creates the business with them as owner (D-036). Last on the page, owners
-(`organization.delete`) see Remove business (§9); no one else sees the section.
+can still create a key, which creates the business with them as owner (D-036). Above Team, Businesses (§10) lists
+every business the user belongs to; owners (`organization.delete`) see Remove next to each business they own (§9).
 
 ## 7. Open
 
@@ -159,8 +160,6 @@ can still create a key, which creates the business with them as owner (D-036). L
   rewritten yet.
 - **Invite emails** need transactional email (Q-010); today the manager copies the link. **Buying extra seats** needs
   Stripe; seat prices stay off the app and the site (D-039, D-046).
-- **More than one business per account** (Q-051): an invite is refused for an account that already belongs to a
-  business, because the app reads the first membership (Q-047).
 - **RLS on `memberships`** still lets anyone `is_org_admin()` (owner, admin) write memberships directly with the
   publishable key; the app's own writes go through §8's rules with the secret key. Moving those policies to
   `has_permission('team.manage')` and the manage-below-your-role rule is part of the RLS rewrite above.
@@ -209,7 +208,8 @@ in `removal.test.ts`), `web/src/app/settings/remove-business-actions.ts` (`remov
 `revokeHubSpotForRemoval()` in `lib/integrations/hubspot.ts`. Migration `20261108091111_remove_business.sql`
 (`organization.delete` in `has_permission()`, and `organization_deletions`), applied 2026-11-08.
 
-**Who and how.** Owners only (`organization.delete`). The section is the last on Settings; its confirm dialog (a native
+**Who and how.** Owners only (`organization.delete`). Each business they own has a Remove button in Settings →
+Businesses (§10, D-062); its confirm dialog (a native
 modal `<dialog>`) lists what is deleted, says it can't be undone, and keeps its Remove business button disabled until
 the field holds `DELETE APPROVED` exactly. The server checks everything again, in this order: the user's role in the
 business named by the form, read through their own client (`memberRole()`); the exact phrase (case and spacing count,
@@ -235,7 +235,7 @@ doesn't block removal for long).
    only. A failed insert is written to the server log with the same fields; the removal stands.
 4. The user lands on the dashboard (`?removed=done`, or `?removed=check-tools` when a revoke couldn't be confirmed,
    with how to remove the access in Google or HubSpot). The dashboard opens their next business if they belong to
-   another (the oldest membership, Q-047), or the no-business state, which leads to onboarding.
+   another (the oldest membership, §10), or the no-business state, which leads to onboarding.
 
 **In-flight analysis.** Refused while one runs (the message says to wait a few minutes). A job another member starts
 between the check and the delete is deleted with the business; its next step finds no job and stops, and its pending
@@ -252,5 +252,41 @@ hand-off goes with it.
   installed in HubSpot until someone uninstalls it.
 - Copies outside the database tables: Supabase backups for the backup window, Vercel function logs, and `pg_net`'s
   responses to hand-off posts (6 hours).
-- Nothing per account is reset or kept: a business set up afterwards gets a new trial and AI budget, as any new
-  business always has (`create_organization`, DATA_MODEL.md §8).
+- The account's trial (D-062): a business set up afterwards gets a new AI budget but no new trial, and the removed
+  business stops counting toward the account's business limit (§10).
+
+## 10. Several businesses per account
+
+Built 2026-11-08 (D-062); migration `20261108150000_business_limits.sql` not applied yet. Resolves Q-047 and Q-051.
+Limits and the trial rule: [PLANS_AND_TIERS.md](../product/PLANS_AND_TIERS.md) §2a.
+
+**The current business.** A person can belong to any number of businesses and own up to their account's limit. The
+one the app works on is in the `brv_business` cookie (`web/src/lib/organizations/current.ts`: httpOnly, SameSite Lax,
+400 days), set by the header switcher and Settings → Businesses (`switchBusiness` in
+`web/src/app/settings/business-actions.ts`, which checks membership first), by creating a business (`startAnalysis`,
+`createAccessKey`) and by accepting an invite. The cookie grants nothing: `lib/memberships.ts` uses it only when the
+person is a member of that business and otherwise takes their oldest membership, so a removed business, or another
+account's cookie on a shared browser, falls back safely. `getCurrentOrg()`, `getOrgAccess()` and the in-app
+assistant all follow it, and every permission check still reads the role in that business (`can()`).
+
+**Pages that name a business keep it.** `getCurrentOrg(userId, organizationId)` returns that business, or null when
+the person isn't a member, never another one. The onboarding "Connect your tools" step uses the session's business;
+the connection cards put its id in every form (`organizationId`); the Google and HubSpot start routes seal it in the
+encrypted OAuth state; the callbacks act on the sealed business after reading the owner's role there again, even if
+the person switched business in another tab meanwhile. The dashboard lists only the current business's websites.
+Pages reached by a record id (`/analysis/[id]`, onboarding sessions) read that record's business through RLS, as
+before.
+
+**Settings → Businesses** lists every business the person belongs to: plan, role, last analysis and connected tools,
+with Switch, Add a business (or, at the limit, why not and a link to `/plans`) and, for owners
+(`organization.delete`), Remove, which opens §9's dialog for that business. It replaces the single Remove business
+section at the bottom of Settings.
+
+**Invites.** Belonging to another business no longer blocks an invite (`acceptBlocker`); the joined business becomes
+current. Joining never counts toward the joiner's business limit: no invite grants `owner` (`canManageRole`).
+
+**The limit in SQL.** `create_organization()` takes a per-account advisory lock, counts the person's `owner`
+memberships, compares them with `account_business_limit(uid)` (service-only helper) and raises SQLSTATE `BRV01` at the
+limit. It then picks the plan: the account's highest plan when one of its businesses is on a plan, otherwise the
+account's trial from `account_trials` (started now, once). `account_trials` has RLS on `user_id = auth.uid()` (read
+only) instead of `is_member()`: it belongs to a person, not a business, and must outlive the businesses it was used on.

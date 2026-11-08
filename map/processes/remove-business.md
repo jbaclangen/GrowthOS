@@ -22,7 +22,7 @@ Input: a signed-in member submitting the Remove business dialog in Settings with
 
 ## Steps
 
-1. The section renders for owners only — `web/src/app/settings/page.tsx:159-160`; the dialog (`<dialog>`, `showModal`) keeps Remove business disabled until the phrase matches — `web/src/app/settings/remove-business-section.tsx:19,38,123`.
+1. Settings → Businesses lists every business; owners (`organization.delete`) get Remove next to each one they own — `web/src/app/settings/businesses-section.tsx:104` (D-062); the dialog (`<dialog>`, `showModal`) keeps Remove business disabled until the phrase matches — `web/src/app/settings/remove-business-section.tsx:22,121`.
 2. `removeBusiness`: signed-in user and a UUID organization id — `web/src/app/settings/remove-business-actions.ts:30-34`.
 3. Role through RLS (`memberRole`) and `removalAllowed` (permission first, then the exact phrase) — `remove-business-actions.ts:37-39`; `web/src/lib/organizations/removal.ts:22-26`; matrix `web/src/lib/team/roles.ts:105`.
 4. Stale jobs failed, then refuse while a job is `queued` or `running` — `remove-business-actions.ts:45-53`.

@@ -4,6 +4,8 @@ import { Band, PageHero } from "@/components/ui";
 import { PRIMARY_CTA } from "@/lib/site";
 // The same tier list the app enforces (D-030), so the public plans can't drift from the product.
 import { FEATURES, TIERS, TRIAL_DAYS, proHasLiveFeatures, type Tier } from "../../../../web/src/lib/plans/tiers";
+// How many businesses each plan includes (D-062), the same numbers the app enforces.
+import { BUSINESS_LIMITS } from "../../../../web/src/lib/plans/business-limit";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -16,7 +18,11 @@ const PLUS: Record<Tier, string | null> = { basic: null, pro: "Everything in Bas
 const FAQ = [
   {
     q: "How does the trial work?",
-    a: `Every new account starts with ${TRIAL_DAYS} days of Pro. When the trial ends, you continue on Basic, a paid plan, and nothing is deleted.`,
+    a: `Every new account starts with ${TRIAL_DAYS} days of Pro, once. Businesses you add during the trial share it. When the trial ends, you continue on Basic, a paid plan, and nothing is deleted.`,
+  },
+  {
+    q: "How many businesses can I add?",
+    a: `Basic includes up to ${BUSINESS_LIMITS.basic} businesses, Pro (and the trial) up to ${BUSINESS_LIMITS.pro} and Premium up to ${BUSINESS_LIMITS.premium}. Need more? Talk to us about a custom plan. Removing a business frees its place.`,
   },
   {
     q: "What does Basic do?",
@@ -68,6 +74,9 @@ export default function Pricing() {
               </div>
               <p className="mt-2 text-muted">{TIERS[tier].summary}</p>
               <p className="mt-4 font-display text-lg font-bold">{tier === "premium" ? "Custom" : "Pricing to be announced"}</p>
+              <p className="mt-1 text-sm font-semibold">
+                {tier === "premium" ? `Up to ${BUSINESS_LIMITS.premium} businesses; more on a custom plan` : `Up to ${BUSINESS_LIMITS[tier]} businesses`}
+              </p>
               {PLUS[tier] && <p className="mt-6 text-sm font-semibold">{PLUS[tier]}</p>}
               <ul className="mt-3 flex-1 space-y-3">
                 {FEATURES.filter((f) => f.minTier === tier).map((f) => (

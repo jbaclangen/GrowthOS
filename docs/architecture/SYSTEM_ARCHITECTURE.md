@@ -128,9 +128,10 @@ Step by step (code references are to `web/src/`):
 2. **Validate and authorise.** `requireUser()` (`lib/auth.ts`) resolves the user via
    `supabase.auth.getUser()`. Input is validated with zod and normalised with `normalizeUrl()` (adds
    `https://` if missing, strips the hash).
-3. **Tenant.** `getCurrentOrg()` returns the first membership (MVP: one org per user). If the user has none,
-   the action calls the `create_organization` RPC, which creates the org and an `owner` membership in one
-   SECURITY DEFINER transaction.
+3. **Tenant.** `getCurrentOrg()` returns the business the user chose (`brv_business` cookie, D-062), else their oldest
+   membership. If the user has none, or chose "A new business", the action calls the `create_organization` RPC,
+   which checks the account's business limit and creates the org and an `owner` membership in one SECURITY DEFINER
+   transaction.
 4. **Queue.** A `business_profiles` row and an `ai_jobs` row (`worker = 'website_evidence'` for a new
    analysis, `'website_intel'` for a re-run; `task_class = 'complex'`; `input = {businessProfileId, websiteUrl,
    sessionId?}`; `output` = its first step, pending) are inserted **with the user's client**, so RLS proves

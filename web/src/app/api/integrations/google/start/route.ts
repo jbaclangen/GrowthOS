@@ -32,7 +32,9 @@ export async function GET(request: NextRequest) {
 
   const user = await getUser();
   if (!user) return NextResponse.redirect(new URL("/login?next=/settings", request.url), 303);
-  const org = await getCurrentOrg(user.id);
+  // The business the connect form named (?organizationId=, D-062), else the one the user is working on. It goes into
+  // the sealed state, and the callback acts on that business only.
+  const org = await getCurrentOrg(user.id, request.nextUrl.searchParams.get("organizationId"));
   if (!org) return toOutcome(request, back, "no-business");
   if (!can(org.role, "integrations.connect")) return toOutcome(request, back, "owner-only");
   // D-057, MSA §8: the connect form's checkbox (agree=yes). It's recorded only after Google approves (callback).

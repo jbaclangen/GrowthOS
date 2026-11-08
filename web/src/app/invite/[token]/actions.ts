@@ -7,6 +7,7 @@ import { memberOrganizations } from "@/lib/memberships";
 import { acceptBlocker, invitationState, inviteTokenHash, isInviteToken } from "@/lib/team/invitations";
 import { seatAvailable, seatKind, type SeatUsage } from "@/lib/team/seats";
 import { invitationByTokenHash, recordTeamEvent, seatState } from "@/lib/team/team-server";
+import { rememberBusiness } from "@/lib/organizations/current";
 
 export type AcceptState = { error?: string } | undefined;
 
@@ -26,7 +27,6 @@ export async function acceptInvitation(token: string): Promise<AcceptState> {
     invitedEmail: invite.email,
     userEmail: user.email,
     alreadyMember: mine.some((o) => o.id === invite.organizationId),
-    otherBusiness: mine.find((o) => o.id !== invite.organizationId)?.name ?? null,
     organizationName: invite.organizationName,
   });
   if (blocker) return { error: blocker };
@@ -63,5 +63,7 @@ export async function acceptInvitation(token: string): Promise<AcceptState> {
     subjectUserId: user.id,
     roleTo: invite.role,
   });
+  // The business they just joined becomes the one they work on (D-062); the switcher takes them back to any other.
+  await rememberBusiness(invite.organizationId);
   redirect("/dashboard");
 }

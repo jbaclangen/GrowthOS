@@ -4,13 +4,16 @@ import { useActionState, useId, useRef, useState } from "react";
 import { REMOVE_BUSINESS_PHRASE, isRemovalPhrase } from "@/lib/organizations/removal";
 import { removeBusiness, type RemoveBusinessState } from "./remove-business-actions";
 
-// Settings → Remove business (D-061), shown to owners only (organization.delete). The confirm dialog is a native modal
-// <dialog> (focus stays inside, the page behind is inert, Escape cancels). Its remove button stays disabled until the
-// field holds the exact phrase; the server checks the phrase and the permission again.
-export function RemoveBusinessSection({ organizationId, name }: { organizationId: string; name: string }) {
+// Remove business (D-061), one button per business in Settings → Businesses (D-062), shown to owners only
+// (organization.delete). The confirm dialog is a native modal <dialog> (focus stays inside, the page behind is inert,
+// Escape cancels). Its remove button stays disabled until the field holds the exact phrase; the server checks the
+// phrase and the permission again, for the business named in the form.
+export function RemoveBusinessButton({ organizationId, name }: { organizationId: string; name: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Several of these can be on one page, so the dialog's ids are per instance.
+  const ids = useId();
   // A new key each time the dialog opens, so the field and any earlier error start empty.
   const [round, setRound] = useState(0);
 
@@ -23,38 +26,33 @@ export function RemoveBusinessSection({ organizationId, name }: { organizationId
   const close = () => dialogRef.current?.close();
 
   return (
-    <section id="remove-business" className="card mt-8 scroll-mt-20" aria-labelledby="remove-business-heading">
-      <p className="eyebrow">Remove business</p>
-      <h2 id="remove-business-heading" className="mt-1 text-lg font-semibold">
-        Remove {name} from Braventa
-      </h2>
-      <p className="mt-2 text-sm text-muted">
-        Deletes the business and everything Braventa holds for it, for everyone on the team. This can&apos;t be undone.
-      </p>
-      <button ref={openerRef} type="button" className="btn-secondary mt-4 text-danger" onClick={open}>
-        Remove business
+    <>
+      <button ref={openerRef} type="button" className="btn-secondary text-danger" onClick={open} aria-label={`Remove ${name}`}>
+        Remove
       </button>
 
       <dialog
         ref={dialogRef}
-        aria-labelledby="remove-business-title"
-        aria-describedby="remove-business-summary"
+        aria-labelledby={`${ids}-title`}
+        aria-describedby={`${ids}-summary`}
         // Focus goes back to the button that opened the dialog, however it was closed (WCAG 2.4.3).
         onClose={() => openerRef.current?.focus()}
         className="m-auto max-h-[90vh] w-[min(36rem,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-border bg-background p-0 text-foreground backdrop:bg-overlay"
       >
-        <RemoveForm key={round} organizationId={organizationId} name={name} inputRef={inputRef} onCancel={close} />
+        <RemoveForm key={round} ids={ids} organizationId={organizationId} name={name} inputRef={inputRef} onCancel={close} />
       </dialog>
-    </section>
+    </>
   );
 }
 
 function RemoveForm({
+  ids,
   organizationId,
   name,
   inputRef,
   onCancel,
 }: {
+  ids: string;
   organizationId: string;
   name: string;
   inputRef: React.RefObject<HTMLInputElement | null>;
@@ -69,10 +67,10 @@ function RemoveForm({
 
   return (
     <form action={action} className="p-5 text-sm">
-      <h2 id="remove-business-title" className="text-lg font-semibold">
+      <h2 id={`${ids}-title`} className="text-lg font-semibold">
         Remove {name}?
       </h2>
-      <div id="remove-business-summary">
+      <div id={`${ids}-summary`}>
         <p className="mt-3">This permanently deletes {name} and everything in it, for everyone on the team:</p>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
           <li>Website analyses, growth scores, diagnoses and growth plans</li>

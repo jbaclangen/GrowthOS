@@ -557,7 +557,8 @@ phase 1"); the founder confirms or overrides it before it goes live. Built, not 
   guide: [MCP_AND_API.md](../developers/MCP_AND_API.md).
 
 ## D-045 — Account types: Brand or Agency/Organization
-**Status:** Founder (2026-10-18, in chat). Planned, not built.
+**Status:** Superseded by D-062 (founder, 2026-11-08): per-tier business limits replace the Brand and Agency account
+types and their per-brand pricing. Was: Founder (2026-10-18, in chat). Never built.
 - Basic / Pro / Premium stay the feature tiers (D-030 and D-039 unchanged). Each organization also gets an account
   type: **Brand** (one business) or **Agency/Organization** (many businesses, priced per extra brand).
 - Why: renaming the tiers would supersede D-030's naming and need a fourth price; an account type needs one column and
@@ -934,3 +935,51 @@ Spec: [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) §9. 
   which leads to onboarding. Accounts are untouched; account deletion stays out of the app.
 - Why: the founder wants owners to be able to leave cleanly, and HubSpot's terms require deleting data and tokens when
   a customer stops. Owner only and the typed phrase because removal deletes every member's work and can't be undone.
+
+## D-062 — Several businesses per account, limited by plan; one trial per account
+**Status:** Founder (2026-11-08, in chat) for points 1 to 4; the details below them are Provisional. Supersedes D-045.
+Built in the code; migration `20261108150000_business_limits.sql` is **not applied** (needs the founder's yes).
+Resolves Q-047 and Q-051. Spec: [PLANS_AND_TIERS.md](../product/PLANS_AND_TIERS.md) §2a,
+[ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) §10. Moves PL-6 to Partial.
+1. **Business limit per account, by tier:** Basic 2, Pro 4, Premium 8. More than 8 needs a custom plan through
+   "Talk to us" (`upgrade_requests`). Prices don't change (D-039: Basic $89, Pro $229, Premium from $599).
+2. **Deleting a business frees its slot.** A new business gets the 14-day Pro trial only if the account never had
+   one, so deleting and scanning again doesn't restart the trial.
+3. **These limits replace D-045's** Brand and Agency/Organization account types and their per-brand pricing.
+   `organizations.account_type` is never added.
+4. **The owner picks the business to delete** from a list of the account's businesses (Settings → Businesses), with
+   D-061's removal flow unchanged: the `DELETE APPROVED` dialog, `organization.delete`, `organization_deletions`.
+
+Provisional details (the founder can override any of them):
+- **Account = person; owned = role owner.** The limit counts the organizations where the person's membership is
+  `owner`. Businesses joined by invite don't count (no invite grants owner). A business with two owners counts for
+  each of them.
+- **Which plan sets the limit:** the highest *effective* tier among the businesses the account owns (an active trial is
+  Pro; an ended trial is Basic); Basic's with none. When a trial ends, the limit can drop below what the account
+  owns: nothing is removed, but no business can be added until there's room.
+- **One trial per account:** `account_trials` (one row per person, RLS on their own `user_id`; not tenant data, so
+  not `is_member()`). The first business starts it; businesses added while it runs share its end date; after it, a
+  new business starts on an ended trial (effective Basic, AI assistant paused until it's on a plan). Every person who
+  owns a business when the migration runs is recorded as having used it (the window of their oldest owned business).
+- **A new business inherits the account's highest paid plan** when one of its businesses is on Basic, Pro or Premium
+  (set by the Braventa team; no billing yet): the plan covers the account's businesses up to its limit. Open as
+  Q-066 for the founder to confirm.
+- **Enforcement:** `create_organization()` counts owned businesses under a per-account advisory lock and refuses at the
+  limit with SQLSTATE `BRV01`; `startAnalysis` and `createAccessKey` turn that into a message with a link to `/plans`.
+  The UI checks first (`web/src/lib/plans/business-limit.ts`); the database decides.
+- **Current business:** a `brv_business` cookie holds the business the person chose (the header switcher, Settings →
+  Businesses, a new business, an accepted invite). It's a preference: every read checks membership and falls back to
+  the oldest one. `getCurrentOrg`, `getOrgAccess` and the in-app assistant follow it; the dashboard shows only that
+  business.
+- **OAuth and connection actions name the business:** the connect forms and card actions carry `organizationId`; the
+  Google and HubSpot start routes seal it in the state, and the callbacks act on the sealed business after re-reading
+  the owner's role there, whichever business is current by then (Q-047).
+- **Invites:** someone who already belongs to a business can join another one (Q-051); the joined business becomes
+  current.
+- **Public copy:** the pricing page shows each plan's business limit and a FAQ; the Terms, MSA and Refund Policy now
+  say the trial is one per account. Their "Last updated" date is already 2026-11-08, so no new acceptance round is
+  triggered; whether this change needs one is Q-066's second part.
+- Why: the founder wants agencies and multi-location owners to use one login, priced by the plans already decided,
+  without a fourth price or an account-type column. Counting owners (not memberships) keeps team members free to join
+  any number of businesses.
+- Research (D-052): [PLANS_AND_TIERS.md](../product/PLANS_AND_TIERS.md) §2a.

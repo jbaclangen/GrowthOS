@@ -83,6 +83,8 @@ export async function HubSpotCard({
     allowed: Boolean(orgRow && hubspotAccess(orgRow).allowed),
     connection,
   });
+  // The business the forms act on (D-062): the connect routes and actions read it back and check the role there.
+  const organizationId = org?.id ?? "";
   const headingId = `${sectionId}-heading`;
 
   return (
@@ -124,9 +126,10 @@ export async function HubSpotCard({
           allowed={state === "connected"}
           canConnect={canConnect}
           returnTo={returnTo}
+          organizationId={organizationId}
         />
       ) : (
-        <NotConnected state={state} returnTo={returnTo} connectClassName={connectClassName} />
+        <NotConnected state={state} returnTo={returnTo} organizationId={organizationId} connectClassName={connectClassName} />
       )}
     </section>
   );
@@ -190,10 +193,12 @@ function PausedNotice({ connected }: { connected: boolean }) {
 function NotConnected({
   state,
   returnTo,
+  organizationId,
   connectClassName,
 }: {
   state: "connectable" | "owner-only" | "paused-not-connected";
   returnTo: string;
+  organizationId: string;
   connectClassName: "btn-primary" | "btn-secondary";
 }) {
   return (
@@ -205,7 +210,7 @@ function NotConnected({
         <p className="mt-4 text-sm text-muted">Ask the business owner to connect HubSpot.</p>
       ) : (
         // A GET form with the required agreement checkbox (D-057); the start route redirects to HubSpot.
-        <HubSpotConnectForm id="hubspot-connect-agree" returnTo={returnTo} label="Connect HubSpot" buttonClassName={connectClassName} />
+        <HubSpotConnectForm id="hubspot-connect-agree" returnTo={returnTo} organizationId={organizationId} label="Connect HubSpot" buttonClassName={connectClassName} />
       )}
     </>
   );
@@ -286,12 +291,14 @@ function Connected({
   allowed,
   canConnect,
   returnTo,
+  organizationId,
 }: {
   connection: Connection;
   latest: Latest | null;
   allowed: boolean;
   canConnect: boolean;
   returnTo: string;
+  organizationId: string;
 }) {
   return (
     <>
@@ -318,13 +325,14 @@ function Connected({
         {allowed && (
           <form action={refreshHubSpot}>
             <input type="hidden" name="returnTo" value={returnTo} />
+            <input type="hidden" name="organizationId" value={organizationId} />
             <SubmitButton label="Refresh HubSpot counts" pendingLabel="Refreshing…" />
           </form>
         )}
         {canConnect && connection.status === "error" && allowed && (
-          <HubSpotConnectForm id="hubspot-reconnect-agree" returnTo={returnTo} label="Reconnect" buttonClassName="btn-secondary" />
+          <HubSpotConnectForm id="hubspot-reconnect-agree" returnTo={returnTo} organizationId={organizationId} label="Reconnect" buttonClassName="btn-secondary" />
         )}
-        {canConnect && <DisconnectButton returnTo={returnTo} action={disconnectHubSpotAction} label="Disconnect HubSpot" explanation={DISCONNECT_EXPLANATION} />}
+        {canConnect && <DisconnectButton returnTo={returnTo} organizationId={organizationId} action={disconnectHubSpotAction} label="Disconnect HubSpot" explanation={DISCONNECT_EXPLANATION} />}
       </div>
       <p className="mt-3 text-xs text-muted">
         Read-only access. Braventa can&apos;t change anything in HubSpot and stores counts only. Disconnecting deletes them.

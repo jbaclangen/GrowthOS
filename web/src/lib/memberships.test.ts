@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fakeSupabase } from "../../test/fake-supabase";
-import { currentMembership, firstOrganization, memberOrganizations } from "./memberships";
+import { currentMembership, currentOrganization, memberOrganizations, ownedOrganizations } from "./memberships";
 import { MAX_ACTIVE_SERVICE_KEYS, countActiveServiceKeys, isActiveServiceKey, listServiceKeys } from "./mcp/service-keys";
 
 // The rows are what RLS lets the user read: every membership in their organizations, co-members' included.
@@ -31,18 +31,36 @@ describe("memberships", () => {
       { user_id: "member-3", organization_id: "org-b", role: "analyst", created_at: "2026-10-06T00:00:00Z", organizations: orgB },
     ];
     const { db } = fakeSupabase({ memberships: rows });
-    expect(await firstOrganization(db, "member-3")).toEqual({ ...orgC, role: "owner" });
-    expect(await firstOrganization(db, "owner-1")).toEqual({ ...orgB, role: "owner" });
-    expect(await firstOrganization(db, "someone-else")).toBeNull();
+    expect(await currentOrganization(db, "member-3")).toEqual({ ...orgC, role: "owner" });
+    expect(await currentOrganization(db, "owner-1")).toEqual({ ...orgB, role: "owner" });
+    expect(await currentOrganization(db, "someone-else")).toBeNull();
   });
 
-  it("throw when a first-business read fails, so it isn't taken for 'no business'", async () => {
-    const failing = { maybeSingle: async () => ({ data: null, error: { message: "connection reset" } }) };
-    const chain = { select: () => chain, eq: () => chain, order: () => chain, limit: () => failing };
-    const db = { from: () => chain } as unknown as Parameters<typeof firstOrganization>[0];
-    await expect(firstOrganization(db, "member-2")).rejects.toThrow("connection reset");
+  it("throw when the business read fails, so it isn't taken for 'no business'", async () => {
+    const failing = Promise.resolve({ data: null, error: { message: "connection reset" } });
+    const chain = { select: () => chain, eq: () => chain, order: () => failing };
+    const db = { from: () => chain } as unknown as Parameters<typeof currentOrganization>[0];
+    await expect(currentOrganization(db, "member-2")).rejects.toThrow("connection reset");
     // currentMembership too: a caller that took null for "no business" would create a second one.
     await expect(currentMembership(db, "member-2")).rejects.toThrow("connection reset");
+    // And the owned list, so a failed read can't lift the business limit.
+    await expect(ownedOrganizations(db, "member-2")).rejects.toThrow("connection reset");
+  });
+
+  it("use the business the user chose, only when they belong to it (D-062)", async () => {
+    const { db } = fakeSupabase({ memberships });
+    expect(await currentMembership(db, "owner-1", "org-b")).toEqual({ id: "org-b", name: "Bright Dental", role: "owner" });
+    expect((await currentOrganization(db, "owner-1", "org-b"))?.plan).toBe("basic");
+    // A business they don't belong to, or one that was removed: their oldest membership instead.
+    expect(await currentMembership(db, "member-2", "org-b")).toEqual({ id: "org-a", name: "Acme Plumbing", role: "member" });
+    expect(await currentMembership(db, "owner-1", "gone")).toEqual({ id: "org-a", name: "Acme Plumbing", role: "owner" });
+    expect(await currentMembership(db, "owner-1", null)).toEqual({ id: "org-a", name: "Acme Plumbing", role: "owner" });
+  });
+
+  it("count only the businesses the account owns toward its limit", async () => {
+    const { db } = fakeSupabase({ memberships });
+    expect((await ownedOrganizations(db, "owner-1")).map((o) => o.id)).toEqual(["org-a", "org-b"]);
+    expect(await ownedOrganizations(db, "member-2")).toEqual([]);
   });
 
   it("list each business once, and only the user's own", async () => {

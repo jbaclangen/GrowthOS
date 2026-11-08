@@ -45,7 +45,10 @@ decision. Never describe the product as doing something the code doesn't do, wha
   with a permission matrix (D-046 foundation: owner-only connect and service keys, no one approves their own draft
   except the owner; Settings → Team: invite by copied link, change or remove roles below your own, seat limits per plan; no invite
   emails, no buying seats); the owner can remove a business in Settings after typing `DELETE APPROVED` (D-061: Google
-  and HubSpot revoked first, then the organization row deleted by cascade; no account deletion or export). No CRM data in the diagnosis, other CRMs or CRM writes, publishing,
+  and HubSpot revoked first, then the organization row deleted by cascade; no account deletion or export), choosing it
+  from Settings → Businesses; one account can own several businesses (D-062: a header switcher, up to 2 / 4 / 8 owned
+  businesses on Basic / Pro / Premium, one trial per account, enforced in `create_organization()`; its migration
+  `20261108150000` needs the founder's yes before it's applied). No CRM data in the diagnosis, other CRMs or CRM writes, publishing,
   email sending, automation, analytics reporting, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
 - Research before building (D-052): a change that adds an integration, a paid vendor, a table, a price or a public claim

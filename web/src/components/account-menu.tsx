@@ -3,11 +3,21 @@
 import { useId, useRef } from "react";
 import Link from "next/link";
 
-// Phones only (below sm): the plan chip, Settings and Sign out move into a popover behind one icon button, so the
+// Phones only (below sm): the current business (D-062), the plan chip, Settings and Sign out move into a popover behind one icon button, so the
 // 56px header fits at 320px next to the logo and the assistant (component-guidelines: "menu on mobile").
 // The native popover gives light dismiss (Escape, a tap outside) and keyboard order from the button; links close it,
 // because the header stays mounted across client-side navigation.
-export function AccountMenu({ email, plan, signOut }: { email: string; plan: string | null; signOut: () => Promise<void> }) {
+export function AccountMenu({
+  email,
+  plan,
+  business,
+  signOut,
+}: {
+  email: string;
+  plan: string | null;
+  business: string | null;
+  signOut: () => Promise<void>;
+}) {
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
   const hide = () => ref.current?.hidePopover();
@@ -33,6 +43,14 @@ export function AccountMenu({ email, plan, signOut }: { email: string; plan: str
       >
         <p className="text-xs break-all text-muted">{email}</p>
         <ul className="mt-3 space-y-3">
+          {business && (
+            <li>
+              <p className="truncate font-medium">{business}</p>
+              <Link href="/settings#businesses" onClick={hide} className="hover:underline">
+                Switch or add a business
+              </Link>
+            </li>
+          )}
           {plan && (
             <li>
               <Link href="/plans" onClick={hide} className="chip whitespace-nowrap bg-accent-soft text-accent-soft-foreground hover:underline">

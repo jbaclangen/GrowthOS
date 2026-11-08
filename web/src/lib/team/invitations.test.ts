@@ -41,16 +41,15 @@ describe("invitationState", () => {
 });
 
 describe("acceptBlocker", () => {
-  const ok = { state: "open" as const, invitedEmail: "sam@example.com", userEmail: "Sam@example.com", alreadyMember: false, otherBusiness: null, organizationName: "Acme" };
+  const ok = { state: "open" as const, invitedEmail: "sam@example.com", userEmail: "Sam@example.com", alreadyMember: false, organizationName: "Acme" };
   it("lets the invited address join", () => {
     expect(acceptBlocker(ok)).toBeNull();
   });
-  it("refuses another account, a used or old link, and a second business", () => {
+  it("refuses another account and a used or old link, not someone in another business", () => {
     expect(acceptBlocker({ ...ok, userEmail: "pat@example.com" })).toContain("This invite is for sam@example.com");
     expect(acceptBlocker({ ...ok, state: "accepted" })).toContain("already been used");
     expect(acceptBlocker({ ...ok, state: "revoked" })).toContain("withdrawn");
     expect(acceptBlocker({ ...ok, state: "expired" })).toContain("expired");
-    expect(acceptBlocker({ ...ok, otherBusiness: "Other Co" })).toContain("already belongs to Other Co");
     expect(acceptBlocker({ ...ok, alreadyMember: true, state: "accepted" })).toBe("You're already in Acme.");
   });
 });

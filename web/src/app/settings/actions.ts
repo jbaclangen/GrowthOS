@@ -7,6 +7,8 @@ import { displayPrefix, generateKey, hashKey } from "@/lib/mcp/keys";
 import { can, deniedMessage } from "@/lib/team/roles";
 import { CONSENT_REQUIRED, consentGiven } from "@/lib/legal/documents";
 import { recordAcceptance } from "@/lib/legal/acceptances";
+import { createOwnedBusiness } from "@/lib/organizations/limit-server";
+import { rememberBusiness } from "@/lib/organizations/current";
 
 // Personal access keys for the AI assistant connection (MCP, D-036). Writes go through the signed-in user's
 // client: RLS and column grants only let owners add and revoke their own keys, and never read the hash.
@@ -31,9 +33,11 @@ export async function createAccessKey(_: CreateKeyState, formData: FormData): Pr
     const businessName = String(formData.get("businessName") ?? "").trim();
     if (!businessName) return { error: "Enter your business name so we know which business this key is for." };
     if (businessName.length > 120) return { error: "Keep the business name under 120 characters." };
-    const { data: orgId, error } = await supabase.rpc("create_organization", { org_name: businessName });
-    if (error || !orgId) return { error: "Your business wasn't created. Try again." };
-    org = { id: orgId as string, name: businessName, role: "owner" };
+    // Nothing owned yet, so the limit (D-062) can't refuse it; create_organization checks anyway.
+    const created = await createOwnedBusiness(supabase, user.id, businessName);
+    if ("error" in created) return { error: created.error };
+    org = { id: created.id, name: businessName, role: "owner" };
+    await rememberBusiness(created.id);
   }
   // D-046: personal keys need keys.manage_own (not copywriters, content creators or analysts).
   if (!can(org.role, "keys.manage_own")) return { error: deniedMessage("keys.manage_own") };

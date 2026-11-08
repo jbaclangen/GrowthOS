@@ -56,7 +56,10 @@ export default function Terms() {
 
       <h2>4. Plans, trial and fees</h2>
       <ul>
-        <li>New businesses get a 14-day Pro trial. When it ends, the business continues on Basic.</li>
+        <li>
+          Each account gets one 14-day Pro trial, shared by the businesses it adds while the trial runs. When it ends,
+          they continue on Basic. Removing a business and adding it again doesn&apos;t start a new trial.
+        </li>
         <li>
           Paid plans aren&apos;t available yet, and we don&apos;t charge anything today. Before we charge you, we&apos;ll
           show you the price, how billing and renewal work and how to cancel, and ask you to agree. Our{" "}
