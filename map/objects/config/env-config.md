@@ -31,9 +31,9 @@ The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md
 | `N8N_BASE_URL`, `N8N_API_KEY`, `N8N_WEBHOOK_SECRET` | `:13-15` | no | only the dev health route uses the client (`docs/architecture/INTEGRATIONS.md:34`) |
 | `GOOGLE_API_KEY` | `:16` | no | |
 | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` | `:19-20`, optional `:17-18` | no | |
-| `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` | `:23-24`, optional `:21-22` | no | HubSpot connection (`docs/architecture/HUBSPOT_SETUP.md`); `hubspotConfigured` `web/src/lib/integrations/hubspot-oauth.ts:32` |
+| `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` | `:23-24`, optional `:21-22` | no | HubSpot connection (`docs/architecture/HUBSPOT_SETUP.md`); `hubspotConfigured` `web/src/lib/integrations/hubspot-oauth.ts:35` |
 | `INTEGRATIONS_ENCRYPTION_KEY` | `:26-28` (32 bytes, base64) | no | |
-| `NEXT_PUBLIC_APP_URL` | `:29` (defaults to localhost) | yes | `web/src/app/login/actions.ts:41`, `web/src/lib/integrations/google-oauth.ts:53`, `web/src/lib/integrations/hubspot-oauth.ts:51`, `web/src/lib/pipeline/dispatch.ts:44`, `web/src/lib/oauth/server-metadata.ts:12` |
+| `NEXT_PUBLIC_APP_URL` | `:29` (defaults to localhost) | yes | `web/src/app/login/actions.ts:41`, `web/src/lib/integrations/google-oauth.ts:53`, `web/src/lib/integrations/hubspot-oauth.ts:54`, `web/src/lib/pipeline/dispatch.ts:44`, `web/src/lib/oauth/server-metadata.ts:12` |
 | `JOB_CONTINUE_SECRET` | `:32`, optional `:30-31` | no | `web/src/app/api/health/integrations/route.ts:96` |
 | `JOB_DISPATCH` | `:36`, optional `:33-35` | no | |
 

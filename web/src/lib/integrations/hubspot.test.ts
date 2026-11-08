@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
+  HUBSPOT_DATA_SCOPES,
   HUBSPOT_SCOPES,
   buildHubSpotAuthUrl,
   hubspotRedirectUriFor,
@@ -186,7 +187,8 @@ describe("hubspotAccess", () => {
 
 describe("HubSpot OAuth", () => {
   it("asks only for read scopes, and the same ones the HubSpot app declares", () => {
-    for (const s of HUBSPOT_SCOPES) expect(s.endsWith(".read"), s).toBe(true);
+    for (const s of HUBSPOT_DATA_SCOPES) expect(s.endsWith(".read"), s).toBe(true);
+    expect([...HUBSPOT_SCOPES]).toEqual(["oauth", ...HUBSPOT_DATA_SCOPES]);
     const app = JSON.parse(readFileSync(fileURLToPath(new URL("../../../../hubspot/src/app/app-hsmeta.json", import.meta.url)), "utf8"));
     expect([...app.config.auth.requiredScopes].sort()).toEqual([...HUBSPOT_SCOPES].sort());
     expect(app.config.auth.optionalScopes ?? []).toEqual([]);
@@ -224,7 +226,7 @@ describe("HubSpot OAuth", () => {
   });
 
   it("reports missing scopes", () => {
-    expect(missingHubSpotScopes([...HUBSPOT_SCOPES])).toEqual([]);
+    expect(missingHubSpotScopes([...HUBSPOT_DATA_SCOPES])).toEqual([]);
     expect(missingHubSpotScopes(["oauth", "crm.objects.contacts.read"])).toEqual(["crm.objects.companies.read", "crm.objects.deals.read"]);
   });
 });
