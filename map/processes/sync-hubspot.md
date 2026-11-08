@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-08
-commit: 0393a75
+commit: e400689
 consumes: ["[[integration-connection]]", "[[organization]]", "[[plan-tier]]", "[[member-role]]"]
 produces: ["[[hubspot-snapshot]]"]
 ---
@@ -25,11 +25,11 @@ Records are summed in memory and only counts are stored (D-059), so the search t
 1. Load the connection; revoked, no token or no portal → `not-connected` — `web/src/lib/integrations/hubspot.ts:259-268`.
 2. Plan gate `hubspotAccess`; not allowed → `paused` — `:274-277`.
 3. 10-minute guard on `last_attempted_at` unless `skipGuard` — `:279`.
-4. Decrypt, mint an access token, store a rotated refresh token — `:293-295`; `web/src/lib/integrations/hubspot-oauth.ts:137`.
+4. Decrypt, mint an access token, store a rotated refresh token — `:293-295`; `web/src/lib/integrations/hubspot-oauth.ts:140`.
 5. `fetchMetrics`: lifecycle and source options, deal pipelines (`0-3`), contact and company search totals, deal list up to `MAX_DEALS` — `hubspot.ts:112`; aggregation `hubspot-metrics.ts:151`.
 6. Size check, insert, prune to 12, mark `active` — `hubspot.ts:297-310`; errors → `describeHubSpotError` → status + `last_error` — `:194`.
 7. Callers: callback `web/src/app/api/integrations/hubspot/callback/route.ts:108`; Settings refresh (any member) `web/src/app/settings/connections-actions.ts:106-111`.
-8. Disconnect (owner, `integrations.connect`): uninstall the app and revoke the token, delete every snapshot, blank the row — `hubspot.ts:338-365`; `hubspot-oauth.ts:175`; action `connections-actions.ts:113-122`.
+8. Disconnect (owner, `integrations.connect`): uninstall the app and revoke the token, delete every snapshot, blank the row — `hubspot.ts:338-365`; `hubspot-oauth.ts:178`; action `connections-actions.ts:113-122`.
 
 ## Human gate
 

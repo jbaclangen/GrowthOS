@@ -16,10 +16,13 @@ const INTROSPECT_URL = `${OAUTH_API}/token/introspect`;
 const REVOKE_URL = `${OAUTH_API}/token/revoke`;
 const UNINSTALL_URL = "https://api.hubapi.com/appinstalls/2026-09/external-install";
 
-// Read-only scopes, the same list as requiredScopes in hubspot/src/app/app-hsmeta.json (a test keeps them equal).
-// HubSpot adds `oauth` to every app by default (needed for the uninstall call). Pipelines and property options are
-// readable with the object scopes. Not `forms` or `content`: neither is read-only (D-048).
-export const HUBSPOT_SCOPES = ["crm.objects.contacts.read", "crm.objects.companies.read", "crm.objects.deals.read"] as const;
+// Read-only data scopes. Pipelines and property options are readable with the object scopes. Not `forms` or
+// `content`: neither is read-only (D-048). The callback requires all three.
+export const HUBSPOT_DATA_SCOPES = ["crm.objects.contacts.read", "crm.objects.companies.read", "crm.objects.deals.read"] as const;
+// The install URL's scope list: `oauth` (HubSpot adds it to every app as a required scope, and it covers the uninstall
+// call) plus the data scopes. HubSpot shows an error when a required scope is missing from the URL, so this equals
+// requiredScopes in hubspot/src/app/app-hsmeta.json (a test keeps them equal).
+export const HUBSPOT_SCOPES = ["oauth", ...HUBSPOT_DATA_SCOPES] as const;
 
 export const HUBSPOT_CALLBACK_PATH = "/api/integrations/hubspot/callback";
 export const HUBSPOT_STATE_COOKIE = "brv_hubspot_oauth";
@@ -190,5 +193,5 @@ export async function uninstallHubSpot(refreshToken: string) {
 }
 
 export function missingHubSpotScopes(granted: string[]) {
-  return HUBSPOT_SCOPES.filter((s) => !granted.includes(s));
+  return HUBSPOT_DATA_SCOPES.filter((s) => !granted.includes(s));
 }

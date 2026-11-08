@@ -11,9 +11,14 @@
         "https://app.braventa.io/api/integrations/hubspot/callback",
         "http://localhost:3000/api/integrations/hubspot/callback"
       ],
-      "requiredScopes": ["crm.objects.contacts.read", "crm.objects.companies.read", "crm.objects.deals.read"],
+      "requiredScopes": ["oauth", "crm.objects.contacts.read", "crm.objects.companies.read", "crm.objects.deals.read"],
       "optionalScopes": [],
       "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": [],
+      "iframe": [],
+      "img": []
     },
     "support": {
       "supportEmail": "hello@braventa.io"
