@@ -20,7 +20,7 @@ One organization per user in the MVP, created by the `create_organization` RPC o
 
 - Columns `id`, `name`, `slug` (unique), `plan` (default `trial`), `monthly_ai_budget_usd` (default 5), `created_at` — `supabase/migrations/20261010061028_foundation.sql:9-16`.
 - `plan` check `trial`/`basic`/`pro`/`premium` — `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:6-7`; `trial_ends_at` not null, default now + 14 days — `:10-13`.
-- No `organization_id` of its own. RLS: "members read org" `supabase/migrations/20261010061028_foundation.sql:282-283`, "admins update org" `:284-285`, narrowed by the column grant above. No insert or delete policy: rows come only from `create_organization`.
+- No `organization_id` of its own. RLS: "members read org" `supabase/migrations/20261010061028_foundation.sql:282-283`, "admins update org" `:284-285`, narrowed by the column grant above. No insert or delete policy: rows come only from `create_organization`, and the one delete path is the owner's Remove business, which revokes external tokens first and relies on every tenant table's cascade ([remove-business](../../processes/remove-business.md), logged in [organization-deletion](organization-deletion.md)).
 - The AI budget check reads `monthly_ai_budget_usd` against the `ai_spend_mtd` view and fails closed — `web/src/lib/ai/router.ts:96-105`; view `supabase/migrations/20261010061028_foundation.sql:345-349`.
 - `plan, trial_ends_at` are read wherever a gate is decided: the scoring step and the diagnosis update (`reviseDiagnosis`), both through `enabledModules` `web/src/lib/modules/server.ts:13`; Search Console `web/src/lib/integrations/search-console.ts:430,578`, `web/src/app/api/integrations/google/start/route.ts:39`, `web/src/app/api/integrations/google/callback/route.ts:59-63`, `web/src/app/search/page.tsx:45`, `web/src/components/connections/search-console-card.tsx:58`, `web/src/app/onboarding/[sessionId]/connect/page.tsx:54`; the AI assistant connection `web/src/lib/mcp/auth.ts:23,75`, `web/src/app/settings/page.tsx:42`, `web/src/lib/memberships.ts:45` (OAuth consent page); the in-app assistant and `/plans`, both through `firstOrganization` `web/src/lib/memberships.ts:31` (`web/src/app/api/assistant/route.ts:65`, `web/src/lib/plans/access.ts:16`) (grep `trial_ends_at` at this commit).
 
@@ -35,7 +35,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:9-16,57-72,282-285
 
 ## If you change this
 
-- **Hits:** `effectiveAccess` and every gate built on it ([plan-tier](plan-tier.md)); the budget check `web/src/lib/ai/router.ts:96-105`; `create_organization`; the column grant `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:17-18`; `docs/architecture/DATA_MODEL.md:77`.
+- **Hits:** `effectiveAccess` and every gate built on it ([plan-tier](plan-tier.md)); the budget check `web/src/lib/ai/router.ts:96-105`; `create_organization`; the column grant `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:17-18`; `docs/architecture/DATA_MODEL.md:77`; a new tenant table must cascade from here or Remove business leaves it behind ([remove-business](../../processes/remove-business.md)).
 - **Does not hit:** [business-profile](../onboarding/business-profile.md) (profile fields live there, not here); [subscription](subscription.md) (nothing reads it).
 
 ## Surfaces
@@ -50,6 +50,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:9-16,57-72,282-285
 | Scoring step and diagnosis update via `enabledModules` (`web/src/lib/modules/server.ts:13`) | reads tier |
 | Search Console sync (`web/src/lib/integrations/search-console.ts:430`) | reads tier |
 | Braventa team in Supabase (`web/src/lib/plans/tiers.ts:2-3`) | writes `plan` by hand |
+| `removeBusiness` ([remove-business](../../processes/remove-business.md)) | deletes |
 
 ## See
 
