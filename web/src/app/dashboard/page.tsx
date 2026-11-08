@@ -11,17 +11,27 @@ import { loadReport } from "../analysis/[id]/report-data";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-export default function DashboardPage() {
+export default function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
       <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
-        <Dashboard />
+        <Dashboard searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function Dashboard() {
+// After Settings → Remove business (app/settings/remove-business-actions.ts): the dashboard shows the user's next
+// business, or the no-business state below.
+const REMOVED: Record<string, string> = {
+  done: "The business was removed and its data deleted.",
+  "check-tools":
+    "The business was removed and its data deleted. Braventa couldn't confirm that Google or HubSpot ended its access. To be sure, remove Braventa from your Google account's third-party access, or uninstall the Braventa app in HubSpot.",
+};
+
+async function Dashboard({ searchParams }: { searchParams: PageProps<"/dashboard">["searchParams"] }) {
+  const { removed } = await searchParams;
+  const removedNotice = typeof removed === "string" ? REMOVED[removed] : undefined;
   const user = await requireUser();
   const org = await getCurrentOrg(user.id);
   const supabase = await createSupabaseServerClient();
@@ -60,6 +70,11 @@ async function Dashboard() {
 
   return (
     <>
+      {removedNotice && (
+        <p className="mb-6 rounded-md bg-surface-muted px-3 py-2 text-sm" role="status">
+          {removedNotice}
+        </p>
+      )}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{org?.name ?? "Your businesses"}</h1>

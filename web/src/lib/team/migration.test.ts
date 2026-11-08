@@ -3,9 +3,10 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { PERMISSIONS, ROLES, ROLE_PERMISSIONS, can, permissionMatrixSql } from "./roles";
 
-// The roles_and_permissions migration repeats what roles.ts defines: the member_role enum and the matrix inside
-// has_permission(). There is no Postgres in the tests, so these checks read the SQL itself (comments stripped) and
-// fail when the two drift apart or a safeguard is dropped.
+// The migrations repeat what roles.ts defines: the member_role enum (roles_and_permissions) and the matrix inside
+// has_permission() (created there, replaced whole by later migrations when a permission is added, such as
+// remove_business for organization.delete). There is no Postgres in the tests, so these checks read the SQL itself
+// (comments stripped) and fail when the two drift apart or a safeguard is dropped.
 
 const dir = fileURLToPath(new URL("../../../../supabase/migrations/", import.meta.url));
 const files = readdirSync(dir).filter((f) => f.endsWith("_roles_and_permissions.sql"));
@@ -14,9 +15,19 @@ const code = sql.replace(/--.*$/gm, "");
 
 const quoted = (list: string) => [...list.matchAll(/'([a-z_.]+)'/g)].map((m) => m[1]);
 
+const HAS_PERMISSION = /create or replace function public\.has_permission\(org uuid, perm text\)([\s\S]*?)\$\$;/;
+// Every migration that defines has_permission(), oldest first; the database runs the newest.
+const permissionFiles = readdirSync(dir)
+  .filter((f) => f.endsWith(".sql"))
+  .sort()
+  .filter((f) => HAS_PERMISSION.test(readFileSync(dir + f, "utf8").replace(/--.*$/gm, "")));
+const latestPermissionFile = permissionFiles[permissionFiles.length - 1] ?? "";
+const latestPermission = latestPermissionFile ? readFileSync(dir + latestPermissionFile, "utf8").replace(/--.*$/gm, "") : "";
+
 describe("the roles_and_permissions migration", () => {
-  it("exists exactly once", () => {
+  it("exists exactly once and creates has_permission()", () => {
     expect(files).toHaveLength(1);
+    expect(permissionFiles[0]).toBe(files[0]);
   });
 
   it("replaces member_role with the eight roles, in order, and maps member to analyst", () => {
@@ -32,8 +43,18 @@ describe("the roles_and_permissions migration", () => {
     expect(sql).toMatch(/drop type public\.member_role_v1;/);
   });
 
-  it("encodes the same matrix in has_permission() as can() does", () => {
-    const fn = code.match(/create or replace function public\.has_permission\(org uuid, perm text\)([\s\S]*?)\$\$;/);
+  it("adds the author column to content_items", () => {
+    expect(code).toMatch(/alter table public\.content_items add column created_by uuid references auth\.users\(id\) on delete set null/);
+  });
+});
+
+describe("the newest has_permission()", () => {
+  it("is the remove_business migration's, which added organization.delete", () => {
+    expect(latestPermissionFile).toMatch(/_remove_business\.sql$/);
+  });
+
+  it("encodes the same matrix as can() does", () => {
+    const fn = latestPermission.match(HAS_PERMISSION);
     expect(fn).toBeTruthy();
     const body = fn![1];
     expect(body).toMatch(/returns boolean language sql stable security definer set search_path = ''/);
@@ -54,14 +75,13 @@ describe("the roles_and_permissions migration", () => {
     for (const line of rendered) expect(body).toContain(line);
   });
 
-  it("limits has_permission() to signed-in users, like is_member()", () => {
-    expect(code).toMatch(/revoke all on function public\.has_permission\(uuid, text\) from public, anon/);
-    expect(code).toMatch(/grant execute on function public\.has_permission\(uuid, text\) to authenticated/);
-    expect(code).not.toMatch(/grant execute on function public\.has_permission\(uuid, text\) to (anon|public)/);
-  });
-
-  it("adds the author column to content_items", () => {
-    expect(code).toMatch(/alter table public\.content_items add column created_by uuid references auth\.users\(id\) on delete set null/);
+  it("is limited to signed-in users, like is_member(), in every migration that defines it", () => {
+    for (const f of permissionFiles) {
+      const s = readFileSync(dir + f, "utf8").replace(/--.*$/gm, "");
+      expect(s, f).toMatch(/revoke all on function public\.has_permission\(uuid, text\) from public, anon/);
+      expect(s, f).toMatch(/grant execute on function public\.has_permission\(uuid, text\) to authenticated/);
+      expect(s, f).not.toMatch(/grant execute on function public\.has_permission\(uuid, text\) to (anon|public)/);
+    }
   });
 });
 

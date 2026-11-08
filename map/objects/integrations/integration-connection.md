@@ -53,6 +53,7 @@ Citations: `supabase/migrations/20261011161133_search_console.sql:10-45`, `supab
 | scoring / diagnosis_update steps (`searchConsoleSummaryForPrompt`, `analyticsSummaryForPrompt`) | reads `status` |
 | `POST /api/assistant` → [ask-braventa](../../processes/ask-braventa.md) (`loadBusinessSummary`) | reads `status`, `selected_property` (Search Console) |
 | Owner (`integrations.connect`, `web/src/lib/team/roles.ts:86`; where it is checked: `docs/architecture/ROLES_AND_PERMISSIONS.md:60`) | connects, chooses the properties, disconnects |
+| Remove business ([remove-business](../../processes/remove-business.md): `revokeGoogleForRemoval`, `revokeHubSpotForRemoval`) | revokes the tokens at the provider; the rows go with the organization |
 
 ## See
 

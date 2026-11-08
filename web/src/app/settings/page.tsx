@@ -13,6 +13,7 @@ import { ConnectionsSection } from "./connections-section";
 import { ConnectInstructions } from "./connect-instructions";
 import { ConnectedApps, ServiceKeys } from "./integrations-sections";
 import { TeamSection } from "./team-section";
+import { RemoveBusinessSection } from "./remove-business-section";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -154,6 +155,9 @@ async function Settings() {
         {org && <ServiceKeys organizationId={org.id} canManage={can(org.role, "keys.manage_any")} serverUrl={serverUrl} />}
         <ConnectionsSection userId={user.id} />
       </div>
+
+      {/* Last on the page, owners only (organization.delete, D-061). */}
+      {org && can(org.role, "organization.delete") && <RemoveBusinessSection organizationId={org.id} name={org.name} />}
     </>
   );
 }

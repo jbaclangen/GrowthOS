@@ -1,7 +1,8 @@
 # Roles and permissions
 
 **Status:** foundation built 2026-10-23 (D-046; research README §4 step 4; the spec step of D-052); invitations by
-link, seat limits, role changes and removals built 2026-11-07 (§8). Describes the code as it is. Invite emails (Q-010),
+link, seat limits, role changes and removals built 2026-11-07 (§8); removing a business built 2026-11-08 (§9, D-061).
+Describes the code as it is. Invite emails (Q-010),
 buying extra seats (Stripe), client approval links (D-047) and seat prices on the site are not built; §7 lists what is
 open.
 
@@ -12,10 +13,12 @@ Two places hold the same matrix and a unit test proves they agree:
 - `web/src/lib/team/roles.ts`: the role list, the permission list, `can(role, permission)` and the approval rule.
   Pure logic, unit-tested in `roles.test.ts`, following the `tiers.ts` and `registry.ts` pattern. Server code reads the
   user's role with `memberRole()` in `web/src/lib/team/server.ts`.
-- `public.has_permission(org uuid, perm text)` in the database (migration `20261023092945_roles_and_permissions.sql`,
-  applied 2026-10-23): the same matrix for triggers and, later, RLS write policies. `migration.test.ts` in
-  `web/src/lib/team/` parses the SQL and compares every role and permission with `can()`, and checks the approval
-  rule in the newest definition of the `content_items` guard.
+- `public.has_permission(org uuid, perm text)` in the database (created by migration
+  `20261023092945_roles_and_permissions.sql`, applied 2026-10-23; replaced whole by `20261108090000_remove_business.sql`
+  to add `organization.delete`): the same matrix for triggers and, later, RLS write policies. `migration.test.ts` in
+  `web/src/lib/team/` parses the newest definition and compares every role and permission with `can()`, and checks
+  the approval rule in the newest definition of the `content_items` guard. Adding a permission means a migration that
+  replaces the whole function.
 
 Rule (CLAUDE.md): a role check in the app goes through `can()`; a role check in SQL goes through `has_permission()`.
 No app code compares a role to a literal such as `"owner"`. In SQL, `is_org_admin()`, `is_org_owner()` and
@@ -71,6 +74,7 @@ enforces yet is still in the matrix so the next feature doesn't invent its own r
 | `reports.view` | See performance reports (Search performance, later analytics) | Not yet: every member reads every page of their organization through RLS |
 | `reports.export` | Export a report | Not yet: no export |
 | `assistant.use` | Ask Braventa (the in-app assistant) | Not yet: the plan rule (`lib/assistant/access.ts`) is the only gate |
+| `organization.delete` | Remove the business and everything in it (D-061; not in the research matrix) | `removeBusiness` (`app/settings/remove-business-actions.ts`, through `removalAllowed()` in `lib/organizations/removal.ts`) and the Settings section that offers it (§9). No SQL use: `organizations` has no delete policy |
 
 "Reports" means performance reports, not the analysis page: a copywriter reads the diagnosis, plan and drafts like
 every member.
@@ -98,6 +102,7 @@ As code enforces it (`ROLE_PERMISSIONS` in `roles.ts`; the `case perm` in `has_p
 | `reports.view` | Yes | Yes | Yes | Yes | — | — | Yes | — |
 | `reports.export` | Yes | Yes | Yes | — | — | — | Yes | — |
 | `assistant.use` | Yes | Yes | Yes | Yes | Yes | Yes | Yes | — |
+| `organization.delete` | Yes | — | — | — | — | — | — | — |
 
 Where this differs from the research matrix, and why:
 
@@ -142,7 +147,8 @@ tools that write carry the web action's permission (§2). Service keys belong to
 Settings shows the signed-in user's role in words under the page title ("Your role in Acme Plumbing is owner."), then
 the Team section (§8). Personal access keys need `keys.manage_own` since invitations exist: copywriters, content
 creators and analysts see why instead of the key form, and `createAccessKey` refuses them. A user with no business yet
-can still create a key, which creates the business with them as owner (D-036).
+can still create a key, which creates the business with them as owner (D-036). Last on the page, owners
+(`organization.delete`) see Remove business (§9); no one else sees the section.
 
 ## 7. Open
 
@@ -194,3 +200,57 @@ secret key, scoped to the manager's own business (or the invite's business), aft
 also revokes their personal keys and Sign in with Braventa grants for that business (the MCP server already refuses a
 non-member). Every invite, withdrawal, join, role change and removal is recorded in `team_events` (append-only, read by
 `team.manage`), the start of SECURITY_AND_PRIVACY.md §11's audit log.
+
+## 9. Removing a business
+
+Built 2026-11-08 (D-061). Code: `web/src/lib/organizations/removal.ts` (who may, the phrase, the log row; unit-tested
+in `removal.test.ts`), `web/src/app/settings/remove-business-actions.ts` (`removeBusiness`) and
+`remove-business-section.tsx`, `revokeGoogleForRemoval()` in `lib/integrations/google-connection.ts` and
+`revokeHubSpotForRemoval()` in `lib/integrations/hubspot.ts`. Migration `20261108090000_remove_business.sql`
+(`organization.delete` in `has_permission()`, and `organization_deletions`).
+
+**Who and how.** Owners only (`organization.delete`). The section is the last on Settings; its confirm dialog (a native
+modal `<dialog>`) lists what is deleted, says it can't be undone, and keeps its Remove business button disabled until
+the field holds `DELETE APPROVED` exactly. The server checks everything again, in this order: the user's role in the
+business named by the form, read through their own client (`memberRole()`); the exact phrase (case and spacing count,
+nothing is trimmed); and no analysis queued or running (jobs past the reaper's limit are failed first, so a stuck job
+doesn't block removal for long).
+
+**What happens, with the secret key and scoped to that one organization.**
+
+1. Google: every stored refresh token is revoked at Google (`oauth2.googleapis.com/revoke`). HubSpot: the app is
+   uninstalled from the portal (HubSpot emails the portal's admins) and the refresh token revoked, as Disconnect
+   does. A revoke that fails doesn't stop the removal, because the token is deleted with the business either way; a
+   connection that can't be read does stop it.
+2. The `organizations` row is deleted. Every tenant table goes with it through its `on delete cascade` foreign key:
+   memberships, profiles, onboarding, audits, diagnoses and plan items, reports, calendars and drafts, jobs and their
+   dispatches, `ai_usage`, `assistant_usage`, connections and their snapshots (Search Console, Google Analytics,
+   HubSpot), personal and service keys, tool calls, OAuth grants, codes and tokens, invitations, `team_events`, module
+   rows and the organization's `legal_acceptances`. `web/src/lib/organizations/cascade.test.ts` fails if a new tenant
+   table wouldn't cascade; the live database was checked the same day (every foreign key to `organizations`
+   cascades, no delete trigger, and the one composite `set null` key, `module_runs` to `audit_runs`, nulls only
+   `audit_run_id`).
+3. `organization_deletions` gets one row: the deleted organization's id, plan, creation time, member count and each
+   provider's revoke outcome (`none`, `revoked`, `failed`). No user, email, business name or website. Service role
+   only. A failed insert is written to the server log with the same fields; the removal stands.
+4. The user lands on the dashboard (`?removed=done`, or `?removed=check-tools` when a revoke couldn't be confirmed,
+   with how to remove the access in Google or HubSpot). The dashboard opens their next business if they belong to
+   another (the oldest membership, Q-047), or the no-business state, which leads to onboarding.
+
+**In-flight analysis.** Refused while one runs (the message says to wait a few minutes). A job another member starts
+between the check and the delete is deleted with the business; its next step finds no job and stops, and its pending
+hand-off goes with it.
+
+**What isn't deleted.**
+
+- Everyone's Braventa account (`auth.users`), their memberships in other businesses, and their own legal acceptances
+  that have no organization (sign-up, terms updates). Deleting an account isn't in the app.
+- Global rows that belong to no business: `oauth_clients` (AI apps' registrations), `contact_requests` (the site's
+  contact form), `platform_admins`.
+- What the providers hold: the Google account and its data, the HubSpot portal and its records. When a revoke fails,
+  Google's grant stays until the user removes it in their Google account (or Google expires it), and the app stays
+  installed in HubSpot until someone uninstalls it.
+- Copies outside the database tables: Supabase backups for the backup window, Vercel function logs, and `pg_net`'s
+  responses to hand-off posts (6 hours).
+- Nothing per account is reset or kept: a business set up afterwards gets a new trial and AI budget, as any new
+  business always has (`create_organization`, DATA_MODEL.md §8).

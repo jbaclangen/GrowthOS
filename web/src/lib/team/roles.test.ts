@@ -51,10 +51,11 @@ describe("the permission matrix", () => {
     expect(permissionsOf("client_approver")).toEqual([]);
   });
 
-  it("keeps the owner-only rules: integrations, service keys and approving one's own draft (D-044, D-046)", () => {
-    for (const p of ["integrations.connect", "keys.manage_any", "content.approve_own", "billing.manage"] as const) {
+  it("keeps the owner-only rules: integrations, service keys, approving one's own draft, removing the business (D-044, D-046, D-061)", () => {
+    for (const p of ["integrations.connect", "keys.manage_any", "content.approve_own", "billing.manage", "organization.delete"] as const) {
       expect(ROLE_PERMISSIONS[p], p).toEqual(["owner"]);
     }
+    expect(can("admin", "organization.delete")).toBe(false);
     expect(can("admin", "integrations.connect")).toBe(false);
     expect(can("admin", "content.approve")).toBe(true);
     expect(can("admin", "content.approve_own")).toBe(false);
