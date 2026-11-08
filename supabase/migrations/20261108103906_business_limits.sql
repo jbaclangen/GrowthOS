@@ -1,6 +1,6 @@
 -- Several businesses per account, up to a limit set by the plan, and one trial per account (D-062;
--- docs/product/PLANS_AND_TIERS.md §2a, docs/architecture/ROLES_AND_PERMISSIONS.md §10). Not applied yet: applying it
--- needs the founder's yes.
+-- docs/product/PLANS_AND_TIERS.md §2a, docs/architecture/ROLES_AND_PERMISSIONS.md §10). Applied to the Supabase
+-- project 2026-11-08 as version 20261108103906, with the founder's yes.
 --
 -- An account is a person (auth.users). The businesses it owns are the organizations where its membership role is
 -- owner. The same rules live in web/src/lib/plans/business-limit.ts; business-limit.test.ts checks the numbers here

@@ -39,7 +39,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:20-27,34-43,66-67,
 - **Hits:** `is_member`, `is_org_admin`, `is_org_owner` and so every RLS policy; `has_permission` and `memberRole` and so every permission gate; `memberships_owner_guard`; `currentMembership`/`getCurrentOrg`, `currentOrganization`/`getOrgAccess` and the assistant's `getOrg`, and everything that takes "the business the user is working on" ([switch-business](../../processes/switch-business.md)); the business limit (`ownedOrganizations`, `create_organization()`; [account-trial](account-trial.md)); MCP and OAuth principal checks; seat counting (`web/src/lib/team/team-server.ts:77-86`) and the Team list.
 - **Does not hit:** [platform-admin](platform-admin.md) (separate table, no role column).
 
-Since D-062 a person can belong to several businesses and own up to their plan's limit; the limit itself needs `supabase/migrations/20261108150000_business_limits.sql` applied (not yet).
+Since D-062 a person can belong to several businesses and own up to their plan's limit, enforced by `supabase/migrations/20261108103906_business_limits.sql` (applied 2026-11-08).
 
 ## Surfaces
 

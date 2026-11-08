@@ -48,7 +48,7 @@ decision. Never describe the product as doing something the code doesn't do, wha
   and HubSpot revoked first, then the organization row deleted by cascade; no account deletion or export), choosing it
   from Settings → Businesses; one account can own several businesses (D-062: a header switcher, up to 2 / 4 / 8 owned
   businesses on Basic / Pro / Premium, one trial per account, enforced in `create_organization()`; its migration
-  `20261108150000` needs the founder's yes before it's applied). No CRM data in the diagnosis, other CRMs or CRM writes, publishing,
+  `20261108103906` applied 2026-11-08). No CRM data in the diagnosis, other CRMs or CRM writes, publishing,
   email sending, automation, analytics reporting, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
 - Research before building (D-052): a change that adds an integration, a paid vendor, a table, a price or a public claim

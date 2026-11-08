@@ -146,7 +146,7 @@ Do not build these without a decision recorded in [DECISION_LOG.md](../decisions
 - Billing and Stripe (prices decided in D-039, not built; Q-010). The trial clock and tier checks are in (D-030);
   paying is not.
 - Invite emails, buying extra seats, client portals for agencies. Several businesses per account, with a switcher
-  and a limit per plan, is built (D-062, 2026-11-08; migration not applied yet). The roles and permissions
+  and a limit per plan, is built (D-062, 2026-11-08). The roles and permissions
   foundation (D-046, 2026-10-23) and invitations by link, seat limits and role changes (2026-11-07) are built; client
   approvers stay for after the MVP (D-046, D-047); D-062 replaced the account types (D-045).
 - Long-form content (blogs, email campaigns, video scripts), repurposing, image generation.

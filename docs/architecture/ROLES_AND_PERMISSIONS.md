@@ -2,7 +2,7 @@
 
 **Status:** foundation built 2026-10-23 (D-046; research README §4 step 4; the spec step of D-052); invitations by
 link, seat limits, role changes and removals built 2026-11-07 (§8); removing a business built 2026-11-08 (§9, D-061); several businesses per account built 2026-11-08 (§10, D-062;
-its migration is not applied yet).
+migration applied 2026-11-08).
 Describes the code as it is. Invite emails (Q-010),
 buying extra seats (Stripe), client approval links (D-047) and seat prices on the site are not built; §7 lists what is
 open.
@@ -257,7 +257,7 @@ hand-off goes with it.
 
 ## 10. Several businesses per account
 
-Built 2026-11-08 (D-062); migration `20261108150000_business_limits.sql` not applied yet. Resolves Q-047 and Q-051.
+Built 2026-11-08 (D-062); migration `20261108103906_business_limits.sql` applied 2026-11-08 (version 20261108103906). Resolves Q-047 and Q-051.
 Limits and the trial rule: [PLANS_AND_TIERS.md](../product/PLANS_AND_TIERS.md) §2a.
 
 **The current business.** A person can belong to any number of businesses and own up to their account's limit. The

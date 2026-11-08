@@ -1,6 +1,6 @@
 // How many businesses one Braventa account may own, and which plan a new one starts on (founder decisions
 // 2026-11-08, D-062; docs/product/PLANS_AND_TIERS.md §2a). Pure logic, unit-tested; the database applies the same
-// rules in create_organization() (supabase/migrations/20261108150000_business_limits.sql), and
+// rules in create_organization() (supabase/migrations/20261108103906_business_limits.sql), and
 // business-limit.test.ts checks the two agree.
 //
 // An account is a person. The businesses it owns are the organizations where that person's role is owner. Deleting

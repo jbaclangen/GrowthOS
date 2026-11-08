@@ -83,7 +83,7 @@ the growth score as the Search visibility module; Google Analytics 4 joined it t
    foundation is built (2026-10-23: `member_role`, `web/src/lib/team/roles.ts`, `has_permission()`, the gates and
    the approval rule; [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md)). Invitations by copied link,
    seat limits, role changes and removals are built (2026-11-07, §8 there). Several businesses per account with a
-   business switcher and limits per plan are built (2026-11-08, D-062; migration not applied yet). Next: invite
+   business switcher and limits per plan are built (2026-11-08, D-062). Next: invite
    emails and client approvers
    (free up to a cap per tier) with a single-use, signed approval link. Invite emails need transactional email
    (Q-010); charging for extra seats needs Stripe (item 2). D-045's account types were replaced by D-062's businesses per plan.

@@ -938,7 +938,7 @@ Spec: [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) §9. 
 
 ## D-062 — Several businesses per account, limited by plan; one trial per account
 **Status:** Founder (2026-11-08, in chat) for points 1 to 4; the details below them are Provisional. Supersedes D-045.
-Built in the code; migration `20261108150000_business_limits.sql` is **not applied** (needs the founder's yes).
+Built; migration `20261108103906_business_limits.sql` applied 2026-11-08 (version 20261108103906), with the founder's yes.
 Resolves Q-047 and Q-051. Spec: [PLANS_AND_TIERS.md](../product/PLANS_AND_TIERS.md) §2a,
 [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) §10. Moves PL-6 to Partial.
 1. **Business limit per account, by tier:** Basic 2, Pro 4, Premium 8. More than 8 needs a custom plan through

@@ -80,7 +80,7 @@ the dashboard lists the current business's.
 | # | Step | Status | Notes |
 |---|---|---|---|
 | 1 | Analyze several client websites from one account | Live | One business per client, up to the plan's limit (D-062) |
-| 2 | Keep clients isolated from one another | Live (in the code, D-062) | Each client is its own organization: its own members, AI budget and connections. Needs `20261108150000_business_limits.sql` applied for the limits |
+| 2 | Keep clients isolated from one another | Live (D-062) | Each client is its own organization: its own members, AI budget and connections |
 | 3 | One organization per client, with an organization switcher | Partial (PL-6) | Header switcher and Settings → Businesses (D-062) |
 | 4 | Invite colleagues or client approvers with roles | Partial (PL-6, CS-13) | Invites by copied link for every role except client approver (D-046) |
 | 5 | Client approves drafts in a client view | Future vision | |

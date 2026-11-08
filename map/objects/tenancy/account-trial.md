@@ -5,26 +5,26 @@ universe: live
 status: verified
 verified: 2026-11-08
 commit: 9bcdf0b
-entity: supabase/migrations/20261108150000_business_limits.sql
+entity: supabase/migrations/20261108103906_business_limits.sql
 ---
 
 # Account trial (`account_trials`) and the business limit
 
-The one 14-day Pro trial each account (person) gets, and the rule that an account owns at most 2 / 4 / 8 businesses on Basic / Pro / Premium (D-062). Migration not applied yet.
+The one 14-day Pro trial each account (person) gets, and the rule that an account owns at most 2 / 4 / 8 businesses on Basic / Pro / Premium (D-062). Migration applied 2026-11-08 (version 20261108103906).
 
 ## Why this shape
 
-The trial and the limit belong to a person, not to a business: deleting a business must free its place but must not give the trial back, so the row lives outside every organization and is keyed by `user_id`, with RLS on the user's own row instead of `is_member()` (`supabase/migrations/20261108150000_business_limits.sql:9-12,21-32`). The limit is enforced where businesses are created, `create_organization()`, under a per-account lock so two creates at once can't both pass the count (`:68-91`). The app checks first only to explain the refusal (`web/src/lib/plans/business-limit.ts:1-8`).
+The trial and the limit belong to a person, not to a business: deleting a business must free its place but must not give the trial back, so the row lives outside every organization and is keyed by `user_id`, with RLS on the user's own row instead of `is_member()` (`supabase/migrations/20261108103906_business_limits.sql:9-12,21-32`). The limit is enforced where businesses are created, `create_organization()`, under a per-account lock so two creates at once can't both pass the count (`:68-91`). The app checks first only to explain the refusal (`web/src/lib/plans/business-limit.ts:1-8`).
 
 ## Shape
 
-- `account_trials`: `user_id` PK (FK `auth.users`, cascade), `started_at`, `ends_at`; RLS read own row; no client writes — `supabase/migrations/20261108150000_business_limits.sql:22-32`; backfilled for every current owner — `:34-42`.
+- `account_trials`: `user_id` PK (FK `auth.users`, cascade), `started_at`, `ends_at`; RLS read own row; no client writes — `supabase/migrations/20261108103906_business_limits.sql:22-32`; backfilled for every current owner — `:34-42`.
 - `account_business_limit(uid)`: highest effective plan among owned businesses → 8 / 4 / 2; service only — `:48-66`.
 - `create_organization()`: lock, count `owner` memberships, refuse with SQLSTATE `BRV01`, then the account's highest paid plan or its one trial — `:68-117`.
 - Mirror in code: `BUSINESS_LIMITS`, `accountTier`, `businessUsage`, `limitMessage`, `newBusinessPlan` — `web/src/lib/plans/business-limit.ts:12-67`; `business-limit.test.ts` reads the SQL numbers.
 - `BRV01` turned into a message: `createBusiness` — `web/src/lib/organizations/create.ts:7-19`; `createOwnedBusiness`, `accountUsage` — `web/src/lib/organizations/limit-server.ts:9-24`.
 
-Citations: `supabase/migrations/20261108150000_business_limits.sql:9-117`; `web/src/lib/plans/business-limit.ts:12-67`; `web/src/lib/organizations/create.ts:7-19`; `web/src/lib/organizations/limit-server.ts:9-24`
+Citations: `supabase/migrations/20261108103906_business_limits.sql:9-117`; `web/src/lib/plans/business-limit.ts:12-67`; `web/src/lib/organizations/create.ts:7-19`; `web/src/lib/organizations/limit-server.ts:9-24`
 
 ## Connected to
 
@@ -47,5 +47,5 @@ Citations: `supabase/migrations/20261108150000_business_limits.sql:9-117`; `web/
 
 ## See
 
-- Source: `supabase/migrations/20261108150000_business_limits.sql`
+- Source: `supabase/migrations/20261108103906_business_limits.sql`
 - As built: `docs/product/PLANS_AND_TIERS.md` §2a

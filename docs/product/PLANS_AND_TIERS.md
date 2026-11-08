@@ -26,7 +26,7 @@ in code is `web/src/lib/plans/tiers.ts`; this document must match it.
 
 ## 2a. Businesses per account (D-062)
 
-Founder decisions 2026-11-08; built in the code, migration `20261108150000_business_limits.sql` not applied yet.
+Founder decisions 2026-11-08; built; migration `20261108103906_business_limits.sql` applied 2026-11-08 (version 20261108103906).
 
 | Plan | Businesses an account can own |
 |---|---|
