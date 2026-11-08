@@ -29,8 +29,8 @@ export const ROLE_LABELS: Record<Role, string> = {
   client_approver: "Client approver",
 };
 
-// One id per row of the research matrix (SEATS_ROLES_MODULES_2026-10-17.md §2). ROLES_AND_PERMISSIONS.md §2 says
-// where each one is enforced today.
+// One id per row of the research matrix (SEATS_ROLES_MODULES_2026-10-17.md §2), plus organization.delete (D-061),
+// which the research matrix doesn't have. ROLES_AND_PERMISSIONS.md §2 says where each one is enforced today.
 export const PERMISSIONS = [
   "billing.view",
   "billing.manage",
@@ -49,6 +49,7 @@ export const PERMISSIONS = [
   "reports.view",
   "reports.export",
   "assistant.use",
+  "organization.delete",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -71,6 +72,7 @@ export const PERMISSION_ACTIONS: Record<Permission, string> = {
   "reports.view": "see reports",
   "reports.export": "export reports",
   "assistant.use": "use the assistant",
+  "organization.delete": "remove the business",
 };
 
 const EDITORS: readonly Role[] = ["owner", "admin", "marketing_manager"];
@@ -99,6 +101,8 @@ export const ROLE_PERMISSIONS: Record<Permission, readonly Role[]> = {
   "reports.view": [...EDITORS, "social_media_manager", "analyst"],
   "reports.export": [...EDITORS, "analyst"],
   "assistant.use": [...DRAFTERS, "analyst"],
+  // Removing the business deletes everyone's data in it and can't be undone: owner only (D-061).
+  "organization.delete": ["owner"],
 };
 
 export function isRole(value: unknown): value is Role {

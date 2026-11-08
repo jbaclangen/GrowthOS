@@ -20,17 +20,20 @@ export const SNAPSHOT_TABLES: Record<GoogleProvider, string> = {
 
 type Db = SupabaseClient;
 
-async function revokeStored(ciphertexts: (string | null | undefined)[]) {
+// One result per distinct token (true when Google confirmed the revoke), and false for each unreadable one.
+async function revokeStored(ciphertexts: (string | null | undefined)[]): Promise<boolean[]> {
   const tokens = new Set<string>();
+  const unreadable: boolean[] = [];
   for (const c of ciphertexts) {
     if (!c) continue;
     try {
       tokens.add(decryptSecret(c));
     } catch {
       // Unreadable old token (key changed): nothing to revoke from here.
+      unreadable.push(false);
     }
   }
-  await Promise.all([...tokens].map((t) => revokeToken(t)));
+  return [...(await Promise.all([...tokens].map((t) => revokeToken(t)))), ...unreadable];
 }
 
 // Stores the connection after the OAuth callback: one row per granted product, replacing what was there, and the
@@ -110,4 +113,18 @@ export async function disconnectGoogle(db: Db, organizationId: string) {
   // Unreadable tokens: deleting them below still cuts Braventa off; the owner can also remove access in Google.
   await revokeStored(rows.map((r) => r.refresh_token_ciphertext));
   for (const r of rows) await clearConnection(db, organizationId, r.provider, r.id);
+}
+
+// Removing the business (D-061): revokes every stored Google token at Google and returns one result per token (empty
+// when none is stored). The rows and snapshots are deleted with the organization (on delete cascade), so nothing is
+// cleared here. Throws when the connections can't be read, so the business isn't deleted with a token Braventa never
+// tried to revoke.
+export async function revokeGoogleForRemoval(db: Db, organizationId: string): Promise<boolean[]> {
+  const { data, error } = await db
+    .from("integration_connections")
+    .select("refresh_token_ciphertext")
+    .eq("organization_id", organizationId)
+    .in("provider", GOOGLE_PROVIDERS as GoogleProvider[]);
+  if (error) throw new Error("The Google connection couldn't be read.");
+  return revokeStored((data ?? []).map((r) => r.refresh_token_ciphertext as string | null));
 }

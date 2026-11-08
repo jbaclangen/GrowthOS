@@ -878,3 +878,30 @@ env vars are set ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). Amends 
   and responsible for it (MSA §8); the start route refuses without it and the callback records it as the new
   `hubspot_connect` context in `legal_acceptances` (the migration widens its check).
 - Why: the founder chose the smallest privacy load and the same order Search Console used (connection, then module).
+
+## D-061 — Owners can remove a business, after typing DELETE APPROVED
+**Status:** Founder (2026-11-08, in chat: owners remove a business from Settings, guarded by typing "DELETE
+APPROVED"); the details below are Provisional. Built; migration `20261108090000_remove_business.sql` not applied yet
+(the code works without it: the log row goes to the server log). D-060 is taken by the CRM module spec (PR #65).
+Spec: [ROLES_AND_PERMISSIONS.md](../architecture/ROLES_AND_PERMISSIONS.md) §9. Moves PL-8 to Partial.
+- **A destructive capability, owner only.** New permission `organization.delete`, held by the owner alone, in
+  `roles.ts` and `has_permission()` (the migration replaces the function whole; `migration.test.ts` reads the newest
+  definition). `organizations` keeps no delete policy, so the only way to delete one is the server action, which
+  revokes the external tokens first.
+- **The phrase is checked on the server.** `DELETE APPROVED`, exactly: case and spacing count, nothing is trimmed.
+  The dialog's disabled button is a convenience; `removeBusiness` refuses without the permission (checked first) or
+  the phrase.
+- **Hard delete, at once, by cascade.** One `organizations` row is deleted and every tenant table goes with it (checked
+  in the live database and by `cascade.test.ts`). No grace period, soft delete or export first (Q-065).
+- **Revoke before deleting.** Google tokens are revoked at Google; the HubSpot app is uninstalled and its token
+  revoked, as HubSpot's Developer Terms §4 ask. A failed revoke doesn't block the removal (the token is deleted
+  either way); the dashboard then tells the owner how to remove the access themselves.
+- **A running analysis blocks removal** until it finishes (stale jobs are failed first), so paid model calls don't run
+  on for a business that is gone.
+- **Log without personal data.** `organization_deletions` keeps the deleted organization's id, plan, creation time,
+  member count and revoke outcomes; no user, email, business name or website. It records that a removal happened,
+  not who asked for it.
+- **Afterwards** the dashboard opens the user's next business (the oldest membership, Q-047) or the no-business state,
+  which leads to onboarding. Accounts are untouched; account deletion stays out of the app.
+- Why: the founder wants owners to be able to leave cleanly, and HubSpot's terms require deleting data and tokens when
+  a customer stops. Owner only and the typed phrase because removal deletes every member's work and can't be undone.

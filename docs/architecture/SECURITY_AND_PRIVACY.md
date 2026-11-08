@@ -334,7 +334,14 @@ human approval, unless the client has explicitly configured an authorised automa
 
 What exists:
 - Deleting an organization cascades to every tenant table (profiles, knowledge, calendars, items, jobs,
-  usage, reports, integrations, subscriptions).
+  usage, reports, integrations and their snapshots, keys, OAuth rows, invitations, team events, legal acceptances made
+  for it, subscriptions); `web/src/lib/organizations/cascade.test.ts` checks every new tenant table.
+- The owner can remove a business in Settings (D-061; [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §9): after
+  typing `DELETE APPROVED`, the server revokes the Google tokens at Google, uninstalls the HubSpot app and revokes its
+  token (HubSpot's Developer Terms §4), then deletes the organization row. Refused while an analysis runs. What stays:
+  everyone's account, global rows (`oauth_clients`, `contact_requests`), the providers' own data, a grant whose revoke
+  failed (the dashboard says how to remove it), backups and logs for their windows, and one
+  `organization_deletions` row without personal data (§11).
 - Deleting an `auth.users` row cascades the person's own rows (memberships, platform-admin rows, personal access
   keys, OAuth grants, codes and tokens, `assistant_usage`) and sets every "by" column to null (who approved a draft,
   wrote it, started a job or an analysis, confirmed a diagnosis, changed a plan item, asked for an upgrade, created a
@@ -345,7 +352,7 @@ What exists:
   `web/src/lib/supabase/user-deletion.test.ts` fails if a new reference to `auth.users` has no `on delete` action.
 
 What is undecided / not implemented:
-- No user-facing account or organization deletion, no data export.
+- No user-facing account deletion, no data export (also not before removing a business).
 - No retention period for crawled pages (`knowledge_documents` accumulate per content hash), re-run
   artefacts, AI job inputs/outputs, or `ai_usage`.
 - `ai_jobs.output` (D-042): while an analysis runs, it holds copies of what later steps need: up to 20,000
@@ -386,9 +393,12 @@ What is undecided / not implemented:
   (sign-up, terms banner, analysis start, Search Console connect, access keys, OAuth approval), with version,
   documents and subject; append-only, written by the server with the secret key, each person reads their own rows;
   deleted with the user or the organization ([LEGAL_ACCEPTANCE.md](LEGAL_ACCEPTANCE.md)).
+- `organization_deletions` (2026-11-08, D-061): one row per business removed in Settings, kept after the business is
+  gone: its id, plan, creation time, member count and whether the Google and HubSpot revokes were confirmed. No user,
+  email, business name or website, so it records that a removal happened, not who asked for it. Service role only.
 - Not implemented: an audit log of other sensitive operations (sign-in events beyond Supabase's own auth logs,
   approvals history, integration connect/disconnect, platform-admin access,
-  exports/deletions). Recommended: an `audit_events` table (M-read, admin-client writes) before multi-user
+  exports, account deletions). Recommended: an `audit_events` table (M-read, admin-client writes) before multi-user
   orgs or integrations.
 
 ## 12. Email consent separation

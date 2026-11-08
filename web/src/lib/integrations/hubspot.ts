@@ -365,3 +365,23 @@ export async function disconnectHubSpot(db: Db, organizationId: string) {
     .eq("organization_id", organizationId);
   if (error || snapError) throw new Error("HubSpot wasn't fully disconnected. Try again.");
 }
+
+// Removing the business (D-061): uninstalls the app from the portal and revokes the refresh token, as disconnecting
+// does, and returns [true] when HubSpot confirmed the uninstall, [false] when it didn't or the token was unreadable,
+// [] when no token is stored. The row and snapshots are deleted with the organization (on delete cascade). Throws
+// when the connection can't be read, so the business isn't deleted with a token Braventa never tried to revoke.
+export async function revokeHubSpotForRemoval(db: Db, organizationId: string): Promise<boolean[]> {
+  const { data: conn, error } = await db
+    .from("integration_connections")
+    .select("refresh_token_ciphertext")
+    .eq("organization_id", organizationId)
+    .eq("provider", HUBSPOT_PROVIDER)
+    .maybeSingle();
+  if (error) throw new Error("The HubSpot connection couldn't be read.");
+  if (!conn?.refresh_token_ciphertext) return [];
+  try {
+    return [await uninstallHubSpot(decryptSecret(conn.refresh_token_ciphertext))];
+  } catch {
+    return [false];
+  }
+}

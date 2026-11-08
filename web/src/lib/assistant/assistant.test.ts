@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { FEATURES, canUse, effectiveAccess } from "@/lib/plans/tiers";
 import { mcpAccess } from "@/lib/mcp/access";
+import { REMOVE_BUSINESS_PHRASE } from "@/lib/organizations/removal";
 import { ASSISTANT_LIMITS, ASSISTANT_NEEDS_PLAN, assistantAccess, checkAssistantLimits } from "./access";
 import { APP_ROUTES, knowledgeForPrompt, knowledgeSections, renderGuide } from "./knowledge";
 import {
@@ -291,6 +292,16 @@ describe("knowledge base", () => {
       expect(owner, label).toContain(label);
       expect(section("report"), label).toContain(label);
     }
+  });
+
+  it("quotes only labels and the phrase the Remove business dialog really has", () => {
+    const dialog = source("../../app/settings/remove-business-section.tsx");
+    for (const label of ["Remove business", "Keep the business"]) {
+      expect(dialog, label).toContain(label);
+      expect(section("remove-business"), label).toContain(`**${label}**`);
+    }
+    expect(section("remove-business")).toContain(`**${REMOVE_BUSINESS_PHRASE}**`);
+    expect(dialog).toContain('id="remove-business"');
   });
 
   it("quotes only labels the Connect your tools step really has", () => {
