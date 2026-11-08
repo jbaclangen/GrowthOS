@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: "Braventa — Run your growth as one system", template: "%s · Braventa" },
   description:
-    "Braventa is a business growth system for service businesses. Know what to do next, then get it done — with you approving everything.",
+    "Braventa is a business growth system for service businesses. Run your growth as one system: know what to do next, then get it done — with you approving everything.",
   applicationName: "Braventa",
   openGraph: { siteName: "Braventa", type: "website" },
   // Hidden from search engines until launch; see src/lib/indexing.ts.

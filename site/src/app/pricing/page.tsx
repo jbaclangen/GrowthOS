@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Band, PageHero } from "@/components/ui";
-import { PRIMARY_CTA } from "@/lib/site";
+import { PRICES, PRIMARY_CTA, SEATS, TAGLINE } from "@/lib/site";
 // The same tier list the app enforces (D-030), so the public plans can't drift from the product.
 import { FEATURES, TIERS, TRIAL_DAYS, proHasLiveFeatures, type Tier } from "../../../../web/src/lib/plans/tiers";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: `Basic, Pro and Premium plans, with a ${TRIAL_DAYS}-day Pro trial. Pricing is being finalized during early access.`,
+  description: `Basic ${PRICES.basic}, Pro ${PRICES.pro} and Premium ${PRICES.premium.toLowerCase()} a month, with a ${TRIAL_DAYS}-day Pro trial. One system for your website, your marketing, your tools and your plan.`,
 };
 
 const ORDER: Tier[] = ["basic", "pro", "premium"];
@@ -16,39 +16,44 @@ const PLUS: Record<Tier, string | null> = { basic: null, pro: "Everything in Bas
 const FAQ = [
   {
     q: "How does the trial work?",
-    a: `Every new account starts with ${TRIAL_DAYS} days of Pro. When the trial ends, you continue on Basic, a paid plan, and nothing is deleted.`,
+    a: `Every new account starts with ${TRIAL_DAYS} days of Pro. When the trial ends, you continue on Basic, a paid plan, and nothing is deleted. Connected tools pause on Basic and their data is kept.`,
   },
   {
     q: "What does Basic do?",
-    a: "Braventa analyzes your business, diagnoses what's holding it back and gives you a prioritized plan with drafted content. You carry out the changes yourself.",
+    a: "Braventa analyzes your website, diagnoses what's holding the business back and gives you one prioritized plan with a 30-day content plan and drafted posts. You carry out the changes yourself.",
   },
   {
     q: "What does Pro add?",
-    a: "Pro connects your Google Search Console and Google Analytics 4 with one Google sign-in, read-only: your search and website analytics data are shown in Braventa and used in your diagnosis and growth score. Coming soon: connections to your other tools and AI agents that carry out approved changes for you.",
+    a: "Your own numbers. Connect Google Search Console and Google Analytics 4 with one Google sign-in, and your search and website data are used in your diagnosis and growth score. Connect HubSpot to see your contacts and deals as counts. All read-only. Coming soon: more tools and AI agents that carry out approved changes for you.",
+  },
+  {
+    q: "Can my team use it?",
+    a: `Yes. Invite people by a link you copy, and give each person a role. Basic includes ${SEATS.basic}, Pro ${SEATS.pro}, and Premium ${SEATS.premium}. Extra seats can't be bought online yet.`,
   },
   {
     q: "Will anything happen without my approval?",
-    a: "No. On every plan, nothing is published or changed for your business until you approve it.",
+    a: "No. On every plan, nothing is published or changed for your business until it's approved. No one approves their own draft except the owner.",
   },
   {
     q: "Can my AI assistant fill in Braventa for me?",
     a: `Yes, if you use Claude Desktop or Claude Code. Create an access key in the app and your assistant can answer the setup and discovery questions for you; you still confirm the diagnosis and approve posts in the app. It works on every plan during the ${TRIAL_DAYS}-day trial. After the trial, access pauses until your business subscribes to a plan, and comes back as soon as it does. Connectors for claude.ai and ChatGPT are coming soon.`,
   },
   {
-    q: "Why no prices yet?",
-    a: "We're setting pricing with our early-access customers. Request early access and we'll walk you through it.",
+    q: "Can I pay online?",
+    a: "Not yet. During early access we set up your plan with you directly — use Talk to us in the app or contact us here.",
   },
   {
-    q: "How do I change plans?",
-    a: "There's no online checkout yet. During early access, plan changes are arranged with us directly — use Talk to us in the app or contact us here.",
+    q: "Can I leave?",
+    a: "Yes. The owner can remove a business from Settings. Its data is deleted at once and can't be recovered, and Braventa's access to your Google and HubSpot accounts is revoked.",
   },
 ];
 
 export default function Pricing() {
   return (
     <>
-      <PageHero eyebrow="Pricing" title="Plans that grow with your business.">
-        Every account starts with a {TRIAL_DAYS}-day Pro trial. Pricing is being finalized during early access.
+      <PageHero eyebrow="Pricing" title="One system, one price a month.">
+        Every account starts with a {TRIAL_DAYS}-day Pro trial. Then choose the plan that fits: Basic for a clear plan,
+        Pro to bring in your own numbers, Premium for the systems your business runs on.
       </PageHero>
 
       <Band>
@@ -66,8 +71,12 @@ export default function Pricing() {
                 </h2>
                 {tier === "pro" && <span className="chip bg-accent-soft text-accent-soft-foreground">{TRIAL_DAYS}-day trial</span>}
               </div>
-              <p className="mt-2 text-muted">{TIERS[tier].summary}</p>
-              <p className="mt-4 font-display text-lg font-bold">{tier === "premium" ? "Custom" : "Pricing to be announced"}</p>
+              <p className="mt-4">
+                <span className="font-display text-4xl font-bold">{PRICES[tier]}</span>
+                <span className="text-muted"> a month</span>
+              </p>
+              <p className="mt-3 text-muted">{TIERS[tier].summary}</p>
+              <p className="mt-3 text-sm font-semibold">Team: {SEATS[tier]}</p>
               {PLUS[tier] && <p className="mt-6 text-sm font-semibold">{PLUS[tier]}</p>}
               <ul className="mt-3 flex-1 space-y-3">
                 {FEATURES.filter((f) => f.minTier === tier).map((f) => (
@@ -93,9 +102,15 @@ export default function Pricing() {
             </section>
           ))}
         </div>
+        <p className="mt-6 text-sm text-muted">
+          Prices are in US dollars. There&apos;s no online checkout yet: during early access, we set up your plan with you.{" "}
+          <Link href="/contact" className="font-semibold text-accent hover:underline">
+            Talk to us
+          </Link>
+        </p>
         {/* The AI assistant connection (MCP) isn't tier-gated like FEATURES: every plan during the trial, then any
             subscribed plan. Kept out of tiers.ts so the rule is stated exactly as decided. */}
-        <section className="card mt-4" aria-labelledby="assistant-title">
+        <section className="card mt-8" aria-labelledby="assistant-title">
           <div className="flex flex-wrap items-center gap-2">
             <h2 id="assistant-title" className="text-xl">
               Connect your AI assistant
@@ -123,6 +138,21 @@ export default function Pricing() {
             </div>
           ))}
         </dl>
+      </Band>
+
+      <Band tone="ink" labelledBy="cta-title">
+        <p className="section-head text-brand-volt">Early access</p>
+        <h2 id="cta-title" className="mt-3 text-3xl leading-tight md:text-5xl">
+          {TAGLINE}
+        </h2>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link href={PRIMARY_CTA.href} className="btn-primary">
+            {PRIMARY_CTA.label}
+          </Link>
+          <Link href="/contact" className="btn-secondary">
+            Talk to us
+          </Link>
+        </div>
       </Band>
     </>
   );
