@@ -55,7 +55,9 @@ Supabase CLI so the two stay in step.
 - A person can belong to several organizations and own up to their plan's limit (D-062): Basic 2, Pro 4, Premium 8,
   enforced by `create_organization()`. The app works on the one chosen in the `brv_business` cookie (else the oldest
   membership).
-  `getCurrentOrg()` (`web/src/lib/auth.ts`) takes the oldest membership.
+  `getCurrentOrg()` (`web/src/lib/auth.ts`) returns that business when the user is a member of it, else their oldest
+  membership (`currentMembership` in `web/src/lib/memberships.ts`); given an organization id that a form or the OAuth
+  state names, it returns that business or null when the user isn't a member, never another one.
 - **Platform admins** (`platform_admins`) pass `is_member()` and `is_org_admin()` for **every** organization.
   There is no UI for this; rows are inserted manually.
 

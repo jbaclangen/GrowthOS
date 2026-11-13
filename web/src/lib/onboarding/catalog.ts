@@ -7,7 +7,7 @@
 // - Solution availability must match what the product actually does today (CLAUDE.md: never present
 //   planned features as live). Update it when a capability ships.
 
-export const CATALOG_VERSION = 1;
+export const CATALOG_VERSION = 2;
 
 export type Availability = "available" | "planned" | "manual";
 
@@ -37,15 +37,19 @@ export const SOLUTIONS = {
     availability: "planned",
     description: "Running automated workflows is planned, not available yet.",
   },
+  // Performance reporting (reports on results over time) isn't built. Reading Search Console and GA4 into the
+  // diagnosis (D-051 step 6, D-058) is a different capability: it would need its own id, never this one (rule above).
   analytics: {
     label: "Performance reporting",
     availability: "planned",
     description: "Reporting from connected analytics is planned, not available yet.",
   },
+  // Ask Braventa (D-043) and the AI assistant connection (D-036): during the trial and on any plan.
   ai_assistant: {
-    label: "Business assistant",
-    availability: "planned",
-    description: "An assistant that answers questions about your business is planned, not available yet.",
+    label: "AI assistant (Ask Braventa)",
+    availability: "available",
+    description:
+      "Ask Braventa answers questions about how Braventa works and about your latest report; it can't make changes. You can also connect Claude Code or Claude Desktop with a personal access key to answer Braventa's setup questions for you.",
   },
   lifecycle_campaigns: {
     label: "Customer follow-up and retention",

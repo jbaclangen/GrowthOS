@@ -42,8 +42,9 @@ service-key policies, so a matrix change doesn't reach them until they move to `
 | `client_approver` | Client approver | An outside client who approves assigned items through a signed link (D-047, not built). No permission today |
 
 The old `member` value (owner, admin, member before 2026-10-23) was mapped to `analyst`, the least privilege: in the
-production database that touched 0 rows (2 owners, nothing else). The column's default is `analyst`; nothing inserts a
-membership today except `create_organization()`, which sets `owner`. The previous enum type (renamed `member_role_v1`
+production database that touched 0 rows (2 owners, nothing else). The column's default is `analyst`; two things insert
+a membership today: `create_organization()`, which sets `owner`, and accepting an invite (§8,
+`app/invite/[token]/actions.ts`, secret key), which sets the invite's role, never `owner`. The previous enum type (renamed `member_role_v1`
 by the migration) was dropped from the SQL editor the same day, because the MCP tool refuses destructive statements;
 that drop isn't a recorded migration.
 
@@ -61,7 +62,7 @@ enforces yet is still in the matrix so the next feature doesn't invent its own r
 | `billing.view` | See the plan, credits and invoices | Not yet: no billing. `/plans` and its "Talk to us" request stay open to every member |
 | `billing.manage` | Change the plan, pay, top up | Not yet: no billing |
 | `team.manage` | Invite, change roles, remove members | Settings → Team and `app/settings/team-actions.ts`, with the manage-below-your-role rule (§8). RLS on `memberships` (`is_org_admin`) allows the same two roles |
-| `integrations.connect` | Connect, choose a property for, reconnect and disconnect a tool (Google Search Console) | `GET /api/integrations/google/start` and `callback`, `chooseSearchConsoleProperty`, `disconnectSearchConsoleAction`, the Search Console card and the "Connect your tools" plan line (`lib/integrations/connect-step.ts`) |
+| `integrations.connect` | Connect, choose a property for, reconnect and disconnect a tool (Google: Search Console and Google Analytics 4; HubSpot) | `GET /api/integrations/google/start` and `callback`, `GET /api/integrations/hubspot/start` and `callback`; in `app/settings/connections-actions.ts` `chooseSearchConsoleProperty`, `chooseAnalyticsProperty`, `disconnectGoogleAction` and `disconnectHubSpotAction` (refreshing data needs no permission); the Search Console, Google Analytics and HubSpot cards and the "Connect your tools" plan line (`lib/integrations/connect-step.ts`) |
 | `keys.manage_own` | Create and revoke a personal access key | `createAccessKey` and the Settings key form, once the user has a business (§6). Revoking one's own key isn't gated (RLS: own rows only) |
 | `keys.manage_any` | Create and revoke service keys; disconnect any app, not only one's own | `createServiceKey`, the Service keys section, `disconnectApp` for another person's grant; RLS `is_org_owner` on service keys |
 | `profile.edit` | Edit the business profile and answer discovery | `saveOwnerInputs`; every onboarding action (`submitDiscovery`, `skipDiscovery`, `submitReview`, `continueAfterConnect`, `submitFollowUps`, `skipFollowUps`); MCP `braventa_submit_discovery`, `braventa_confirm_priorities`, `braventa_answer_follow_up_questions` |
@@ -191,8 +192,8 @@ app. Client approvers can't be invited until D-047's approval link exists. Every
 (`team_invitations.token_hash`). A link works once, for 7 days, and only for an account with the invited address.
 Inviting the same address again withdraws the old link. A signed-out invitee is sent to sign in or create an account
 and comes back to the link (`?next=`, through the email confirmation too); selecting Join checks everything again,
-claims the invite and adds the membership. An account that already belongs to a business can't join a second one yet
-(Q-051).
+claims the invite and adds the membership. Belonging to another business doesn't block joining (D-062, §10;
+`acceptBlocker`), and the joined business becomes the current one.
 
 **Seats (D-046).** Full seats 2 / 5 / 10 on Basic / Pro (and the trial) / Premium; analyst seats 5 / 10 / unlimited.
 Every role except analyst and client approver takes a full seat, the owner's included. Open invites hold their seat.
