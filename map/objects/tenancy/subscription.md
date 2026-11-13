@@ -3,8 +3,8 @@ type: object
 cluster: tenancy
 universe: ghost
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-14
+commit: 71a42e1
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -14,16 +14,16 @@ A billing-state table from the foundation schema that nothing writes or reads: t
 
 ## Why this shape
 
-The foundation migration anticipated Stripe (`stripe_customer_id`, `stripe_subscription_id`), but billing is not built; tiers and the trial were implemented in code instead (`supabase/migrations/20261011042846_plan_tiers_and_trial.sql:1-2`, D-030). The roadmap keeps the table for Stripe subscriptions later (`docs/product/ROADMAP.md:62-63`, PL-7).
+The foundation migration anticipated Stripe (`stripe_customer_id`, `stripe_subscription_id`), but billing is not built; tiers and the trial were implemented in code instead (`supabase/migrations/20261011042846_plan_tiers_and_trial.sql:1-2`, D-030). The roadmap keeps the table for Stripe subscriptions later (`docs/product/ROADMAP.md:63-64`, PL-7).
 
 ## Shape
 
 - Columns: `organization_id` (unique, one per organization), `stripe_customer_id`, `stripe_subscription_id`, `plan` default `trial`, `status` default `trialing`, `current_period_end`, timestamps — `supabase/migrations/20261010061028_foundation.sql:263-273`.
 - RLS "members read" only; writes would be server-only — `supabase/migrations/20261010061028_foundation.sql:311-320`. `touch_updated_at` trigger — `:337`.
 - No reference in `web/src` at this commit (grep for `subscriptions`; `web/src/lib/plans/subscription.ts` is a function name, not this table — `web/src/lib/plans/subscription.ts:5-7` reads `organizations`).
-- Documented as unused: `docs/architecture/DATA_MODEL.md:116`, `docs/product/MVP_SCOPE.md:81-83`.
+- Documented as unused: `docs/architecture/DATA_MODEL.md:123`, `docs/product/MVP_SCOPE.md:82-84`.
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:263-273,311-320,337`; `docs/architecture/DATA_MODEL.md:116`; `docs/product/ROADMAP.md:62-63`
+Citations: `supabase/migrations/20261010061028_foundation.sql:263-273,311-320,337`; `web/src/lib/plans/subscription.ts:5-7`; `docs/architecture/DATA_MODEL.md:123`; `docs/product/MVP_SCOPE.md:82-84`; `docs/product/ROADMAP.md:63-64`
 
 ## Connected to
 
@@ -34,7 +34,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:263-273,311-320,33
 
 ## If you change this
 
-- **Hits:** nothing in the app; `docs/architecture/DATA_MODEL.md:116`.
+- **Hits:** nothing in the app; `docs/architecture/DATA_MODEL.md:123`; Remove business deletes the row with its organization (`on delete cascade`, `supabase/migrations/20261010061028_foundation.sql:265`).
 - **Does not hit:** [plan-tier](plan-tier.md) or any gate — none reads this table. Do not build a gate on it until billing writes it.
 
 ## Surfaces
@@ -42,7 +42,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:263-273,311-320,33
 | Surface | Role |
 |---|---|
 | App pages, routes, jobs | none |
-| Planned Stripe billing (`docs/product/ROADMAP.md:62-63`) | would write (ghost) |
+| Planned Stripe billing (`docs/product/ROADMAP.md:63-64`) | would write (ghost) |
 
 ## See
 

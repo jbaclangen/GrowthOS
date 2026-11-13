@@ -3,52 +3,52 @@ type: object
 cluster: tenancy
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 71a42e1
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
 # Organization (`organizations`)
 
-The tenant root: every tenant table carries its `organization_id`, and its `plan` and `trial_ends_at` are the only tier state because there is no billing.
+The tenant root (a "business" in the product): every tenant table carries its `organization_id`, and its `plan` and `trial_ends_at` are the only tier state because there is no billing.
 
 ## Why this shape
 
-One organization per user in the MVP, created by the `create_organization` RPC on the first analysis or the first access key, with the caller as owner (`supabase/migrations/20261010061028_foundation.sql:57-72`, `docs/architecture/DATA_MODEL.md:52`). The effective tier is computed in code from `plan` and `trial_ends_at` rather than from a billing record (`supabase/migrations/20261011042846_plan_tiers_and_trial.sql:1-2`). Signed-in users may update only `name` and `slug`; plan, trial and budget change only through trusted server code (`supabase/migrations/20261011042846_plan_tiers_and_trial.sql:15-18`).
+A person can belong to several organizations and own up to their plan's limit (D-062, `docs/architecture/DATA_MODEL.md:55-57`). Each is created by the `create_organization` RPC — on the first analysis, the first access key or Add a business — with the caller as owner; the current definition also enforces the account's business limit and picks the plan and trial ([account-trial](account-trial.md); `supabase/migrations/20261108103906_business_limits.sql:68-118`, first version `supabase/migrations/20261010061028_foundation.sql:57-72`). The effective tier is computed in code from `plan` and `trial_ends_at` rather than from a billing record (`supabase/migrations/20261011042846_plan_tiers_and_trial.sql:1-2`). Signed-in users may update only `name` and `slug`; plan, trial and budget change only through trusted server code (`supabase/migrations/20261011042846_plan_tiers_and_trial.sql:15-18`).
 
 ## Shape
 
 - Columns `id`, `name`, `slug` (unique), `plan` (default `trial`), `monthly_ai_budget_usd` (default 5), `created_at` — `supabase/migrations/20261010061028_foundation.sql:9-16`.
-- `plan` check `trial`/`basic`/`pro`/`premium` — `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:6-7`; `trial_ends_at` not null, default now + 14 days — `:10-13`.
+- `plan` check `trial`/`basic`/`pro`/`premium` — `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:6-7`; `trial_ends_at` not null, default now + 14 days — `:10-13`. `create_organization` sets both explicitly: the account's highest paid plan, else `trial` with the account's one trial end — `supabase/migrations/20261108103906_business_limits.sql:92-110`.
 - No `organization_id` of its own. RLS: "members read org" `supabase/migrations/20261010061028_foundation.sql:282-283`, "admins update org" `:284-285`, narrowed by the column grant above. No insert or delete policy: rows come only from `create_organization`, and the one delete path is the owner's Remove business, which revokes external tokens first and relies on every tenant table's cascade ([remove-business](../../processes/remove-business.md), logged in [organization-deletion](organization-deletion.md)).
 - The AI budget check reads `monthly_ai_budget_usd` against the `ai_spend_mtd` view and fails closed — `web/src/lib/ai/router.ts:96-105`; view `supabase/migrations/20261010061028_foundation.sql:345-349`.
-- `plan, trial_ends_at` are read wherever a gate is decided: the scoring step and the diagnosis update (`reviseDiagnosis`), both through `enabledModules` `web/src/lib/modules/server.ts:13`; Search Console `web/src/lib/integrations/search-console.ts:430,578`, `web/src/app/api/integrations/google/start/route.ts:39`, `web/src/app/api/integrations/google/callback/route.ts:59-63`, `web/src/app/search/page.tsx:45`, `web/src/components/connections/search-console-card.tsx:58`, `web/src/app/onboarding/[sessionId]/connect/page.tsx:54`; the AI assistant connection `web/src/lib/mcp/auth.ts:23,75`, `web/src/app/settings/page.tsx:42`, `web/src/lib/memberships.ts:45` (OAuth consent page); the in-app assistant and `/plans`, both through `firstOrganization` `web/src/lib/memberships.ts:31` (`web/src/app/api/assistant/route.ts:65`, `web/src/lib/plans/access.ts:16`) (grep `trial_ends_at` at this commit).
+- `plan, trial_ends_at` are read wherever a gate is decided (grep `trial_ends_at` at this commit): the scoring step and the diagnosis update, both through `enabledModules` `web/src/lib/modules/server.ts:13`; Search Console `web/src/lib/integrations/search-console.ts:391,506`; Google Analytics 4 `web/src/lib/integrations/google-analytics.ts:399,526`; HubSpot sync `web/src/lib/integrations/hubspot.ts:273`; the Google and HubSpot start and callback routes `web/src/app/api/integrations/google/start/route.ts:44`, `web/src/app/api/integrations/google/callback/route.ts:68`, `web/src/app/api/integrations/hubspot/start/route.ts:43`, `web/src/app/api/integrations/hubspot/callback/route.ts:60`; `/search` `web/src/app/search/page.tsx:45`; the connection cards `web/src/components/connections/search-console-card.tsx:59`, `web/src/components/connections/analytics-card.tsx:56`, `web/src/components/connections/hubspot-card.tsx:58`; the connect step `web/src/app/onboarding/[sessionId]/connect/page.tsx:61`; the AI assistant connection `web/src/lib/mcp/auth.ts:23,75`, `web/src/app/settings/page.tsx:43`; seats `web/src/lib/team/team-server.ts:79`; and every membership read, which joins the organization's plan — `web/src/lib/memberships.ts:17` (the in-app assistant and `/plans` through `currentOrganization`, the header switcher, Settings → Businesses, the OAuth consent page and the business limit).
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:9-16,57-72,282-285,345-349`; `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:1-2,6-7,10-13,15-18`; `web/src/lib/ai/router.ts:96-105`
+Citations: `supabase/migrations/20261010061028_foundation.sql:9-16,57-72,282-285,345-349`; `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:1-2,6-7,10-13,15-18`; `supabase/migrations/20261108103906_business_limits.sql:68-118`; `web/src/lib/ai/router.ts:96-105`; `web/src/lib/memberships.ts:17`; `docs/architecture/DATA_MODEL.md:55-57`
 
 ## Connected to
 
-- **owns:** [membership](membership.md), [upgrade-request](upgrade-request.md), [subscription](subscription.md) (ghost), [business-profile](../onboarding/business-profile.md), [onboarding-session](../onboarding/onboarding-session.md), [organization-module](../modules/organization-module.md), [module-run](../modules/module-run.md), [ai-job](../pipeline/ai-job.md), [integration-connection](../integrations/integration-connection.md), [mcp-access-key](../access/mcp-access-key.md)
+- **owns:** [membership](membership.md), [upgrade-request](upgrade-request.md), [team-invitation](team-invitation.md), [subscription](subscription.md) (ghost), [business-profile](../onboarding/business-profile.md), [onboarding-session](../onboarding/onboarding-session.md), [organization-module](../modules/organization-module.md), [module-run](../modules/module-run.md), [ai-job](../pipeline/ai-job.md), [integration-connection](../integrations/integration-connection.md), [mcp-access-key](../access/mcp-access-key.md)
 - **owned-by:** none (tenant root)
-- **joins:** [member-role](member-role.md) through membership; [plan-tier](plan-tier.md) is computed from `plan` and `trial_ends_at`
-- **looks-like-but-is-not:** [business-profile](../onboarding/business-profile.md) — the analysed business; an organization can hold several profiles (`supabase/migrations/20261010061028_foundation.sql:77-79`, `web/src/app/dashboard/page.tsx:31-34`)
+- **joins:** [member-role](member-role.md) through membership; [plan-tier](plan-tier.md) is computed from `plan` and `trial_ends_at`; [account-trial](account-trial.md) (the owner's account sets the plan and trial at creation and limits how many it may own)
+- **looks-like-but-is-not:** [business-profile](../onboarding/business-profile.md) — the analysed business; an organization can hold several profiles (`supabase/migrations/20261010061028_foundation.sql:77-79`, `web/src/app/dashboard/page.tsx:44-48`)
 
 ## If you change this
 
-- **Hits:** `effectiveAccess` and every gate built on it ([plan-tier](plan-tier.md)); the budget check `web/src/lib/ai/router.ts:96-105`; `create_organization`; the column grant `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:17-18`; `docs/architecture/DATA_MODEL.md:77`; a new tenant table must cascade from here or Remove business leaves it behind ([remove-business](../../processes/remove-business.md)).
+- **Hits:** `effectiveAccess` and every gate built on it ([plan-tier](plan-tier.md)); the budget check `web/src/lib/ai/router.ts:96-105`; `create_organization`; the column grant `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:17-18`; `docs/architecture/DATA_MODEL.md:82`; a new tenant table must cascade from here or Remove business leaves it behind ([remove-business](../../processes/remove-business.md)).
 - **Does not hit:** [business-profile](../onboarding/business-profile.md) (profile fields live there, not here); [subscription](subscription.md) (nothing reads it).
 
 ## Surfaces
 
 | Surface | Role |
 |---|---|
-| `startAnalysis` (`web/src/app/analysis/actions.ts:51`) | writes (rpc `create_organization`) |
-| `createAccessKey` (`web/src/app/settings/actions.ts:34`) | writes (rpc `create_organization`) |
-| `/plans` and the header plan label via `getOrgAccess` (`web/src/lib/plans/access.ts:11-19`; `web/src/app/layout.tsx:56`) | reads |
-| `/settings` (`web/src/app/settings/page.tsx:42`) | reads |
+| `startAnalysis` (`web/src/app/analysis/actions.ts:61`) → `createBusiness` (`web/src/lib/organizations/create.ts:15`) | writes (rpc `create_organization`) |
+| `createAccessKey` (`web/src/app/settings/actions.ts:51`) | writes (rpc `create_organization`, same path) |
+| `/plans` and the header plan label via `getOrgAccess` (`web/src/lib/plans/access.ts:13-21`; `web/src/app/layout.tsx:62`) | reads |
+| `/settings` (`web/src/app/settings/page.tsx:43`) | reads |
 | `runWorker` (`web/src/lib/ai/router.ts:97`) | reads budget |
 | Scoring step and diagnosis update via `enabledModules` (`web/src/lib/modules/server.ts:13`) | reads tier |
-| Search Console sync (`web/src/lib/integrations/search-console.ts:430`) | reads tier |
+| Search Console sync (`web/src/lib/integrations/search-console.ts:391`) | reads tier |
 | Braventa team in Supabase (`web/src/lib/plans/tiers.ts:2-3`) | writes `plan` by hand |
 | `removeBusiness` ([remove-business](../../processes/remove-business.md)) | deletes |
 

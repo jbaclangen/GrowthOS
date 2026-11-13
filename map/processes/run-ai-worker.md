@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 71a42e1
 consumes: ["[[ai-worker]]", "[[organization]]", "[[ai-usage]]"]
 produces: ["[[ai-usage]]"]
 ---
@@ -18,18 +18,18 @@ Input: `runWorker({ organizationId, worker, messages, jobId?, json?, maxTokens?,
 
 ## Why this shape
 
-If features called OpenRouter directly, the budget, the zero-data-retention model list and the usage log would each have several homes; CLAUDE.md makes the router the only caller (`CLAUDE.md:84-85`). The budget check fails closed, so an unreadable budget never means unlimited spend (`web/src/lib/ai/router.ts:94-102`). Failed calls are logged with cost 0, so failure rates are visible per worker and model (`:130-134`).
+If features called OpenRouter directly, the budget, the zero-data-retention model list and the usage log would each have several homes; CLAUDE.md makes the router the only caller (`CLAUDE.md:90-91`). The budget check fails closed, so an unreadable budget never means unlimited spend (`web/src/lib/ai/router.ts:94-102`). Failed calls are logged with cost 0, so failure rates are visible per worker and model (`:130-134`).
 
 ## Steps
 
 1. Task class from `WORKERS[worker]`; `highRisk` moves it up one tier via `ESCALATE` — `web/src/lib/ai/router.ts:40-65,90-91`; `:31-32`.
-2. Model list by `AI_MODE`: paid unless exactly `free` (free models are refused under ZDR, D-037) — `:34-38`; tables `:12-29`.
-3. Budget: read `monthly_ai_budget_usd` and `ai_spend_mtd.cost_usd` with the admin client; read error → throw; spend ≥ budget → `BudgetExceededError` — `:92-105`; view `supabase/migrations/20261010061028_foundation.sql:345-349`; default budget 5 — `:14`.
-4. `chat({ models, messages: [system(worker, today), …], json, maxTokens, timeoutMs, retry })` — `:120-129`; system prompt `:69-74`; OpenRouter client `web/src/lib/integrations/openrouter.ts:4,42-50` (120 s default per attempt, `:6`).
-5. On error: insert `ai_usage` with `status: "error"`, the first model and a 200-char summary, then rethrow — `:130-134`; `summarizeError` `:147-150`.
-6. On success: insert `ai_usage` with model, tokens, cost, `status: "ok"`, `latency_ms` — `:109-118,136-143`.
-7. `runWorkerJson`: two attempts with `json: true`, `parseJsonLoose`, validate; a `length` finish retries with 1.5× `maxTokens` — `:163-184`; `:153-160`.
-8. Callers at this commit: `web/src/lib/pipeline/website-intel.ts:299,447,740,803`, `web/src/lib/onboarding/classify.ts:25`, `web/src/lib/onboarding/next-questions.ts:99` (all `runWorkerJson`); `web/src/app/api/assistant/route.ts:90` (`runWorker`). Only `router.ts` imports `chat` in `web/src` (`:2`); the dev script `web/scripts/compare-models.mts:9,15` calls it directly on purpose (no budget, no log); the health route imports `keyInfo` for a key check (`web/src/app/api/health/integrations/route.ts:2`).
+2. Model list by `AI_MODE`: paid unless exactly `free` (free models are refused under ZDR, D-037) — `web/src/lib/ai/router.ts:34-38`; tables `:12-29`.
+3. Budget: read `monthly_ai_budget_usd` and `ai_spend_mtd.cost_usd` with the admin client; read error → throw; spend ≥ budget → `BudgetExceededError` — `web/src/lib/ai/router.ts:92-105`; view `supabase/migrations/20261010061028_foundation.sql:345-349`; default budget 5 — `:14`.
+4. `chat({ models, messages: [system(worker, today), …], json, maxTokens, timeoutMs, retry })` — `web/src/lib/ai/router.ts:120-129`; system prompt `:69-74`; OpenRouter client `web/src/lib/integrations/openrouter.ts:4,42-50` (120 s default per attempt, `:6`).
+5. On error: insert `ai_usage` with `status: "error"`, the first model and a 200-char summary, then rethrow — `web/src/lib/ai/router.ts:130-134`; `summarizeError` `:147-150`.
+6. On success: insert `ai_usage` with model, tokens, cost, `status: "ok"`, `latency_ms` — `web/src/lib/ai/router.ts:109-118,136-143`.
+7. `runWorkerJson`: two attempts with `json: true`, `parseJsonLoose`, validate; a `length` finish retries with 1.5× `maxTokens` — `web/src/lib/ai/router.ts:163-184`; `:153-160`.
+8. Callers at this commit: `web/src/lib/pipeline/website-intel.ts:301,456,776,839`, `web/src/lib/onboarding/classify.ts:25`, `web/src/lib/onboarding/next-questions.ts:99` (all `runWorkerJson`); `web/src/app/api/assistant/route.ts:91` (`runWorker`). Only `router.ts` imports `chat` in `web/src` (`web/src/lib/ai/router.ts:2`); the dev script `web/scripts/compare-models.mts:9,15` calls it directly on purpose (no budget, no log); the health route imports `keyInfo` for a key check (`web/src/app/api/health/integrations/route.ts:2`).
 
 ## Human gate
 

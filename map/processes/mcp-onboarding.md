@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-14
+commit: 71a42e1
 consumes: ["[[mcp-access-key]]", "[[oauth-token]]", "[[oauth-grant]]", "[[organization]]", "[[membership]]", "[[member-role]]", "[[plan-tier]]", "[[discovery-catalog]]"]
 produces: ["[[mcp-tool-call]]", "[[onboarding-session]]", "[[onboarding-response]]", "[[onboarding-follow-up]]", "[[business-profile]]", "[[ai-job]]"]
 ---
@@ -18,23 +18,23 @@ Input: a JSON-RPC 2.0 request with a bearer credential (personal key, service ke
 
 ## Why this shape
 
-The tools wrap the existing onboarding service instead of adding a second write path, so the session status machine and the plan trigger stay single-sourced (`web/src/lib/mcp/tools.ts:198,268,310-312,377-380`), down to the permission each write needs (`tools.ts:19-20,42-43`). Every query is scoped to the credential's organization, never one the client names (`web/src/app/api/mcp/route.ts:13,77-84`). The connect step is skipped because connections are authorised only in Braventa (`web/src/app/onboarding/[sessionId]/connect/page.tsx:22`; `tools.ts:87-90`).
+The tools wrap the existing onboarding service instead of adding a second write path, so the session status machine and the plan trigger stay single-sourced (`web/src/lib/mcp/tools.ts:198,268,310-312,377-380`), down to the permission each write needs (`tools.ts:19-20,42-43`). Every query is scoped to the credential's organization, never one the client names (`web/src/app/api/mcp/route.ts:13,77-84`). The connect step is skipped because connections are authorised only in Braventa (`web/src/app/onboarding/[sessionId]/connect/page.tsx:28`; `tools.ts:87-90`).
 
 ## Steps
 
 1. Origin check (own origin or known AI clients; CLIs send none) → 403 — `web/src/app/api/mcp/route.ts:37-44`; unsupported `MCP-Protocol-Version` → 400 — `:48-51`.
-2. `authenticateMcp` (service client): `classifyBearer` → key row by hash (kind, revoked, expiry, owner still a member) or OAuth token → grant → membership; a personal key or sign-in carries the member's role, a service key none; bumps `last_used_at` — `:53-60`; `web/src/lib/mcp/auth.ts:13-82` (role `:32-42,70-72`; `web/src/lib/mcp/principal.ts:10-12,54-57`). Failure answers 401 with `WWW-Authenticate` pointing at "Sign in with Braventa" — `route.ts:55-60`.
-3. Body ≤ 64 KB, 1–10 JSON-RPC messages — `:63-74`.
-4. Trial gate `mcpAccess` (`hasSubscription`): `tools/call` gets the paused message as an error result; `tools/list` still works — `:76,100-105`; `web/src/lib/mcp/access.ts:13-15`.
+2. `authenticateMcp` (service client): `classifyBearer` → key row by hash (kind, revoked, expiry, owner still a member) or OAuth token → grant → membership; a personal key or sign-in carries the member's role, a service key none; bumps `last_used_at` — `web/src/app/api/mcp/route.ts:53-60`; `web/src/lib/mcp/auth.ts:13-82` (role `:32-42,70-72`; `web/src/lib/mcp/principal.ts:10-12,54-57`). Failure answers 401 with `WWW-Authenticate` pointing at "Sign in with Braventa" — `route.ts:55-60`.
+3. Body ≤ 64 KB, 1–10 JSON-RPC messages — `web/src/app/api/mcp/route.ts:63-74`.
+4. Trial gate `mcpAccess` (`hasSubscription`): `tools/call` gets the paused message as an error result; `tools/list` still works — `web/src/app/api/mcp/route.ts:76,100-105`; `web/src/lib/mcp/access.ts:13-15`.
 5. Rate limit 30/min and 300/h per key or grant, counted in `mcp_tool_calls` — `route.ts:20-21,106-114`.
 6. `handleMessage`: `initialize`, `ping`, `tools/list` filtered by scope, `tools/call` with scope check, then the tool's `permission` for the caller (`principalCan`), then zod args; every call logged — `web/src/lib/mcp/protocol.ts:44-118` (permission `:92-96`; `web/src/lib/mcp/principal.ts:59-63`; caller `route.ts:82-83`); `route.ts:87-96`. Matrix: [member-role](../objects/tenancy/member-role.md).
 7. Tools, all scope `onboarding` (`tools.ts:161`): `braventa_start_onboarding` → `createOnboarding` (`:163,198`, the same function as [start-analysis](start-analysis.md); permission `analysis.run` `:165`); `braventa_get_discovery_questions` (`:216`); `braventa_submit_discovery` → `saveDiscovery` + `reviewCandidates` (`:245,268-270`; `profile.edit` `:247`); `braventa_confirm_priorities` → `saveReview` then `continueFollowUps` (`:286,310-312`; `profile.edit` `:288`); `braventa_get_follow_up_questions` (`:317`); `braventa_answer_follow_up_questions` → `saveFollowUps`, `finish: true` → `completeSession` (`:339,377-380`; `profile.edit` `:341`); `braventa_get_status` (`:388`, latest session by default `:403-411`). The `get` tools carry no permission (`:218,319,390`).
-8. Not exposed: skip discovery, re-run, diagnosis correction, plan item status, post approval. The tool list ends with `braventa_get_status`, whose description says the owner does those in Braventa (`:388-393`).
+8. Not exposed: skip discovery, re-run, diagnosis correction, plan item status, post approval. The tool list ends with `braventa_get_status`, whose description says the owner does those in Braventa (`web/src/lib/mcp/tools.ts:388-393`).
 9. `maxDuration` 300 s because the follow-up tools call the extractor model — `route.ts:16-18`.
 
 ## Human gate
 
-Credential creation: a member makes a personal key in Settings (`web/src/app/settings/actions.ts:18`, refused without `keys.manage_own` at `:39`; service keys: owner only, `web/src/app/settings/integrations-actions.ts:27`) or approves the consent page at `/oauth/authorize`. After that the client acts with that member's role, or for the business with a service key (`web/src/lib/mcp/principal.ts:59-63`), without a per-call approval; confirming the diagnosis and approving posts still happen only in the app (`tools.ts:393`).
+Credential creation: a member makes a personal key in Settings (`web/src/app/settings/actions.ts:20`, for the business the page showed, D-062, `:29-43`; refused without `keys.manage_own` at `:57`; service keys: owner only, `keys.manage_any`, `web/src/app/settings/integrations-actions.ts:24-31`) or approves the consent page at `/oauth/authorize`. After that the client acts with that member's role, or for the business with a service key (`web/src/lib/mcp/principal.ts:59-63`), without a per-call approval; confirming the diagnosis and approving posts still happen only in the app (`tools.ts:393`).
 
 ## If you change this
 
@@ -52,5 +52,5 @@ Credential creation: a member makes a personal key in Settings (`web/src/app/set
 
 ## See
 
-- Objects: [[mcp-access-key]], [[mcp-tool-call]], [[oauth-grant]], [[onboarding-session]]
+- Objects: [mcp-access-key](../objects/access/mcp-access-key.md), [mcp-tool-call](../objects/access/mcp-tool-call.md), [oauth-grant](../objects/access/oauth-grant.md), [onboarding-session](../objects/onboarding/onboarding-session.md)
 - Source: `web/src/app/api/mcp/route.ts`, `web/src/lib/mcp/tools.ts`

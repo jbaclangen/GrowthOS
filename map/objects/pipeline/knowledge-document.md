@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 71a42e1
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -19,12 +19,12 @@ The foundation schema planned a knowledge base for an assistant (`source_type` l
 ## Shape
 
 - Table `supabase/migrations/20261010061028_foundation.sql:110-121`: `source_type` comment `:113`; `source_url`, `title`, `content`, `content_hash`; `unique (organization_id, content_hash)` `:119`.
-- RLS "members all" `:300-309`.
-- Writer: upsert in `crawlStep` `web/src/lib/pipeline/website-intel.ts:261-274` (`source_type` `website_page` `:266`, SHA-256 of the text `:270`, duplicates ignored `:272`).
-- Readers: none in `web/src` (the profile prompt reads the in-memory digest, `:289-290`, `:305`).
+- RLS "members all" `supabase/migrations/20261010061028_foundation.sql:300-309`.
+- Writer: upsert in `crawlStep` `web/src/lib/pipeline/website-intel.ts:263-276` (`source_type` `website_page` `:268`, SHA-256 of the text `:272`, duplicates ignored `:274`).
+- Readers: none in `web/src` (the profile prompt reads the in-memory digest, `web/src/lib/pipeline/website-intel.ts:291-292`, `:307`).
 - Crawled text is untrusted input to models (project rule; `supabase/migrations/20261011160802_website_audit.sql:19`).
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:110-121`, `:300-309`, `web/src/lib/pipeline/website-intel.ts:261-274`.
+Citations: `supabase/migrations/20261010061028_foundation.sql:110-121`, `:300-309`, `web/src/lib/pipeline/website-intel.ts:263-276`.
 
 ## Connected to
 
@@ -35,8 +35,8 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:110-121`, `:300-30
 
 ## If you change this
 
-- **Hits:** the upsert `website-intel.ts:263-273` (its `onConflict` names the unique constraint `:272`); the `knowledge_chunks` foreign key `foundation.sql:126`.
-- **Does not hit:** the business profile step, which never reads this table (`website-intel.ts:294-308`); the diagnosis.
+- **Hits:** the upsert `website-intel.ts:265-275` (its `onConflict` names the unique constraint `:274`); the `knowledge_chunks` foreign key `foundation.sql:126`.
+- **Does not hit:** the business profile step, which never reads this table (`website-intel.ts:296-310`); the diagnosis.
 
 ## Surfaces
 
@@ -49,4 +49,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:110-121`, `:300-30
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:85`); planned use `docs/product/ROADMAP.md:73-74`, `:101`
+- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:90`); planned use `docs/product/ROADMAP.md:76-77`, `:104`

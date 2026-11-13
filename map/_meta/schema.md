@@ -35,6 +35,9 @@ or `stub`. A card is never `verified` by assertion.
 - Clusters group nouns by how an editor asks about them, not by layer. Current clusters are listed in
   `map/objects/_index.md`.
 - Line citations are `path:line` against the `commit` in the card's frontmatter. Re-check them when the file moves.
+- A bare `:line` continues the last path named before it in the same sentence. After a citation of another file, in a
+  new bullet or table row, or when the sentence names a second file, write the path again: a reader resolves a bare
+  number to the nearest path before it (2026-11-14: 290 bare citations had drifted onto the wrong file).
 - `map/CLAUDE.md` is the hand-edited entry file. `map/AGENTS.md` and `map/routing.md` are generated copies
   (`npm run map:sync` in `web/`); never edit the copies.
 - Generated indexes (`map/objects/_index.md`, `graphify-out/GRAPH_REPORT.md`) are rebuilt, not hand-edited.

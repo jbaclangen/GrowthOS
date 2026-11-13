@@ -19,7 +19,7 @@ Registration is unauthenticated, so the table is global (no `organization_id`), 
 ## Shape
 
 - `client_id` `brv_client_…` unique; `client_secret_hash` for confidential clients; `token_endpoint_auth_method` `none | client_secret_post | client_secret_basic`; `client_name`, `client_uri`, `redirect_uris` (1–10); `registration_ip_hash`; `first_party` — `supabase/migrations/20261017030000_mcp_oauth.sql:43-60`
-- Trigger `oauth_clients_rate_limit` before insert — `:71-96`; `P0001 rate_limited` → HTTP 429 with `Retry-After` — `web/src/app/oauth/register/route.ts:58-60`
+- Trigger `oauth_clients_rate_limit` before insert — `supabase/migrations/20261017030000_mcp_oauth.sql:71-96`; `P0001 rate_limited` → HTTP 429 with `Retry-After` — `web/src/app/oauth/register/route.ts:58-60`
 - Insert: `web/src/app/oauth/register/route.ts:41-57`; IP hash `registrationIpHash` `web/src/lib/oauth/supabase-store.ts:133-138`
 - Read: `findClient`, `authenticateClient` — `web/src/lib/oauth/supabase-store.ts:106-128`
 - Cleanup: clients with no code or grant after 7 days, `oauth_cleanup` — `…mcp_oauth.sql:252-262`, called by `cleanUpOAuth` `supabase-store.ts:142-145`

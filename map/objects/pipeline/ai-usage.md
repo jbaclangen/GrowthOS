@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-14
+commit: 71a42e1
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -30,14 +30,14 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:239-250`, `:315-32
 ## Connected to
 
 - **owns:** nothing.
-- **owned-by:** [organization](../tenancy/organization.md); [ai-job](ai-job.md) optionally (`job_id` nullable, `:242`).
+- **owned-by:** [organization](../tenancy/organization.md); [ai-job](ai-job.md) optionally (`job_id` nullable, `supabase/migrations/20261010061028_foundation.sql:242`).
 - **joins:** [ai-worker](ai-worker.md) (`worker` and `model` columns, `router.ts:113`, `:137`).
-- **looks-like-but-is-not:** `assistant_usage` (per-question limits for Ask Braventa, `supabase/migrations/20261017020224_assistant_usage.sql`), which counts questions, not spend; `mcp_tool_calls`, which logs MCP calls.
+- **looks-like-but-is-not:** [assistant-usage](../access/assistant-usage.md) (`assistant_usage`, per-question limits for Ask Braventa, `supabase/migrations/20261017020224_assistant_usage.sql`), which counts questions, not spend; [mcp-tool-call](../access/mcp-tool-call.md) (`mcp_tool_calls`), which logs MCP calls.
 
 ## If you change this
 
 - **Hits:** the insert in `router.ts:109-118`; the view `foundation.sql:345-349` (sums `cost_usd` and tokens); the budget comparison `router.ts:103`; `docs/product/MVP_SCOPE.md:59`; `docs/architecture/AI_ROUTING_AND_COSTS.md`.
-- **Does not hit:** `ai_jobs` rows (`job_id` is a nullable reference, `:242`); `organizations.monthly_ai_budget_usd` (the other side of the comparison, `foundation.sql:14`).
+- **Does not hit:** `ai_jobs` rows (`job_id` is a nullable reference, `supabase/migrations/20261010061028_foundation.sql:242`); `organizations.monthly_ai_budget_usd` (the other side of the comparison, `foundation.sql:14`).
 
 ## Surfaces
 

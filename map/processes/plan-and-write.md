@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 71a42e1
 consumes: ["[[ai-job]]", "[[business-profile]]", "[[ai-worker]]"]
 produces: ["[[content-calendar]]", "[[content-item]]", "[[content-status]]", "[[module-run]]", "[[ai-usage]]", "[[ai-job]]"]
 ---
@@ -23,16 +23,16 @@ Two model calls in one invocation were part of what pushed a re-run past 300 s, 
 ## Steps
 
 1. Sequence `website_plan: ["scoring", "planning", "writing"]` — `web/src/lib/pipeline/steps.ts:19`.
-2. `planStep` reads `intel`, `discovery`, `plan_titles` — `web/src/lib/pipeline/website-intel.ts:734-738`.
-3. `content_strategist` worker with `planPrompt` — `web/src/lib/pipeline/website-intel.ts:740-749`.
-4. Start date = tomorrow (UTC) — `web/src/lib/pipeline/website-intel.ts:751-753`; insert `content_calendars` (`days: 30`, `strategy.business_profile_id`) — `:755-766`.
-5. Insert `content_items` per planned day, `status: brief`, `scheduled_for` via `dayDate` (01:00 UTC) — `web/src/lib/pipeline/website-intel.ts:768-780`, `:726-731`.
-6. First batch = first 5 days by `day`; artifacts `calendar_id`, `first_batch`, `starts_at` — `web/src/lib/pipeline/website-intel.ts:783-784`.
-7. `writeStep` requires those artifacts, reloads `intel`, selects the calendar's items — `web/src/lib/pipeline/website-intel.ts:788-801`.
-8. `content_writer` worker, `highRisk: intel.regulated.is_regulated` — `web/src/lib/pipeline/website-intel.ts:803-813`; escalation one tier up in the router — `web/src/lib/ai/router.ts:32`, `:90-91`.
-9. Update matched items: `title`, `body` (+ CTA, hashtags), `qa_notes`, `status: needs_approval` — `web/src/lib/pipeline/website-intel.ts:815-835`.
-10. `recordModuleRuns` for `content_studio` — `web/src/lib/pipeline/website-intel.ts:838-849`; writer `web/src/lib/modules/server.ts:36-40`.
-11. Final output `{step: 'done', report_id, calendar_id, growth_score}` — `web/src/lib/pipeline/website-intel.ts:851-853`; the machine writes `succeeded` — `:938-944`.
+2. `planStep` reads `intel`, `discovery`, `plan_titles` — `web/src/lib/pipeline/website-intel.ts:771-774`.
+3. `content_strategist` worker with `planPrompt` — `web/src/lib/pipeline/website-intel.ts:776-785`.
+4. Start date = tomorrow (UTC) — `web/src/lib/pipeline/website-intel.ts:787-789`; insert `content_calendars` (`days: 30`, `strategy.business_profile_id`) — `:791-802`.
+5. Insert `content_items` per planned day, `status: brief`, `scheduled_for` via `dayDate` (01:00 UTC) — `web/src/lib/pipeline/website-intel.ts:804-816`, `:762-767`.
+6. First batch = first 5 days by `day`; artifacts `calendar_id`, `first_batch`, `starts_at` — `web/src/lib/pipeline/website-intel.ts:818-820`.
+7. `writeStep` requires those artifacts, reloads `intel`, selects the calendar's items — `web/src/lib/pipeline/website-intel.ts:826-837`.
+8. `content_writer` worker, `highRisk: intel.regulated.is_regulated` — `web/src/lib/pipeline/website-intel.ts:839-849`; escalation one tier up in the router — `web/src/lib/ai/router.ts:32`, `:90-91`.
+9. Update matched items: `title`, `body` (+ CTA, hashtags), `qa_notes`, `status: needs_approval` — `web/src/lib/pipeline/website-intel.ts:851-871`.
+10. `recordModuleRuns` for `content_studio` — `web/src/lib/pipeline/website-intel.ts:873-885`; writer `web/src/lib/modules/server.ts:36-40`.
+11. Final output `{step: 'done', report_id, calendar_id, growth_score}` — `web/src/lib/pipeline/website-intel.ts:887-889`; the machine writes `succeeded` — `:974-979`.
 
 ## Human gate
 

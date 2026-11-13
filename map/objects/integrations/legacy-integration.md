@@ -3,14 +3,14 @@ type: object
 cluster: integrations
 universe: leftover
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-14
+commit: 71a42e1
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
 # Legacy integration (`integrations`)
 
-The foundation migration's generic "connected external account" table; no TypeScript reads or writes it, and Search Console uses `integration_connections` instead.
+The foundation migration's generic "connected external account" table; no TypeScript reads or writes it, and the live connections (Search Console, Google Analytics 4, HubSpot) use `integration_connections` instead.
 
 ## Why this shape
 
@@ -18,23 +18,23 @@ It was designed before any integration existed, with tokens meant for Supabase V
 
 ## Shape
 
-- Columns: `provider` text (comment lists hubspot, wordpress, google_analytics, search_console, stripe), `status` default `pending`, `external_account_id`, `scopes[]`, `metadata`, `vault_secret_id`, `connected_at`, `last_synced_at` — `supabase/migrations/20261010061028_foundation.sql:204-215`
-- RLS "members read" from the shared loop — `:312-320`
+- Columns: `provider` text (comment lists hubspot, wordpress, google_analytics, search_console, stripe), `status` default `pending`, `external_account_id`, `scopes[]`, `metadata`, `vault_secret_id`, `connected_at`, `last_synced_at`; `unique (organization_id, provider)` — `supabase/migrations/20261010061028_foundation.sql:204-218`
+- RLS "members read" from the shared loop — `supabase/migrations/20261010061028_foundation.sql:312-321`
 - No TypeScript reference: `from("integrations")` has no match in `web/src` or `site/src` at this commit
-- Documented as not used — `docs/architecture/DATA_MODEL.md:90`
+- Documented as not used — `docs/architecture/DATA_MODEL.md:95`
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:204-215`, `supabase/migrations/20261011161133_search_console.sql:7-8`
+Citations: `supabase/migrations/20261010061028_foundation.sql:204-218`, `supabase/migrations/20261011161133_search_console.sql:7-8`
 
 ## Connected to
 
 - **owns:** nothing
 - **owned-by:** [organization](../tenancy/organization.md)
 - **joins:** nothing
-- **looks-like-but-is-not:** [integration-connection](integration-connection.md) (the live table); the "Coming soon" tools in `web/src/lib/integrations/tool-catalog.ts` (ghost, planned in `docs/product/INTEGRATIONS_ROADMAP.md:6-10`)
+- **looks-like-but-is-not:** [integration-connection](integration-connection.md) (the live table); the "Coming soon" tools in `web/src/lib/integrations/tool-catalog.ts` (ghost, planned in `docs/product/INTEGRATIONS_ROADMAP.md:12-15`)
 
 ## If you change this
 
-- **Hits:** only the docs that mention it: `docs/architecture/DATA_MODEL.md:90,123`, `docs/architecture/SECURITY_AND_PRIVACY.md:34,202`, `docs/product/MVP_SCOPE.md:82`, `docs/architecture/INTEGRATIONS.md:35`
+- **Hits:** only the docs that mention it: `docs/architecture/DATA_MODEL.md:95,130,231`, `docs/architecture/SECURITY_AND_PRIVACY.md:34,228`, `docs/architecture/SYSTEM_ARCHITECTURE.md:277`, `docs/product/MVP_SCOPE.md:83`
 - **Does not hit:** any process card; nothing in `web/src` or `site/src`
 
 ## Surfaces

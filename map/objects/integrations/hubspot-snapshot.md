@@ -3,8 +3,8 @@ type: object
 cluster: integrations
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 7c0f6ca
+verified: 2026-11-14
+commit: 71a42e1
 entity: supabase/migrations/20261108043117_hubspot_connection.sql
 ---
 
@@ -21,9 +21,9 @@ Braventa reads CRM records only to count them, so the row has one `metrics` json
 - Columns: `connection_id`, `portal_id`, `period_start/end`, `metrics` jsonb, `fetched_at` — `supabase/migrations/20261108043117_hubspot_connection.sql:25-39`
 - `metrics` type: `HubSpotMetrics` (`version: 1`) — `web/src/lib/integrations/hubspot-metrics.ts:27`; deal properties read: `DEAL_PROPERTIES` `:128`; aggregation `aggregateDeals` `:151`
 - RLS "members read", select-only grant — `…hubspot_connection.sql:43-47`
-- Insert: `syncHubSpot` `web/src/lib/integrations/hubspot.ts:299`; prune to 12 `:31,319`
-- Delete: another portal connected `:233-234`; disconnect `:353`
-- Read: the HubSpot card (`web/src/components/connections/hubspot-card.tsx`), user client
+- Insert: `syncHubSpot` `web/src/lib/integrations/hubspot.ts:299`; prune to 12 `:31,319-333`
+- Delete: another portal connected `web/src/lib/integrations/hubspot.ts:233-234`; disconnect, every row of the organization `web/src/lib/integrations/hubspot.ts:395` (also when another business keeps the app installed in the same portal, `web/src/lib/integrations/hubspot.ts:381-384`); removing the business deletes them with the organization (`on delete cascade`, `…hubspot_connection.sql:27`)
+- Read: the HubSpot card, latest row through the user client — `web/src/components/connections/hubspot-card.tsx:65-71`. Nothing else in `web/src` reads the table
 
 ## Connected to
 
@@ -35,7 +35,7 @@ Braventa reads CRM records only to count them, so the row has one `metrics` json
 ## If you change this
 
 - **Hits:** [sync-hubspot](../../processes/sync-hubspot.md); what is stored, kept or shown → the hand-written disclosures on `/legal/privacy` (HubSpot section), `/legal/subprocessors`, `/legal/dpa`, `docs/architecture/SECURITY_AND_PRIVACY.md` §6 and `docs/architecture/HUBSPOT_SETUP.md`; storing anything beyond counts needs a new decision (D-059)
-- **Does not hit:** the pipeline steps, the growth score, Ask Braventa
+- **Does not hit:** the pipeline steps, the growth score, Ask Braventa (it reads only the connection's `status`, `web/src/lib/assistant/context.ts:58-64`, never these rows)
 
 ## Surfaces
 

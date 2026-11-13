@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 71a42e1
 entity: web/src/lib/pipeline/steps.ts
 ---
 
@@ -19,25 +19,25 @@ Vercel Hobby stops an invocation at 300 s with no cleanup, so each step claims i
 ## Shape
 
 - `RunStep` (crawling, profiling, scoring, planning, writing) `web/src/lib/pipeline/steps.ts:9`; `PipelineWorker` `:11`; `SEQUENCES` per worker `:17-22`; an unknown worker runs the full sequence `:24-27`.
-- `JobState` = `step`, `step_state` (`pending` | `running`), `step_started_at`, `claim`, plus step artifacts: `:44-53`. `initialState` `:55-57`, `readState` `:59-69`, `canClaim` `:71-75`, `advanceState` `:77-80`.
-- `STALE_JOB_MS` 10 min `:82-85`; `staleFilter` `:87-91`.
+- `JobState` = `step`, `step_state` (`pending` | `running`), `step_started_at`, `claim`, plus step artifacts: `web/src/lib/pipeline/steps.ts:44-53`. `initialState` `:55-57`, `readState` `:59-69`, `canClaim` `:71-75`, `advanceState` `:77-80`.
+- `STALE_JOB_MS` 10 min `web/src/lib/pipeline/steps.ts:82-85`; `staleFilter` `:87-91`.
 - Conditional writes: `claimStep` `web/src/lib/pipeline/claims.ts:14-35`, `ownedUpdate` `:37-48`, `failPendingStep` `:50-65`, `markResent` `:67-83`.
-- Step bodies: `runStep` `web/src/lib/pipeline/website-intel.ts:856-869`; `crawlStep` `:256`, `profileStep` `:294`, `scoreStep` `:606` (`reviseStep` `:599` for `diagnosis_update`), `planStep` `:734`, `writeStep` `:788`. Progress labels the report shows `:70-77`.
-- Run loop `runAnalysisJob` / `runClaimedStep` `:876-975`: claim `:896-902`, failure `:925-934`, final `:938-954`, advance and hand on `:957-974`.
-- Artifacts handed between steps: `:290`, `:358`, `:714-722`, `:784`.
+- Step bodies: `runStep` `web/src/lib/pipeline/website-intel.ts:892-905`; `crawlStep` `:258`, `profileStep` `:296`, `scoreStep` `:619` (`reviseStep` `:612` for `diagnosis_update`), `planStep` `:770`, `writeStep` `:824`. Progress labels the report shows `:72-79`.
+- Run loop `runAnalysisJob` / `runClaimedStep` `web/src/lib/pipeline/website-intel.ts:912-1011`: claim `:932-938`, failure `:961-970`, final `:974-990`, advance and hand on `:993-1010`.
+- Artifacts handed between steps: `web/src/lib/pipeline/website-intel.ts:292`, `:360`, `:750-758`, `:820`.
 
-Citations: `web/src/lib/pipeline/steps.ts:9-91`, `web/src/lib/pipeline/claims.ts:17-83`, `web/src/lib/pipeline/website-intel.ts:856-975`.
+Citations: `web/src/lib/pipeline/steps.ts:9-91`, `web/src/lib/pipeline/claims.ts:17-83`, `web/src/lib/pipeline/website-intel.ts:892-1011`.
 
 ## Connected to
 
 - **owns:** nothing; it is a shape inside [ai-job](ai-job.md).
 - **owned-by:** [ai-job](ai-job.md).
 - **joins:** [job-dispatch](job-dispatch.md), one dispatch per (job, step) (`supabase/migrations/20261017110000_job_dispatches.sql:75`); the sweeper and `resend_job_dispatch` read this state in SQL (`:172-174`, `:229-237`).
-- **looks-like-but-is-not:** `STEPS` in `website-intel.ts:70-77` (display labels, includes `done`); `audit_runs.status` and `module_runs.status` (per-artifact results, not progress).
+- **looks-like-but-is-not:** `STEPS` in `website-intel.ts:72-79` (display labels, includes `done`); `audit_runs.status` and `module_runs.status` (per-artifact results, not progress).
 
 ## If you change this
 
-- **Hits:** every filter on `output->>step` / `output->>step_state` in `claims.ts`; the SQL mirror of the state in `job_dispatches.sql:172-174`, `:187-196`, `:229-237`; `resendDue` `jobs.ts:36-63`; `failStaleJobs` `jobs.ts:18-27`; the local runner `web/scripts/run-pipeline-local.mts:55`, `:63-65`, `:73-80`; the report's progress list (`website-intel.ts:70-77`).
+- **Hits:** every filter on `output->>step` / `output->>step_state` in `claims.ts`; the SQL mirror of the state in `supabase/migrations/20261017110000_job_dispatches.sql:172-174`, `:187-196`, `:229-237`; `resendDue` `jobs.ts:36-63`; `failStaleJobs` `jobs.ts:18-27`; the local runner `web/scripts/run-pipeline-local.mts:55,63-65,73-80`; the report's progress list (`website-intel.ts:72-79`).
 - **Does not hit:** the continue route's body schema (`web/src/app/api/jobs/continue/route.ts:15-19` accepts any step string); the prompts in `web/src/lib/pipeline/prompts.ts`.
 
 ## Surfaces

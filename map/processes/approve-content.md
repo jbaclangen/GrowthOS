@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 71a42e1
 consumes: ["[[content-item]]", "[[content-status]]", "[[membership]]", "[[member-role]]"]
 produces: ["[[content-item]]"]
 ---
@@ -18,25 +18,25 @@ A draft sits at `needs_approval`. A member clicks Approve, Reject or Undo on the
 
 ## Why this shape
 
-The "members all" policy would otherwise let any member set `published`, name someone else as approver or move a draft past the permission check through the Data API; the trigger closes that regardless of app code (D-018 in the migration header; the organization pin `supabase/migrations/20261023224450_content_guard_pins_organization.sql:1-8`). Approval is a human decision by default (D-013, `docs/decisions/DECISION_LOG.md:140-143`), and no one approves their own work except the owner (D-046, `docs/decisions/DECISION_LOG.md:570-583`; as built `docs/architecture/ROLES_AND_PERMISSIONS.md:114-131`). The app still sends `approved_by`/`approved_at` (`web/src/app/analysis/actions.ts:134-135`), but the trigger overwrites them; that redundancy is a known docs-vs-code note, not a second source of truth.
+The "members all" policy would otherwise let any member set `published`, name someone else as approver or move a draft past the permission check through the Data API; the trigger closes that regardless of app code (D-018 in the migration header; the organization pin `supabase/migrations/20261023224450_content_guard_pins_organization.sql:1-8`). Approval is a human decision by default (D-013, `docs/decisions/DECISION_LOG.md:174-177`), and no one approves their own work except the owner (D-046, `docs/decisions/DECISION_LOG.md:605-634`; as built `docs/architecture/ROLES_AND_PERMISSIONS.md:120-137`). The app still sends `approved_by`/`approved_at` (`web/src/app/analysis/actions.ts:145-146`), but the trigger overwrites them; that redundancy is a known docs-vs-code note, not a second source of truth.
 
 ## Steps
 
 1. Report buttons: Approve / Reject, or Undo when already decided, plus the refusal message — `web/src/app/analysis/[id]/controls.tsx:33-65` (`:36-40` calls `setContentStatus`, error `:58-62`).
-2. `setContentStatus` reads the item's `organization_id` and `created_by` — `web/src/app/analysis/actions.ts:120`; checks the role with `memberRole` and `approvalAllowed` — `:122-128` (`web/src/lib/team/server.ts:8-16`, `web/src/lib/team/roles.ts:143-156`); updates `status`, `approved_by`, `approved_at` by item id — `web/src/app/analysis/actions.ts:130-140`.
+2. `setContentStatus` reads the item's `organization_id` and `created_by` — `web/src/app/analysis/actions.ts:131`; checks the role with `memberRole` and `approvalAllowed` — `:133-139` (`web/src/lib/team/server.ts:8-16`, `web/src/lib/team/roles.ts:145-160`); updates `status`, `approved_by`, `approved_at` by item id — `web/src/app/analysis/actions.ts:141-148`.
 3. Trigger fires `BEFORE INSERT OR UPDATE` on `content_items` — `supabase/migrations/20261010121043_content_approval_guard.sql:59-61`; execute revoked from clients — `:57`. The function in force is the latest replacement — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:12-72` (it replaced `supabase/migrations/20261023092945_roles_and_permissions.sql:69-124`).
 4. Rule: non-`authenticated` roles pass through — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:18-20`.
 5. Rule: inserts must start `brief` or `draft`, author from `auth.uid()`, approver cleared — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:22-30`; the author is kept on updates — `:32-33` (column `supabase/migrations/20261023092945_roles_and_permissions.sql:63-66`).
 6. Rule: `organization_id` never changes from a client — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:35-38`.
 7. Rule: status moves only among `needs_approval`/`approved`/`rejected` — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:40-44`.
-8. Rule: any status change needs `content.approve`; approving one's own draft needs `content.approve_own` — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:46-55` (`has_permission` `supabase/migrations/20261023092945_roles_and_permissions.sql:30-60`).
+8. Rule: any status change needs `content.approve`; approving one's own draft needs `content.approve_own` — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:46-55` (`has_permission` in force `supabase/migrations/20261108091111_remove_business.sql:15-47`, which replaced `supabase/migrations/20261023092945_roles_and_permissions.sql:30-60`; the `content.approve` and `content.approve_own` rows are the same in both, `remove_business.sql:34-35`, `roles_and_permissions.sql:49-50`).
 9. Rule: `approved_by`/`approved_at` from `auth.uid()`/`now()` on becoming approved, kept while approved, cleared otherwise — `supabase/migrations/20261023224450_content_guard_pins_organization.sql:57-68`.
-10. The enum has `scheduled` and `published` — `supabase/migrations/20261010061028_foundation.sql:177-178` — but no code path sets them; drafts arrive at `needs_approval` from the pipeline, with no author — `web/src/lib/pipeline/website-intel.ts:831`.
-11. Ghost: scheduling and publishing are roadmap item 9 (Outstand behind a `Publisher`, in-app scheduler) — `docs/product/ROADMAP.md:87-92`. Nothing in the repo publishes.
+10. The enum has `scheduled` and `published` — `supabase/migrations/20261010061028_foundation.sql:177-178` — but no code path sets them; drafts arrive at `needs_approval` from the pipeline, with no author — `web/src/lib/pipeline/website-intel.ts:867`.
+11. Ghost: scheduling and publishing are roadmap item 9 (Outstand behind a `Publisher`, in-app scheduler) — `docs/product/ROADMAP.md:90-96`. Nothing in the repo publishes.
 
 ## Human gate
 
-A member whose role holds `content.approve` approves or rejects each draft (step 1; roles in [member-role](../objects/tenancy/member-role.md), matrix `web/src/lib/team/roles.ts:96-98`). This is the gate D-013 names.
+A member whose role holds `content.approve` approves or rejects each draft (step 1; roles in [member-role](../objects/tenancy/member-role.md), matrix `web/src/lib/team/roles.ts:98-100`). This is the gate D-013 names.
 
 ## If you change this
 
@@ -56,4 +56,4 @@ A member whose role holds `content.approve` approves or rejects each draft (step
 - Objects: [content-item](../objects/report/content-item.md), [content-status](../objects/report/content-status.md), [content-calendar](../objects/report/content-calendar.md), [membership](../objects/tenancy/membership.md), [member-role](../objects/tenancy/member-role.md)
 - Processes: [plan-and-write](plan-and-write.md)
 - Source: `web/src/app/analysis/actions.ts`, `web/src/app/analysis/[id]/controls.tsx`, `web/src/lib/team/roles.ts`, `supabase/migrations/20261010121043_content_approval_guard.sql`, `supabase/migrations/20261023092945_roles_and_permissions.sql`, `supabase/migrations/20261023224450_content_guard_pins_organization.sql`
-- As built: `docs/architecture/ROLES_AND_PERMISSIONS.md` (§4 `:114-131`)
+- As built: `docs/architecture/ROLES_AND_PERMISSIONS.md:120-137` (§4)
