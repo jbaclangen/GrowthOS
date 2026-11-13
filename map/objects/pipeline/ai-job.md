@@ -4,7 +4,7 @@ cluster: pipeline
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -25,7 +25,7 @@ A job runs as a chain of steps, one function invocation each (D-042), so the row
 - `input` keys: `web/src/lib/pipeline/website-intel.ts:242-249`. `output` while running is the step state ([job-step](job-step.md)); final outputs `:359`, `:615`, `:887-889`.
 - Status moves: `running` on claim `web/src/lib/pipeline/claims.ts:22-27`; `succeeded` `website-intel.ts:974-980`; `failed` on a step error `:965-970`, a refused hand-off `claims.ts:53-65` and `job_dispatches.sql:187-196`, or no progress for `STALE_JOB_MS` `web/src/lib/pipeline/jobs.ts:18-27`.
 - Limit of 10 crawling jobs (`website_evidence`, `website_intel`) per organization per 24 h: `web/src/lib/onboarding/start.ts:18-31`, enforced at `:63` and `web/src/app/analysis/actions.ts:110`. One active job per business blocks a re-run or update: `actions.ts:99-109`, `plan-actions.ts:124-131`; any active job in the organization blocks removing the business (`web/src/app/settings/remove-business-actions.ts:43-53`).
-- Who may queue one (D-046): `analysis.run` for an analysis or re-run (`actions.ts:70`, `web/src/app/analysis/actions.ts:97`; MCP `web/src/lib/mcp/tools.ts:165`); `profile.edit` for the discovery steps whose finish queues the plan job (`web/src/app/onboarding/[sessionId]/actions.ts:21`; MCP `tools.ts:288`, `:341`), which the evidence job's success can queue instead (`website-intel.ts:982-985`); `diagnosis.correct` for an update (`plan-actions.ts:108`). Matrix `web/src/lib/team/roles.ts:92-94`, spec `docs/architecture/ROLES_AND_PERMISSIONS.md:67-69`.
+- Who may queue one (D-046): `analysis.run` for an analysis or re-run (`actions.ts:70`, `web/src/app/analysis/actions.ts:97`; MCP `web/src/lib/mcp/tools.ts:165`); `profile.edit` for the discovery steps whose finish queues the plan job (`web/src/app/onboarding/[sessionId]/actions.ts:21`; MCP `tools.ts:288`, `:341`), which the evidence job's success can queue instead (`website-intel.ts:982-985`); `diagnosis.correct` for an update (`plan-actions.ts:108`). Matrix `web/src/lib/team/roles.ts:92-94`, spec `docs/architecture/ROLES_AND_PERMISSIONS.md:68-70`.
 - `n8n_execution_id` is never written (leftover; n8n callbacks are roadmap: `docs/product/ROADMAP.md:101-102`).
 
 Citations: `supabase/migrations/20261010061028_foundation.sql:220-237`, `supabase/migrations/20261107224152_user_deletion_foreign_keys.sql:28-31,34`, `web/src/lib/pipeline/steps.ts:11-22`, `web/src/lib/pipeline/claims.ts:12-65`, `web/src/lib/pipeline/website-intel.ts:912-1011`.
@@ -39,7 +39,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:220-237`, `supabas
 
 ## If you change this
 
-- **Hits:** `queueJob` / `startJob` (`start.ts:35-49`, `web/src/lib/pipeline/handoff.ts:32-34`); every conditional UPDATE in `claims.ts`; the sweeper SQL, which reads `output->>step` (`job_dispatches.sql:168-196`); the report loader `web/src/app/analysis/[id]/report-data.ts:89-96`; the dashboard `web/src/app/dashboard/page.tsx:49-54`, `:64-68`; the rate limit `start.ts:21-31`.
+- **Hits:** `queueJob` / `startJob` (`start.ts:35-49`, `web/src/lib/pipeline/handoff.ts:32-34`); every conditional UPDATE in `claims.ts`; the sweeper SQL, which reads `output->>step` (`job_dispatches.sql:168-196`); the report loader `web/src/app/analysis/[id]/report-data.ts:89-96`; the dashboard `web/src/app/dashboard/page.tsx:49-54`, `:64-68`; the Ask Braventa summary, which reads `input`, `status`, `created_at` (`web/src/lib/assistant/context.ts:46-51`); the rate limit `start.ts:21-31`.
 - **Does not hit:** `ai_usage` (the router logs it with or without a job, `router.ts:109-118`); `module_runs` content (cascade only).
 
 ## Surfaces
@@ -53,9 +53,10 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:220-237`, `supabas
 | `POST /api/jobs/continue` → [job-step-machine](../../processes/job-step-machine.md) | writes (claim, advance, finish) |
 | Postgres sweeper → [job-recovery](../../processes/job-recovery.md) | writes (fails) |
 | `/dashboard` | reads |
+| `POST /api/assistant` → [ask-braventa](../../processes/ask-braventa.md) | reads (job status per business) |
 | Settings → Remove business → [remove-business](../../processes/remove-business.md) | reads (an active job blocks removal); fails stale jobs |
 
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:99`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:101`)

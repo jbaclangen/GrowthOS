@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 consumes: ["[[integration-connection]]", "[[organization]]", "[[plan-tier]]", "[[member-role]]"]
 produces: ["[[hubspot-snapshot]]"]
 ---

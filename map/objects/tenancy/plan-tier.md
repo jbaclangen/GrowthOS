@@ -4,7 +4,7 @@ cluster: tenancy
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: web/src/lib/plans/tiers.ts
 ---
 
@@ -39,7 +39,7 @@ Citations: `web/src/lib/plans/tiers.ts:1-27,49-116`; `supabase/migrations/202610
 - **Hits:** every gate above; the `/plans` page; the module registry test that ties a live module to a live feature (`web/src/lib/modules/registry.ts:39-40`); `docs/product/PLANS_AND_TIERS.md`.
 - **Does not hit:** [member-role](member-role.md) permissions — `can()` reads the role, not the tier, and the OAuth start route checks `integrations.connect` before the tier (`web/src/app/api/integrations/google/start/route.ts:39-45`); [subscription](subscription.md).
 
-Ghost: Stripe billing and plan limits — `docs/product/ROADMAP.md:63-64`; seat prices — `docs/decisions/DECISION_LOG.md:628-630` (D-046); `billing.manage` (change the plan) is in the role matrix but not enforced — `docs/architecture/ROLES_AND_PERMISSIONS.md:62`.
+Ghost: Stripe billing and plan limits — `docs/product/ROADMAP.md:63-64`; seat prices — `docs/decisions/DECISION_LOG.md:628-630` (D-046); `billing.manage` (change the plan) is in the role matrix but not enforced — `docs/architecture/ROLES_AND_PERMISSIONS.md:63`.
 
 ## Surfaces
 

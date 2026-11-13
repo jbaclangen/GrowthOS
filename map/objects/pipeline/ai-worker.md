@@ -4,7 +4,7 @@ cluster: pipeline
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: web/src/lib/ai/router.ts
 ---
 
@@ -20,7 +20,7 @@ Feature code never names a model, so models change in one file and every call pa
 
 - `TaskClass` `web/src/lib/ai/router.ts:8`; `MODELS` free and paid tables `:12-29`; `ESCALATE` one tier up for `highRisk` `:31-32`, applied at `:90-91`; `modelsFor` reads `AI_MODE` (paid unless `free`, D-037) `:34-38`.
 - `WORKERS` `web/src/lib/ai/router.ts:40-65`, `Worker` type `:67`, `systemPrompt` adds today's date `:69-74`.
-- Called today: `extractor` (`web/src/lib/onboarding/classify.ts:24-33`, `web/src/lib/onboarding/next-questions.ts:99-108`), `business_analyst` (`web/src/lib/pipeline/website-intel.ts:301-310`), `website_auditor` (`:456-481`), `content_strategist` (`:776-785`), `content_writer` (`:839-849`, `highRisk` `:845`), `app_assistant` (`web/src/app/api/assistant/route.ts:90-91`).
+- Called today: `extractor` (`web/src/lib/onboarding/classify.ts:24-33`, `web/src/lib/onboarding/next-questions.ts:99-108`), `business_analyst` (`web/src/lib/pipeline/website-intel.ts:301-310`), `website_auditor` (`:456-481`), `content_strategist` (`:776-785`), `content_writer` (`:839-849`, `highRisk` `:845`), `app_assistant` (`web/src/app/api/assistant/route.ts:90-91`; defined `web/src/lib/ai/router.ts:52`).
 - Leftover, defined at `web/src/lib/ai/router.ts:44`, `:46-49` and called nowhere in `web/src`: `seo_analyst`, `crm_analyst`, `campaign_planner`, `qa_reviewer`, `marketing_assistant` (`docs/product/MVP_SCOPE.md:85-86`; that line also lists `extractor` as never called, which the two call sites above contradict).
 - `runWorker` `web/src/lib/ai/router.ts:78-144`: budget check of `organizations.monthly_ai_budget_usd` against `ai_spend_mtd` `:96-99`, fails closed `:100-102`, `BudgetExceededError` `:76` thrown at `:103-105`; `ai_usage` rows `:109-118` (error `:130-134`, ok `:136-142`); provider call `chat` `web/src/lib/integrations/openrouter.ts:40-45` (`BASE` `:4`).
 - `runWorkerJson` `web/src/lib/ai/router.ts:162-184`: two attempts, 1.5× `maxTokens` after a cut-off `web/src/lib/ai/router.ts:174-177`. Step ceilings `MAX_TOKENS` `web/src/lib/pipeline/prompts.ts:157-159`.

@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 consumes: ["[[team-invitation]]", "[[membership]]", "[[member-role]]", "[[plan-tier]]"]
 produces: ["[[team-invitation]]", "[[membership]]"]
 ---
@@ -30,7 +30,7 @@ No policy can let a non-member insert their own membership, so every write goes 
 6. `acceptInvitation`: token shape and lookup — `web/src/app/invite/[token]/actions.ts:18-22`; same blockers — `:24-32`; seat check without this invite's held seat — `:34-39`; claim — `:41-49`; membership insert, undo on failure — `:51-57`; `joined` event — `:58-65`; the joined business becomes the current one — `:66-67`; redirect to `/dashboard` — `:68`.
 7. `revokeInvitation` (Withdraw): only an invite whose role the manager can manage — `web/src/app/settings/team-actions.ts:79-95`.
 8. `changeMemberRole`: both the current and the new role must be below the manager's — `web/src/app/settings/team-actions.ts:99-110`; seat check when the seat kind changes — `:111-115`; update and `role_changed` event — `:116-126`.
-9. `removeMember`: target below the manager's role — `web/src/app/settings/team-actions.ts:131-137`; membership deleted — `:139`; their personal keys and OAuth grants for the business revoked — `:141-147`; `removed` event — `:148`.
+9. `removeMember`: target below the manager's role — `web/src/app/settings/team-actions.ts:131-137`; membership deleted — `:139`; their personal keys and OAuth grants for the business revoked (grants with `revoked_reason` `membership`, `web/src/app/settings/team-actions.ts:146`) — `web/src/app/settings/team-actions.ts:141-147`; `removed` event — `:148`.
 
 ## Human gate
 

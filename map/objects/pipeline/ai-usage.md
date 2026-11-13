@@ -4,7 +4,7 @@ cluster: pipeline
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -23,7 +23,7 @@ Budget enforcement needs a per-organization spend that is cheap to read before e
 - RLS "members read" only; the server writes: `foundation.sql:311-321`.
 - View `ai_spend_mtd`, `security_invoker`, grouped by organization since the start of the month: `foundation.sql:345-349`.
 - Writer: `router.ts:109-118` (error row `:130-134`, success row `:136-142`; `summarizeError` `:146-150`). Reader: the budget check `:98`, `:103`.
-- No app page shows it; the only read in `web/src` is the budget check.
+- No app page shows it; the only read in `web/src` is the budget check. Outside it, the local runner (a dev script) reads a job's rows: `web/scripts/run-pipeline-local.mts:93`.
 
 Citations: `supabase/migrations/20261010061028_foundation.sql:239-250`, `:315-321`, `:345-349`, `supabase/migrations/20261010155623_ai_usage_latency_and_failures.sql:3-10`, `web/src/lib/ai/router.ts:96-142`.
 

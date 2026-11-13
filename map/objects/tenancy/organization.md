@@ -4,7 +4,7 @@ cluster: tenancy
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -35,7 +35,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:9-16,57-72,282-285
 
 ## If you change this
 
-- **Hits:** `effectiveAccess` and every gate built on it ([plan-tier](plan-tier.md)); the budget check `web/src/lib/ai/router.ts:96-105`; `create_organization`; the column grant `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:17-18`; `docs/architecture/DATA_MODEL.md:82`; a new tenant table must cascade from here or Remove business leaves it behind ([remove-business](../../processes/remove-business.md)).
+- **Hits:** `effectiveAccess` and every gate built on it ([plan-tier](plan-tier.md)); the budget check `web/src/lib/ai/router.ts:96-105`; `create_organization`; the column grant `supabase/migrations/20261011042846_plan_tiers_and_trial.sql:17-18`; `docs/architecture/DATA_MODEL.md:84`; a new tenant table must cascade from here or Remove business leaves it behind ([remove-business](../../processes/remove-business.md)).
 - **Does not hit:** [business-profile](../onboarding/business-profile.md) (profile fields live there, not here); [subscription](subscription.md) (nothing reads it).
 
 ## Surfaces

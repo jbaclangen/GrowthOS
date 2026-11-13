@@ -4,7 +4,7 @@ cluster: pipeline
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261017110000_job_dispatches.sql
 ---
 
@@ -54,4 +54,4 @@ Citations: `supabase/migrations/20261017110000_job_dispatches.sql:55-340`, `web/
 ## See
 
 - Source: `supabase/migrations/20261017110000_job_dispatches.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (rows at `docs/architecture/DATA_MODEL.md:122`, `:152-157`)
+- As built: `docs/architecture/DATA_MODEL.md` (rows at `docs/architecture/DATA_MODEL.md:124`, `:154-159`)

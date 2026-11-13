@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: web/src/lib/env.ts
 ---
 
@@ -18,7 +18,7 @@ Names only; values live in `web/.env.local` and the Vercel projects, never in th
 `web/src/lib/env.ts` imports `server-only` (`web/src/lib/env.ts:1`), so a client component that touches it fails the build; each
 variable is validated on first use and trimmed, so one missing integration doesn't take the others down and a pasted
 line break can't break a key silently (`web/src/lib/env.ts:4-7,41-51`). `envConfigured()` lets optional integrations degrade (`web/src/lib/env.ts:53-56`).
-The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md:92`).
+The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md:94`).
 
 ## Shape
 
@@ -48,11 +48,11 @@ Site (its own process, Vercel `braventa-site`): `SITE_INDEXABLE` `site/src/lib/i
 `site/src/app/contact/actions.ts:47-48`.
 
 Where names are listed: `web/.env.example:1-58` (complete, with server-only marks `web/.env.example:6,29,38,40,47,52`);
-`docs/architecture/SYSTEM_ARCHITECTURE.md:259-262` (ten names; `GOOGLE_OAUTH_*`, `HUBSPOT_CLIENT_*`, `INTEGRATIONS_ENCRYPTION_KEY`,
-`JOB_CONTINUE_SECRET` and `JOB_DISPATCH` are missing there, a doc lag to fix). Which project holds which:
-`docs/architecture/SYSTEM_ARCHITECTURE.md:250-251`, `docs/marketing/CONTACT_PIPELINE.md:25`.
+`docs/architecture/SYSTEM_ARCHITECTURE.md:260-270` (every name in the schema plus `AI_MODE`, with the optional
+connection variables and the defaults). Which project holds which: `docs/architecture/SYSTEM_ARCHITECTURE.md:251-252`,
+`docs/marketing/CONTACT_PIPELINE.md:25`.
 
-Citations: `web/src/lib/env.ts:1,8-37,41-56`, `CLAUDE.md:92`
+Citations: `web/src/lib/env.ts:1,8-37,41-56`, `CLAUDE.md:94`
 
 ## Connected to
 
@@ -63,7 +63,7 @@ Citations: `web/src/lib/env.ts:1,8-37,41-56`, `CLAUDE.md:92`
 
 ## If you change this
 
-- **Hits:** a new variable → `web/src/lib/env.ts` schema, `web/.env.example`, `docs/architecture/SYSTEM_ARCHITECTURE.md:259-262`, the Vercel project ([deploy-targets](deploy-targets.md)) and, when optional, an `envConfigured()` check; rotating `INTEGRATIONS_ENCRYPTION_KEY` makes stored connections unreadable (`web/.env.example:42`); `JOB_CONTINUE_SECRET` must differ per environment because they share one database (`web/.env.example:49-50`); production needs `JOB_DISPATCH=database` (`web/.env.example:52-57`).
+- **Hits:** a new variable → `web/src/lib/env.ts` schema, `web/.env.example`, `docs/architecture/SYSTEM_ARCHITECTURE.md:260-270`, the Vercel project ([deploy-targets](deploy-targets.md)) and, when optional, an `envConfigured()` check; rotating `INTEGRATIONS_ENCRYPTION_KEY` makes stored connections unreadable (`web/.env.example:42`); `JOB_CONTINUE_SECRET` must differ per environment because they share one database (`web/.env.example:49-50`); production needs `JOB_DISPATCH=database` (`web/.env.example:52-57`).
 - **Does not hit:** tokens, the schema, the assistant knowledge base.
 
 ## Surfaces

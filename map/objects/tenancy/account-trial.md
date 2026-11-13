@@ -4,7 +4,7 @@ cluster: tenancy
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261108103906_business_limits.sql
 ---
 
@@ -24,7 +24,7 @@ The trial and the limit belong to a person, not to a business: deleting a busine
 - Mirror in code: `BUSINESS_LIMITS`, `accountTier`, `businessUsage`, `limitMessage`, `newBusinessPlan` — `web/src/lib/plans/business-limit.ts:12-66`; `business-limit.test.ts` reads the SQL numbers. `newBusinessPlan` is only that mirror: no app code reads `account_trials` (grep at this commit).
 - `BRV01` turned into a message: `createBusiness` — `web/src/lib/organizations/create.ts:7-19`; `createOwnedBusiness`, `accountUsage` — `web/src/lib/organizations/limit-server.ts:9-23`.
 
-Citations: `supabase/migrations/20261108103906_business_limits.sql:9-118`; `web/src/lib/plans/business-limit.ts:1-66`; `web/src/lib/organizations/create.ts:7-19`; `web/src/lib/organizations/limit-server.ts:7-23`; `web/src/app/onboarding/page.tsx:38-53`; `web/src/app/plans/page.tsx:28-53`; `web/src/app/settings/businesses-section.tsx:45-70`
+Citations: `supabase/migrations/20261108103906_business_limits.sql:9-118`; `web/src/lib/plans/business-limit.ts:1-66`; `web/src/lib/organizations/create.ts:7-19`; `web/src/lib/organizations/limit-server.ts:7-23`; `web/src/app/onboarding/page.tsx:38-53`; `web/src/app/plans/page.tsx:28-53`; `web/src/app/settings/businesses-section.tsx:45-70`; `web/src/app/onboarding/start-form.tsx:30-49`
 
 ## Connected to
 
@@ -43,7 +43,7 @@ Citations: `supabase/migrations/20261108103906_business_limits.sql:9-118`; `web/
 | Surface | Role |
 |---|---|
 | `create_organization()` | reads and writes |
-| `/plans` (`web/src/app/plans/page.tsx:30,48-53`), `/onboarding` (`web/src/app/onboarding/page.tsx:46,53`), Settings → Businesses (`web/src/app/settings/businesses-section.tsx:45-46,59-70`) | read the limit (through memberships, not this table) |
+| `/plans` (`web/src/app/plans/page.tsx:30,48-53`), `/onboarding` (`web/src/app/onboarding/page.tsx:46,53`; the start form disables "A new business" at the limit and links to `/plans`, `web/src/app/onboarding/start-form.tsx:30-49`), Settings → Businesses (`web/src/app/settings/businesses-section.tsx:45-46,59-70`) | read the limit (through memberships, not this table) |
 
 ## See
 

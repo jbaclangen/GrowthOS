@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 consumes: ["[[ai-job]]", "[[business-profile]]", "[[ai-worker]]"]
 produces: ["[[audit-run]]", "[[audit-finding]]", "[[knowledge-document]]", "[[business-profile]]", "[[brand-profile]]", "[[module-run]]", "[[ai-usage]]", "[[ai-job]]"]
 ---

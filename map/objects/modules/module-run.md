@@ -4,7 +4,7 @@ cluster: modules
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261023063253_feature_modules.sql
 ---
 
@@ -14,7 +14,7 @@ One row per feature module that ran in an analysis job, with its sub-score when 
 
 ## Why this shape
 
-D-051 wanted a per-module record (what ran, with which rules version, on which evidence) separate from the blended growth score (`supabase/migrations/20261023063253_feature_modules.sql:12-13`, `docs/decisions/DECISION_LOG.md:700-704`); the per-module report sections that could read it are not built (`docs/architecture/FEATURE_MODULES.md:134`). Rows are a record, not an input: a failed insert is logged and the analysis continues (`web/src/lib/modules/server.ts:34-35`).
+D-051 wanted a per-module record (what ran, with which rules version, on which evidence) separate from the blended growth score (`supabase/migrations/20261023063253_feature_modules.sql:12-13`, `docs/decisions/DECISION_LOG.md:700-704`); the per-module report sections that could read it are not built (`docs/architecture/FEATURE_MODULES.md:137`). Rows are a record, not an input: a failed insert is logged and the analysis continues (`web/src/lib/modules/server.ts:34-35`).
 
 ## Shape
 
@@ -35,7 +35,7 @@ Citations: `supabase/migrations/20261023063253_feature_modules.sql:12-13,41-65,7
 
 ## If you change this
 
-- **Hits:** `recordModuleRuns` and the three step writers; the composite FKs to `ai_jobs` and `audit_runs`; `docs/architecture/DATA_MODEL.md:111`, `docs/architecture/FEATURE_MODULES.md` §5.
+- **Hits:** `recordModuleRuns` and the three step writers; the composite FKs to `ai_jobs` and `audit_runs`; `docs/architecture/DATA_MODEL.md:113`, `docs/architecture/FEATURE_MODULES.md` §5.
 - **Does not hit:** the growth score or the report page — neither reads this table; `organization_modules`.
 
 ## Surfaces

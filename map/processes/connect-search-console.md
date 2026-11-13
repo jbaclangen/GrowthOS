@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 consumes: ["[[organization]]", "[[membership]]", "[[member-role]]", "[[plan-tier]]"]
 produces: ["[[integration-connection]]", "[[search-console-snapshot]]", "[[analytics-snapshot]]", "[[legal-acceptance]]"]
 ---

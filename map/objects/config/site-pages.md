@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: site/src/app/sitemap.ts
 ---
 
@@ -51,12 +51,12 @@ Citations: `site/src/app/sitemap.ts:4-27`, `site/src/app/robots.ts:5-8`, `site/n
 
 - **owns:** nothing in the database; `/contact` writes [contact-request](../integrations/contact-request.md)
 - **owned-by:** —
-- **joins:** [plan-tier](../tenancy/plan-tier.md) (`tiers.ts` import), [account-trial](../tenancy/account-trial.md) (`business-limit.ts` import), [design-tokens](design-tokens.md) and [generators](generators.md) (shared `tokens.css`, `logo-geometry.ts`, icons: `CLAUDE.md:73-75`), [env-config](env-config.md) (`SITE_INDEXABLE`, `CONTACT_HASH_SALT`, `HUBSPOT_*`), [deploy-targets](deploy-targets.md) (`braventa-site`, HubSpot)
+- **joins:** [plan-tier](../tenancy/plan-tier.md) (`tiers.ts` import), [account-trial](../tenancy/account-trial.md) (`business-limit.ts` import), [design-tokens](design-tokens.md) and [generators](generators.md) (shared `tokens.css`, `logo-geometry.ts`, icons: `CLAUDE.md:75-77`), [env-config](env-config.md) (`SITE_INDEXABLE`, `CONTACT_HASH_SALT`, `HUBSPOT_*`), [deploy-targets](deploy-targets.md) (`braventa-site`, HubSpot)
 - **looks-like-but-is-not:** [app-routes](app-routes.md) (app.braventa.io; its `robots.ts` disallows everything, the site's flips on `SITE_INDEXABLE`)
 
 ## If you change this
 
-- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-23` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:75`); a tier, feature or business limit change is made in `web/src/lib/plans/tiers.ts` or `web/src/lib/plans/business-limit.ts`, never on the page; a price in `PRICES` and a seat allowance in `SEATS` (`site/src/lib/site.ts:61-71`, the latter together with `web/src/lib/team/seats.ts:15-19`); a new vendor → `/legal/subprocessors`; a scored module or evidence source added, removed or reweighted → the hand-written score and source copy on `/` (`site/src/app/page.tsx:31,69,108,347`), `/product` (`site/src/app/product/page.tsx:31,62-66`), `/how-it-works` (`site/src/app/how-it-works/page.tsx:54-59,64,73`), `/pricing` FAQ (`site/src/app/pricing/page.tsx:31-34`), `/trust` (`site/src/app/trust/page.tsx:56-57`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:29-30,76-85`), which must match [growth-score](../report/growth-score.md) and the app's `BLEND` list (`web/src/lib/modules/score.ts:205-210`); `LIVE_TODAY` (`site/src/lib/site.ts:56-59`) names what Braventa doesn't do yet; the site imports neither; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
+- **Hits:** a new page → `PATHS` in `site/src/app/sitemap.ts:5-23` and the health check's path list `web/scripts/health-check.mts:29`; copy follows the live-vs-coming-soon rule (`CLAUDE.md:77`); a tier, feature or business limit change is made in `web/src/lib/plans/tiers.ts` or `web/src/lib/plans/business-limit.ts`, never on the page; a price in `PRICES` and a seat allowance in `SEATS` (`site/src/lib/site.ts:61-71`, the latter together with `web/src/lib/team/seats.ts:15-19`); a new vendor → `/legal/subprocessors`; a scored module or evidence source added, removed or reweighted → the hand-written score and source copy on `/` (`site/src/app/page.tsx:31,69,108,347`), `/product` (`site/src/app/product/page.tsx:31,62-66`), `/how-it-works` (`site/src/app/how-it-works/page.tsx:54-59,64,73`), `/pricing` FAQ (`site/src/app/pricing/page.tsx:31-34`), `/trust` (`site/src/app/trust/page.tsx:56-57`) and `/trust/ai` (`site/src/app/trust/ai/page.tsx:29-30,76-85`), which must match [growth-score](../report/growth-score.md) and the app's `BLEND` list (`web/src/lib/modules/score.ts:205-210`); `LIVE_TODAY` (`site/src/lib/site.ts:56-59`) names what Braventa doesn't do yet; the site imports neither; the contact form's spam gate and HubSpot are described in `docs/marketing/CONTACT_PIPELINE.md`.
 - **Does not hit:** app routes, RLS, the schema (only anonymous inserts into `contact_requests`).
 
 ## Surfaces

@@ -4,7 +4,7 @@ cluster: modules
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261023063253_feature_modules.sql
 ---
 
@@ -20,8 +20,8 @@ D-051 wanted the growth score to be computable over "the organization's enabled 
 
 - PK (`organization_id`, `module_id` domain), `enabled` default true, `config` jsonb, timestamps — `supabase/migrations/20261023063253_feature_modules.sql:29-39`.
 - RLS "members read"; insert/update/delete revoked from clients — `supabase/migrations/20261023063253_feature_modules.sql:71-76`; `touch_updated_at` `:78-79`.
-- The one reader: `enabledModules` reads the tier and the overrides with the admin client and throws if either read fails — `web/src/lib/modules/server.ts:11-19`; the rule is `enabledModuleIds` — `web/src/lib/modules/registry.ts:266-269`; called before the diagnosis model call in the scoring step — `web/src/lib/pipeline/website-intel.ts:636-640` (call at `:639`) — and in `reviseDiagnosis` (a correction, for the Search Console and GA4 summaries only) — `:595-598` (call at `:597`). The docs list both readers: `docs/architecture/DATA_MODEL.md:110`, `docs/architecture/FEATURE_MODULES.md:91`.
-- No writer in the repo: `supabase/migrations/20261023063253_feature_modules.sql:9,105`; `docs/architecture/DATA_MODEL.md:110`; `docs/architecture/FEATURE_MODULES.md:48-51`.
+- The one reader: `enabledModules` reads the tier and the overrides with the admin client and throws if either read fails — `web/src/lib/modules/server.ts:11-19`; the rule is `enabledModuleIds` — `web/src/lib/modules/registry.ts:266-269`; called before the diagnosis model call in the scoring step — `web/src/lib/pipeline/website-intel.ts:636-640` (call at `:639`) — and in `reviseDiagnosis` (a correction, for the Search Console and GA4 summaries only) — `:595-598` (call at `:597`). The docs list both readers: `docs/architecture/DATA_MODEL.md:112`, `docs/architecture/FEATURE_MODULES.md:94`.
+- No writer in the repo: `supabase/migrations/20261023063253_feature_modules.sql:9,105`; `docs/architecture/DATA_MODEL.md:112`; `docs/architecture/FEATURE_MODULES.md:48-51`.
 - Effect of a row with `enabled = false`: the module leaves the score and (for Search visibility and Analytics) its summary leaves the diagnosis; the analysis steps still run — `web/src/lib/modules/registry.ts:263-265`, `docs/architecture/FEATURE_MODULES.md:49-51`.
 
 Citations: `supabase/migrations/20261023063253_feature_modules.sql:8-11,29-39,71-79,105`; `web/src/lib/modules/server.ts:11-19`; `web/src/lib/modules/registry.ts:260-269`; `web/src/lib/pipeline/website-intel.ts:595-598,636-640,711,730`
@@ -35,10 +35,10 @@ Citations: `supabase/migrations/20261023063253_feature_modules.sql:8-11,29-39,71
 
 ## If you change this
 
-- **Hits:** `enabledModules` (its failure fails the scoring step or the correction), `enabledModuleIds`, the growth score and how it is described (a dropped Search visibility or Analytics leaves `reports.data.score_modules`, so the score tile and Scores section stop naming its data in `scoreBlend` and show no bar for it, and Ask Braventa's summary gets no sub-score for it — `web/src/app/analysis/[id]/infographic.tsx:169-173`, `web/src/app/analysis/[id]/report-sections.tsx:55-57`, `web/src/lib/assistant/context.ts:165,186-187`, `docs/architecture/FEATURE_MODULES.md:76-80`), whether the Search Console and GA4 summaries reach the diagnosis and its corrections, and whether the scoring step records a `search_visibility` or `analytics` [module-run](module-run.md) (`web/src/lib/pipeline/website-intel.ts:711`, `:730`); `docs/architecture/DATA_MODEL.md:110`, `docs/architecture/FEATURE_MODULES.md` §3.
+- **Hits:** `enabledModules` (its failure fails the scoring step or the correction), `enabledModuleIds`, the growth score and how it is described (a dropped Search visibility or Analytics leaves `reports.data.score_modules`, so the score tile and Scores section stop naming its data in `scoreBlend` and show no bar for it, and Ask Braventa's summary gets no sub-score for it — `web/src/app/analysis/[id]/infographic.tsx:169-173`, `web/src/app/analysis/[id]/report-sections.tsx:55-57`, `web/src/lib/assistant/context.ts:165,186-187`, `docs/architecture/FEATURE_MODULES.md:76-83`), whether the Search Console and GA4 summaries reach the diagnosis and its corrections, and whether the scoring step records a `search_visibility` or `analytics` [module-run](module-run.md) (`web/src/lib/pipeline/website-intel.ts:711`, `:730`); `docs/architecture/DATA_MODEL.md:112`, `docs/architecture/FEATURE_MODULES.md` §3.
 - **Does not hit:** the other [module-run](module-run.md) rows — the profiling and writing steps and the scoring step's `conversion` row are recorded regardless of overrides; the `website_evidence` steps, which do not read overrides.
 
-Ghost: the switch UI and the permission that would gate it (the D-046 roles foundation has no module permission yet, [member-role](../tenancy/member-role.md)) — `docs/architecture/FEATURE_MODULES.md:133`, `docs/architecture/ROLES_AND_PERMISSIONS.md:172`, `docs/decisions/DECISION_LOG.md:605-634` (D-046).
+Ghost: the switch UI and the permission that would gate it (the D-046 roles foundation has no module permission yet, [member-role](../tenancy/member-role.md)) — `docs/architecture/FEATURE_MODULES.md:136`, `docs/architecture/ROLES_AND_PERMISSIONS.md:173`, `docs/decisions/DECISION_LOG.md:605-634` (D-046).
 
 ## Surfaces
 

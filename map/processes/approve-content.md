@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 consumes: ["[[content-item]]", "[[content-status]]", "[[membership]]", "[[member-role]]"]
 produces: ["[[content-item]]"]
 ---
@@ -18,7 +18,7 @@ A draft sits at `needs_approval`. A member clicks Approve, Reject or Undo on the
 
 ## Why this shape
 
-The "members all" policy would otherwise let any member set `published`, name someone else as approver or move a draft past the permission check through the Data API; the trigger closes that regardless of app code (D-018 in the migration header; the organization pin `supabase/migrations/20261023224450_content_guard_pins_organization.sql:1-8`). Approval is a human decision by default (D-013, `docs/decisions/DECISION_LOG.md:174-177`), and no one approves their own work except the owner (D-046, `docs/decisions/DECISION_LOG.md:605-634`; as built `docs/architecture/ROLES_AND_PERMISSIONS.md:120-137`). The app still sends `approved_by`/`approved_at` (`web/src/app/analysis/actions.ts:145-146`), but the trigger overwrites them; that redundancy is a known docs-vs-code note, not a second source of truth.
+The "members all" policy would otherwise let any member set `published`, name someone else as approver or move a draft past the permission check through the Data API; the trigger closes that regardless of app code (D-018 in the migration header; the organization pin `supabase/migrations/20261023224450_content_guard_pins_organization.sql:1-8`). Approval is a human decision by default (D-013, `docs/decisions/DECISION_LOG.md:174-177`), and no one approves their own work except the owner (D-046, `docs/decisions/DECISION_LOG.md:605-634`; as built `docs/architecture/ROLES_AND_PERMISSIONS.md:121-138`). The app still sends `approved_by`/`approved_at` (`web/src/app/analysis/actions.ts:145-146`), but the trigger overwrites them; that redundancy is a known docs-vs-code note, not a second source of truth.
 
 ## Steps
 
@@ -56,4 +56,4 @@ A member whose role holds `content.approve` approves or rejects each draft (step
 - Objects: [content-item](../objects/report/content-item.md), [content-status](../objects/report/content-status.md), [content-calendar](../objects/report/content-calendar.md), [membership](../objects/tenancy/membership.md), [member-role](../objects/tenancy/member-role.md)
 - Processes: [plan-and-write](plan-and-write.md)
 - Source: `web/src/app/analysis/actions.ts`, `web/src/app/analysis/[id]/controls.tsx`, `web/src/lib/team/roles.ts`, `supabase/migrations/20261010121043_content_approval_guard.sql`, `supabase/migrations/20261023092945_roles_and_permissions.sql`, `supabase/migrations/20261023224450_content_guard_pins_organization.sql`
-- As built: `docs/architecture/ROLES_AND_PERMISSIONS.md:120-137` (§4)
+- As built: `docs/architecture/ROLES_AND_PERMISSIONS.md:121-138` (§4)

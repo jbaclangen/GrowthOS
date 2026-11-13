@@ -4,7 +4,7 @@ cluster: report
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261010164133_diagnosis_and_plan.sql
 ---
 
@@ -50,4 +50,4 @@ Citations: `supabase/migrations/20261010164133_diagnosis_and_plan.sql:32-52`, `:
 ## See
 
 - Source: `supabase/migrations/20261010164133_diagnosis_and_plan.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:108`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:110`)

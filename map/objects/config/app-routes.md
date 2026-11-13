@@ -4,7 +4,7 @@ cluster: config
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: web/src/proxy.ts
 ---
 
@@ -29,7 +29,7 @@ belong to several businesses, so forms that act on one post its id and the actio
 
 - Gate: `PUBLIC_PATHS` `web/src/proxy.ts:11-22`; redirect to `/login?next=` `:49-54`; matcher `:58-60`.
 - Root layout: tier/trial badge, business switcher and assistant bar per request, `web/src/app/layout.tsx:56-96`; the
-  terms banner `:47-49`.
+  terms banner `web/src/app/layout.tsx:47-49`.
 - Security headers on every path (`X-Robots-Tag` noindex, `X-Frame-Options: DENY`, CSP `form-action` limited to
   `'self'` and the Google and HubSpot consent hosts the connect forms redirect to, `FORM_ACTION` `web/next.config.ts:3-7`, kept in step by
   `web/src/lib/integrations/csp.test.ts`): `web/next.config.ts:9-20,26-28`. Crawlers disallowed everywhere: `web/src/app/robots.ts:3-6`.
@@ -68,7 +68,7 @@ API routes:
 | `GET /auth/callback` | PKCE code / OTP hash | `web/src/app/auth/callback/route.ts:6-9` |
 | `POST /oauth/register`, `/oauth/token`, `/oauth/revoke` | open (DB rate limit), client auth, client auth | `web/src/app/oauth/register/route.ts:9-13,21`; `web/src/app/oauth/token/route.ts:8-11`; `web/src/app/oauth/revoke/route.ts:6-8` |
 | `GET /.well-known/oauth-authorization-server/[[...path]]`, `/.well-known/oauth-protected-resource/[[...path]]` | none | each `route.ts:5-7` |
-| `/api/n8n/*` | **ghost**: no route under `web/src/app/api/`; planned in `CLAUDE.md:87-88`, `docs/architecture/SYSTEM_ARCHITECTURE.md:240-242` | |
+| `/api/n8n/*` | **ghost**: no route under `web/src/app/api/`; planned in `CLAUDE.md:89-90`, `docs/architecture/SYSTEM_ARCHITECTURE.md:241-243` | |
 
 Server actions that write: `web/src/app/analysis/actions.ts:30,88,128,158` (`create_organization`, `ai_jobs`,
 `content_items`, `business_profiles`); `web/src/app/analysis/plan-actions.ts:13-16,24,59,104,152`

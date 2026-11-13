@@ -4,7 +4,7 @@ cluster: tenancy
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261107154953_team_invitations.sql
 ---
 

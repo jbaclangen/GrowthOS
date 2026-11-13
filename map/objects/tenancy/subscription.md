@@ -4,7 +4,7 @@ cluster: tenancy
 universe: ghost
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -21,9 +21,9 @@ The foundation migration anticipated Stripe (`stripe_customer_id`, `stripe_subsc
 - Columns: `organization_id` (unique, one per organization), `stripe_customer_id`, `stripe_subscription_id`, `plan` default `trial`, `status` default `trialing`, `current_period_end`, timestamps — `supabase/migrations/20261010061028_foundation.sql:263-273`.
 - RLS "members read" only; writes would be server-only — `supabase/migrations/20261010061028_foundation.sql:311-320`. `touch_updated_at` trigger — `:337`.
 - No reference in `web/src` at this commit (grep for `subscriptions`; `web/src/lib/plans/subscription.ts` is a function name, not this table — `web/src/lib/plans/subscription.ts:5-7` reads `organizations`).
-- Documented as unused: `docs/architecture/DATA_MODEL.md:123`, `docs/product/MVP_SCOPE.md:82-84`.
+- Documented as unused: `docs/architecture/DATA_MODEL.md:125`, `docs/product/MVP_SCOPE.md:82-84`.
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:263-273,311-320,337`; `web/src/lib/plans/subscription.ts:5-7`; `docs/architecture/DATA_MODEL.md:123`; `docs/product/MVP_SCOPE.md:82-84`; `docs/product/ROADMAP.md:63-64`
+Citations: `supabase/migrations/20261010061028_foundation.sql:263-273,311-320,337`; `web/src/lib/plans/subscription.ts:5-7`; `docs/architecture/DATA_MODEL.md:125`; `docs/product/MVP_SCOPE.md:82-84`; `docs/product/ROADMAP.md:63-64`
 
 ## Connected to
 
@@ -34,7 +34,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:263-273,311-320,33
 
 ## If you change this
 
-- **Hits:** nothing in the app; `docs/architecture/DATA_MODEL.md:123`; Remove business deletes the row with its organization (`on delete cascade`, `supabase/migrations/20261010061028_foundation.sql:265`).
+- **Hits:** nothing in the app; `docs/architecture/DATA_MODEL.md:125`; Remove business deletes the row with its organization (`on delete cascade`, `supabase/migrations/20261010061028_foundation.sql:265`).
 - **Does not hit:** [plan-tier](plan-tier.md) or any gate — none reads this table. Do not build a gate on it until billing writes it.
 
 ## Surfaces

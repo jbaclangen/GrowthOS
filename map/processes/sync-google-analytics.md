@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 consumes: ["[[integration-connection]]", "[[organization]]", "[[plan-tier]]", "[[business-profile]]", "[[module-registry]]", "[[member-role]]"]
 produces: ["[[analytics-snapshot]]", "[[report]]", "[[growth-score]]", "[[module-run]]"]
 ---
@@ -58,3 +58,4 @@ None inside the sync. The owner chooses a property when no single property match
 
 - Objects: [analytics-snapshot](../objects/integrations/analytics-snapshot.md), [integration-connection](../objects/integrations/integration-connection.md), [growth-score](../objects/report/growth-score.md), [report](../objects/report/report.md), [member-role](../objects/tenancy/member-role.md)
 - Source: `web/src/lib/integrations/google-analytics.ts`
+- Production setup (the Analytics APIs and the `analytics.readonly` scope): [deploy-targets](../objects/config/deploy-targets.md)

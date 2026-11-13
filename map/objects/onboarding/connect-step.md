@@ -4,7 +4,7 @@ cluster: onboarding
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: web/src/lib/integrations/connect-step.ts
 ---
 
@@ -24,7 +24,7 @@ D-041 asks Pro owners to connect tools during discovery; D-054 built it without 
 - MCP skips the step: `braventa_confirm_priorities` generates the round itself — `web/src/lib/mcp/tools.ts:310-312`, `web/src/app/onboarding/[sessionId]/connect/page.tsx:28`.
 - Submitting the review redirects here — `web/src/app/onboarding/[sessionId]/actions.ts:78-79`.
 
-Citations: `web/src/lib/integrations/connect-step.ts:4-80`; `web/src/app/onboarding/[sessionId]/connect/page.tsx:23-33,55-107,121-153`; `web/src/app/onboarding/[sessionId]/actions.ts:15-25,78-96`; `web/src/lib/onboarding/steps.ts:5-7,28-37`; `web/src/lib/mcp/tools.ts:310-312`; `web/src/lib/integrations/tool-catalog.ts:3-5`; `web/src/lib/integrations/return-to.ts:1-13`
+Citations: `web/src/lib/integrations/connect-step.ts:4-80`; `web/src/app/onboarding/[sessionId]/connect/page.tsx:23-33,55-107,121-153`; `web/src/app/onboarding/[sessionId]/actions.ts:15-25,78-96`; `web/src/lib/onboarding/steps.ts:5-7,28-37`; `web/src/lib/mcp/tools.ts:310-312`; `web/src/lib/integrations/tool-catalog.ts:3-5`; `web/src/lib/integrations/return-to.ts:1-13,29-33`
 
 ## Connected to
 
@@ -35,7 +35,7 @@ Citations: `web/src/lib/integrations/connect-step.ts:4-80`; `web/src/app/onboard
 
 ## If you change this
 
-- **Hits:** `followUpStep`/`followUpPath`, `continueAfterConnect`, the questions page's forward, the review redirect, `ONBOARDING_STEP_COUNT` and "Step 4 of 5" (`web/src/lib/onboarding/steps.ts:7`, page `web/src/app/onboarding/[sessionId]/connect/page.tsx:107`), MCP `braventa_get_status` wording, the return-to allowlist for the Google and HubSpot consent screens (`web/src/lib/integrations/return-to.ts:1-13`, `docs/decisions/DECISION_LOG.md:777-779`).
+- **Hits:** `followUpStep`/`followUpPath`, `continueAfterConnect`, the questions page's forward, the review redirect, `ONBOARDING_STEP_COUNT` and "Step 4 of 5" (`web/src/lib/onboarding/steps.ts:7`, page `web/src/app/onboarding/[sessionId]/connect/page.tsx:107`), MCP `braventa_get_status` wording, the return-to allowlist for the Google and HubSpot consent screens (`web/src/lib/integrations/return-to.ts:1-13`; HubSpot's `?hubspot=` outcome uses the same allowlist, `web/src/lib/integrations/return-to.ts:29-33`; `docs/decisions/DECISION_LOG.md:777-779`).
 - **Does not hit:** [onboarding-session](onboarding-session.md) status values — by design none was added (D-054).
 
 Ghost: every tool other than Search Console, Google Analytics 4 and HubSpot is a Coming soon card with no connect action — `web/src/lib/integrations/tool-catalog.ts:3-5` (`status: "coming_soon"`), `docs/decisions/DECISION_LOG.md:765-767` (D-054, written when GA4 and HubSpot were still Coming soon). HubSpot's counts are shown, not fed to the diagnosis or score (`web/src/app/onboarding/[sessionId]/connect/page.tsx:26-27`). Connecting for any business the user belongs to works since D-062 (the forms carry `organizationId`, `:70-71`; Q-047 resolved).

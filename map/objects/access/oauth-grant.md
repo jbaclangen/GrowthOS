@@ -4,7 +4,7 @@ cluster: access
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261017030000_mcp_oauth.sql
 ---
 
@@ -50,4 +50,4 @@ Citations: `supabase/migrations/20261017030000_mcp_oauth.sql:98-124`, `web/src/l
 ## See
 
 - Source: `supabase/migrations/20261017030000_mcp_oauth.sql`, `web/src/lib/oauth/supabase-store.ts`
-- As built: `docs/architecture/DATA_MODEL.md` (row `oauth_grants`, line 118)
+- As built: `docs/architecture/DATA_MODEL.md:120` (row `oauth_grants`)

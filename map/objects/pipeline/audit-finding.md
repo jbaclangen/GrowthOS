@@ -4,7 +4,7 @@ cluster: pipeline
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261011160802_website_audit.sql
 ---
 
@@ -20,7 +20,7 @@ Findings are produced by code, not a model, so each carries its rule, observed v
 
 - Table `supabase/migrations/20261011160802_website_audit.sql:35-59`: `ref` ≤ 16 `:39-40`; `page_url` null means site-wide `:41`; `rule_id` `:42`; `category` (five values) `:43`; `severity`, `confidence` `:44-45`; `priority_label` (`fix_first`, `improve_next`, `monitor`) `:46`; `observed` jsonb `:48`; `source_type` `:50`; `status` (`detected`, `resolved`, `dismissed`) `:52`; `unique (audit_run_id, ref)` `:54`; composite FK `:55-56`.
 - RLS "members read" `supabase/migrations/20261011160802_website_audit.sql:65`; client writes revoked `:68`.
-- Produced by `runChecks` `web/src/lib/audit/checks.ts:910-911`; inserted at `web/src/lib/pipeline/website-intel.ts:180-182` through `toFindingRow` `:190-207`, which sets no `status`, so every row keeps the default `detected`. `resolved` and `dismissed` are leftover: nothing sets them (`docs/architecture/DATA_MODEL.md:107`).
+- Produced by `runChecks` `web/src/lib/audit/checks.ts:910-911`; inserted at `web/src/lib/pipeline/website-intel.ts:180-182` through `toFindingRow` `:190-207`, which sets no `status`, so every row keeps the default `detected`. `resolved` and `dismissed` are leftover: nothing sets them (`docs/architecture/DATA_MODEL.md:109`).
 - Cited by the diagnosis: `diagnosis_findings.audit_refs` `supabase/migrations/20261011160802_website_audit.sql:72-73`, `:77`; the citable set `web/src/lib/pipeline/prompts.ts:136-155` (`T` refs `:150`); uncited findings are downgraded in `toFindings` `web/src/lib/plan/priority.ts:107`, `:112`.
 - Readers: `web/src/app/analysis/[id]/report-data.ts:179-184`; `loadAuditContext` `website-intel.ts:214-218`, sorted by ref `:222`.
 - Module mapping by `category`: `web/src/lib/modules/registry.ts:80`.
@@ -50,4 +50,4 @@ Citations: `supabase/migrations/20261011160802_website_audit.sql:35-59`, `:65-68
 ## See
 
 - Source: `supabase/migrations/20261011160802_website_audit.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:107`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:109`)

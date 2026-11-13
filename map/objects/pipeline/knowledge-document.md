@@ -4,7 +4,7 @@ cluster: pipeline
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -49,4 +49,4 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:110-121`, `:300-30
 ## See
 
 - Source: `supabase/migrations/20261010061028_foundation.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:90`); planned use `docs/product/ROADMAP.md:76-77`, `:104`
+- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:92`); planned use `docs/product/ROADMAP.md:76-77`, `:104`

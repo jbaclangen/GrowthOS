@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 consumes: ["[[ai-job]]", "[[job-step]]", "[[business-profile]]"]
 produces: ["[[ai-job]]", "[[job-step]]", "[[job-dispatch]]"]
 ---
@@ -18,7 +18,7 @@ A queued `ai_jobs` row holds `output.{step, step_state, step_started_at, claim}`
 
 ## Why this shape
 
-Vercel Hobby stops an invocation at 300 s with no cleanup; a full analysis took longer (D-042, `docs/decisions/DECISION_LOG.md:509-511`; `CLAUDE.md:124-125`). A deployment that POSTs to itself in a chain gets HTTP 508 after a few hops, so production never calls itself: Postgres sends the POST. The conditional claim makes a repeated or late POST harmless, which is what lets the sweeper and the report page re-send freely.
+Vercel Hobby stops an invocation at 300 s with no cleanup; a full analysis took longer (D-042, `docs/decisions/DECISION_LOG.md:509-511`; `CLAUDE.md:126-127`). A deployment that POSTs to itself in a chain gets HTTP 508 after a few hops, so production never calls itself: Postgres sends the POST. The conditional claim makes a repeated or late POST harmless, which is what lets the sweeper and the report page re-send freely.
 
 ## Steps
 

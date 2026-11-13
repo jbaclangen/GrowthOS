@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 71a42e1
+commit: 1917f9a
 consumes: ["[[membership]]", "[[organization]]"]
 produces: []
 ---
@@ -27,7 +27,7 @@ The cookie is a preference, not an authorisation: every read checks membership a
 3. `switchBusiness`: UUID, `memberRole` through RLS, `rememberBusiness`, redirect to the dashboard — `web/src/app/settings/business-actions.ts:12-20`; cookie — `web/src/lib/organizations/current.ts:14-28`.
 4. Reads: `currentMembership` / `currentOrganization` pick the chosen business only if the person belongs to it — `web/src/lib/memberships.ts:27-41`; `getCurrentOrg` — `web/src/lib/auth.ts:33-44`; `getOrgAccess` — `web/src/lib/plans/access.ts:18`; the assistant — `web/src/app/api/assistant/route.ts:66`, its launcher keyed by business so a switch starts a new conversation — `web/src/app/layout.tsx:75-77`.
 5. Also set by a new business (`web/src/app/analysis/actions.ts:65`, `web/src/app/settings/actions.ts:54`) and an accepted invite (`web/src/app/invite/[token]/actions.ts:66-67`).
-6. Connect forms carry `organizationId`; start routes seal it — `web/src/app/api/integrations/google/start/route.ts:35-37,58`, `web/src/app/api/integrations/hubspot/start/route.ts:34-36,53`; callbacks use it — `web/src/app/api/integrations/google/callback/route.ts:51-55`, `web/src/app/api/integrations/hubspot/callback/route.ts:45-49`.
+6. Connect forms carry `organizationId`; start routes seal it — `web/src/app/api/integrations/google/start/route.ts:35-37,58`, `web/src/app/api/integrations/hubspot/start/route.ts:34-36,53`; callbacks use it — `web/src/app/api/integrations/google/callback/route.ts:51-55`, `web/src/app/api/integrations/hubspot/callback/route.ts:45-49`. Settings connection actions (refresh, choose a property, disconnect) resolve the posted `organizationId` with `getCurrentOrg` — `authorisedOrg` `web/src/app/settings/connections-actions.ts:24-31`, `authorisedHubSpotOrg` `web/src/app/settings/connections-actions.ts:95-102`; a form that posts no id gets the current business — `web/src/lib/auth.ts:35,43`.
 7. Forms that act on one business post the id the page showed and resolve it with `getCurrentOrg(userId, id)`, never the cookie's: Settings → Team — `web/src/app/settings/team-actions.ts:17-19,23-29`; personal keys (no id only when a business name sets up a new one) — `web/src/app/settings/actions.ts:29-43`; service keys — `web/src/app/settings/integrations-actions.ts:26-30`; the onboarding start form (`business=new` for a new one) — `web/src/app/analysis/actions.ts:50-57`, `web/src/app/onboarding/start-form.tsx:9-11,19-27`; the `/plans` request — `web/src/app/plans/actions.ts:16-20`.
 
 ## Human gate
@@ -36,7 +36,7 @@ The person chooses the business. Nothing else is approved here.
 
 ## If you change this
 
-- **Hits:** everything that calls `getCurrentOrg` or `getOrgAccess` (dashboard, Settings, `/plans`, `/search`, connection cards and actions, OAuth routes, the assistant); the forms in step 7 and their tests (`web/src/app/settings/team-actions.test.ts`, `web/src/app/settings/key-actions.test.ts`, `web/src/app/analysis/actions.test.ts`, `web/src/app/plans/actions.test.ts`); [remove-business](remove-business.md) (the dashboard opens the next business); [invite-and-join](invite-and-join.md); `web/src/lib/memberships.test.ts`; `docs/architecture/ROLES_AND_PERMISSIONS.md:270-293` (§10).
+- **Hits:** everything that calls `getCurrentOrg` or `getOrgAccess` (dashboard, Settings, `/plans`, `/search`, connection cards and actions, OAuth routes, the assistant); the forms in step 7 and their tests (`web/src/app/settings/team-actions.test.ts`, `web/src/app/settings/key-actions.test.ts`, `web/src/app/analysis/actions.test.ts`, `web/src/app/plans/actions.test.ts`); [remove-business](remove-business.md) (the dashboard opens the next business); [invite-and-join](invite-and-join.md); `web/src/lib/memberships.test.ts`; `docs/architecture/ROLES_AND_PERMISSIONS.md:271-294` (§10).
 - **Does not hit:** the MCP server (a key or grant names its business, `web/src/lib/mcp/auth.ts`), the pipeline (jobs carry their organization), pages reached by a record id (`/analysis/[id]`, onboarding sessions), which read that record's business through RLS.
 
 ## Surfaces
