@@ -2,7 +2,7 @@
 
 This document proposes the sitemap for the marketing site at braventa.io (D-011: marketing site on Hostinger, app at app.braventa.io) and provides copy foundations for each page, with full copy for the home page plus page titles and meta descriptions. Designers and developers building the site should use it with [`../brand/VISUAL_IDENTITY.md`](../brand/VISUAL_IDENTITY.md) for layout and type, [`../brand/VOICE_AND_MESSAGING.md`](../brand/VOICE_AND_MESSAGING.md) for voice and claim rules, and [`../product/MVP_SCOPE.md`](../product/MVP_SCOPE.md) to confirm every "Live" label before launch. Canonical lines are fixed by D-005 in [`../decisions/DECISION_LOG.md`](../decisions/DECISION_LOG.md).
 
-**Status / last reviewed: 2026-10-11** · §0 is the current messaging (founder brief, D-035) and matches the built pages in `site/`. §2–§11 are the original 2026-10-10 copy foundations; where they differ from §0 or the built pages, §0 and the built pages win.
+**Status / last reviewed: 2026-11-08** · §0 is the current messaging (founder brief, D-035) and matches the built pages in `site/`. §2–§11 are the original 2026-10-10 copy foundations; where they differ from §0 or the built pages, §0 and the built pages win.
 
 ---
 
@@ -42,9 +42,13 @@ connect is described as such in its copy. Badges come from `StatusBadge` in `sit
 | Content Studio (30-day plan, five drafts, approve/reject) | Live, gaps named (rest of plan stays as topics; no editing or publishing) | `website-intel.ts`, `setContentStatus` |
 | Website Intelligence | Limited (up to 25 pages, robots.txt respected; PageSpeed mobile and desktop; crawl signals) | `web/src/lib/integrations/crawler.ts`, `google.ts` |
 | HubSpot connection (read-only counts of contacts and deals; Pro and the trial; owner only) | Live once the HubSpot app is set up (built 2026-11-08, D-059); counts only, not used in the diagnosis | `web/src/lib/integrations/hubspot*.ts`, `HUBSPOT_SETUP.md` |
-| CRM Intelligence (CRM data in the diagnosis), Automation, Analytics | Coming soon | nothing user-facing |
-| Connect your AI assistant (MCP) — Claude Desktop and Claude Code | Live once the MCP PR merges; every plan during the trial, then any subscribed plan | MCP phase 1 (`/api/mcp`); claude.ai and ChatGPT connectors Coming soon |
-| In-app AI assistant ("Ask Braventa" in the app header) | Live (D-043) once its migration is applied and the PR merges; every plan during the trial, then any subscribed plan | `/api/assistant`, `web/src/lib/assistant/*`; read-only |
+| CRM Intelligence (site label Limited: the HubSpot counts above; their use in the diagnosis and score, D-060 Proposed, is Coming soon) | Limited | `hubspot*.ts`; nothing reaches the diagnosis |
+| Analytics (site label Limited: Search Console and GA4 data in the diagnosis and score on Pro, D-058; reports over time Coming soon) | Limited | `search_visibility` and `analytics` modules in `web/src/lib/modules/registry.ts` |
+| Team: invites by copied link, fixed roles, seat limits per plan (D-046); several businesses per account, 2/4/8 by plan (D-062, `BUSINESS_LIMITS`); remove a business (D-061); agreement checkboxes (D-057) | Live | `web/src/lib/team/*`, `removeBusiness`, `web/src/lib/legal/*`; seat counts mirrored in `SEATS` in `site/src/lib/site.ts` |
+| Automation (agents and workflows in your tools) | Coming soon | nothing user-facing |
+| Prices (D-039): Basic $89, Pro $229, Premium from $599 a month | Shown with "Talk to us"; no checkout | `PRICES` in `site/src/lib/site.ts` |
+| Connect your AI assistant (MCP) — Claude Desktop and Claude Code | Live; every plan during the trial, then any subscribed plan | MCP phase 1 (`/api/mcp`); claude.ai and ChatGPT connectors Coming soon |
+| In-app AI assistant ("Ask Braventa" in the app header) | Live (D-043); every plan during the trial, then any subscribed plan | `/api/assistant`, `web/src/lib/assistant/*`; read-only |
 
 **AI assistant connection copy rules:** say "connect your AI assistant" (not the "In-app AI assistant" feature in
 `tiers.ts`, which is Ask Braventa, below). It fills in setup and discovery and reports status; the owner still confirms

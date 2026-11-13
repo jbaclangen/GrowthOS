@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Band, CtaRow, PageHero, SectionIntro, StatusBadge, type Status } from "@/components/ui";
+import { TAGLINE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "How Braventa works",
@@ -23,9 +24,23 @@ const SETUP = [
     body: "Keep the matches that are right, drop the ones that aren't, and choose your first, second and third priority. Your priorities come first in the plan.",
   },
   {
+    step: "Connect your tools (optional)",
+    body: "On Pro and during the trial, the owner can connect Google Search Console and Google Analytics 4 with one Google sign-in, and HubSpot. Braventa only reads them. Skip this step and connect later in Settings if you like.",
+  },
+  {
     step: "A few follow-up questions",
     body: "Braventa picks up to four questions based on your goal, your priorities and what you've already said, so your plan reflects your business — not a generic marketing checklist. Each one says why it's asked, and you can skip any of them.",
   },
+];
+
+// The unified flow in six steps, as the app runs it (CLAUDE.md "MVP demo flow").
+const FLOW = [
+  { title: "One website analysis", body: "Up to 25 pages and Google PageSpeed." },
+  { title: "Your answers", body: "What's hard and your top three." },
+  { title: "Your tools", body: "Google and HubSpot, on Pro. Optional." },
+  { title: "A diagnosis you confirm", body: "With the evidence for each finding." },
+  { title: "One growth plan", body: "Ranked, with a first step for each action." },
+  { title: "30 days of content", body: "A plan and five drafts to approve." },
 ];
 
 const ANALYSIS = [
@@ -60,6 +75,7 @@ const YOU_GET = [
   "One prioritized growth plan: for each action, why it matters, a first step, what it depends on, how you'll know it worked, and whether Braventa can help with it today.",
   "A 30-day content plan with a goal, audience, content pillars and channels.",
   "Five drafted posts in your brand voice, with image ideas — each waiting for your approval.",
+  "Ask Braventa, in the app header, to explain any part of your report. It answers; it doesn't change anything.",
 ];
 
 // The nine Growth Loop steps (D-004), named as in the founder's brief (D-035). Status per
@@ -78,7 +94,7 @@ const LOOP: { stage: string; steps: { name: string; body: string; status: Status
     steps: [
       { name: "Plan", body: "One growth plan and a 30-day content plan.", status: "live" },
       { name: "Create", body: "Five drafted posts to approve or reject. The rest of the content plan stays as topics.", status: "partial" },
-      { name: "Execute", body: "Today you carry out the plan yourself. Connecting your tools is coming soon.", status: "next" },
+      { name: "Execute", body: "Today you and your team carry out the plan. Agents that make approved changes in your tools are coming soon.", status: "next" },
     ],
   },
   {
@@ -94,18 +110,33 @@ const LOOP: { stage: string; steps: { name: string; body: string; status: Status
 const NOT_YET = [
   "Publish or schedule posts to your channels",
   "Send email for you",
-  "Connect to your CRM (HubSpot comes first)",
-  "Run automations in your tools",
-  "Report on results from your analytics",
+  "Use your HubSpot numbers in the diagnosis and score",
+  "Run automations or make changes in your tools",
+  "Report on results over time",
 ];
 
 export default function HowItWorks() {
   return (
     <>
       <PageHero eyebrow="How it works" title="Understand. Act. Improve.">
-        Braventa starts with how your business actually works, helps you work out what to do first, and helps you get it
-        done — with you approving everything that goes out.
+        Braventa puts your website, your answers and your connected tools into one picture of your business. From it you
+        get one diagnosis, one plan and drafted work — with you approving everything that goes out.
       </PageHero>
+
+      <Band tone="surface" labelledBy="flow-title">
+        <SectionIntro head={TAGLINE} title="One path from your website to work you can use." id="flow-title">
+          Each step feeds the next, so nothing is a separate report you have to piece together yourself.
+        </SectionIntro>
+        <ol className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          {FLOW.map((f, i) => (
+            <li key={f.title} className="rounded-lg border border-border bg-background p-4">
+              <span className="font-display text-sm font-bold text-accent">0{i + 1}</span>
+              <p className="mt-1 font-semibold">{f.title}</p>
+              <p className="mt-1 text-sm text-muted">{f.body}</p>
+            </li>
+          ))}
+        </ol>
+      </Band>
 
       <Band labelledBy="setup-title">
         <SectionIntro head="Getting started" title="Tell Braventa about your business." id="setup-title">

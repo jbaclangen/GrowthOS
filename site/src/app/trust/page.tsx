@@ -5,7 +5,7 @@ import { Band, PageHero } from "@/components/ui";
 export const metadata: Metadata = {
   title: "Trust and data",
   description:
-    "How Braventa keeps you in control: approval before anything is published, isolated customer data, and clear labelling of AI output.",
+    "How Braventa keeps you in control: approval before anything is published, read-only connections, team roles, isolated customer data, and clear labelling of AI output.",
 };
 
 // Facts only, matching docs/architecture/SECURITY_AND_PRIVACY.md. No certification claims (WEBSITE_MESSAGING §10).
@@ -24,6 +24,30 @@ const SECTIONS = [
       "Secret keys stay on our servers and are never sent to your browser.",
       "Your own account can't change your plan, trial or AI usage limit; only trusted server code can.",
       "If you connect an AI assistant, its access key is stored only as a one-way hash, shows when it was last used, and can be revoked at any time.",
+    ],
+  },
+  {
+    title: "Read-only connections",
+    points: [
+      "Google Search Console, Google Analytics 4 and HubSpot are connected read-only. Braventa can't change anything in them.",
+      "One Google sign-in covers Search Console and Analytics, and you can untick either one on Google's consent screen.",
+      "From HubSpot, Braventa stores counts and totals only: no names, email addresses, phone numbers or deal names.",
+      "Disconnecting a tool deletes the data Braventa kept from it. Only the owner can connect or disconnect tools.",
+    ],
+  },
+  {
+    title: "The right access for each person",
+    points: [
+      "Every team member has one of eight fixed roles, and each role has set permissions.",
+      "No one approves their own draft except the owner.",
+      "Invite links expire after 7 days, and each plan has a seat limit.",
+    ],
+  },
+  {
+    title: "Clear agreements, clean exits",
+    points: [
+      "When you sign up, start an analysis, connect a tool or create an access key, Braventa shows what you're agreeing to and keeps a record.",
+      "The owner can remove a business from Settings by typing DELETE APPROVED. Its data is deleted at once and can't be recovered, and Braventa's access to Google and HubSpot is revoked first.",
     ],
   },
   {
