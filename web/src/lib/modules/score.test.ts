@@ -122,7 +122,9 @@ describe("computeGrowthScore over modules", () => {
                 }
         }
     expect(cases).toBe(values.length ** 7);
-  });
+    // 78,125 cases take about 2 s alone but went over vitest's 5 s default when the full suite ran in parallel on a
+    // Windows machine (2026-11-14), so this test gets its own timeout.
+  }, 30_000);
 
   it("equals the pre-module blend on 20,000 random inputs", () => {
     const next = prng(20261023);
