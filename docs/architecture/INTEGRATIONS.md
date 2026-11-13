@@ -184,7 +184,9 @@ the HubSpot card says the connection isn't set up yet.
    names, email addresses, phone numbers, deal names, record ids or owner names are stored, logged or shown. A size
    check on `metrics` (32 KB) backs this up.
 5. Disconnect (owner): uninstall the app from the portal (`DELETE /appinstalls/2026-09/external-install`, HubSpot
-   emails the portal's admins), revoke the refresh token, delete every snapshot, blank the row to `revoked`.
+   emails the portal's admins), revoke the refresh token, delete every snapshot, blank the row to `revoked`. While
+   another business in Braventa is still connected to the same portal, the app stays installed and only this
+   business's refresh token is revoked (not even that when both hold the same token).
    Reconnecting to another portal deletes the old portal's snapshots.
 6. On Basic (trial ended), the connection pauses like Search Console: counts kept, nothing fetched.
 

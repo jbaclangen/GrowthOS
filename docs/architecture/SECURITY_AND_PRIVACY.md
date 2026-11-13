@@ -152,7 +152,10 @@ RLS. Rules:
   - Service keys (`brv_sk_`): organization-level, owners only (RLS via `is_org_owner`), optional expiry, stored hashed,
     at most 10 active (unexpired). They act without a user, so rows they create have no `created_by`, and they keep
     working after their creator leaves (D-044). Only an owner can make someone an owner (`memberships_owner_guard`),
-    so an admin can't promote themselves to create one. Revoking a key is one-way.
+    so an admin can't promote themselves to create one. The guard covers inserts and updates only, so an admin can
+    still delete the owner's membership with the publishable key. `20261114120000_memberships_owner_guard_delete.sql`
+    extends it to deletes (only an owner may remove an owner) and keeps a business's last owner; it is written but not
+    applied yet ([ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §7). Revoking a key is one-way.
   - `/api/mcp` answers 401 with `WWW-Authenticate: Bearer resource_metadata=…` (plus `error="invalid_token"` for bad
     credentials), allows browser Origins only from Braventa, claude.ai, claude.com, chatgpt.com and chat.openai.com,
     and logs each tool call against the key or the grant. The connecting user or an owner can disconnect a grant in
@@ -228,7 +231,8 @@ RLS. Rules:
   `external_account_id`/`external_account_name`), access tokens minted per sync, the state cookie sealed and bound to
   user and organization (HubSpot documents no PKCE for apps). `hubspot_snapshots` holds counts and totals only: no
   names, emails, phone numbers, deal names or record ids; deal records are read with a fixed property list and summed
-  in memory. Disconnect uninstalls the app from the portal, revokes the token and deletes the snapshots. Nothing from
+  in memory. Disconnect uninstalls the app from the portal, revokes the token and deletes the snapshots; while another
+  business in Braventa still uses the portal, it revokes only this business's token and leaves the app installed. Nothing from
   HubSpot goes to an AI model yet. Spec: [HUBSPOT_SETUP.md](HUBSPOT_SETUP.md).
   Still missing for any integration: an audit log of connect/disconnect events.
 
@@ -338,7 +342,7 @@ What exists:
   for it, subscriptions); `web/src/lib/organizations/cascade.test.ts` checks every new tenant table.
 - The owner can remove a business in Settings (D-061; [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §9): after
   typing `DELETE APPROVED`, the server revokes the Google tokens at Google, uninstalls the HubSpot app and revokes its
-  token (HubSpot's Developer Terms §4), then deletes the organization row. Refused while an analysis runs. What stays:
+  token (HubSpot's Developer Terms §4; only the revoke while another business in Braventa still uses the portal), then deletes the organization row. Refused while an analysis runs. What stays:
   everyone's account, global rows (`oauth_clients`, `contact_requests`), the providers' own data, a grant whose revoke
   failed (the dashboard says how to remove it), backups and logs for their windows, and one
   `organization_deletions` row without personal data (§11).

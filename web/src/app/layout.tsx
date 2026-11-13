@@ -72,7 +72,9 @@ async function UserMenu() {
   // sit in AccountMenu instead, so the row fits from 320px up without scrolling sideways.
   return (
     <div className="flex min-w-0 items-center gap-2 text-sm sm:gap-3">
-      <AssistantLauncher state={assistant} />
+      {/* Keyed by business (D-062): a switch remounts it, so one business's conversation isn't shown under another's
+          name or sent as history with its questions. */}
+      <AssistantLauncher key={access?.orgId ?? "none"} state={assistant} />
       {businesses.length > 0 && <BusinessSwitcher businesses={businesses} currentId={access?.orgId ?? null} className="hidden sm:inline-flex" />}
       {plan && (
         <Link href="/plans" className="chip hidden shrink-0 whitespace-nowrap bg-accent-soft text-accent-soft-foreground hover:underline md:inline-flex">

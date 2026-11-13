@@ -30,7 +30,7 @@ type Connection = {
 type Latest = { metrics: HubSpotMetrics; fetched_at: string };
 
 const DISCONNECT_EXPLANATION =
-  "Disconnecting uninstalls Braventa's app from your HubSpot portal (HubSpot emails the portal's admins) and deletes the HubSpot counts Braventa stored for this business. Your CRM records aren't changed.";
+  "Disconnecting uninstalls Braventa's app from your HubSpot portal (HubSpot emails the portal's admins) and deletes the HubSpot counts Braventa stored for this business. If another business in Braventa is connected to the same portal, the app stays installed for it and only this business's access ends. Your CRM records aren't changed.";
 
 export async function HubSpotCard({
   org,

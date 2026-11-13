@@ -26,7 +26,7 @@ export default function DashboardPage({ searchParams }: PageProps<"/dashboard">)
 const REMOVED: Record<string, string> = {
   done: "The business was removed and its data deleted.",
   "check-tools":
-    "The business was removed and its data deleted. Braventa couldn't confirm that Google or HubSpot ended its access. To be sure, remove Braventa from your Google account's third-party access, or uninstall the Braventa app in HubSpot.",
+    "The business was removed and its data deleted. Braventa couldn't confirm that Google or HubSpot ended its access. To be sure, remove Braventa from your Google account's third-party access, or, if no other business in Braventa uses that HubSpot portal, uninstall the Braventa app in HubSpot.",
 };
 
 async function Dashboard({ searchParams }: { searchParams: PageProps<"/dashboard">["searchParams"] }) {

@@ -8,7 +8,7 @@ import { can, deniedMessage } from "@/lib/team/roles";
 import { CONSENT_REQUIRED, consentGiven } from "@/lib/legal/documents";
 import { recordAcceptance } from "@/lib/legal/acceptances";
 import { createOwnedBusiness } from "@/lib/organizations/limit-server";
-import { rememberBusiness } from "@/lib/organizations/current";
+import { isOrganizationId, rememberBusiness } from "@/lib/organizations/current";
 
 // Personal access keys for the AI assistant connection (MCP, D-036). Writes go through the signed-in user's
 // client: RLS and column grants only let owners add and revoke their own keys, and never read the hash.
@@ -26,7 +26,21 @@ export async function createAccessKey(_: CreateKeyState, formData: FormData): Pr
   if (!consentGiven(formData)) return { error: CONSENT_REQUIRED.access_key };
 
   const supabase = await createSupabaseServerClient();
-  let org = await getCurrentOrg(user.id);
+  // The business the page showed (organizationId, D-062), never the cookie's: the user may have switched business in
+  // another tab. Only a page without a business posts no id: it asks for a business name and sets that business up,
+  // even if the user joined another business in another tab meanwhile. A form rendered before that (no id, no name)
+  // falls back to the business the user is working on, as before.
+  const posted = formData.get("organizationId");
+  const namesNewBusiness = posted === null && String(formData.get("businessName") ?? "").trim() !== "";
+  let org =
+    posted === null
+      ? namesNewBusiness
+        ? null
+        : await getCurrentOrg(user.id)
+      : isOrganizationId(posted)
+        ? await getCurrentOrg(user.id, posted)
+        : null;
+  if (!org && posted !== null) return { error: "This business wasn't found. Reload the page and try again." };
   if (!org) {
     // New accounts can start from their AI assistant (D-036): the key needs an organization, so create it here,
     // the same way the first website analysis does. The trial starts now.

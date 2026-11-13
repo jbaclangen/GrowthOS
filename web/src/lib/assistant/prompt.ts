@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { ChatMessage } from "@/lib/integrations/openrouter";
 import { searchConsoleAccess } from "@/lib/integrations/search-console-access";
+import { googleAnalyticsAccess } from "@/lib/integrations/google-analytics-access";
+import { hubspotAccess } from "@/lib/integrations/hubspot-access";
 import { PROVENANCE_LABEL, type Provenance } from "@/lib/plan/priority";
 import { knowledgeForPrompt } from "./knowledge";
 
@@ -54,7 +56,11 @@ export type BusinessSummary = {
   organizationName: string;
   plan: string; // e.g. "Pro trial, 9 days left"
   searchConsole: string; // describeSearchConsole(), e.g. "connected (property sc-domain:example.com)" or "not connected"
+  googleAnalytics: string; // describeGoogleAnalytics(), the same states for the Google Analytics 4 row
+  hubspot: string; // describeHubSpot()
   claudeKeys: number; // the user's active Claude access keys
+  // The websites analyzed for this business (its business_profiles), newest first. Since D-062 a business is the
+  // organization, so these are never called "businesses" in the summary.
   businesses: { name: string; website: string | null; growthScore: number | null; status: string; link: string }[];
   latest: null | {
     name: string;
@@ -82,20 +88,32 @@ export type BusinessSummary = {
   };
 };
 
-// The Google Search Console line of the summary, as the app shows it. integration_connections.status is active,
-// paused, revoked or error; on Basic an active row is still paused (searchConsoleAccess), as Settings and /search say.
-export function describeSearchConsole(
-  conn: { status: string; selected_property: string | null } | null,
-  org: { plan: string; trial_ends_at: string | Date },
-  now = new Date(),
-): string {
+type Connection = { status: string; selected_property: string | null } | null;
+type OrgPlan = { plan: string; trial_ends_at: string | Date };
+
+// The connection lines of the summary, as the app shows them. integration_connections.status is active, paused,
+// revoked or error; on Basic an active row is still paused (searchConsoleAccess, googleAnalyticsAccess, hubspotAccess),
+// as Settings and /search say. Google Search Console and Google Analytics 4 are separate rows from one Google sign-in.
+function describeConnection(conn: Connection, allowed: boolean, kept: string, detail: string): string {
   if (!conn || conn.status === "revoked") return "not connected";
-  const property = conn.selected_property ? ` (property ${conn.selected_property})` : " (no property chosen yet)";
-  if (conn.status === "error") return `connected but needs reconnecting in Settings → Connections${property}`;
-  if (!searchConsoleAccess(org, now).allowed) {
-    return `connected but paused on Basic: data already fetched is kept, nothing new is fetched until the business moves to Pro or Premium${property}`;
-  }
-  return `connected${property}`;
+  if (conn.status === "error") return `connected but needs reconnecting in Settings → Connections${detail}`;
+  if (!allowed) return `connected but paused on Basic: ${kept}, nothing new is fetched until the business moves to Pro or Premium${detail}`;
+  return `connected${detail}`;
+}
+
+const property = (conn: Connection) => (conn?.selected_property ? ` (property ${conn.selected_property})` : " (no property chosen yet)");
+
+export function describeSearchConsole(conn: Connection, org: OrgPlan, now = new Date()): string {
+  return describeConnection(conn, searchConsoleAccess(org, now).allowed, "data already fetched is kept", property(conn));
+}
+
+export function describeGoogleAnalytics(conn: Connection, org: OrgPlan, now = new Date()): string {
+  return describeConnection(conn, googleAnalyticsAccess(org, now).allowed, "data already fetched is kept", property(conn));
+}
+
+// HubSpot has no property to choose: one portal per business.
+export function describeHubSpot(conn: { status: string } | null, org: OrgPlan, now = new Date()): string {
+  return describeConnection(conn && { status: conn.status, selected_property: null }, hubspotAccess(org, now).allowed, "counts already fetched are kept", "");
 }
 
 // Untrusted text: no markup, so it can't close the fence or pose as instructions, and capped in length.
@@ -113,11 +131,13 @@ export function formatBusinessSummary(b: BusinessSummary, maxChars = MAX_BUSINES
     `Business account: ${clean(b.organizationName, 120)}`,
     `Plan: ${clean(b.plan, 80)}`,
     `Google Search Console: ${clean(b.searchConsole, 300)}`,
+    `Google Analytics 4: ${clean(b.googleAnalytics, 300)}`,
+    `HubSpot: ${clean(b.hubspot, 300)}`,
     `This user's active Claude access keys: ${b.claudeKeys}`,
   ];
-  if (!b.businesses.length) lines.push("Businesses: none yet (no website analyzed).");
+  if (!b.businesses.length) lines.push("Websites analyzed for this business: none yet.");
   else {
-    lines.push("Businesses:");
+    lines.push("Websites analyzed for this business:");
     for (const x of b.businesses) {
       lines.push(`- ${clean(x.name, 100)} (${clean(x.website, 120) || "no website"}): growth score ${x.growthScore ?? "not scored yet"}, ${clean(x.status, 60)}, report ${x.link}`);
     }

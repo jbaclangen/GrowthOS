@@ -8,7 +8,9 @@ import { ConsentCheckbox, LegalLink } from "@/components/legal/consent";
 type App = "desktop" | "code";
 
 // Guided setup: pick the app, create a key (shown once), paste the ready-made setup, then check the connection.
-export function KeyForm({ serverUrl, needsBusiness }: { serverUrl: string; needsBusiness: boolean }) {
+// organizationId: the business the page showed, which the key is for (D-062); null when the user has none yet, and
+// then the form asks for a business name and the key sets the business up.
+export function KeyForm({ serverUrl, organizationId }: { serverUrl: string; organizationId: string | null }) {
   const [app, setApp] = useState<App>("desktop");
   const [state, action, pending] = useActionState<CreateKeyState, FormData>(createAccessKey, undefined);
 
@@ -44,7 +46,9 @@ export function KeyForm({ serverUrl, needsBusiness }: { serverUrl: string; needs
 
       <Step n={2} title="Create an access key">
         <form action={action} className="mt-2 space-y-2">
-          {needsBusiness && (
+          {organizationId ? (
+            <input type="hidden" name="organizationId" value={organizationId} />
+          ) : (
             <label className="block text-sm">
               <span className="font-medium">Business name</span>
               <input name="businessName" maxLength={120} required placeholder="Acme Plumbing" className="input mt-1" />

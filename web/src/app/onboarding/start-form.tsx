@@ -7,20 +7,24 @@ import { OwnerQuestions } from "@/components/owner-questions";
 import { ConsentCheckbox, LegalLink } from "@/components/legal/consent";
 
 // For someone who already has a business (D-062): whether this website is for the business they're working on or for
-// a new one, and why a new one isn't possible when the account is at its business limit.
-export type BusinessChoice = { currentName: string; startNew: boolean; atLimit: string | null };
+// a new one, and why a new one isn't possible when the account is at its business limit. The current business's radio
+// posts its id, so the website goes to the business shown even if the user switches business in another tab.
+export type BusinessChoice = { currentId: string; currentName: string; startNew: boolean; atLimit: string | null };
 
 export function StartForm({ choice }: { choice: BusinessChoice | null }) {
   const [state, action, pending] = useActionState<StartState, FormData>(startAnalysis, undefined);
 
   return (
     <form action={action} className="card mt-8 space-y-4">
+      {/* No business yet: say so explicitly, so the website can't land on a business joined in another tab meanwhile
+          (an invite remembers the business it joins). */}
+      {!choice && <input type="hidden" name="business" value="new" />}
       {choice && (
         <fieldset>
           <legend className="text-sm font-medium">Which business is this website for?</legend>
           <div className="mt-2 space-y-2 text-sm">
             <label className="flex items-start gap-2">
-              <input type="radio" name="business" value="current" defaultChecked={!choice.startNew} className="mt-1" />
+              <input type="radio" name="business" value={choice.currentId} defaultChecked={!choice.startNew} className="mt-1" />
               <span>{choice.currentName}</span>
             </label>
             <label className="flex items-start gap-2">

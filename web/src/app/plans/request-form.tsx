@@ -3,7 +3,9 @@
 import { useActionState } from "react";
 import { requestUpgrade, type RequestState } from "./actions";
 
-export function RequestForm({ tier, label }: { tier: "basic" | "pro" | "premium"; label: string }) {
+// organizationId: the business whose plan the page showed, so the request is for it even if the user switches
+// business in another tab (D-062).
+export function RequestForm({ organizationId, tier, label }: { organizationId: string; tier: "basic" | "pro" | "premium"; label: string }) {
   const [state, action, pending] = useActionState<RequestState, FormData>(requestUpgrade.bind(null, tier), undefined);
 
   if (state?.sent) {
@@ -15,6 +17,7 @@ export function RequestForm({ tier, label }: { tier: "basic" | "pro" | "premium"
   }
   return (
     <form action={action} className="mt-4 space-y-2">
+      <input type="hidden" name="organizationId" value={organizationId} />
       <label className="block text-sm">
         <span className="font-medium">
           What would you like help with? <span className="font-normal text-muted">(optional)</span>

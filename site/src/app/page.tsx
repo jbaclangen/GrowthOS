@@ -28,7 +28,7 @@ const INPUTS = [
   { title: "Your answers", body: "What's holding the business back, your top three priorities, and a few follow-up questions." },
   {
     title: "Your tools",
-    body: "On Pro: Google Search Console and Google Analytics 4 with one Google sign-in, and HubSpot. Read-only.",
+    body: "On Pro: Google Search Console and Google Analytics 4 with one Google sign-in, and HubSpot. Read-only. HubSpot counts are shown in Braventa but don't feed the plan yet.",
   },
 ];
 const PICTURE = ["A profile of your business", "A growth score from 0 to 100", "A diagnosis you confirm or correct"];

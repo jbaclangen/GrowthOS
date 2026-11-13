@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
+import { isOrganizationId } from "@/lib/organizations/current";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateSecret, sha256Hex } from "@/lib/oauth/tokens";
 import { MAX_ACTIVE_SERVICE_KEYS, countActiveServiceKeys } from "@/lib/mcp/service-keys";
@@ -22,8 +23,11 @@ const servicePrefix = (key: string) => key.slice(0, 12);
 
 export async function createServiceKey(_: CreateServiceKeyState, formData: FormData): Promise<CreateServiceKeyState> {
   const user = await requireUser();
-  const org = await getCurrentOrg(user.id);
-  if (!org) return { error: "Set up your business first." };
+  // The business the page showed (organizationId, D-062), never the cookie's: the user may have switched business in
+  // another tab. getCurrentOrg would fall back to the cookie without an id, so a missing or malformed one is refused.
+  const organizationId = formData.get("organizationId");
+  const org = isOrganizationId(organizationId) ? await getCurrentOrg(user.id, organizationId) : null;
+  if (!org) return { error: "This business wasn't found. Reload the page and try again." };
   if (!can(org.role, "keys.manage_any")) return { error: "Only the business owner can create service keys." };
 
   const name = String(formData.get("name") ?? "").trim();

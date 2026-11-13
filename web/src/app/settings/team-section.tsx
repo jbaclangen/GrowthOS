@@ -9,6 +9,7 @@ const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 
 // Settings → Team (D-046). Every member sees who is in the business; people with team.manage (owner, admin) also
 // invite, change roles below their own and remove people. The caller has resolved the user's own membership of org.
+// Every form names org.id, so it acts on this business even if the user switches business in another tab (D-062).
 export async function TeamSection({ org, userId }: { org: { id: string; name: string; role: string }; userId: string }) {
   const admin = createSupabaseAdminClient();
   const roles = assignableRoles(org.role);
@@ -43,8 +44,8 @@ export async function TeamSection({ org, userId }: { org: { id: string; name: st
             </div>
             {canManageRole(org.role, m.role) && (
               <div className="flex flex-wrap items-center gap-2">
-                <RoleForm userId={m.userId} current={m.role} roles={roles} email={m.email} />
-                <form action={removeMember.bind(null, m.userId)}>
+                <RoleForm organizationId={org.id} userId={m.userId} current={m.role} roles={roles} email={m.email} />
+                <form action={removeMember.bind(null, org.id, m.userId)}>
                   <RemoveButton email={m.email} />
                 </form>
               </div>
@@ -59,7 +60,7 @@ export async function TeamSection({ org, userId }: { org: { id: string; name: st
           <p className="mt-1 text-sm text-muted">
             Braventa doesn&apos;t send invite emails yet. Create a link and send it yourself. You can give any role below your own.
           </p>
-          <InviteForm roles={roles} />
+          <InviteForm organizationId={org.id} roles={roles} />
 
           {invites.length > 0 && (
             <>
@@ -74,7 +75,7 @@ export async function TeamSection({ org, userId }: { org: { id: string; name: st
                       </p>
                     </div>
                     {canManageRole(org.role, i.role) && (
-                      <form action={revokeInvitation.bind(null, i.id)}>
+                      <form action={revokeInvitation.bind(null, org.id, i.id)}>
                         <button type="submit" className="btn-secondary">
                           Withdraw
                         </button>

@@ -36,7 +36,7 @@ async function Settings() {
   const [{ data: keys }, { data: orgRow }, { data: memberships }] = await Promise.all([
     supabase
       .from("mcp_access_keys")
-      .select("id, name, key_prefix, created_at, last_used_at, revoked_at")
+      .select("id, organization_id, name, key_prefix, created_at, last_used_at, revoked_at")
       .eq("kind", "personal")
       .order("created_at", { ascending: false }),
     org
@@ -49,6 +49,9 @@ async function Settings() {
   const active = (keys ?? []).filter((k) => !k.revoked_at);
   const orgs = (memberships ?? []).map((m) => ({ role: m.role as string, org: m.organizations as unknown as { id: string; name: string } }));
   const orgNames = new Map(orgs.map((m) => [m.org.id, m.org.name]));
+  // RLS returns the user's personal keys in every business they belong to, and each key works for one of them, so the
+  // list names a key's business once there is more than one (D-062).
+  const namesKeyBusiness = orgs.length > 1;
   // Businesses where the user may disconnect anyone's app (keys.manage_any, owner only: lib/team/roles.ts).
   const managesKeysOf = new Set(orgs.filter((m) => can(m.role, "keys.manage_any")).map((m) => m.org.id));
   // The user's role in words (D-046); Settings → Team lists everyone and lets owners and admins manage roles.
@@ -112,7 +115,7 @@ async function Settings() {
               A personal key you paste into the app&apos;s setup. Useful when the app can&apos;t open a browser to sign in.
             </p>
             {access && !access.allowed ? null : mayCreateKeys ? (
-              <KeyForm serverUrl={serverUrl} needsBusiness={!org} />
+              <KeyForm serverUrl={serverUrl} organizationId={org?.id ?? null} />
             ) : (
               <p className="mt-2 text-sm text-muted">{deniedMessage("keys.manage_own")}</p>
             )}
@@ -128,6 +131,7 @@ async function Settings() {
                           {k.name} <span className="font-normal text-muted">({k.key_prefix}…)</span>
                         </p>
                         <p className="text-xs text-muted">
+                          {namesKeyBusiness && `${orgNames.get(k.organization_id) ?? "Business"} · `}
                           Created {dateFormat.format(new Date(k.created_at))} ·{" "}
                           {k.revoked_at
                             ? `Revoked ${dateFormat.format(new Date(k.revoked_at))}`

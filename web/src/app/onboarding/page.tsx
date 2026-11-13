@@ -47,6 +47,7 @@ async function Start({ searchParams }: { searchParams: PageProps<"/onboarding">[
   ]);
   const choice: BusinessChoice | null = org
     ? {
+        currentId: org.id,
         currentName: org.name,
         startNew: business === "new" && !usage?.atLimit,
         atLimit: usage?.atLimit ? limitMessage(usage) : null,

@@ -106,7 +106,7 @@ export async function ServiceKeys({ organizationId, canManage, serverUrl }: { or
         signing in. A service key belongs to the business, not to you, and can do the same setup and status steps as your AI
         assistant. Treat it like a password.
       </p>
-      <ServiceKeyForm serverUrl={serverUrl} />
+      <ServiceKeyForm organizationId={organizationId} serverUrl={serverUrl} />
       {keys.length > 0 && (
         <ul className="mt-6 divide-y divide-border text-sm">
           {keys.map((k) => {

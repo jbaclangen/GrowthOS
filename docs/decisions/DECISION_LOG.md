@@ -908,7 +908,9 @@ env vars are set ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). Amends 
 - **No PKCE:** HubSpot documents none for app OAuth; the client secret (server-only) and the sealed, user- and
   organization-bound state cookie protect the flow.
 - **Disconnect uninstalls** the app from the portal (HubSpot emails its admins), revokes the token and deletes every
-  snapshot, as HubSpot's Developer Terms §4 ask. Uninstall detection is open (Q-064).
+  snapshot, as HubSpot's Developer Terms §4 ask. Uninstall detection is open (Q-064). **Amended 2026-11-14 (team,
+  after D-062):** while another business in Braventa is still connected to the same portal, Disconnect and Remove a
+  business revoke only that business's token and leave the app installed, so the other business keeps its access.
 - **Agreement checkbox (D-057):** the connect form asks the owner to confirm they're authorized to connect the portal
   and responsible for it (MSA §8); the start route refuses without it and the callback records it as the new
   `hubspot_connect` context in `legal_acceptances` (the migration widens its check).

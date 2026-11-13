@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { getCurrentOrg, requireUser } from "@/lib/auth";
+import { isOrganizationId } from "@/lib/organizations/current";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { originFromHeaders } from "@/lib/oauth/request-origin";
 import { INVITE_TTL_DAYS, inviteTokenHash, invitePath, newInviteToken, normalizeEmail } from "@/lib/team/invitations";
@@ -12,13 +13,17 @@ import { openInvitations, recordTeamEvent, seatState, teamMembers } from "@/lib/
 // Settings → Team (D-046; ROLES_AND_PERMISSIONS.md §8). Every action needs team.manage (owner and admin) and may touch
 // only roles below the actor's own (canManageRole). The writes use the secret key, scoped to the actor's own business
 // (getCurrentOrg), because invitations have no client write policy and the invitee isn't a member yet.
+//
+// Every form names the business the section showed (organizationId, D-062), so an action can't land on another one
+// after the user switched business in another tab. getCurrentOrg falls back to the cookie when no id is given, so a
+// missing or malformed id is refused here instead.
 
-export type InviteState = { error?: string; link?: string; email?: string; role?: string; days?: number } | undefined;
+export type InviteState = { error?: string; link?: string; email?: string; role?: string; business?: string; days?: number } | undefined;
 
-async function manager() {
+async function manager(organizationId: unknown) {
   const user = await requireUser();
-  const org = await getCurrentOrg(user.id);
-  if (!org) return { error: "Set up your business first." } as const;
+  const org = isOrganizationId(organizationId) ? await getCurrentOrg(user.id, organizationId) : null;
+  if (!org) return { error: "This business wasn't found. Reload the page and try again." } as const;
   if (!assignableRoles(org.role).length) return { error: deniedMessage("team.manage") } as const;
   return { user, org } as const;
 }
@@ -31,7 +36,7 @@ function without(usage: SeatUsage, role: Role | null): SeatUsage {
 }
 
 export async function inviteMember(_: InviteState, formData: FormData): Promise<InviteState> {
-  const m = await manager();
+  const m = await manager(formData.get("organizationId"));
   if ("error" in m) return { error: m.error };
   const { user, org } = m;
 
@@ -68,11 +73,11 @@ export async function inviteMember(_: InviteState, formData: FormData): Promise<
   await recordTeamEvent(admin, { organizationId: org.id, actorId: user.id, action: "invited", subjectEmail: email, roleTo: role });
   refresh();
   // Shown once; only the token's hash is stored.
-  return { link: `${await originFromHeaders()}${invitePath(token)}`, email, role: ROLE_LABELS[role], days: INVITE_TTL_DAYS };
+  return { link: `${await originFromHeaders()}${invitePath(token)}`, email, role: ROLE_LABELS[role], business: org.name, days: INVITE_TTL_DAYS };
 }
 
-export async function revokeInvitation(invitationId: string) {
-  const m = await manager();
+export async function revokeInvitation(organizationId: string, invitationId: string) {
+  const m = await manager(organizationId);
   if ("error" in m) throw new Error(m.error);
   const admin = createSupabaseAdminClient();
   const invite = (await openInvitations(admin, m.org.id)).find((i) => i.id === invitationId);
@@ -91,8 +96,8 @@ export async function revokeInvitation(invitationId: string) {
 
 export type MemberActionState = { error?: string } | undefined;
 
-export async function changeMemberRole(userId: string, _: MemberActionState, formData: FormData): Promise<MemberActionState> {
-  const m = await manager();
+export async function changeMemberRole(organizationId: string, userId: string, _: MemberActionState, formData: FormData): Promise<MemberActionState> {
+  const m = await manager(organizationId);
   if ("error" in m) return { error: m.error };
   const role = formData.get("role");
   if (!isRole(role)) return { error: "Choose a role." };
@@ -123,8 +128,8 @@ export async function changeMemberRole(userId: string, _: MemberActionState, for
   return undefined;
 }
 
-export async function removeMember(userId: string) {
-  const m = await manager();
+export async function removeMember(organizationId: string, userId: string) {
+  const m = await manager(organizationId);
   if ("error" in m) throw new Error(m.error);
   const admin = createSupabaseAdminClient();
   const target = (await teamMembers(admin, m.org.id)).find((x) => x.userId === userId);

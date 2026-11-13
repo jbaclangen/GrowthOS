@@ -15,7 +15,9 @@ D-048 (HubSpot read-only first, REST with per-tenant OAuth, unlisted app), D-059
 - The HubSpot card shows the counts. They are **not** used in the diagnosis or the growth score yet; that is the CRM
   module (D-051), the next step.
 - Fetches on connect and on **Refresh HubSpot counts** (at most every 10 minutes). Nothing runs in the background.
-- Disconnect uninstalls the app from the portal, revokes the token and deletes every snapshot.
+- Disconnect uninstalls the app from the portal, revokes the token and deletes every snapshot. When another business
+  in Braventa is still connected to the same portal, it revokes only this business's token (not even that when both
+  hold the same token) and leaves the app installed for the other business (2026-11-14, `endHubSpotAccess`).
 
 ## 2. HubSpot facts this relies on (checked 2026-11-08)
 
@@ -30,7 +32,7 @@ D-048 (HubSpot read-only first, REST with per-tenant OAuth, unlisted app), D-059
 | PKCE | Not documented for app OAuth; the flow uses the client secret | [Manage OAuth tokens](https://developers.hubspot.com/docs/api-reference/latest/authentication/manage-oauth-tokens) |
 | Token | `POST https://api.hubapi.com/oauth/2026-09/token` (form): code exchange and refresh. Access tokens last 30 minutes. A refresh may return a new refresh token: always keep the latest | same; [token management](https://developers.hubspot.com/blog/oauth-token-management-hubspot-integrations) |
 | Portal | `POST /oauth/2026-09/token/introspect` → `hub_id`, `hub_domain`, `scopes` (it also returns the installing user's email, which Braventa doesn't read) | [Manage OAuth tokens](https://developers.hubspot.com/docs/api-reference/latest/authentication/manage-oauth-tokens) |
-| Disconnect | `DELETE /appinstalls/2026-09/external-install` (Bearer access token; HubSpot emails the portal admins), then `POST /oauth/2026-09/token/revoke` | [App uninstalls](https://developers.hubspot.com/docs/api-reference/latest/app-management/app-uninstalls/guide), [Revoke token](https://developers.hubspot.com/docs/api-reference/latest/authentication/oauth-tokens/revoke-token) |
+| Disconnect | `DELETE /appinstalls/2026-09/external-install` (Bearer access token; HubSpot emails the portal admins), then `POST /oauth/2026-09/token/revoke`; only the revoke while another business in Braventa still uses the portal | [App uninstalls](https://developers.hubspot.com/docs/api-reference/latest/app-management/app-uninstalls/guide), [Revoke token](https://developers.hubspot.com/docs/api-reference/latest/authentication/oauth-tokens/revoke-token) |
 | Scopes | `crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`, plus `oauth`, which HubSpot adds to every app as a required scope (the upload warns when it isn't listed). Every required scope must be in the install URL's `scope` parameter, so the app sends `oauth` too and checks only the three data scopes after install. Pipelines and property options are readable with the object scopes | [Scopes](https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/scopes), [Get pipelines](https://developers.hubspot.com/docs/api-reference/latest/crm/pipelines/get-pipelines), [Get property](https://developers.hubspot.com/docs/api-reference/latest/crm/properties/get-property) |
 | Search | `POST /crm/objects/2026-09/{contacts,companies}/search` returns `total`; 5 requests a second per portal, 10,000-result cap, dates as epoch milliseconds | [Search the CRM](https://developers.hubspot.com/docs/api-reference/latest/crm/search-the-crm) |
 | Other limits | 110 requests per 10 s per installing portal (search excluded) | [Usage guidelines](https://developers.hubspot.com/docs/developer-tooling/platform/usage-guidelines) |

@@ -197,7 +197,8 @@ export default function Privacy() {
         <li>
           The owner can disconnect in Settings → Connections at any time. Braventa then uninstalls its app from your
           portal (HubSpot emails your portal&apos;s admins), revokes its token and deletes the stored counts and portal
-          details. Connecting a different portal also deletes the counts from the old one. If you uninstall the app in
+          details. If another of your businesses in Braventa is still connected to the same portal, the app stays
+          installed for it and only this business&apos;s access ends. Connecting a different portal also deletes the counts from the old one. If you uninstall the app in
           HubSpot instead, Braventa can&apos;t fetch new counts; the ones already fetched stay until the owner disconnects
           in Braventa.
         </li>

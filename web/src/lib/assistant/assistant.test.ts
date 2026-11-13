@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { FEATURES, canUse, effectiveAccess } from "@/lib/plans/tiers";
 import { mcpAccess } from "@/lib/mcp/access";
 import { REMOVE_BUSINESS_PHRASE } from "@/lib/organizations/removal";
+import { newBusinessPlan } from "@/lib/plans/business-limit";
 import { ASSISTANT_LIMITS, ASSISTANT_NEEDS_PLAN, assistantAccess, checkAssistantLimits } from "./access";
 import { APP_ROUTES, knowledgeForPrompt, knowledgeSections, renderGuide } from "./knowledge";
 import {
@@ -12,6 +13,8 @@ import {
   MAX_HISTORY_MESSAGES,
   buildAssistantMessages,
   clean,
+  describeGoogleAnalytics,
+  describeHubSpot,
   describeSearchConsole,
   formatBusinessSummary,
   normalizeText,
@@ -124,6 +127,8 @@ const business: BusinessSummary = {
   organizationName: "Acme Plumbing",
   plan: "Pro trial, 9 days left",
   searchConsole: "not connected",
+  googleAnalytics: "connected (property properties/123456)",
+  hubspot: "not connected",
   claudeKeys: 1,
   businesses: [{ name: "Acme Plumbing", website: "https://acme.example", growthScore: 58, status: "complete", link: "/analysis/abc" }],
   latest: {
@@ -164,6 +169,16 @@ describe("business data in the prompt", () => {
     expect(text).toContain("5 needs approval");
     expect(text).toContain("Growth score based on: Conversion and messaging, Website and technical SEO");
     expect(text).not.toContain("Search visibility");
+  });
+
+  it("names every connection and calls the analyzed websites websites, not businesses (D-062)", () => {
+    const text = formatBusinessSummary(business);
+    expect(text).toContain("Google Search Console: not connected");
+    expect(text).toContain("Google Analytics 4: connected (property properties/123456)");
+    expect(text).toContain("HubSpot: not connected");
+    expect(text).toContain("Websites analyzed for this business:\n- Acme Plumbing (https://acme.example)");
+    expect(text).not.toMatch(/^Businesses:/m);
+    expect(formatBusinessSummary({ ...business, businesses: [], latest: null })).toContain("Websites analyzed for this business: none yet.");
   });
 
   it("names Search visibility and its sub-score when they counted in the score", () => {
@@ -228,6 +243,37 @@ describe("Search Console in the summary", () => {
   it("fits in the summary without being cut", () => {
     const line = describeSearchConsole(conn("active", "sc-domain:a-rather-long-business-name.example"), basic, now);
     expect(formatBusinessSummary({ ...business, searchConsole: line })).toContain(line);
+  });
+});
+
+describe("Google Analytics 4 and HubSpot in the summary", () => {
+  const trial = { plan: "trial", trial_ends_at: days(5) };
+  const basic = { plan: "basic", trial_ends_at: days(-30) };
+
+  it("describes Google Analytics 4 from its own row, with the same states as Search Console", () => {
+    const conn = (status: string, selected_property: string | null = "properties/123456") => ({ status, selected_property });
+    expect(describeGoogleAnalytics(null, trial, now)).toBe("not connected");
+    expect(describeGoogleAnalytics(conn("revoked"), trial, now)).toBe("not connected");
+    expect(describeGoogleAnalytics(conn("active"), trial, now)).toBe("connected (property properties/123456)");
+    expect(describeGoogleAnalytics(conn("active", null), trial, now)).toBe("connected (no property chosen yet)");
+    expect(describeGoogleAnalytics(conn("error"), trial, now)).toMatch(/^connected but needs reconnecting in Settings → Connections/);
+    expect(describeGoogleAnalytics(conn("active"), basic, now)).toMatch(/^connected but paused on Basic: data already fetched is kept/);
+  });
+
+  it("describes HubSpot without a property, and as paused on Basic as its card does", () => {
+    expect(describeHubSpot(null, trial, now)).toBe("not connected");
+    expect(describeHubSpot({ status: "revoked" }, trial, now)).toBe("not connected");
+    expect(describeHubSpot({ status: "active" }, trial, now)).toBe("connected");
+    expect(describeHubSpot({ status: "error" }, trial, now)).toBe("connected but needs reconnecting in Settings → Connections");
+    expect(describeHubSpot({ status: "active" }, basic, now)).toMatch(/^connected but paused on Basic: counts already fetched are kept/);
+    expect(describeHubSpot({ status: "active" }, { plan: "trial", trial_ends_at: days(-1) }, now)).toMatch(/paused on Basic/);
+  });
+
+  // An owner can untick Search Console on Google's consent screen, so the Analytics row can exist on its own.
+  it("reads all three connection rows of the current business", () => {
+    const context = readFileSync(fileURLToPath(new URL("./context.ts", import.meta.url)), "utf8");
+    expect(context).toMatch(/\.eq\("organization_id", org\.id\)\s*\.in\("provider", \[SEARCH_CONSOLE, GOOGLE_ANALYTICS, HUBSPOT_PROVIDER\]\)/);
+    for (const field of ["searchConsole:", "googleAnalytics:", "hubspot:"]) expect(context).toContain(field);
   });
 });
 
@@ -344,6 +390,42 @@ describe("knowledge base", () => {
     expect(route.purpose).toMatch(/Coming soon[^.]*: Google Business Profile, .* and HeyGen\./);
     expect(route.purpose.match(/Coming soon[^.]*: [^.]*\./)![0]).not.toMatch(/HubSpot/);
     expect(route.howToGetThere).toMatch(/AI assistant connected to Braventa skips this step/);
+  });
+
+  it("describes the dashboard of the business you're working on, with the labels it really has (D-062)", () => {
+    const dashboard = source("../../app/dashboard/page.tsx");
+    const route = APP_ROUTES.find((r) => r.route === "/dashboard")!;
+    for (const label of ["Analyzed websites", "Add a business", "Analyze a website", "Waiting for your answers", "Last analysis failed"]) {
+      expect(dashboard, label).toContain(label);
+      expect(route.purpose, label).toContain(label);
+    }
+    expect(dashboard).toMatch(/Only the business the user is working on/);
+    expect(route.purpose).toMatch(/^The business you're working on/);
+    expect(route.purpose).not.toMatch(/every business has a tile/);
+  });
+
+  it("says an invite also works for someone who already belongs to another business (D-062)", () => {
+    const route = APP_ROUTES.find((r) => r.route === "/invite/[token]")!;
+    expect(source("../../app/invite/[token]/actions.ts")).toContain("await rememberBusiness(invite.organizationId);");
+    expect(route.purpose).not.toMatch(/not for an account that already belongs to another business/);
+    expect(route.purpose).toContain("joining adds this one to your list and makes it the business you're working on");
+  });
+
+  it("gives a new business the plan newBusinessPlan gives it: highest plan first, then the trial, then Basic", () => {
+    const ended = days(-1);
+    expect(newBusinessPlan([{ plan: "trial" }, { plan: "pro" }], ended, now).plan).toBe("pro");
+    expect(newBusinessPlan([{ plan: "trial" }], days(5), now)).toMatchObject({ plan: "trial", startsTrial: false });
+    expect(newBusinessPlan([{ plan: "trial" }], ended, now).trialEndsAt.toISOString()).toBe(ended);
+    for (const id of ["plans", "businesses"]) {
+      expect(section(id), id).toContain("starts on the highest plan among the businesses you own, when one of them is on a plan");
+      expect(section(id), id).not.toMatch(/added after it ends starts on Basic/);
+    }
+  });
+
+  it("says a personal access key keeps the business it was created for", () => {
+    // MCP requests act for the key's own organization, whatever business is current later.
+    expect(source("../mcp/auth.ts")).toContain("organizationId: row.organization_id as string");
+    expect(section("connect-claude")).toContain("A key belongs to the business you're working on when you create it and works only for that business");
   });
 
   it("says the goal, service area and tools can be edited, and doesn't call the business profile uneditable as a whole", () => {

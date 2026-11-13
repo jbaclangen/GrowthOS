@@ -32,7 +32,7 @@ service-key policies, so a matrix change doesn't reach them until they move to `
 
 | Id | Label | Who |
 |---|---|---|
-| `owner` | Owner | The person who created the business; `create_organization()` makes them the owner. Only an owner can make another owner (`memberships_owner_guard`, D-044) |
+| `owner` | Owner | The person who created the business; `create_organization()` makes them the owner. Only an owner can make another owner or change an owner's membership (`memberships_owner_guard`, D-044); the same rule for removing an owner, and keeping the last one, is written but not applied yet (§7) |
 | `admin` | Admin | Runs the business in Braventa short of billing, integrations and service keys |
 | `marketing_manager` | Marketing manager | Runs analyses, corrects the diagnosis, works the plan, approves others' drafts |
 | `social_media_manager` | Social media manager | Drafts content; channel reports; the planner's approver toggle later |
@@ -163,6 +163,12 @@ every business the user belongs to; owners (`organization.delete`) see Remove ne
 - **RLS on `memberships`** still lets anyone `is_org_admin()` (owner, admin) write memberships directly with the
   publishable key; the app's own writes go through §8's rules with the secret key. Moving those policies to
   `has_permission('team.manage')` and the manage-below-your-role rule is part of the RLS rewrite above.
+- **Deleting an owner's membership.** `memberships_owner_guard` fires on insert and update only, so today an admin can
+  delete the owner's membership with the publishable key and leave the business without an owner.
+  `20261114120000_memberships_owner_guard_delete.sql` makes it fire on delete too: only an owner may remove an owner,
+  and a signed-in client can't delete the last owner or change it to another role. Service-role writes and the
+  cascades from removing a business or deleting an account aren't affected. Written 2026-11-14, not applied yet: it
+  gets the version Supabase assigns when the founder approves applying it.
 - **`organization_modules.enabled`** (Q-048) can now get its rule: a permission id here, then a write path.
 - **Research matrix differences** (§3) are the founder's to confirm or widen: Admin and keys, client approver rights,
   Admin and integrations.
@@ -220,7 +226,8 @@ doesn't block removal for long).
 
 1. Google: every stored refresh token is revoked at Google (`oauth2.googleapis.com/revoke`). HubSpot: the app is
    uninstalled from the portal (HubSpot emails the portal's admins) and the refresh token revoked, as Disconnect
-   does. A revoke that fails doesn't stop the removal, because the token is deleted with the business either way; a
+   does; while another business in Braventa is still connected to the same portal, only this business's token is
+   revoked and the app stays installed for it. A revoke that fails doesn't stop the removal, because the token is deleted with the business either way; a
    connection that can't be read does stop it.
 2. The `organizations` row is deleted. Every tenant table goes with it through its `on delete cascade` foreign key:
    memberships, profiles, onboarding, audits, diagnoses and plan items, reports, calendars and drafts, jobs and their
@@ -273,7 +280,15 @@ assistant all follow it, and every permission check still reads the role in that
 the person isn't a member, never another one. The onboarding "Connect your tools" step uses the session's business;
 the connection cards put its id in every form (`organizationId`); the Google and HubSpot start routes seal it in the
 encrypted OAuth state; the callbacks act on the sealed business after reading the owner's role there again, even if
-the person switched business in another tab meanwhile. The dashboard lists only the current business's websites.
+the person switched business in another tab meanwhile. Settings → Team (invite, change a role, remove someone,
+withdraw an invite), personal and service keys (`createAccessKey`, `createServiceKey`), the onboarding start form
+(`startAnalysis`) and the `/plans` upgrade request (`requestUpgrade`) post the business the page showed too and
+resolve it with `getCurrentOrg(userId, organizationId)`; a missing, malformed or foreign id is refused ("This
+business wasn't found. Reload the page and try again."), never replaced by the cookie's business or a new one
+(2026-11-14). A person with no business yet posts an explicit new business instead: the start form posts
+`business=new`, the first access key its business name, so a business joined in another tab meanwhile can't
+receive the website or the key. Settings names each personal key's business when the person belongs to more than
+one, and the in-app assistant is keyed by business, so switching starts a new conversation. The dashboard lists only the current business's websites.
 Pages reached by a record id (`/analysis/[id]`, onboarding sessions) read that record's business through RLS, as
 before.
 
