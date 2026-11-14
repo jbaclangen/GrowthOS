@@ -57,8 +57,8 @@ adding it to Data access means the verification must cover it too: the submissio
 (read-only sessions, engagement, key events, channels and landing pages for the business's website, shown in
 Braventa, summarized for the diagnosis and the growth score, deleted on disconnect, not sold or used for ads) and the
 demo video has to show the GA4 card. If the app was verified for `webmasters.readonly` alone, adding the new scope
-needs a new verification before customers who aren't test users can grant it. The privacy and sub-processors pages
-must describe GA4 data first (Q-060, Q-061).
+needs a new verification before customers who aren't test users can grant it (Q-061). The privacy and sub-processors pages
+describe GA4 data since 2026-11-14 (Q-060, resolved).
 
 ## 3. Create the OAuth client
 

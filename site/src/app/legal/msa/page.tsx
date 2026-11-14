@@ -17,7 +17,7 @@ export default function MasterServicesAgreement() {
       <h1 className="text-4xl">Master Services Agreement</h1>
       <DraftNotice>
         This agreement is a draft being reviewed with legal counsel and will be finalized before Braventa opens to the
-        public. Its service levels apply only once paid plans launch. Last updated November 8, 2026.
+        public. Its service levels apply only once paid plans launch. Last updated November 14, 2026.
       </DraftNotice>
 
       <h2>1. How our agreements fit together</h2>

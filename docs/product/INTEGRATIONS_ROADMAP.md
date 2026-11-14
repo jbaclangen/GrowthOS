@@ -138,7 +138,8 @@ Braventa publishes. Publishing is a Pro feature (D-030, D-041).
    provisional weights; scores without GA4 evidence are unchanged). Spec:
    [FEATURE_MODULES.md](../architecture/FEATURE_MODULES.md) §10. Before production: migration `20261107224123`, the two
    GA4 APIs and the scope in Google Cloud ([SEARCH_CONSOLE_SETUP.md](../architecture/SEARCH_CONSOLE_SETUP.md)), and
-   the privacy pages (Q-060). Tag Manager stays Coming soon.
+   Google's OAuth verification of the new scope (Q-061); the privacy pages describe GA4 since 2026-11-14 (Q-060).
+   Tag Manager stays Coming soon.
 4. HubSpot read-only (D-048): the unlisted HubSpot app, a wider `integration_connections` provider check, OAuth start
    and callback routes, a CRM snapshot table and a `tiers.ts` gate entry. **Built 2026-11-08 (D-059), ahead of GA4:**
    counts only in `hubspot_snapshots`, the HubSpot card in Settings and on the connect step; setup in

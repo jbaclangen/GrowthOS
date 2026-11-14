@@ -6,7 +6,7 @@ export const LEGAL_SITE = "https://braventa.io";
 
 // The "Last updated" date shown on the Terms, MSA, DPA, Privacy and Refund pages. Change it, and the pages' dates,
 // whenever one of them changes materially: every signed-in user who hasn't accepted this version sees the banner.
-export const LEGAL_VERSION = "2026-11-08";
+export const LEGAL_VERSION = "2026-11-14";
 
 export const LEGAL_DOCS = {
   terms: { label: "Terms of Service", path: "/legal/terms" },
