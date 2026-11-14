@@ -1,6 +1,6 @@
 # Walking the map
 
-Checked against commit `1917f9a` on 2026-11-14. Paths are repo-relative; `web/src/` is shortened to `src/`
+Checked against commit `ed8c44c` on 2026-11-14. Paths are repo-relative; `web/src/` is shortened to `src/`
 inside citations only when the context is unambiguous.
 
 ## Universes
@@ -46,10 +46,6 @@ business (D-061) — `web/src/app/settings/remove-business-actions.ts:29` (see [
   (`scheduled`/`published` never set, `foundation.sql:177-178`; D-049); email sending (D-033, Q-010); performance
   reporting and automation (`SOLUTIONS.analytics`, "Performance reporting", not the live Analytics module, and
   `SOLUTIONS.automation` marked planned, `web/src/lib/onboarding/catalog.ts:35-46`); password reset (MVP PL-5).
-- Written, not applied: the owner guard for deletes and the last owner,
-  `supabase/migrations/20261114120000_memberships_owner_guard_delete.sql:1-4` (waits for the founder's yes, then a
-  rename to the version Supabase assigns; see [membership](objects/tenancy/membership.md)). Until it is applied, the
-  guard in force is the insert/update one, `supabase/migrations/20261017030000_mcp_oauth.sql:37-38`.
 - Modules with `live: false` (`registry.ts:124-195,210-233`), `coming_soon` features (`tiers.ts:61,72-76`), "Coming
   soon" tools on the connect step (`web/src/lib/integrations/tool-catalog.ts:60-67,86-117`), OAuth scopes `read`/`write`
   (`web/src/lib/oauth/scopes.ts:17-18`).

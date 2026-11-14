@@ -3,7 +3,7 @@ type: process
 universe: live
 status: verified
 verified: 2026-11-14
-commit: 1917f9a
+commit: ed8c44c
 consumes: ["[[organization]]", "[[membership]]", "[[member-role]]", "[[ai-job]]", "[[integration-connection]]"]
 produces: ["[[organization-deletion]]"]
 ---
@@ -39,7 +39,7 @@ The owner reads the dialog's list of what is deleted and types `DELETE APPROVED`
 ## If you change this
 
 - **Hits:** [organization](../objects/tenancy/organization.md) (the only delete path), [member-role](../objects/tenancy/member-role.md) (`organization.delete`), [integration-connection](../objects/integrations/integration-connection.md) (the revoke helpers, HubSpot's shared-portal rule and `hubspot-disconnect.test.ts`), [organization-deletion](../objects/tenancy/organization-deletion.md), every tenant table's foreign key (`cascade.test.ts`), [assistant-knowledge](../objects/access/assistant-knowledge.md) (the Remove a business section and its labels, `web/src/lib/assistant/assistant.test.ts`), `docs/architecture/ROLES_AND_PERMISSIONS.md` §9, D-061.
-- **Does not hit:** `auth.users` and account deletion; the pipeline (a removed business's late hand-off finds no job and stops, `web/src/lib/pipeline/website-intel.ts:922-926`); global tables (`oauth_clients`, `contact_requests`, `platform_admins`); the account's trial and other businesses ([account-trial](../objects/tenancy/account-trial.md)); `memberships_owner_guard`, including its written, not applied delete extension, which leaves cascades alone (`supabase/migrations/20261114120000_memberships_owner_guard_delete.sql:28-31`; [membership](../objects/tenancy/membership.md)).
+- **Does not hit:** `auth.users` and account deletion; the pipeline (a removed business's late hand-off finds no job and stops, `web/src/lib/pipeline/website-intel.ts:922-926`); global tables (`oauth_clients`, `contact_requests`, `platform_admins`); the account's trial and other businesses ([account-trial](../objects/tenancy/account-trial.md)); `memberships_owner_guard`, whose delete rule (since 2026-11-14) leaves cascades alone (`supabase/migrations/20261114040239_memberships_owner_guard_delete.sql:28-31`; [membership](../objects/tenancy/membership.md)).
 
 ## Surfaces
 
