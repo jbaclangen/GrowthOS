@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { STEPS, type StepKey } from "@/lib/pipeline/website-intel";
 import { continueLabel, onboardingPath } from "@/lib/onboarding/steps";
+import { jobFailureMessage } from "@/lib/errors/plain";
 import { AutoRefresh } from "./auto-refresh";
 import { RerunButton } from "./controls";
 import { ReportInfographic, VIEWS, isView } from "./infographic";
@@ -72,8 +73,8 @@ async function Analysis({ params, searchParams }: PageProps<"/analysis/[id]">) {
       {job?.status === "failed" && (
         <div className="card border-danger/40">
           <p className="font-medium text-danger">The last analysis didn&apos;t finish</p>
-          <p className="mt-1 text-sm text-muted">{job.error}</p>
-          <p className="mt-2 text-sm text-muted">The AI service may have been busy. Try again in a minute.</p>
+          <p className="mt-1 text-sm">{jobFailureMessage(job.error).what}</p>
+          <p className="mt-2 text-sm text-muted">{jobFailureMessage(job.error).next}</p>
         </div>
       )}
 

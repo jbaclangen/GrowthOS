@@ -261,7 +261,7 @@ A service key belongs to the business, not to a person: it keeps working if the 
     {
       id: "troubleshooting",
       title: "Troubleshooting",
-      body: `- **Analysis stuck or failed:** the report says "The last analysis didn't finish". Wait a minute and select Re-run analysis. Analyses that run longer than the hosting limit are marked failed automatically.
+      body: `- **Analysis stuck or failed:** the report says "The last analysis didn't finish", followed by what went wrong in plain words (for example, Braventa couldn't open the website, or the AI service didn't give a usable answer) and what to do next. Usually: wait a minute and select Re-run analysis. Analyses that run longer than the hosting limit are marked failed automatically.
 - **Website couldn't be read:** your robots.txt may block Braventa. Allow \`User-agent: Braventa\` and re-run. Pages that only show content after JavaScript runs can't be read.
 - **Speed and SEO scores missing:** Google PageSpeed didn't respond; the rest of the analysis is complete. Re-run later to get them.
 - **Re-run not available:** an analysis is still running, or the account reached 10 analyses or re-runs in 24 hours.

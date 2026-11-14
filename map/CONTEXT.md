@@ -86,7 +86,7 @@ The product word and the code name differ. Use the code name in code and citatio
 | the report after discovery | job `website_plan` → scoring, planning, writing | `web/src/lib/onboarding/orchestrate.ts:33`; `steps.ts:19` |
 | "Re-run analysis" | job `website_intel` → all five steps | `web/src/app/analysis/actions.ts:115`; `steps.ts:20` |
 | owner corrections to the diagnosis | job `diagnosis_update` → scoring only | `web/src/app/analysis/plan-actions.ts:137`; `steps.ts:21` |
-| "Report" / "Growth assessment" | route `/analysis/[id]` where `id` is the `business_profiles` id; row in `reports` with `report_type` `growth_plan` | `web/src/app/analysis/[id]/page.tsx:17`; `report-data.ts:97-103` |
+| "Report" / "Growth assessment" | route `/analysis/[id]` where `id` is the `business_profiles` id; row in `reports` with `report_type` `growth_plan` | `web/src/app/analysis/[id]/page.tsx:18`; `report-data.ts:97-103` |
 | `worker` (one column name, two vocabularies) | `ai_jobs.worker` = the four job types; `ai_usage.worker` = the AI workers | `foundation.sql:225,243`; `router.ts:40-65` |
 | website audit (technical checks) vs AI worker `website_auditor` | checks: `audit_runs`, `audit_findings`, `web/src/lib/audit/checks.ts`; the worker writes the diagnosis and plan | `20261011160802_website_audit.sql:6,35`; `website-intel.ts:460` |
 | growth score | `computeGrowthScore`, `SCORE_VERSION = 3`; legacy column `business_profiles.growth_score` | `score.ts:22,171`; `foundation.sql:90` |

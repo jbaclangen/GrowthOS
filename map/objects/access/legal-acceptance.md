@@ -44,7 +44,7 @@ Citations: `supabase/migrations/20261107224300_legal_acceptances.sql:13-37`, `we
 
 | Surface | Role |
 |---|---|
-| Sign-up `web/src/app/login/actions.ts:38,50-52`, form `auth-form.tsx:35-37` | writes `signup` |
+| Sign-up `web/src/app/login/actions.ts:40,55-57`, form `auth-form.tsx:35-37` | writes `signup` |
 | Terms banner `web/src/components/legal/terms-banner.tsx`, action `web/src/lib/legal/actions.ts`, root layout `web/src/app/layout.tsx:47-49` | reads, writes `terms_update` |
 | `startAnalysis` `web/src/app/analysis/actions.ts:38,82`, form `web/src/app/onboarding/start-form.tsx:86-89` | writes `website_authorization` |
 | Google start route `web/src/app/api/integrations/google/start/route.ts:41` (checks), callback `.../callback/route.ts:116-124` | writes `search_console_connect` |

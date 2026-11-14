@@ -58,8 +58,9 @@ the growth score as the Search visibility module; Google Analytics 4 joined it t
 
 1. **Production readiness:** the app runs on `app.braventa.io` on Vercel (D-011), and analyses run as a chain
    of steps that each fit the hosting function-duration limit (D-042, see
-   [SYSTEM_ARCHITECTURE.md](../architecture/SYSTEM_ARCHITECTURE.md)). Still to do: plain-language error
-   messages; account and business deletion (PL-8).
+   [SYSTEM_ARCHITECTURE.md](../architecture/SYSTEM_ARCHITECTURE.md)). Plain-language errors are built
+   (2026-11-14: a failed analysis, sign-in and sign-up say what happened and what to do, `lib/errors/plain.ts`; error
+   and not-found pages). Business removal is built (D-061). Still to do: account deletion and data export (PL-8, Q-008).
 2. **Billing and plan limits:** Stripe subscriptions using the `subscriptions` table (PL-7); limits
    enforced from the pricing framework once decided.
 3. **Connected tools and modules, read-only first (Pro, D-041, D-051, D-048):** the Google Search Console
