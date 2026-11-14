@@ -33,7 +33,7 @@ The rule behind it: secrets are server-only and never `NEXT_PUBLIC_` (`CLAUDE.md
 | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` | `web/src/lib/env.ts:19-20`, optional `web/src/lib/env.ts:17-18` | no | |
 | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` | `web/src/lib/env.ts:23-24`, optional `web/src/lib/env.ts:21-22` | no | HubSpot connection (`docs/architecture/HUBSPOT_SETUP.md`); `hubspotConfigured` `web/src/lib/integrations/hubspot-oauth.ts:35-37` |
 | `INTEGRATIONS_ENCRYPTION_KEY` | `web/src/lib/env.ts:26-28` (32 bytes, base64) | no | |
-| `NEXT_PUBLIC_APP_URL` | `web/src/lib/env.ts:29` (defaults to localhost) | yes | `web/src/app/login/actions.ts:41`, `web/src/lib/integrations/google-oauth.ts:53`, `web/src/lib/integrations/hubspot-oauth.ts:54`, `web/src/lib/pipeline/dispatch.ts:44`, `web/src/lib/oauth/server-metadata.ts:12` |
+| `NEXT_PUBLIC_APP_URL` | `web/src/lib/env.ts:29` (defaults to localhost) | yes | `web/src/app/login/actions.ts:43`, `web/src/lib/integrations/google-oauth.ts:53`, `web/src/lib/integrations/hubspot-oauth.ts:54`, `web/src/lib/pipeline/dispatch.ts:44`, `web/src/lib/oauth/server-metadata.ts:12` |
 | `JOB_CONTINUE_SECRET` | `web/src/lib/env.ts:32`, optional `web/src/lib/env.ts:30-31` | no | `web/src/app/api/health/integrations/route.ts:96,101` |
 | `JOB_DISPATCH` | `web/src/lib/env.ts:36`, optional `web/src/lib/env.ts:33-35` | no | |
 

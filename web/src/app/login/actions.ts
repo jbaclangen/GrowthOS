@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { safeNext } from "@/lib/safe-next";
+import { authErrorMessage } from "@/lib/errors/plain";
 import { CONSENT_REQUIRED, consentGiven } from "@/lib/legal/documents";
 import { recordAcceptance } from "@/lib/legal/acceptances";
 
@@ -24,9 +25,10 @@ export async function signIn(_: AuthState, formData: FormData): Promise<AuthStat
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error?.code === "email_not_confirmed") return { error: "Confirm your email first. Check your inbox for the link." };
-  if (error?.code === "invalid_credentials") return { error: "That email and password don't match. Try again." };
-  if (error) return { error: error.message };
+  if (error) {
+    if (!error.code || !["email_not_confirmed", "invalid_credentials"].includes(error.code)) console.error("sign-in failed", error);
+    return { error: authErrorMessage(error, "sign-in") };
+  }
   // Back to where sign-in was asked for, such as an AI assistant's connection request (/oauth/authorize).
   redirect(safeNext(formData.get("next")));
 }
@@ -44,7 +46,10 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
     ...parsed.data,
     options: { emailRedirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent(next)}` },
   });
-  if (error) return { error: error.message };
+  if (error) {
+    console.error("sign-up failed", error);
+    return { error: authErrorMessage(error, "sign-up") };
+  }
   // Supabase answers an already-registered email with a user that has no identities (so it can't be probed); only a
   // real new account gets a record.
   if (data.user && (data.user.identities?.length ?? 0) > 0) {
