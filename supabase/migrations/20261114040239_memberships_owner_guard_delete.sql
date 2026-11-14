@@ -1,7 +1,7 @@
 -- The owner guard covers removing an owner too (D-044, D-046; docs/architecture/ROLES_AND_PERMISSIONS.md §1 and §7).
 --
--- Not applied yet: written 2026-11-14 and waiting for the founder's yes. When it is applied, this file is renamed to the
--- version Supabase assigns, like the other migrations here.
+-- Written and applied to production 2026-11-14, with the founder's yes (version 20261114040239). A test in a
+-- rolled-back transaction confirmed: an admin deleting the owner and the last owner deleting themselves are refused.
 --
 -- memberships_owner_guard (20261017030000_mcp_oauth.sql) fired before insert or update only, and "admins delete
 -- memberships" (20261010061126_advisor_fixes.sql) lets anyone is_org_admin() (owner, admin, platform staff) delete any

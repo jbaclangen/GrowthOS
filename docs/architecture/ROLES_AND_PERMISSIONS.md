@@ -32,7 +32,7 @@ service-key policies, so a matrix change doesn't reach them until they move to `
 
 | Id | Label | Who |
 |---|---|---|
-| `owner` | Owner | The person who created the business; `create_organization()` makes them the owner. Only an owner can make another owner or change an owner's membership (`memberships_owner_guard`, D-044); the same rule for removing an owner, and keeping the last one, is written but not applied yet (§7) |
+| `owner` | Owner | The person who created the business; `create_organization()` makes them the owner. Only an owner can make another owner or change an owner's membership (`memberships_owner_guard`, D-044); the same rule covers removing an owner, and a business keeps its last owner (since 2026-11-14, §7) |
 | `admin` | Admin | Runs the business in Braventa short of billing, integrations and service keys |
 | `marketing_manager` | Marketing manager | Runs analyses, corrects the diagnosis, works the plan, approves others' drafts |
 | `social_media_manager` | Social media manager | Drafts content; channel reports; the planner's approver toggle later |
@@ -164,12 +164,12 @@ every business the user belongs to; owners (`organization.delete`) see Remove ne
 - **RLS on `memberships`** still lets anyone `is_org_admin()` (owner, admin) write memberships directly with the
   publishable key; the app's own writes go through §8's rules with the secret key. Moving those policies to
   `has_permission('team.manage')` and the manage-below-your-role rule is part of the RLS rewrite above.
-- **Deleting an owner's membership.** `memberships_owner_guard` fires on insert and update only, so today an admin can
-  delete the owner's membership with the publishable key and leave the business without an owner.
-  `20261114120000_memberships_owner_guard_delete.sql` makes it fire on delete too: only an owner may remove an owner,
+- **Deleting an owner's membership (closed 2026-11-14).** `memberships_owner_guard` fired on insert and update only,
+  so an admin could delete the owner's membership with the publishable key and leave the business without an owner.
+  `20261114040239_memberships_owner_guard_delete.sql` makes it fire on delete too: only an owner may remove an owner,
   and a signed-in client can't delete the last owner or change it to another role. Service-role writes and the
-  cascades from removing a business or deleting an account aren't affected. Written 2026-11-14, not applied yet: it
-  gets the version Supabase assigns when the founder approves applying it.
+  cascades from removing a business or deleting an account aren't affected. Applied to production 2026-11-14 with
+  the founder's yes; a rolled-back test confirmed both refusals and that the service role still removes an owner.
 - **`organization_modules.enabled`** (Q-048) can now get its rule: a permission id here, then a write path.
 - **Research matrix differences** (§3) are the founder's to confirm or widen: Admin and keys, client approver rights,
   Admin and integrations.

@@ -152,10 +152,10 @@ RLS. Rules:
   - Service keys (`brv_sk_`): organization-level, owners only (RLS via `is_org_owner`), optional expiry, stored hashed,
     at most 10 active (unexpired). They act without a user, so rows they create have no `created_by`, and they keep
     working after their creator leaves (D-044). Only an owner can make someone an owner (`memberships_owner_guard`),
-    so an admin can't promote themselves to create one. The guard covers inserts and updates only, so an admin can
-    still delete the owner's membership with the publishable key. `20261114120000_memberships_owner_guard_delete.sql`
-    extends it to deletes (only an owner may remove an owner) and keeps a business's last owner; it is written but not
-    applied yet ([ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §7). Revoking a key is one-way.
+    so an admin can't promote themselves to create one. Since 2026-11-14 the guard also covers deletes, so an admin
+    can't delete the owner's membership with the publishable key: `20261114040239_memberships_owner_guard_delete.sql`
+    lets only an owner remove an owner and keeps a business's last owner (applied 2026-11-14,
+    [ROLES_AND_PERMISSIONS.md](ROLES_AND_PERMISSIONS.md) §7). Revoking a key is one-way.
   - `/api/mcp` answers 401 with `WWW-Authenticate: Bearer resource_metadata=…` (plus `error="invalid_token"` for bad
     credentials), allows browser Origins only from Braventa, claude.ai, claude.com, chatgpt.com and chat.openai.com,
     and logs each tool call against the key or the grant. The connecting user or an owner can disconnect a grant in
