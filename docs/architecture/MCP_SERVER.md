@@ -186,7 +186,8 @@ Migrations `20261011140425_mcp_access.sql` (phase 1) and `20261017030000_mcp_oau
   A trigger clears `user_id` on service keys so the owner policy decides. Revoking is one-way: the update policies
   only allow setting `revoked_at` on an active key, never clearing it.
 - `memberships`: a trigger (`memberships_owner_guard`) lets only an owner create an owner membership or change one,
-  so an admin can't promote themselves and then create service keys.
+  so an admin can't promote themselves and then create service keys. Removing an owner is guarded once
+  `20261114120000_memberships_owner_guard_delete.sql` is applied (written 2026-11-14, not applied yet).
 - `oauth_clients`: registered apps. Global (not tenant data), service role only. `first_party` marks clients whose
   redirect URIs are all on the AI clients' hosts or loopback; the rate-limit trigger counts the rest.
 - `oauth_grants`: one approval (organization, user, client, client name, scopes, resource, last used, revoked).

@@ -5,13 +5,15 @@ import { createServiceKey, type CreateServiceKeyState } from "./integrations-act
 import { CopyBlock } from "./copy-block";
 import { ConsentCheckbox, LegalLink } from "@/components/legal/consent";
 
-// Owner-only: create an organization-level key for automation. Shown once.
-export function ServiceKeyForm({ serverUrl }: { serverUrl: string }) {
+// Owner-only: create an organization-level key for automation. Shown once. The form names the business the page
+// showed (D-062), so the key is for it even if the user switches business in another tab.
+export function ServiceKeyForm({ organizationId, serverUrl }: { organizationId: string; serverUrl: string }) {
   const [state, action, pending] = useActionState<CreateServiceKeyState, FormData>(createServiceKey, undefined);
 
   return (
     <div className="mt-4">
       <form action={action} className="grid gap-2 sm:grid-cols-[1fr_auto_auto] sm:items-end">
+        <input type="hidden" name="organizationId" value={organizationId} />
         <label className="block text-sm">
           <span className="font-medium">Key name</span>
           <input name="name" maxLength={60} required placeholder="n8n onboarding workflow" className="input mt-1" />

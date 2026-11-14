@@ -61,6 +61,10 @@ export default function MasterServicesAgreement() {
           in Braventa and used in your diagnosis and growth score.
         </li>
         <li>
+          <strong>Google Analytics 4:</strong> on Pro, Premium and the trial, a read-only connection, through the same
+          Google sign-in as Search Console, whose data is shown in Braventa and used in your diagnosis and growth score.
+        </li>
+        <li>
           <strong>HubSpot:</strong> on Pro, Premium and the trial, a read-only connection that shows counts of your
           contacts, companies and deals in Braventa. It isn&apos;t used in your diagnosis or growth score yet.
         </li>
@@ -80,8 +84,8 @@ export default function MasterServicesAgreement() {
           tool.
         </li>
         <li>
-          It doesn&apos;t include a CRM, email sending, automation, analytics or billing yet. Features marked Coming soon
-          aren&apos;t part of the service until they&apos;re released.
+          It doesn&apos;t include a CRM, email sending, automation, reports on results over time or billing yet. Features
+          marked Coming soon aren&apos;t part of the service until they&apos;re released.
         </li>
         <li>
           It doesn&apos;t guarantee results such as revenue, leads, rankings or traffic, and it has no influence over how
@@ -205,8 +209,8 @@ export default function MasterServicesAgreement() {
           in them.
         </li>
         <li>
-          Today, connections are read-only (Google Search Console, HubSpot) or send information into Braventa (your AI
-          assistant).
+          Today, connections are read-only (Google Search Console, Google Analytics 4, HubSpot) or send information into
+          Braventa (your AI assistant).
           Braventa doesn&apos;t change data in any connected tool.
         </li>
         <li>

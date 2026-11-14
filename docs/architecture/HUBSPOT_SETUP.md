@@ -1,9 +1,12 @@
 # HubSpot connection: spec and setup
 
-**Status / last reviewed: 2026-11-08.** The code is built (see [INTEGRATIONS.md](INTEGRATIONS.md#hubspot-pro-read-only)).
-Until the steps in §3 are done, Settings → Connections says "HubSpot connection isn't set up yet" and nothing else
-changes. The steps are for the founder: they need a HubSpot sign-in, the HubSpot CLI, Vercel and Supabase. Decisions:
-D-048 (HubSpot read-only first, REST with per-tenant OAuth, unlisted app), D-059 (store aggregates only).
+**Status / last reviewed: 2026-11-14.** The code is built (see [INTEGRATIONS.md](INTEGRATIONS.md#hubspot-pro-read-only))
+and set up in production: the app is uploaded, its env vars are set, and The Benefit Link's portal has been connected
+since 2026-11-08 (Settings showed "Connected: Google Search Console, HubSpot" on 2026-11-14). HubSpot hasn't reviewed
+the app, so installers see its "unverified app" warning (§2). On a deployment without the steps in §3, Settings →
+Connections says "HubSpot connection isn't set up yet" and nothing else changes. The steps need a HubSpot sign-in, the
+HubSpot CLI, Vercel and Supabase. Decisions: D-048 (HubSpot read-only first, REST with per-tenant OAuth, unlisted app),
+D-059 (store aggregates only).
 
 ## 1. What it does
 
@@ -15,7 +18,9 @@ D-048 (HubSpot read-only first, REST with per-tenant OAuth, unlisted app), D-059
 - The HubSpot card shows the counts. They are **not** used in the diagnosis or the growth score yet; that is the CRM
   module (D-051), the next step.
 - Fetches on connect and on **Refresh HubSpot counts** (at most every 10 minutes). Nothing runs in the background.
-- Disconnect uninstalls the app from the portal, revokes the token and deletes every snapshot.
+- Disconnect uninstalls the app from the portal, revokes the token and deletes every snapshot. When another business
+  in Braventa is still connected to the same portal, it revokes only this business's token (not even that when both
+  hold the same token) and leaves the app installed for the other business (2026-11-14, `endHubSpotAccess`).
 
 ## 2. HubSpot facts this relies on (checked 2026-11-08)
 
@@ -30,7 +35,7 @@ D-048 (HubSpot read-only first, REST with per-tenant OAuth, unlisted app), D-059
 | PKCE | Not documented for app OAuth; the flow uses the client secret | [Manage OAuth tokens](https://developers.hubspot.com/docs/api-reference/latest/authentication/manage-oauth-tokens) |
 | Token | `POST https://api.hubapi.com/oauth/2026-09/token` (form): code exchange and refresh. Access tokens last 30 minutes. A refresh may return a new refresh token: always keep the latest | same; [token management](https://developers.hubspot.com/blog/oauth-token-management-hubspot-integrations) |
 | Portal | `POST /oauth/2026-09/token/introspect` → `hub_id`, `hub_domain`, `scopes` (it also returns the installing user's email, which Braventa doesn't read) | [Manage OAuth tokens](https://developers.hubspot.com/docs/api-reference/latest/authentication/manage-oauth-tokens) |
-| Disconnect | `DELETE /appinstalls/2026-09/external-install` (Bearer access token; HubSpot emails the portal admins), then `POST /oauth/2026-09/token/revoke` | [App uninstalls](https://developers.hubspot.com/docs/api-reference/latest/app-management/app-uninstalls/guide), [Revoke token](https://developers.hubspot.com/docs/api-reference/latest/authentication/oauth-tokens/revoke-token) |
+| Disconnect | `DELETE /appinstalls/2026-09/external-install` (Bearer access token; HubSpot emails the portal admins), then `POST /oauth/2026-09/token/revoke`; only the revoke while another business in Braventa still uses the portal | [App uninstalls](https://developers.hubspot.com/docs/api-reference/latest/app-management/app-uninstalls/guide), [Revoke token](https://developers.hubspot.com/docs/api-reference/latest/authentication/oauth-tokens/revoke-token) |
 | Scopes | `crm.objects.contacts.read`, `crm.objects.companies.read`, `crm.objects.deals.read`, plus `oauth`, which HubSpot adds to every app as a required scope (the upload warns when it isn't listed). Every required scope must be in the install URL's `scope` parameter, so the app sends `oauth` too and checks only the three data scopes after install. Pipelines and property options are readable with the object scopes | [Scopes](https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/scopes), [Get pipelines](https://developers.hubspot.com/docs/api-reference/latest/crm/pipelines/get-pipelines), [Get property](https://developers.hubspot.com/docs/api-reference/latest/crm/properties/get-property) |
 | Search | `POST /crm/objects/2026-09/{contacts,companies}/search` returns `total`; 5 requests a second per portal, 10,000-result cap, dates as epoch milliseconds | [Search the CRM](https://developers.hubspot.com/docs/api-reference/latest/crm/search-the-crm) |
 | Other limits | 110 requests per 10 s per installing portal (search excluded) | [Usage guidelines](https://developers.hubspot.com/docs/developer-tooling/platform/usage-guidelines) |
@@ -48,7 +53,7 @@ Not relied on: the account-info currency endpoint (if it fails, amounts show wit
 database, apply it before you set the environment variables in §3.3: without them the card never queries the new
 table, so the code can deploy first.
 
-### 3.2 Create and upload the app
+### 3.2 Create and upload the app (done for production by 2026-11-08)
 
 1. Install the HubSpot CLI (version 8.15.0 or later) and sign in to the HubSpot account that will own the app (under
    Pixel Marketing Design for now, D-053): `hs account auth`, with a personal access key.
@@ -65,7 +70,7 @@ table, so the code can deploy first.
 
 Never change the app's `uid` (`braventa_crm_reader`): HubSpot treats a new uid as a new app.
 
-### 3.3 Set the environment variables
+### 3.3 Set the environment variables (done for production by 2026-11-08)
 
 Add to `web/.env.local` and to the Vercel project for the app (Production), then redeploy:
 
@@ -77,7 +82,7 @@ Add to `web/.env.local` and to the Vercel project for the app (Production), then
 
 `GET /api/health/integrations` then reports `hubspot: configured`.
 
-### 3.4 First connection
+### 3.4 First connection (The Benefit Link connected 2026-11-08)
 
 Connect The Benefit Link's portal as the first test (a real business: read-only, and its CRM data stays in
 Braventa's tenant tables). Check the counts against HubSpot's own contact and deal views, then disconnect and

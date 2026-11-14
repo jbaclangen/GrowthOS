@@ -110,3 +110,45 @@ describe("the newest content approval guard", () => {
     expect(body).toMatch(/new\.approved_by := \(select auth\.uid\(\)\);\s+new\.approved_at := now\(\);/);
   });
 });
+
+// memberships_owner_guard was created by mcp_oauth (insert and update) and replaced by memberships_owner_guard_delete,
+// which adds deletes and the last-owner rule. Checked against the newest definitions of the function and the trigger.
+const OWNER_GUARD = /create (?:or replace )?function public\.memberships_owner_guard\(\)([\s\S]*?)\$\$;/;
+const OWNER_TRIGGER = /create (?:or replace )?trigger memberships_owner_guard ([\s\S]*?);/;
+const ownerGuardFiles = readdirSync(dir)
+  .filter((f) => f.endsWith(".sql"))
+  .sort()
+  .filter((f) => OWNER_GUARD.test(readFileSync(dir + f, "utf8").replace(/--.*$/gm, "")));
+const latestOwnerGuardFile = ownerGuardFiles[ownerGuardFiles.length - 1] ?? "";
+const latestOwnerGuard = latestOwnerGuardFile ? readFileSync(dir + latestOwnerGuardFile, "utf8").replace(/--.*$/gm, "") : "";
+
+describe("the newest memberships owner guard", () => {
+  it("is the memberships_owner_guard_delete migration's", () => {
+    expect(latestOwnerGuardFile).toMatch(/_memberships_owner_guard_delete\.sql$/);
+  });
+
+  it("fires before inserts, updates and deletes", () => {
+    const trigger = latestOwnerGuard.match(OWNER_TRIGGER);
+    expect(trigger).toBeTruthy();
+    expect(trigger![1]).toMatch(/^before insert or update or delete on public\.memberships\s+for each row execute function public\.memberships_owner_guard\(\)$/);
+  });
+
+  it("checks signed-in clients only, refuses a non-owner removing an owner and keeps the last owner", () => {
+    const fn = latestOwnerGuard.match(OWNER_GUARD);
+    expect(fn).toBeTruthy();
+    const body = fn![1];
+    // Not security definer: current_user must stay the caller's role for the check below to mean anything.
+    expect(body).toMatch(/returns trigger language plpgsql set search_path = ''/);
+    expect(body).not.toMatch(/security definer/);
+    expect(body).toMatch(/if current_user = 'authenticated' then/);
+    // The insert and update rule is unchanged.
+    expect(body).toMatch(/not \(public\.is_org_owner\(new\.organization_id\) and \(tg_op = 'INSERT' or public\.is_org_owner\(old\.organization_id\)\)\)/);
+    expect(body).toMatch(/tg_op = 'DELETE' and old\.role = 'owner' and not public\.is_org_owner\(old\.organization_id\) then\s+raise exception/);
+    expect(body).toMatch(/tg_op in \('UPDATE', 'DELETE'\) and old\.role = 'owner'\s+and \(tg_op = 'DELETE' or new\.role <> 'owner' or new\.organization_id <> old\.organization_id\)\s+and not exists \(/);
+    expect(body).toMatch(/where m\.organization_id = old\.organization_id and m\.role = 'owner' and m\.user_id <> old\.user_id/);
+    // new is null in a delete trigger; returning it would silently cancel every delete, cascades included.
+    expect(body).toMatch(/return coalesce\(new, old\);\s+end;\s*$/);
+    expect(body).not.toMatch(/return new;/);
+    expect(latestOwnerGuard).toMatch(/revoke all on function public\.memberships_owner_guard\(\) from public, anon, authenticated;/);
+  });
+});

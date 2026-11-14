@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-14
+commit: 1917f9a
 consumes: ["[[diagnosis]]", "[[diagnosis-finding]]", "[[growth-plan-item]]", "[[membership]]", "[[member-role]]"]
 produces: ["[[diagnosis]]", "[[diagnosis-finding]]", "[[growth-plan-item]]"]
 ---
@@ -18,7 +18,7 @@ On `/analysis/[id]` the owner marks findings right or wrong, then confirms. `con
 
 ## Why this shape
 
-All three actions run with the user's client, so RLS and column grants, not application code, bound what a client can change: only verdict and note on findings; only status, confirmation fields on diagnoses; only status fields and `final_priority` on items. Everything else comes from the pipeline. Which members may call each action is an app check (`diagnosis.correct`, `plan_items.update_any` — `web/src/app/analysis/plan-actions.ts:13-16`); the RLS write policies still admit any member (`docs/architecture/ROLES_AND_PERMISSIONS.md:151-153`). Blocking confirmation on a rejected finding forces the owner through [revise-diagnosis](revise-diagnosis.md) rather than confirming a plan built on a finding they called wrong.
+All three actions run with the user's client, so RLS and column grants, not application code, bound what a client can change: only verdict and note on findings; only status, confirmation fields on diagnoses; only status fields and `final_priority` on items. Everything else comes from the pipeline. Which members may call each action is an app check (`diagnosis.correct`, `plan_items.update_any` — `web/src/app/analysis/plan-actions.ts:13-16`); the RLS write policies still admit any member (`docs/architecture/ROLES_AND_PERMISSIONS.md:159-161`). Blocking confirmation on a rejected finding forces the owner through [revise-diagnosis](revise-diagnosis.md) rather than confirming a plan built on a finding they called wrong.
 
 ## Steps
 
@@ -33,7 +33,7 @@ All three actions run with the user's client, so RLS and column grants, not appl
 
 ## Human gate
 
-The owner, at every step: verdicts, confirmation, item status; any member whose role holds `diagnosis.correct` (verdicts, confirmation) or `plan_items.update_any` (item status) may (`web/src/lib/team/roles.ts:92`, `:94`, [member-role](../objects/tenancy/member-role.md)). Nothing here runs without a click.
+The owner, at every step: verdicts, confirmation, item status; any member whose role holds `diagnosis.correct` (verdicts, confirmation) or `plan_items.update_any` (item status) may (`web/src/lib/team/roles.ts:94`, `:96`, [member-role](../objects/tenancy/member-role.md)). Nothing here runs without a click.
 
 ## If you change this
 

@@ -93,7 +93,7 @@ const MODULES: { name: string; status: Status; summary: string; today: string[];
 const TOOLS: { name: string; status: Status; body: string }[] = [
   { name: "Google Search Console", status: "live", body: "How people find you on Google Search. Pro, read-only." },
   { name: "Google Analytics 4", status: "live", body: "Which visits turn into inquiries. Pro, read-only, same Google sign-in." },
-  { name: "HubSpot", status: "live", body: "Contacts and deals as counts. Pro, read-only." },
+  { name: "HubSpot", status: "live", body: "Contacts and deals as counts. Pro, read-only. Not used in your diagnosis yet." },
   { name: "Google Business Profile", status: "next", body: "How your listing does in Search and Maps." },
   { name: "Facebook, Instagram and LinkedIn", status: "next", body: "Your social accounts." },
   { name: "Canva and HeyGen", status: "next", body: "Creative tools for your drafts." },
@@ -196,7 +196,7 @@ export default function Product() {
       </Band>
 
       <Band tone="surface" labelledBy="tools-title">
-        <SectionIntro head="Connected tools" title="Your tools feed the same plan." id="tools-title">
+        <SectionIntro head="Connected tools" title="Google feeds your plan. HubSpot shows your pipeline." id="tools-title">
           Connect them in Settings or during setup. One Google sign-in covers Search Console and Analytics, and you can
           untick either. Braventa only reads; it can&apos;t change anything in your tools. Disconnecting deletes the data
           Braventa kept from that tool.

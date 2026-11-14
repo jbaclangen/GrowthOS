@@ -3,8 +3,8 @@ type: object
 cluster: onboarding
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 1917f9a
 entity: supabase/migrations/20261010061028_foundation.sql
 ---
 
@@ -14,16 +14,16 @@ The analysed business: the AI-built Business Intelligence Profile, the growth sc
 
 ## Why this shape
 
-One organization can analyse several businesses, so the profile, not the organization, is the unit the report and dashboard are keyed on (`web/src/app/dashboard/page.tsx:31-34`). Owner inputs (`goals`, `service_area`, `current_tools`) are Customer-provided and survive re-runs because the pipeline writes only the AI columns (`supabase/migrations/20261010150627_business_profile_owner_inputs.sql:1-2,12-14`, BI-12, D-021).
+One organization can analyse several businesses, so the profile, not the organization, is the unit the report and dashboard are keyed on (`web/src/app/dashboard/page.tsx:44-48,79-80`). Owner inputs (`goals`, `service_area`, `current_tools`) are Customer-provided and survive re-runs because the pipeline writes only the AI columns (`supabase/migrations/20261010150627_business_profile_owner_inputs.sql:1-2,12-14`, BI-12, D-021).
 
 ## Shape
 
 - Columns: `company_name`, `website_url`, `industry`, `services[]`, `target_customers`, `locations[]`, `competitors[]`, `offers`, `goals`, `intelligence` jsonb, `growth_score` 0–100, `analyzed_at` — `supabase/migrations/20261010061028_foundation.sql:77-95`; `service_area`, `current_tools[]` with length and count checks — `supabase/migrations/20261010150627_business_profile_owner_inputs.sql:3-10`; unique (`id`, `organization_id`) for child composite FKs — `supabase/migrations/20261010155911_onboarding_discovery.sql:5`.
 - RLS "members all" — `supabase/migrations/20261010061028_foundation.sql:297-309`.
-- Writers: insert at onboarding start with owner inputs — `web/src/lib/onboarding/start.ts:64-73` (`toProfileColumns`, `web/src/lib/owner-inputs.ts:76`); profiling step writes the AI columns and `intelligence` — `web/src/lib/pipeline/website-intel.ts:310-323`; scoring step writes `growth_score`, `analyzed_at` — `:636-640`; owner edits via `saveOwnerInputs` — `web/src/app/analysis/actions.ts:155-159`, gated by `profile.edit` `:152-154`; the permission on the insert's callers lives on [onboarding-session](onboarding-session.md).
-- Readers: dashboard `web/src/app/dashboard/page.tsx:31-34`; report `web/src/app/analysis/[id]/report-data.ts:83`; assistant context `web/src/lib/assistant/context.ts:39-40` (shown beside the report's `score_modules` and Search visibility sub-score, `:176-180`); follow-up selection `web/src/lib/onboarding/next-questions.ts:61-65`; connect step suggestions `web/src/app/onboarding/[sessionId]/connect/page.tsx:60`.
+- Writers: insert at onboarding start with owner inputs — `web/src/lib/onboarding/start.ts:64-73` (`toProfileColumns`, `web/src/lib/owner-inputs.ts:76`); profiling step writes the AI columns and `intelligence` — `web/src/lib/pipeline/website-intel.ts:312-325`; scoring step writes `growth_score`, `analyzed_at` — `:649-653`; owner edits via `saveOwnerInputs` — `web/src/app/analysis/actions.ts:171-175`, gated by `profile.edit` `:168-170`; the permission on the insert's callers lives on [onboarding-session](onboarding-session.md).
+- Readers: dashboard `web/src/app/dashboard/page.tsx:44-48`; report `web/src/app/analysis/[id]/report-data.ts:83`; assistant context `web/src/lib/assistant/context.ts:40-42` (shown beside the report's `score_modules` and the Search visibility and Analytics sub-scores, `:182-187`); follow-up selection `web/src/lib/onboarding/next-questions.ts:61-65`; connect step suggestions `web/src/app/onboarding/[sessionId]/connect/page.tsx:67`.
 
-Citations: `supabase/migrations/20261010061028_foundation.sql:77-95,297-309`; `supabase/migrations/20261010150627_business_profile_owner_inputs.sql:3-14`; `web/src/lib/onboarding/start.ts:64-73`; `web/src/lib/pipeline/website-intel.ts:310-323,636-640`; `web/src/app/analysis/actions.ts:157-164`; `web/src/lib/owner-inputs.ts:76`
+Citations: `supabase/migrations/20261010061028_foundation.sql:77-95,297-309`; `supabase/migrations/20261010150627_business_profile_owner_inputs.sql:3-14`; `web/src/lib/onboarding/start.ts:64-73`; `web/src/lib/pipeline/website-intel.ts:312-325,649-653`; `web/src/app/analysis/actions.ts:158-180`; `web/src/lib/owner-inputs.ts:76`; `web/src/app/dashboard/page.tsx:44-48`; `web/src/lib/assistant/context.ts:40-42,182-187`
 
 ## Connected to
 
@@ -34,7 +34,7 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:77-95,297-309`; `s
 
 ## If you change this
 
-- **Hits:** `createOnboarding`, `profileStep`, `scoreStep`, `saveOwnerInputs` and the "From you" panel, the dashboard and report loaders, the assistant context, the prompts that read owner inputs (`web/src/lib/pipeline/website-intel.ts:305`), `docs/architecture/DATA_MODEL.md:83`.
+- **Hits:** `createOnboarding`, `profileStep`, `scoreStep`, `saveOwnerInputs` and the "From you" panel, the dashboard and report loaders, the assistant context, the prompts that read owner inputs (`web/src/lib/pipeline/website-intel.ts:307`), `docs/architecture/DATA_MODEL.md:90`.
 - **Does not hit:** [onboarding-response](onboarding-response.md) — pain points and priorities are not profile columns.
 
 ## Surfaces
@@ -42,8 +42,8 @@ Citations: `supabase/migrations/20261010061028_foundation.sql:77-95,297-309`; `s
 | Surface | Role |
 |---|---|
 | `startAnalysis` / MCP start via `createOnboarding` (`web/src/lib/onboarding/start.ts:64-73`) | writes |
-| Profiling and scoring steps (`web/src/lib/pipeline/website-intel.ts:310-323,636-640`) | writes AI columns, score |
-| Report "From you" panel → `saveOwnerInputs` (`web/src/app/analysis/actions.ts:160-164`) | writes owner inputs |
+| Profiling and scoring steps (`web/src/lib/pipeline/website-intel.ts:312-325,649-653`) | writes AI columns, score |
+| Report "From you" panel → `saveOwnerInputs` (`web/src/app/analysis/actions.ts:158-180`) | writes owner inputs |
 | `/dashboard`, `/analysis/[id]`, Ask Braventa | reads |
 
 ## See

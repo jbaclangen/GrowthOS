@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 71a42e1
 consumes: ["[[onboarding-session]]", "[[onboarding-response]]", "[[business-profile]]", "[[connect-step]]", "[[ai-worker]]", "[[member-role]]"]
 produces: ["[[onboarding-follow-up]]", "[[onboarding-session]]", "[[ai-job]]", "[[ai-usage]]"]
 ---
@@ -18,11 +18,11 @@ A `following_up` session arrives from the connect step's Continue. `addNextRound
 
 ## Why this shape
 
-The plan needs both the owner's answers and the crawl, and they finish in either order; without the conditional claim on `plan_job_id` the two callers could queue two plan jobs. The connect step has no status of its own, so `pendingCount` decides between connect and questions; a plain redirect would generate a second round on the back button. Generating in `after()` keeps the extractor call (up to 2 × 120 s) out of the request that already spent time.
+The plan needs both the owner's answers and the crawl, and they finish in either order; without the conditional claim on `plan_job_id` the two callers could queue two plan jobs. The connect step has no status of its own, so `pendingCount` decides between connect and questions; a plain redirect would generate a second round on the back button. The extractor call (up to 2 × 120 s) runs in the Continue request itself; the plan's first step is handed off in `after()` so it gets its own invocation instead of the time that request already spent (`web/src/lib/onboarding/service.ts:31-42`, `web/src/app/onboarding/[sessionId]/connect/page.tsx:31-33`).
 
 ## Steps
 
-1. Connect page's form posts `continueAfterConnect` — `web/src/app/onboarding/[sessionId]/connect/page.tsx:137`; `maxDuration = 300` — `:25-27`; MCP skips this step — `:22`.
+1. Connect page's form posts `continueAfterConnect` — `web/src/app/onboarding/[sessionId]/connect/page.tsx:153`; `maxDuration = 300` — `:31-33`; MCP skips this step — `:28`.
 2. `continueAfterConnect`: status must be `following_up`; pending questions redirect to `/questions`; else `continueFollowUps` — `web/src/app/onboarding/[sessionId]/actions.ts:84-96`, redirect helper `:30-34`. Every action here needs `profile.edit`, checked in `loadSession` — `:18-23`; refusals `:88`, `:102`, `:122`.
 3. `continueFollowUps` calls `addNextRound`, logging failures; zero questions → `completeSession` — `web/src/lib/onboarding/service.ts:158-168`.
 4. `addNextRound`: round size from `nextRoundSize` — `web/src/lib/onboarding/next-questions.ts:68-70`, sizes at `web/src/lib/onboarding/followups.ts:133`, `:173-176`; extractor worker chooses, `fallbackSelection` on failure (first round only) — `web/src/lib/onboarding/next-questions.ts:98-112`; insert `onboarding_follow_ups` with `round` — `:115-126`; `round` check 1–3 at `supabase/migrations/20261010163029_onboarding_follow_ups.sql:15`.
@@ -32,11 +32,11 @@ The plan needs both the owner's answers and the crawl, and they finish in either
 8. `completeSession` sets `completed` and `startPlanAfterResponse` runs `startPlanIfReady` + `handOff` in `after()` — `web/src/lib/onboarding/service.ts:44-50`, `:33-42`.
 9. `startPlanIfReady` guards: no `plan_job_id`, `evidence_job_id` set — `web/src/lib/onboarding/orchestrate.ts:18`; status `completed`/`skipped` — `:19`; evidence job `succeeded` — `:21-27`.
 10. Insert `website_plan` job at `initialState` — `web/src/lib/onboarding/orchestrate.ts:29-47`; conditional claim `.is('plan_job_id', null)`, duplicate job deleted — `:50-59`.
-11. The other caller: the evidence job's final step — `web/src/lib/pipeline/website-intel.ts:946-952`.
+11. The other caller: the evidence job's final step — `web/src/lib/pipeline/website-intel.ts:981-989`.
 
 ## Human gate
 
-The owner answers or skips each round on `/questions`; any member whose role holds `profile.edit` may (`web/src/lib/team/roles.ts:90`, [member-role](../objects/tenancy/member-role.md)). Skipping is allowed; the plan is built from what they already told us.
+The owner answers or skips each round on `/questions`; any member whose role holds `profile.edit` may (`web/src/lib/team/roles.ts:92`, [member-role](../objects/tenancy/member-role.md)). Skipping is allowed; the plan is built from what they already told us.
 
 ## If you change this
 

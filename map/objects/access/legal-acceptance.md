@@ -3,14 +3,14 @@ type: object
 cluster: access
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 0393a75
+verified: 2026-11-14
+commit: 1917f9a
 entity: supabase/migrations/20261107224300_legal_acceptances.sql
 ---
 
 # Legal acceptance (`legal_acceptances`)
 
-One append-only row each time someone ticks an agreement checkbox in the app: the Terms, MSA and DPA at sign-up or on the terms banner, or a confirmation the documents require (website authorization, Search Console connect, access key, OAuth approval). D-057.
+One append-only row each time someone ticks an agreement checkbox in the app: the Terms, MSA and DPA at sign-up or on the terms banner, or a confirmation the documents require (website authorization, Search Console connect, HubSpot connect, access key, OAuth approval). D-057.
 
 ## Why this shape
 
@@ -19,7 +19,7 @@ It is the evidence that the Terms' liability cap and the MSA's connected-app cla
 ## Shape
 
 - Columns: `user_id`, `organization_id` (null for `signup`/`terms_update`), `context`, `documents_version`, `documents[]`, `subject`, `accepted_at` — `supabase/migrations/20261107224300_legal_acceptances.sql:13-26`.
-- Contexts, documents per context, `LEGAL_VERSION`, the checkbox field (`agree=yes`) and the error per step — `web/src/lib/legal/documents.ts:9,25-47,50-56,58-66`. They're kept equal to the newest SQL check (the HubSpot migration replaced it to add `hubspot_connect`) by `web/src/lib/legal/documents.test.ts:21-29,57-81`.
+- Contexts, documents per context, `LEGAL_VERSION`, the checkbox field (`agree=yes`) and the error per step — `web/src/lib/legal/documents.ts:9,25-47,50-55,58-66`. They're kept equal to the newest SQL check (the HubSpot migration replaced it to add `hubspot_connect`, `supabase/migrations/20261108043117_hubspot_connection.sql:49-54`) by `web/src/lib/legal/documents.test.ts:21-29,57-81`.
 - Write: `recordAcceptance` — `web/src/lib/legal/acceptances.ts:11-30`. Read: `hasAcceptedCurrentTerms` — `:33-45`.
 - Checkbox UI: `ConsentCheckbox`, `LegalLink`, `CoreTermsSentence` — `web/src/components/legal/consent.tsx`.
 
@@ -44,12 +44,12 @@ Citations: `supabase/migrations/20261107224300_legal_acceptances.sql:13-37`, `we
 
 | Surface | Role |
 |---|---|
-| Sign-up `web/src/app/login/actions.ts:38,49-52`, form `auth-form.tsx:35-37` | writes `signup` |
-| Terms banner `web/src/components/legal/terms-banner.tsx`, action `web/src/lib/legal/actions.ts`, root layout `web/src/app/layout.tsx:42-44` | reads, writes `terms_update` |
-| `startAnalysis` `web/src/app/analysis/actions.ts:36,71`, form `web/src/app/onboarding/start-form.tsx:46-49` | writes `website_authorization` |
-| Google start route `web/src/app/api/integrations/google/start/route.ts:39` (checks), callback `.../callback/route.ts:105-113` | writes `search_console_connect` |
-| HubSpot start route `web/src/app/api/integrations/hubspot/start/route.ts` (checks `agree=yes`), callback `.../hubspot/callback/route.ts` (records after the install) | writes `hubspot_connect` |
-| `createAccessKey` `web/src/app/settings/actions.ts:24,53`; `createServiceKey` `web/src/app/settings/integrations-actions.ts:36,55` | writes `access_key` |
+| Sign-up `web/src/app/login/actions.ts:38,50-52`, form `auth-form.tsx:35-37` | writes `signup` |
+| Terms banner `web/src/components/legal/terms-banner.tsx`, action `web/src/lib/legal/actions.ts`, root layout `web/src/app/layout.tsx:47-49` | reads, writes `terms_update` |
+| `startAnalysis` `web/src/app/analysis/actions.ts:38,82`, form `web/src/app/onboarding/start-form.tsx:86-89` | writes `website_authorization` |
+| Google start route `web/src/app/api/integrations/google/start/route.ts:41` (checks), callback `.../callback/route.ts:116-124` | writes `search_console_connect` |
+| HubSpot start route `web/src/app/api/integrations/hubspot/start/route.ts:40` (checks `agree=yes`), callback `.../hubspot/callback/route.ts:100-108` (records after the install) | writes `hubspot_connect` |
+| `createAccessKey` `web/src/app/settings/actions.ts:26,71`; `createServiceKey` `web/src/app/settings/integrations-actions.ts:40,59` | writes `access_key` |
 | OAuth approval `web/src/app/oauth/authorize/actions.ts:27,42-45` | writes `assistant_oauth` |
 
 ## See

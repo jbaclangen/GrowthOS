@@ -10,7 +10,8 @@ anything not built is labelled **Planned** or **Not implemented**. Companion doc
 [../decisions/DECISION_LOG.md](../decisions/DECISION_LOG.md); unresolved items in
 [../decisions/OPEN_QUESTIONS.md](../decisions/OPEN_QUESTIONS.md).
 
-**Status / last reviewed: 2026-10-10** (against commit `17ab57a` plus the uncommitted MVP pipeline work).
+**Status / last reviewed: 2026-10-10** (against commit `17ab57a` plus the uncommitted MVP pipeline work; sections 1,
+2, 5 and 6 updated 2026-11-14 for the deployment, the Google Analytics and HubSpot connections and their variables).
 
 ---
 
@@ -18,11 +19,11 @@ anything not built is labelled **Planned** or **Not implemented**. Companion doc
 
 | Layer | Technology | Responsibility | State today |
 |---|---|---|---|
-| Frontend + server | Next.js 16.4 App Router (`web/`, `src/`), React 19.3, Tailwind 4, Cache Components enabled (`next.config.ts`) | UI, server components, server actions, route handlers, background work via `after()` | Live (local dev; Vercel deployment planned at `app.braventa.io`, D-011) |
+| Frontend + server | Next.js 16.4 App Router (`web/`, `src/`), React 19.3, Tailwind 4, Cache Components enabled (`next.config.ts`) | UI, server components, server actions, route handlers, background work via `after()` | Live (on Vercel at `app.braventa.io`, D-011; local dev) |
 | System of record | Supabase (project ref `mlztvhvmsullvwawwamc`): Postgres + Auth + RLS, `pgvector` extension | All tenant data, auth, authorization (RLS via `public.is_member()`), job state, AI usage ledger | Live |
 | Workflow execution | n8n, self-hosted at `n8nautomations.pixelmarketingdesign.com` | Intended: scheduled and long-running workflows that call back to `/api/n8n/*` | **Configured only.** Client in `web/src/lib/integrations/n8n.ts`; no workflows exported (`n8n/` is empty); no `/api/n8n/*` routes exist |
 | AI routing | `web/src/lib/ai/router.ts` over OpenRouter (`web/src/lib/integrations/openrouter.ts`) | Worker -> task class -> model chain, budget check, usage logging | Live |
-| External integrations | Google PageSpeed Insights, a cheerio-based crawler, Google Search Console (Pro, read-only) | Website measurement, content extraction and search data for the diagnosis and the Search visibility score | Live. Everything else (HubSpot, GA4, Stripe, WordPress, publishing) is Planned — see [INTEGRATIONS.md](INTEGRATIONS.md) |
+| External integrations | Google PageSpeed Insights, a cheerio-based crawler, Google Search Console and Google Analytics 4 (Pro, read-only, one Google sign-in), HubSpot (Pro, read-only) | Website measurement, content extraction, search and analytics data for the diagnosis and the Search visibility and Analytics scores, CRM counts on the HubSpot card | Live for PageSpeed, the crawler, Search Console and HubSpot (connected in production since 2026-11-08; counts only, not in the diagnosis or score, D-059). GA4 (D-058) was built 2026-11-08; its production setup ([SEARCH_CONSOLE_SETUP.md](SEARCH_CONSOLE_SETUP.md) §1 step 3, the scope in §2) isn't recorded as done. Everything else (Stripe, WordPress, publishing) is Planned — see [INTEGRATIONS.md](INTEGRATIONS.md) |
 
 Binding rules (from `CLAUDE.md`; restated so architecture reviews can check against them):
 
@@ -43,7 +44,7 @@ flowchart LR
     UI[React client components<br/>start-form, controls, auto-refresh]
   end
 
-  subgraph Vercel["Next.js 16 app (Vercel, planned: app.braventa.io)"]
+  subgraph Vercel["Next.js 16 app (Vercel: app.braventa.io)"]
     PX[src/proxy.ts<br/>session refresh + login redirect]
     RSC[Server components<br/>/dashboard, /analysis/id, /onboarding]
     SA[Server actions<br/>startAnalysis, rerunAnalysis, setContentStatus]
@@ -247,8 +248,8 @@ app endpoints (the continue route is already one), so AI routing, budgets and RL
 | Environment | URL | Hosting | Status |
 |---|---|---|---|
 | Local development | `http://localhost:3000` (`npm run dev` in `web/`, `.claude/launch.json`) | Developer machine | Live |
-| Production app | `https://app.braventa.io` | Vercel project `braventa-app` (Hobby tier during the proof of concept, D-011); root directory `web`, production branch `main`; env vars set for Production only (`AI_MODE`, Supabase URL/publishable key/secret key, OpenRouter, Google, `NEXT_PUBLIC_APP_URL`) | **Deploying** (2026-10-11); private: robots.txt disallow, `X-Robots-Tag` noindex/nofollow, invite-only sign-up |
-| Marketing site | `https://braventa.io` (`www` redirects to it) | Vercel project `braventa-site` (root `site`, production branch `main`; Config env vars `NEXT_PUBLIC_SUPABASE_URL`/`_PUBLISHABLE_KEY` for the contact form only, no secrets); Hostinger is registrar and DNS: A `@` → Vercel, CNAME `www` → Vercel (D-031, D-033) | **Deploying** (2026-10-11); hidden from search engines until `SITE_INDEXABLE=true` |
+| Production app | `https://app.braventa.io` | Vercel project `braventa-app` (Hobby tier during the proof of concept, D-011); root directory `web`, production branch `main`; env vars set for Production only (`AI_MODE`, Supabase URL/publishable key/secret key, OpenRouter, Google API key and OAuth client, HubSpot client, `INTEGRATIONS_ENCRYPTION_KEY`, `NEXT_PUBLIC_APP_URL`) | **Live** (deployed 2026-10-11); private: robots.txt disallow, `X-Robots-Tag` noindex/nofollow, invite-only sign-up |
+| Marketing site | `https://braventa.io` (`www` redirects to it) | Vercel project `braventa-site` (root `site`, production branch `main`; Config env vars `NEXT_PUBLIC_SUPABASE_URL`/`_PUBLISHABLE_KEY` for the contact form only, no secrets); Hostinger is registrar and DNS: A `@` → Vercel, CNAME `www` → Vercel (D-031, D-033) | **Live** (deployed 2026-10-11); hidden from search engines until `SITE_INDEXABLE=true` |
 | Support and docs | `https://support.braventa.io` | Next.js + Fumadocs in this repo on Vercel (D-031) | **Planned** |
 | Community | `https://community.braventa.io` | Hosted forum (Q-017) | Future |
 | Database / auth | Supabase project `mlztvhvmsullvwawwamc` | Supabase cloud | Live; one project serves all environments today |
@@ -256,10 +257,17 @@ app endpoints (the continue route is already one), so AI routing, budgets and RL
 | Google APIs | GCP project `growth-os-511206` | Google Cloud | PageSpeed key in use |
 
 There is **no staging environment** and no separate Supabase project for development: local development
-writes to the same database a deployed app would use. Configuration is by environment variables listed in
-`web/.env.example`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
-`SUPABASE_SECRET_KEY`, `AI_MODE`, `OPENROUTER_API_KEY`, `N8N_BASE_URL`, `N8N_API_KEY`,
-`N8N_WEBHOOK_SECRET`, `GOOGLE_API_KEY`, `NEXT_PUBLIC_APP_URL`. Production must set `NEXT_PUBLIC_APP_URL`
+writes to the same database the deployed app uses. Configuration is by environment variables listed in
+`web/.env.example` and validated in `web/src/lib/env.ts` when first used: `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `AI_MODE` (read by `lib/ai/router.ts`; anything but
+`free` means paid), `OPENROUTER_API_KEY`, `N8N_BASE_URL`, `N8N_API_KEY`, `N8N_WEBHOOK_SECRET`, `GOOGLE_API_KEY`,
+`NEXT_PUBLIC_APP_URL` (defaults to `http://localhost:3000`). The connections are optional, and Settings says one isn't
+set up yet while its variables are missing: Google (Search Console and GA4) needs `GOOGLE_OAUTH_CLIENT_ID`,
+`GOOGLE_OAUTH_CLIENT_SECRET` and `INTEGRATIONS_ENCRYPTION_KEY` (32 bytes, base64; encrypts stored refresh tokens);
+HubSpot needs `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` and the same `INTEGRATIONS_ENCRYPTION_KEY`. Two more are
+optional: `JOB_CONTINUE_SECRET` (at least 32 characters; signs the step hand-offs, derived from `SUPABASE_SECRET_KEY`
+when unset) and `JOB_DISPATCH` (`database` or `direct`; unset means `database` on Vercel or for a production build
+with an https app URL, else `direct`; set `database` in production). Production must set `NEXT_PUBLIC_APP_URL`
 to `https://app.braventa.io` (used for sign-up email redirects and the OpenRouter referer) and Supabase Auth's
 Site URL / redirect allow-list to match.
 
@@ -270,13 +278,13 @@ The brief (§7) describes intent "subject to repository inspection". Discrepanci
 | # | Brief says | Repository / infrastructure shows | Recommendation |
 |---|---|---|---|
 | 1 | n8n self-hosted on **Oracle Cloud** | Configured instance is `n8nautomations.pixelmarketingdesign.com` (an existing agency domain); host provider unknown | Record the actual host in OPEN_QUESTIONS (Q-006). Before client data flows through n8n, move it to a Braventa-controlled host/subdomain (e.g. `n8n.braventa.io`) so tenant data does not transit an unrelated agency's infrastructure |
-| 2 | Marketing site on **Hostinger** | App will be on Vercel at `app.braventa.io`; Hostinger hosts `braventa.io` and DNS | No conflict (D-011). Hostinger = marketing site + DNS only |
+| 2 | Marketing site on **Hostinger** | App is on Vercel at `app.braventa.io`; Hostinger hosts `braventa.io` and DNS | No conflict (D-011). Hostinger = marketing site + DNS only |
 | 3 | n8n handles workflow execution, scheduling, orchestration | No workflows, no `/api/n8n/*` routes; the MVP pipeline runs in-process via `after()` | Acceptable for the PoC; see section 3 for the move criteria. Do not describe n8n automation as live |
 | 4 | Supabase for data, auth, **storage**, permissions, business knowledge | Data, auth, RLS live. Storage: no buckets or code. Knowledge: `knowledge_documents` written; `knowledge_chunks` / `match_knowledge` (embeddings) never populated or queried | Label storage and retrieval as Planned. Decide embedding model and chunking before building the assistant |
 | 5 | AI routing tracks model, tokens, **latency, failures**, cost; caching; quality evaluation before downgrading | Model, tokens, cost logged; latency, failures, cache: not implemented | See [AI_ROUTING_AND_COSTS.md](AI_ROUTING_AND_COSTS.md) section 6 |
-| 6 | Protected connected-account credentials | `integrations.vault_secret_id` column exists; no code writes tokens; Vault not configured | Planned; required before HubSpot (see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md)) |
+| 6 | Protected connected-account credentials | Google and HubSpot refresh tokens are stored encrypted (AES-256-GCM, `lib/integrations/secret-box.ts`, `INTEGRATIONS_ENCRYPTION_KEY`) in `integration_connections.refresh_token_ciphertext`; the old `integrations.vault_secret_id` column is unused; Vault not configured | Built for the live connections (see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md)) |
 | 7 | Logging of sensitive operations | Only `ai_usage` and `ai_jobs`; no audit log of approvals, membership changes, or admin actions beyond `approved_by` | Add an `audit_events` table before multi-user orgs or publishing |
-| 8 | HubSpot first CRM | Not implemented; health route says "Sprint 5" | Planned; see [INTEGRATIONS.md](INTEGRATIONS.md#hubspot-first-plan-planned) |
+| 8 | HubSpot first CRM | Read-only connection built (D-048): counts of contacts, companies and deals only (D-059), shown on the HubSpot card, not in the diagnosis or score; connected in production since 2026-11-08 | CRM module and write actions remain; see [INTEGRATIONS.md](INTEGRATIONS.md#hubspot-pro-read-only) |
 | 9 | Billing | `subscriptions` table with Stripe columns; no Stripe code; provider not formally chosen | Treat Stripe as provisional until decided; pricing undecided (D-012) |
 | 10 | Brand is Braventa (D-001) | Resolved 2026-10-10: user-visible strings (page titles, header, onboarding/login copy), OpenRouter `X-Title`, and crawler User-Agent now say Braventa | Only the internal n8n header `X-GrowthOS-Secret` remains (Q-020); code identifiers intentionally unchanged |
 | 11 | Vercel Hobby during PoC | Vercel Hobby is intended for non-commercial use | Move to a paid plan before charging customers (already noted in the infrastructure plan) |

@@ -76,9 +76,12 @@ renormalized, as before; the same when Search visibility (§9) or Analytics (§1
 - **UI:** the report's score tile (`web/src/app/analysis/[id]/infographic.tsx`) says "Based on N modules" with their
   names, and both it and the Scores section (`report-sections.tsx`) describe the blend from the modules used
   (`scoreBlend` in `score.ts`: "measured site quality", "assessed marketing readiness", "your search data", "your
-  website analytics"), with a Search visibility bar when that module counted (Analytics has no bar yet: its
-  sub-score is stored but not shown); a finding's basis line names Google Search Console when it cites `G1` and
-  Google Analytics 4 when it cites `G2`. The public explanation of the
+  website analytics"), with a Search visibility bar and an Analytics bar when that module counted (tile notes "Search
+  Console" and "Google Analytics", Scores section "Google Search Console" and "Google Analytics 4"); a finding's basis
+  line names Google Search Console when it cites `G1` and Google Analytics 4 when it cites `G2`. Ask Braventa's
+  business summary (`web/src/lib/assistant/context.ts`, `prompt.ts`) gets the modules used and both sub-scores when
+  they counted, and the MCP status tool's `growth_score_note` (`growthScoreNote`) names each module's source,
+  including GA4. The public explanation of the
   score (D-035, amended 2026-10-23) says the score is based on the modules with evidence, named on the report.
 
 ## 5. Data
@@ -135,8 +138,7 @@ same-organization composite foreign key, so a run can't be paired with another o
 - Search visibility beyond the first cut (§9): keyword and search-intent analysis, Search Console data in the plan
   and writer prompts, a sync during the analysis (today the snapshot is whatever the last sync stored), and a review
   of the provisional sub-score once a few Pro organizations have scores (D-052 step 8).
-- Analytics beyond the first cut (§10): a report bar and Ask Braventa summary for its sub-score, Tag Manager checks,
-  GA4 data in the plan and writer prompts, a sync during the analysis, and a review of the provisional weights once
+- Analytics beyond the first cut (§10): Tag Manager checks, GA4 data in the plan and writer prompts, a sync during the analysis, and a review of the provisional weights once
   testers have data (Q-062).
 
 ## 9. Search visibility
@@ -256,11 +258,12 @@ and no row when the organization can't use the module; `details` holds the score
 snapshot, the property, window and `new_property`. `reports.data.google_analytics` keeps the property, window, fetch
 time and `new_property` of the summary used, or null. Findings that cite `G2` carry `module_id` `analytics`
 (`moduleForFinding`, checked before `G1`); plan items keep the area rule (there is no analytics area). The score tile
-counts the module and the blend names "your website analytics"; a finding's basis line names Google Analytics 4.
+counts the module and the blend names "your website analytics"; the tile and the Scores section show its sub-score
+(`reports.data.module_scores`) as an Analytics bar, Ask Braventa's business summary gets it ("Analytics from Google
+Analytics 4"), and a finding's basis line names Google Analytics 4.
 
-**Not in this change (§8).** A report bar and an Ask Braventa summary for the Analytics sub-score (it is stored in
-`reports.data.module_scores` but not shown), Tag Manager checks (still Coming soon), GA4 data in the plan and writer
-prompts, a sync during the analysis, and a module switch in the app.
+**Not in this change (§8).** Tag Manager checks (still Coming soon), GA4 data in the plan and writer prompts, a sync
+during the analysis, and a module switch in the app.
 
 ## 11. CRM intelligence (proposed)
 
@@ -450,7 +453,7 @@ uploaded again with the HubSpot CLI, and processing of each event.
 - **UI and copy.** The score tile counts the module; `scoreBlend` gets "your lead follow-up" (long form: "your lead
   follow-up (HubSpot)"); `SCORE_SOURCES` gets "the latest HubSpot counts: logged follow-up of new contacts and open
   deals changed in the last 30 days"; a finding's basis line names HubSpot when it cites `H1`. No report bar in the
-  first cut (like Analytics: the sub-score is stored in `reports.data.module_scores` but not shown). The build PR also
+  first cut (unlike Analytics, whose sub-score shows as a bar on the score tile and in the Scores section). The build PR also
   changes the `hubspot` feature's detail and the Pro summary in `tiers.ts`, the HubSpot card, Ask Braventa's knowledge
   base (`npm run help:doc`), the public score explanation (D-035), MVP_SCOPE.md (CRM data in the diagnosis is Next
   phase today), PLANS_AND_TIERS.md, HUBSPOT_SETUP.md (fetches also happen at analysis time), this file and

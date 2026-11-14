@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 1917f9a
 consumes: ["[[ai-job]]", "[[job-step]]", "[[business-profile]]"]
 produces: ["[[ai-job]]", "[[job-step]]", "[[job-dispatch]]"]
 ---
@@ -18,22 +18,22 @@ A queued `ai_jobs` row holds `output.{step, step_state, step_started_at, claim}`
 
 ## Why this shape
 
-Vercel Hobby stops an invocation at 300 s with no cleanup; a full analysis took longer (D-042, `docs/decisions/DECISION_LOG.md:475-477`; `CLAUDE.md:118-119`). A deployment that POSTs to itself in a chain gets HTTP 508 after a few hops, so production never calls itself: Postgres sends the POST. The conditional claim makes a repeated or late POST harmless, which is what lets the sweeper and the report page re-send freely.
+Vercel Hobby stops an invocation at 300 s with no cleanup; a full analysis took longer (D-042, `docs/decisions/DECISION_LOG.md:509-511`; `CLAUDE.md:126-127`). A deployment that POSTs to itself in a chain gets HTTP 508 after a few hops, so production never calls itself: Postgres sends the POST. The conditional claim makes a repeated or late POST harmless, which is what lets the sweeper and the report page re-send freely.
 
 ## Steps
 
 1. Sequences per worker; unknown worker runs as `website_intel` — `web/src/lib/pipeline/steps.ts:17-27`. State shape and `initialState` — `:45-57`; `readState`, `canClaim`, `advanceState` — `:61-80`.
 2. Hand-off: `handOff` → `dispatchStep`, failure → `failPendingStep` with `HANDOFF_ERROR` — `web/src/lib/pipeline/handoff.ts:18-26`; `startJob` wraps it in `after()` — `:32-34`.
-3. `dispatchMode`: `JOB_DISPATCH` wins, else `database` on Vercel / production https, else `direct` — `web/src/lib/pipeline/dispatch.ts:32-40`; env schema `web/src/lib/env.ts:32`. Why the two modes — `web/src/lib/pipeline/dispatch.ts:11-19`.
+3. `dispatchMode`: `JOB_DISPATCH` wins, else `database` on Vercel / production https, else `direct` — `web/src/lib/pipeline/dispatch.ts:32-40`; env schema `web/src/lib/env.ts:36`. Why the two modes — `web/src/lib/pipeline/dispatch.ts:11-19`.
 4. Direct: `postStep` POSTs `{jobId, step, token}`, 3 attempts, 15 s, expects 202 — `web/src/lib/pipeline/dispatch.ts:103-136`.
 5. Database: `recordDispatch` inserts `job_dispatches` (23505 = already recorded) — `web/src/lib/pipeline/dispatch.ts:152-178`; table and checks `supabase/migrations/20261017110000_job_dispatches.sql:63-77`; insert trigger `job_dispatches_send` → `post_job_dispatch` → `net.http_post` — `:89-130`.
 6. Token: key from `JOB_CONTINUE_SECRET` else HKDF of `SUPABASE_SECRET_KEY` — `web/src/lib/pipeline/continue-token.ts:11-19`; sign `:21-23`; verify with `timingSafeEqual` `:25-30`.
 7. Route: `maxDuration = 300` — `web/src/app/api/jobs/continue/route.ts:13`; zod body `:15-19`; 400 / 500 / 401 — `:21-37`; `after(runAnalysisJob)` + 202 — `:38-39`.
-8. `runAnalysisJob` never throws — `web/src/lib/pipeline/website-intel.ts:876-882`. `runClaimedStep`: load, skip unless active, `canClaim` — `:884-896`; `claimStep` — `:899-902`, conditional UPDATE at `web/src/lib/pipeline/claims.ts:17-35`.
-9. Owner inputs read fresh each run — `web/src/lib/pipeline/website-intel.ts:904-918`; `runStep` dispatch by step — `:856-869`.
-10. Error path: `failed`, `output: {step}` — `web/src/lib/pipeline/website-intel.ts:923-935`.
-11. Final: `ownedUpdate` to `succeeded` — `web/src/lib/pipeline/website-intel.ts:938-944` (`ownedUpdate` at `web/src/lib/pipeline/claims.ts:39-48`); evidence job then `startPlanIfReady` — `web/src/lib/pipeline/website-intel.ts:946-952`.
-12. Otherwise `advanceState`, one retry, fail on second error, then `handOff(next)` — `web/src/lib/pipeline/website-intel.ts:957-974`.
+8. `runAnalysisJob` never throws — `web/src/lib/pipeline/website-intel.ts:912-918`. `runClaimedStep`: load, skip unless active, `canClaim` — `:920-932`; `claimStep` — `:935-938`, conditional UPDATE at `web/src/lib/pipeline/claims.ts:17-35`.
+9. Owner inputs read fresh each run — `web/src/lib/pipeline/website-intel.ts:940-954`; `runStep` dispatch by step — `:892-905`.
+10. Error path: `failed`, `output: {step}` — `web/src/lib/pipeline/website-intel.ts:961-971`.
+11. Final: `ownedUpdate` to `succeeded` — `web/src/lib/pipeline/website-intel.ts:974-980` (`ownedUpdate` at `web/src/lib/pipeline/claims.ts:39-48`); evidence job then `startPlanIfReady` — `web/src/lib/pipeline/website-intel.ts:982-988`.
+12. Otherwise `advanceState`, one retry, fail on second error, then `handOff(next)` — `web/src/lib/pipeline/website-intel.ts:993-1010`.
 
 ## Human gate
 

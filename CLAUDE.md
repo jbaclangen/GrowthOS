@@ -41,14 +41,16 @@ decision. Never describe the product as doing something the code doesn't do, wha
   trial organizations) and Google Analytics 4 (D-058: same Pro gating and one Google sign-in for both; read-only,
   shown in its card, fed to the diagnosis and the growth score as the Analytics module) in Settings or on the optional
   "Connect your tools" onboarding step, and HubSpot (read-only, counts only, D-059: shown on its card, not in the
-  diagnosis yet; built, usable once the HubSpot app in `hubspot/` is uploaded and its env vars set) (other tools there are Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon); eight fixed member roles
+  diagnosis yet; set up in production and connected since 2026-11-08, the app in `hubspot/` not yet reviewed by HubSpot) (other tools there are Coming soon); 14-day Pro trial then Basic (D-030; other Pro features are Coming soon); eight fixed member roles
   with a permission matrix (D-046 foundation: owner-only connect and service keys, no one approves their own draft
   except the owner; Settings → Team: invite by copied link, change or remove roles below your own, seat limits per plan; no invite
   emails, no buying seats); the owner can remove a business in Settings after typing `DELETE APPROVED` (D-061: Google
   and HubSpot revoked first, then the organization row deleted by cascade; no account deletion or export), choosing it
   from Settings → Businesses; one account can own several businesses (D-062: a header switcher, up to 2 / 4 / 8 owned
   businesses on Basic / Pro / Premium, one trial per account, enforced in `create_organization()`; its migration
-  `20261108103906` applied 2026-11-08). No CRM data in the diagnosis, other CRMs or CRM writes, publishing,
+  `20261108103906` applied 2026-11-08); agreement checkboxes (D-057: required at sign-up, starting an analysis in the app, connecting
+  Google or HubSpot, creating a personal or service key and approving an outside app, recorded in `legal_acceptances`;
+  a banner asks existing accounts to accept the current terms). No CRM data in the diagnosis, other CRMs or CRM writes, publishing,
   email sending, automation, analytics reporting, or billing yet.
 - Check `MVP_SCOPE.md` before adding features; prefer small, testable changes over rewrites.
 - Research before building (D-052): a change that adds an integration, a paid vendor, a table, a price or a public claim

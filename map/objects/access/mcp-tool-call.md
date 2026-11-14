@@ -21,7 +21,7 @@ Rate limiting and auditing read the same rows, so a tool call refused for scope,
 - Columns: `key_id` (set null on key delete), `oauth_grant_id`, `tool` (≤ 80), `ok`, `error` (≤ 300), `created_at` — `supabase/migrations/20261011140425_mcp_access.sql:36-44`; `supabase/migrations/20261017030000_mcp_oauth.sql:243-245`
 - RLS "members read"; insert/update/delete revoked from clients — `…mcp_access.sql:48-51`
 - Limits `RATE_PER_MINUTE = 30`, `RATE_PER_HOUR = 300` — `web/src/app/api/mcp/route.ts:20-21`; checked only for `tools/call` with an id, after the trial gate — `:100-114`
-- Writer: `log` in the route (service client, error cut to 300 chars) — `:87-96`; called by `handleMessage` on scope refusal, role refusal, bad arguments, success and failure — `web/src/lib/mcp/protocol.ts:87-90,92-95,101,106,116` (role refusal: [member-role](../tenancy/member-role.md), `docs/architecture/ROLES_AND_PERMISSIONS.md` §5)
+- Writer: `log` in the route (service client, error cut to 300 chars) — `web/src/app/api/mcp/route.ts:87-96`; called by `handleMessage` on scope refusal, role refusal, bad arguments, success and failure — `web/src/lib/mcp/protocol.ts:87-90,92-95,101,106,116` (role refusal: [member-role](../tenancy/member-role.md), `docs/architecture/ROLES_AND_PERMISSIONS.md` §5)
 
 Citations: `supabase/migrations/20261011140425_mcp_access.sql:35-51`, `web/src/app/api/mcp/route.ts:85-114`
 

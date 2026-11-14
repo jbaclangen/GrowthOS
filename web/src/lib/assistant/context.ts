@@ -1,12 +1,14 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { PROVIDER } from "@/lib/integrations/search-console";
+import { PROVIDER as SEARCH_CONSOLE } from "@/lib/integrations/search-console";
+import { PROVIDER as GOOGLE_ANALYTICS } from "@/lib/integrations/google-analytics";
+import { HUBSPOT_PROVIDER } from "@/lib/integrations/hubspot";
 import { orderPlan, type Provenance } from "@/lib/plan/priority";
 import { isOpen } from "@/lib/onboarding/steps";
 import { effectiveAccess } from "@/lib/plans/tiers";
 import { moduleLabel } from "@/lib/modules/registry";
 import { modulesUsed } from "@/lib/modules/score";
-import { describeSearchConsole, type BusinessSummary } from "./prompt";
+import { describeGoogleAnalytics, describeHubSpot, describeSearchConsole, type BusinessSummary } from "./prompt";
 
 // The signed-in user's own account, summarized for the assistant (D-043). Every read uses the user's client, so RLS
 // limits it to their organization; the organization id is only used to narrow queries RLS already allows.
@@ -34,7 +36,7 @@ export async function loadBusinessSummary(
   org: { id: string; name: string; plan: string; trial_ends_at: string },
   userId: string,
 ): Promise<BusinessSummary> {
-  const [{ data: profiles }, { data: jobs }, { data: sessions }, { data: conn }, { count: keyCount }] = await Promise.all([
+  const [{ data: profiles }, { data: jobs }, { data: sessions }, { data: connections }, { count: keyCount }] = await Promise.all([
     supabase
       .from("business_profiles")
       .select("id, company_name, website_url, industry, growth_score, analyzed_at, created_at")
@@ -53,12 +55,13 @@ export async function loadBusinessSummary(
       .eq("organization_id", org.id)
       .order("created_at", { ascending: false })
       .limit(50),
+    // One row per provider and business: Search Console and Google Analytics 4 are separate rows from one Google
+    // sign-in (the owner can untick either), HubSpot is its own.
     supabase
       .from("integration_connections")
-      .select("status, selected_property")
+      .select("provider, status, selected_property")
       .eq("organization_id", org.id)
-      .eq("provider", PROVIDER)
-      .maybeSingle(),
+      .in("provider", [SEARCH_CONSOLE, GOOGLE_ANALYTICS, HUBSPOT_PROVIDER]),
     supabase
       .from("mcp_access_keys")
       .select("id", { count: "exact", head: true })
@@ -83,11 +86,14 @@ export async function loadBusinessSummary(
     link: `/analysis/${p.id}`,
   }));
 
+  const conn = (provider: string) => (connections ?? []).find((c) => c.provider === provider) ?? null;
 
   const summary: BusinessSummary = {
     organizationName: org.name,
     plan: planLabel(org),
-    searchConsole: describeSearchConsole(conn, org),
+    searchConsole: describeSearchConsole(conn(SEARCH_CONSOLE), org),
+    googleAnalytics: describeGoogleAnalytics(conn(GOOGLE_ANALYTICS), org),
+    hubspot: describeHubSpot(conn(HUBSPOT_PROVIDER), org),
     claudeKeys: keyCount ?? 0,
     businesses,
     latest: null,

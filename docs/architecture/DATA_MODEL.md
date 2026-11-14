@@ -55,7 +55,9 @@ Supabase CLI so the two stay in step.
 - A person can belong to several organizations and own up to their plan's limit (D-062): Basic 2, Pro 4, Premium 8,
   enforced by `create_organization()`. The app works on the one chosen in the `brv_business` cookie (else the oldest
   membership).
-  `getCurrentOrg()` (`web/src/lib/auth.ts`) takes the oldest membership.
+  `getCurrentOrg()` (`web/src/lib/auth.ts`) returns that business when the user is a member of it, else their oldest
+  membership (`currentMembership` in `web/src/lib/memberships.ts`); given an organization id that a form or the OAuth
+  state names, it returns that business or null when the user isn't a member, never another one.
 - **Platform admins** (`platform_admins`) pass `is_member()` and `is_org_admin()` for **every** organization.
   There is no UI for this; rows are inserted manually.
 
@@ -80,7 +82,7 @@ RLS legend: **M-all** = policy "members all": `for all to authenticated using/wi
 | Table | Purpose | Key columns | RLS | Used in code |
 |---|---|---|---|---|
 | `organizations` | Tenant | `id`, `name`, `slug` (unique, unused), `plan` (default `trial`), `monthly_ai_budget_usd` (default 5.00) | Select: `is_member(id)`. Update: `is_org_admin(id)`. No insert/delete policy (insert only via `create_organization`; deleted only by `removeBusiness` with the secret key, D-061) | Yes: `lib/auth.ts`, `lib/ai/router.ts` (budget), health route, `app/settings/remove-business-actions.ts` |
-| `memberships` | User-org link with role | PK (`organization_id`, `user_id`), `role` (`member_role`, default `analyst`) | Select: `is_member`. Insert/update/delete: `is_org_admin`; trigger `memberships_owner_guard` (only owners make owners) | Yes: `getCurrentOrg()`, `memberRole()` in `lib/team/server.ts` |
+| `memberships` | User-org link with role | PK (`organization_id`, `user_id`), `role` (`member_role`, default `analyst`) | Select: `is_member`. Insert/update/delete: `is_org_admin`; trigger `memberships_owner_guard` (only owners make owners; refusing an admin's delete of an owner row and keeping the last owner: `20261114120000_memberships_owner_guard_delete.sql`, written, not applied yet) | Yes: `getCurrentOrg()`, `memberRole()` in `lib/team/server.ts` |
 | `team_invitations` | One invite link for one email address and role (D-046) | `organization_id`, `email` (lowercase), `role` (never `owner` or `client_approver`), `token_hash` (SHA-256), `invited_by`, `expires_at` (7 days), `accepted_at`/`accepted_by`, `revoked_at`; unique open invite per (`organization_id`, `email`) | Select: `has_permission(org, 'team.manage')`, every column except `token_hash`. No client writes | Yes: `lib/team/team-server.ts`, `app/settings/team-actions.ts`, `app/invite/[token]` |
 | `legal_acceptances` | One row each time someone agrees to the legal documents or gives a confirmation they require (D-057) | `user_id`, `organization_id` (null for `signup` and `terms_update`), `context`, `documents_version` (`LEGAL_VERSION`), `documents[]`, `subject` (website, key prefix, Google email or OAuth client id), `accepted_at` | Select: own rows (`user_id = auth.uid()`). No client writes | Yes: `lib/legal/acceptances.ts`; sign-up, the terms banner, analysis start, Search Console connect, access keys, OAuth approval |
 | `team_events` | Audit log of team changes | `organization_id`, `actor_id`, `action` (`invited`, `invite_revoked`, `joined`, `role_changed`, `removed`), `subject_email`, `subject_user_id`, `role_from`, `role_to` | Select: `has_permission(org, 'team.manage')`. No client writes | Written by `recordTeamEvent()`; not shown in the app yet |

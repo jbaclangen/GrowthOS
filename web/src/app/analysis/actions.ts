@@ -14,7 +14,7 @@ import { hasPermission, memberRole } from "@/lib/team/server";
 import { CONSENT_REQUIRED, consentGiven } from "@/lib/legal/documents";
 import { recordAcceptance } from "@/lib/legal/acceptances";
 import { createOwnedBusiness } from "@/lib/organizations/limit-server";
-import { rememberBusiness } from "@/lib/organizations/current";
+import { isOrganizationId, rememberBusiness } from "@/lib/organizations/current";
 
 // Role checks (D-046, lib/team/roles.ts): starting or re-running an analysis needs analysis.run, changing the
 // owner's answers needs profile.edit, and a draft's status needs content.approve (own drafts: content.approve_own).
@@ -47,9 +47,14 @@ export async function startAnalysis(_: StartState, formData: FormData): Promise<
   }
 
   const supabase = await createSupabaseServerClient();
-  // "business" = "new" adds a business to the account (D-062); otherwise the website goes to the business the user is
-  // working on, as before. Someone with no business yet always gets a new one.
-  let org = formData.get("business") === "new" ? null : await getCurrentOrg(user.id);
+  // "business" = "new" adds a business to the account (D-062); otherwise it's the id of the business the form showed,
+  // never the cookie's (the user may have switched business in another tab), and one that isn't found is an error,
+  // never a new business. A user with no business yet posts "new" (start-form.tsx), so a business joined in another
+  // tab meanwhile can't receive the website. Only a form rendered before that posts nothing; it goes to the business
+  // the user is working on, as before, and someone with none gets a new one.
+  const business = formData.get("business");
+  let org = business === null ? await getCurrentOrg(user.id) : isOrganizationId(business) ? await getCurrentOrg(user.id, business) : null;
+  if (!org && business !== null && business !== "new") return { error: "This business wasn't found. Reload the page and try again." };
   if (!org) {
     const name = parsed.data.businessName || new URL(websiteUrl).hostname.replace(/^www\./, "");
     // Refused past the account's business limit (create_organization, D-062); the form then links to /plans.

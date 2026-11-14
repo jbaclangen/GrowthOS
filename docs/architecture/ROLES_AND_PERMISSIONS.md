@@ -32,7 +32,7 @@ service-key policies, so a matrix change doesn't reach them until they move to `
 
 | Id | Label | Who |
 |---|---|---|
-| `owner` | Owner | The person who created the business; `create_organization()` makes them the owner. Only an owner can make another owner (`memberships_owner_guard`, D-044) |
+| `owner` | Owner | The person who created the business; `create_organization()` makes them the owner. Only an owner can make another owner or change an owner's membership (`memberships_owner_guard`, D-044); the same rule for removing an owner, and keeping the last one, is written but not applied yet (§7) |
 | `admin` | Admin | Runs the business in Braventa short of billing, integrations and service keys |
 | `marketing_manager` | Marketing manager | Runs analyses, corrects the diagnosis, works the plan, approves others' drafts |
 | `social_media_manager` | Social media manager | Drafts content; channel reports; the planner's approver toggle later |
@@ -42,8 +42,9 @@ service-key policies, so a matrix change doesn't reach them until they move to `
 | `client_approver` | Client approver | An outside client who approves assigned items through a signed link (D-047, not built). No permission today |
 
 The old `member` value (owner, admin, member before 2026-10-23) was mapped to `analyst`, the least privilege: in the
-production database that touched 0 rows (2 owners, nothing else). The column's default is `analyst`; nothing inserts a
-membership today except `create_organization()`, which sets `owner`. The previous enum type (renamed `member_role_v1`
+production database that touched 0 rows (2 owners, nothing else). The column's default is `analyst`; two things insert
+a membership today: `create_organization()`, which sets `owner`, and accepting an invite (§8,
+`app/invite/[token]/actions.ts`, secret key), which sets the invite's role, never `owner`. The previous enum type (renamed `member_role_v1`
 by the migration) was dropped from the SQL editor the same day, because the MCP tool refuses destructive statements;
 that drop isn't a recorded migration.
 
@@ -61,7 +62,7 @@ enforces yet is still in the matrix so the next feature doesn't invent its own r
 | `billing.view` | See the plan, credits and invoices | Not yet: no billing. `/plans` and its "Talk to us" request stay open to every member |
 | `billing.manage` | Change the plan, pay, top up | Not yet: no billing |
 | `team.manage` | Invite, change roles, remove members | Settings → Team and `app/settings/team-actions.ts`, with the manage-below-your-role rule (§8). RLS on `memberships` (`is_org_admin`) allows the same two roles |
-| `integrations.connect` | Connect, choose a property for, reconnect and disconnect a tool (Google Search Console) | `GET /api/integrations/google/start` and `callback`, `chooseSearchConsoleProperty`, `disconnectSearchConsoleAction`, the Search Console card and the "Connect your tools" plan line (`lib/integrations/connect-step.ts`) |
+| `integrations.connect` | Connect, choose a property for, reconnect and disconnect a tool (Google: Search Console and Google Analytics 4; HubSpot) | `GET /api/integrations/google/start` and `callback`, `GET /api/integrations/hubspot/start` and `callback`; in `app/settings/connections-actions.ts` `chooseSearchConsoleProperty`, `chooseAnalyticsProperty`, `disconnectGoogleAction` and `disconnectHubSpotAction` (refreshing data needs no permission); the Search Console, Google Analytics and HubSpot cards and the "Connect your tools" plan line (`lib/integrations/connect-step.ts`) |
 | `keys.manage_own` | Create and revoke a personal access key | `createAccessKey` and the Settings key form, once the user has a business (§6). Revoking one's own key isn't gated (RLS: own rows only) |
 | `keys.manage_any` | Create and revoke service keys; disconnect any app, not only one's own | `createServiceKey`, the Service keys section, `disconnectApp` for another person's grant; RLS `is_org_owner` on service keys |
 | `profile.edit` | Edit the business profile and answer discovery | `saveOwnerInputs`; every onboarding action (`submitDiscovery`, `skipDiscovery`, `submitReview`, `continueAfterConnect`, `submitFollowUps`, `skipFollowUps`); MCP `braventa_submit_discovery`, `braventa_confirm_priorities`, `braventa_answer_follow_up_questions` |
@@ -163,6 +164,12 @@ every business the user belongs to; owners (`organization.delete`) see Remove ne
 - **RLS on `memberships`** still lets anyone `is_org_admin()` (owner, admin) write memberships directly with the
   publishable key; the app's own writes go through §8's rules with the secret key. Moving those policies to
   `has_permission('team.manage')` and the manage-below-your-role rule is part of the RLS rewrite above.
+- **Deleting an owner's membership.** `memberships_owner_guard` fires on insert and update only, so today an admin can
+  delete the owner's membership with the publishable key and leave the business without an owner.
+  `20261114120000_memberships_owner_guard_delete.sql` makes it fire on delete too: only an owner may remove an owner,
+  and a signed-in client can't delete the last owner or change it to another role. Service-role writes and the
+  cascades from removing a business or deleting an account aren't affected. Written 2026-11-14, not applied yet: it
+  gets the version Supabase assigns when the founder approves applying it.
 - **`organization_modules.enabled`** (Q-048) can now get its rule: a permission id here, then a write path.
 - **Research matrix differences** (§3) are the founder's to confirm or widen: Admin and keys, client approver rights,
   Admin and integrations.
@@ -185,8 +192,8 @@ app. Client approvers can't be invited until D-047's approval link exists. Every
 (`team_invitations.token_hash`). A link works once, for 7 days, and only for an account with the invited address.
 Inviting the same address again withdraws the old link. A signed-out invitee is sent to sign in or create an account
 and comes back to the link (`?next=`, through the email confirmation too); selecting Join checks everything again,
-claims the invite and adds the membership. An account that already belongs to a business can't join a second one yet
-(Q-051).
+claims the invite and adds the membership. Belonging to another business doesn't block joining (D-062, §10;
+`acceptBlocker`), and the joined business becomes the current one.
 
 **Seats (D-046).** Full seats 2 / 5 / 10 on Basic / Pro (and the trial) / Premium; analyst seats 5 / 10 / unlimited.
 Every role except analyst and client approver takes a full seat, the owner's included. Open invites hold their seat.
@@ -220,7 +227,8 @@ doesn't block removal for long).
 
 1. Google: every stored refresh token is revoked at Google (`oauth2.googleapis.com/revoke`). HubSpot: the app is
    uninstalled from the portal (HubSpot emails the portal's admins) and the refresh token revoked, as Disconnect
-   does. A revoke that fails doesn't stop the removal, because the token is deleted with the business either way; a
+   does; while another business in Braventa is still connected to the same portal, only this business's token is
+   revoked and the app stays installed for it. A revoke that fails doesn't stop the removal, because the token is deleted with the business either way; a
    connection that can't be read does stop it.
 2. The `organizations` row is deleted. Every tenant table goes with it through its `on delete cascade` foreign key:
    memberships, profiles, onboarding, audits, diagnoses and plan items, reports, calendars and drafts, jobs and their
@@ -273,7 +281,15 @@ assistant all follow it, and every permission check still reads the role in that
 the person isn't a member, never another one. The onboarding "Connect your tools" step uses the session's business;
 the connection cards put its id in every form (`organizationId`); the Google and HubSpot start routes seal it in the
 encrypted OAuth state; the callbacks act on the sealed business after reading the owner's role there again, even if
-the person switched business in another tab meanwhile. The dashboard lists only the current business's websites.
+the person switched business in another tab meanwhile. Settings → Team (invite, change a role, remove someone,
+withdraw an invite), personal and service keys (`createAccessKey`, `createServiceKey`), the onboarding start form
+(`startAnalysis`) and the `/plans` upgrade request (`requestUpgrade`) post the business the page showed too and
+resolve it with `getCurrentOrg(userId, organizationId)`; a missing, malformed or foreign id is refused ("This
+business wasn't found. Reload the page and try again."), never replaced by the cookie's business or a new one
+(2026-11-14). A person with no business yet posts an explicit new business instead: the start form posts
+`business=new`, the first access key its business name, so a business joined in another tab meanwhile can't
+receive the website or the key. Settings names each personal key's business when the person belongs to more than
+one, and the in-app assistant is keyed by business, so switching starts a new conversation. The dashboard lists only the current business's websites.
 Pages reached by a record id (`/analysis/[id]`, onboarding sessions) read that record's business through RLS, as
 before.
 

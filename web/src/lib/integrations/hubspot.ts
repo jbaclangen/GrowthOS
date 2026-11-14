@@ -332,24 +332,66 @@ async function pruneSnapshots(db: Db, organizationId: string) {
   }
 }
 
+// The refresh tokens other businesses still hold for the same portal (paused ones included: they resume on an
+// upgrade). An install is per portal, so uninstalling would cut every one of them off, another business of the same
+// account (D-062) or of another account alike. Read across organizations with the service client only to decide what
+// to end at HubSpot; nothing from those rows leaves this file. Throws when they can't be read.
+async function otherPortalTokens(db: Db, organizationId: string, portalId: string): Promise<string[]> {
+  const { data, error } = await db
+    .from("integration_connections")
+    .select("refresh_token_ciphertext")
+    .eq("provider", HUBSPOT_PROVIDER)
+    .eq("external_account_id", portalId)
+    .neq("organization_id", organizationId)
+    .neq("status", "revoked")
+    .limit(50);
+  if (error) throw new Error("The other HubSpot connections couldn't be read.");
+  const tokens: string[] = [];
+  for (const row of data ?? []) {
+    if (!row.refresh_token_ciphertext) continue;
+    try {
+      tokens.push(decryptSecret(row.refresh_token_ciphertext));
+    } catch {
+      // Unreadable (key changed): that business can't use the install either, so it doesn't keep it.
+    }
+  }
+  return tokens;
+}
+
+// Ends this business's access at HubSpot and returns whether HubSpot confirmed it (false when the token is unreadable).
+// Uninstalls the app (which also revokes the token) when no other business is connected to the portal. Otherwise only
+// revokes this business's refresh token, and not even that when another business holds the same one (HubSpot may hand
+// the same user the same token for the same portal), so the other business keeps its access; deleting the token here
+// is then what ends this business's access. Throws when the other connections can't be read.
+async function endHubSpotAccess(db: Db, organizationId: string, ciphertext: string, portalId: string | null): Promise<boolean> {
+  let token: string;
+  try {
+    token = decryptSecret(ciphertext);
+  } catch {
+    // Unreadable token: deleting it still cuts Braventa off; the owner can also uninstall the app in HubSpot.
+    return false;
+  }
+  // No portal id (never stored by the callback): nothing to compare with, so the app is uninstalled as before.
+  const others = portalId ? await otherPortalTokens(db, organizationId, portalId) : [];
+  if (others.length === 0) return uninstallHubSpot(token);
+  if (others.includes(token)) return true;
+  return revokeHubSpotRefreshToken(token);
+}
+
 // Uninstalls Braventa's app from the portal and revokes the refresh token (HubSpot's Developer Terms §4.E: delete the
 // data, including tokens, when a customer stops), removes the token here and deletes every snapshot for the
-// organization.
+// organization. When another business is still connected to the portal, the app stays installed for it and only this
+// business's token is revoked (endHubSpotAccess).
 export async function disconnectHubSpot(db: Db, organizationId: string) {
   const { data: conn } = await db
     .from("integration_connections")
-    .select("id, refresh_token_ciphertext")
+    .select("id, refresh_token_ciphertext, external_account_id")
     .eq("organization_id", organizationId)
     .eq("provider", HUBSPOT_PROVIDER)
     .maybeSingle();
   if (!conn) return;
-  if (conn.refresh_token_ciphertext) {
-    try {
-      await uninstallHubSpot(decryptSecret(conn.refresh_token_ciphertext));
-    } catch {
-      // Unreadable token: deleting it below still cuts Braventa off; the owner can also uninstall the app in HubSpot.
-    }
-  }
+  // Throws before anything is changed when the other connections can't be read, so a retry can still end the access.
+  if (conn.refresh_token_ciphertext) await endHubSpotAccess(db, organizationId, conn.refresh_token_ciphertext, conn.external_account_id);
   const { error: snapError } = await db.from("hubspot_snapshots").delete().eq("organization_id", organizationId);
   const { error } = await db
     .from("integration_connections")
@@ -367,21 +409,19 @@ export async function disconnectHubSpot(db: Db, organizationId: string) {
 }
 
 // Removing the business (D-061): uninstalls the app from the portal and revokes the refresh token, as disconnecting
-// does, and returns [true] when HubSpot confirmed the uninstall, [false] when it didn't or the token was unreadable,
-// [] when no token is stored. The row and snapshots are deleted with the organization (on delete cascade). Throws
-// when the connection can't be read, so the business isn't deleted with a token Braventa never tried to revoke.
+// does (only the token when another business is still connected to the portal, endHubSpotAccess), and returns [true]
+// when HubSpot confirmed it or another business holds the same token, [false] when it didn't or the token was
+// unreadable, [] when no token is stored. The row and snapshots are deleted with the organization (on delete cascade).
+// Throws when the connection, or the other connections to its portal, can't be read, so the business isn't deleted
+// with a token Braventa never tried to revoke.
 export async function revokeHubSpotForRemoval(db: Db, organizationId: string): Promise<boolean[]> {
   const { data: conn, error } = await db
     .from("integration_connections")
-    .select("refresh_token_ciphertext")
+    .select("refresh_token_ciphertext, external_account_id")
     .eq("organization_id", organizationId)
     .eq("provider", HUBSPOT_PROVIDER)
     .maybeSingle();
   if (error) throw new Error("The HubSpot connection couldn't be read.");
   if (!conn?.refresh_token_ciphertext) return [];
-  try {
-    return [await uninstallHubSpot(decryptSecret(conn.refresh_token_ciphertext))];
-  } catch {
-    return [false];
-  }
+  return [await endHubSpotAccess(db, organizationId, conn.refresh_token_ciphertext, conn.external_account_id)];
 }

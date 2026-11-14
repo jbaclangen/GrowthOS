@@ -19,7 +19,7 @@ It must outlive the organization it names, so it has no foreign key and no `orga
 ## Shape
 
 - Columns `id`, `organization_id` (no FK), `plan` (check `trial`/`basic`/`pro`/`premium`), `organization_created_at`, `members` (≥ 0), `google_revoke` and `hubspot_revoke` (`none`/`revoked`/`failed`), `deleted_at` — `supabase/migrations/20261108091111_remove_business.sql:50-62`; index on `deleted_at desc` — `:63`.
-- RLS on, no policies, all privileges revoked from `anon` and `authenticated`: service role only — `:65-66`.
+- RLS on, no policies, all privileges revoked from `anon` and `authenticated`: service role only — `supabase/migrations/20261108091111_remove_business.sql:65-66`.
 - Written once per removal after the delete; a failed insert is logged to the server with the same fields — `web/src/app/settings/remove-business-actions.ts:78-88`. Shape checked by `web/src/lib/organizations/cascade.test.ts`.
 - Applied to the Supabase project 2026-11-08 as version 20261108091111 (`docs/architecture/DATA_MODEL.md`, migrations table).
 

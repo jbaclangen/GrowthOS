@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 2dd74b3
+verified: 2026-11-14
+commit: 1917f9a
 consumes: ["[[ai-job]]", "[[business-profile]]", "[[onboarding-session]]", "[[onboarding-response]]", "[[onboarding-follow-up]]", "[[module-registry]]", "[[organization-module]]", "[[search-console-snapshot]]", "[[analytics-snapshot]]", "[[ai-worker]]"]
 produces: ["[[growth-score]]", "[[report]]", "[[diagnosis]]", "[[diagnosis-finding]]", "[[growth-plan-item]]", "[[module-run]]", "[[business-profile]]", "[[ai-usage]]"]
 ---
@@ -42,9 +42,9 @@ None here. The output waits for the owner in [confirm-diagnosis-and-plan](confir
 ## If you change this
 
 - **Hits:** `planStep` (reads `plan_titles` and `discovery` artifacts), `reviseDiagnosis` (reads `reports.data` as evidence), the report page's score history (`score_version`), `SCORE_VERSION` bumps, `module_id` backfill rules.
-- **Readers of `score_modules`/`module_scores`** (via `modulesUsed`, `web/src/lib/modules/score.ts:182-185`): the score tile and Scores section word the blend with `scoreBlend` and show `module_scores.search_visibility` only when it counted — `web/src/app/analysis/[id]/infographic.tsx:168-171`, `web/src/app/analysis/[id]/report-sections.tsx:54-56`; Ask Braventa's summary — `web/src/lib/assistant/context.ts:159`, `:177`, `:180`; MCP status note — `web/src/lib/mcp/tools.ts:448`.
+- **Readers of `score_modules`/`module_scores`** (via `modulesUsed`, `web/src/lib/modules/score.ts:182-185`): the score tile and Scores section word the blend with `scoreBlend` and show `module_scores.search_visibility` and `module_scores.analytics` only when they counted — `web/src/app/analysis/[id]/infographic.tsx:168-173`, `web/src/app/analysis/[id]/report-sections.tsx:54-57`; Ask Braventa's summary — `web/src/lib/assistant/context.ts:165`, `:183`, `:186-187`; MCP status note — `web/src/lib/mcp/tools.ts:448`.
 - **New scored module:** add it to `BLEND` (`web/src/lib/modules/score.ts:205-210`, used by `scoreBlend` `:212-215`) and `SCORE_SOURCES` (`:188-193`), or the tile, Scores section and MCP note won't name it.
-- **Does not hit:** `crawlStep`/`profileStep` (they never read the score); Search Console and GA4 syncs (this reads a snapshot, never fetches).
+- **Does not hit:** `crawlStep`/`profileStep` (they never read the score); Search Console and GA4 syncs (this reads a snapshot, never fetches); HubSpot counts (the `crm` module is not live, `web/src/lib/modules/registry.ts:185,190`, and D-060 is Proposed, so this step never reads them; see [module-registry](../objects/modules/module-registry.md)).
 
 ## Surfaces
 

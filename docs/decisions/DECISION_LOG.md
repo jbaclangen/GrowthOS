@@ -39,8 +39,41 @@ Do not rewrite history.
 | D-025 | 2026-10-10 | Founder approval of the brand system (messaging, palette, US English) | Founder |
 | D-026 | 2026-10-10 | New logo: **Monolith** symbol + **Syncopate Bold** uppercase wordmark | Superseded by D-027 |
 | D-027 | 2026-10-10 | Logo from the founder's reference: heavy **B** on a rounded tile with a **Violet dot**; **BRAVENTA.IO** in Quicksand Medium | Founder |
-| D-055 | 2026-10-23 | Repo organized with ICM: a `map/` system map, the root as an Obsidian vault, graphify graph | Founder |
 | D-028 | 2026-10-10 | AI-assisted onboarding: discovery runs alongside the website analysis; one diagnosis plan replaces the "5 opportunities"; MVP value test is a confirmed diagnosis and plan plus take-away content | Founder |
+| D-029 | 2026-10-11 | How the diagnosis and plan are confirmed and ordered | Provisional |
+| D-030 | 2026-10-11 | Subscription tiers and the 14-day Pro trial | Founder |
+| D-031 | 2026-10-11 | Domains and where the public sites are built (braventa.io, support.braventa.io) | Founder |
+| D-032 | 2026-10-11 | Results as a one-screen infographic with detail dialogs | Founder |
+| D-033 | 2026-10-11 | Marketing site build and pre-launch rules | Founder |
+| D-034 | 2026-10-11 | Contact notifications and CRM through HubSpot | Founder |
+| D-035 | 2026-10-11 | Phase 1 website messaging refinement | Founder |
+| D-036 | 2026-10-11 | AI assistant connection (MCP), phase 1 | Founder |
+| D-037 | 2026-10-11 | Paid models stay primary; every model must have a zero-retention endpoint | Founder |
+| D-038 | 2026-10-11 | Website audit phase 1: robots.txt respected, deterministic checks, cited evidence | Founder |
+| D-039 | 2026-10-12 | Prices: 1.5× over the market, every tier | Founder |
+| D-040 | 2026-10-12 | Card-required trial that continues on Basic (public launch) | Founder |
+| D-041 | 2026-10-12 | Pro integrations: connect during discovery, act with approval | Founder |
+| D-042 | 2026-10-17 | Analyses run as a chain of steps, one function invocation each | Engineering |
+| D-043 | 2026-10-17 | In-app AI assistant ("Ask Braventa"), read-only (supersedes D-020) | Founder |
+| D-044 | 2026-10-17 | AI assistant connection (MCP), phase 2: OAuth sign-in and service keys | Provisional |
+| D-045 | 2026-10-18 | Account types: Brand or Agency/Organization (never built) | Superseded by D-062 |
+| D-046 | 2026-10-18 | Team seats: eight fixed roles and seat allowances | Founder |
+| D-047 | 2026-10-18 | Client approvers on every tier | Founder |
+| D-048 | 2026-10-18 | First CRM: HubSpot, read-only (amended by D-059) | Founder |
+| D-049 | 2026-10-18 | Social publishing: plan in Braventa, publish through a vendor | Founder |
+| D-050 | 2026-10-18 | Public API: read-only v1 | Founder |
+| D-051 | 2026-10-18 | Feature modules, and Search visibility as the first new one | Founder |
+| D-052 | 2026-10-18 | Research before building | Founder |
+| D-053 | 2026-10-18 | Provider applications under Pixel Marketing Design | Founder |
+| D-054 | 2026-10-18 | "Connect your tools": an onboarding step without a status of its own | Provisional |
+| D-055 | 2026-10-23 | Repo organized with ICM: a `map/` system map, the root as an Obsidian vault, graphify graph | Founder |
+| D-056 | 2026-11-08 | Legal pages: operator, liability cap, law, customers, uptime, refunds, insurance (drafts until counsel reviews) | Founder |
+| D-057 | 2026-11-08 | Agreement checkboxes in the app, recorded in `legal_acceptances` | Founder |
+| D-058 | 2026-11-08 | Google Analytics 4 through one Google connection, scored as the Analytics module | Founder |
+| D-059 | 2026-11-08 | HubSpot connection: aggregates only, built ahead of the CRM module | Founder |
+| D-060 | 2026-11-08 | CRM intelligence: HubSpot follow-up counts in the diagnosis and the score (not built) | Proposed |
+| D-061 | 2026-11-08 | Owners can remove a business, after typing DELETE APPROVED | Founder |
+| D-062 | 2026-11-08 | Several businesses per account, limited by plan; one trial per account (supersedes D-045) | Founder |
 
 ---
 
@@ -875,7 +908,9 @@ env vars are set ([HUBSPOT_SETUP.md](../architecture/HUBSPOT_SETUP.md)). Amends 
 - **No PKCE:** HubSpot documents none for app OAuth; the client secret (server-only) and the sealed, user- and
   organization-bound state cookie protect the flow.
 - **Disconnect uninstalls** the app from the portal (HubSpot emails its admins), revokes the token and deletes every
-  snapshot, as HubSpot's Developer Terms §4 ask. Uninstall detection is open (Q-064).
+  snapshot, as HubSpot's Developer Terms §4 ask. Uninstall detection is open (Q-064). **Amended 2026-11-14 (team,
+  after D-062):** while another business in Braventa is still connected to the same portal, Disconnect and Remove a
+  business revoke only that business's token and leave the app installed, so the other business keeps its access.
 - **Agreement checkbox (D-057):** the connect form asks the owner to confirm they're authorized to connect the portal
   and responsible for it (MSA §8); the start route refuses without it and the callback records it as the new
   `hubspot_connect` context in `legal_acceptances` (the migration widens its check).

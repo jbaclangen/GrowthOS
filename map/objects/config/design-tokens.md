@@ -3,8 +3,8 @@ type: object
 cluster: config
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-14
+commit: 1917f9a
 entity: design-system/tokens.json
 ---
 
@@ -16,7 +16,7 @@ the app and one for the site.
 ## Why this shape
 
 D-009 makes `tokens.json` the only place values are defined and forbids hand-editing the generated CSS
-(`docs/decisions/DECISION_LOG.md:120-123`). The compiler checks WCAG contrast for every text/background role pair in
+(`docs/decisions/DECISION_LOG.md:154-157`). The compiler checks WCAG contrast for every text/background role pair in
 both light and dark mode and refuses to write when one drops below the minimum
 (`web/scripts/build-tokens.mjs:3,41-75`), so an accessibility regression can't ship as a colour tweak. Both apps
 import the same output (`web/src/app/globals.css:2-3`, `site/src/app/globals.css:2-3`), so they can't drift.
@@ -24,17 +24,17 @@ import the same output (`web/src/app/globals.css:2-3`, `site/src/app/globals.css
 ## Shape
 
 - Format: W3C DTCG (`$value`, `$type`, `$description`, `{path}` references): `design-system/tokens.json:2`.
-- Brand colours `color.brand.*` `:4-27`; `violet` is logo-only, not a UI colour (`:23-26`, D-027).
-- Fonts `font.*` `:377-385`: Quicksand for headings and the wordmark, Comfortaa for everything else (D-015,
-  `docs/decisions/DECISION_LOG.md:150-154`); emitted as `--font-display` / `--font-sans`
+- Brand colours `color.brand.*` `design-system/tokens.json:4-27`; `violet` is logo-only, not a UI colour (`:23-26`, D-027).
+- Fonts `font.*` `design-system/tokens.json:377-385`: Quicksand for headings and the wordmark, Comfortaa for everything else (D-015,
+  `docs/decisions/DECISION_LOG.md:184-188`); emitted as `--font-display` / `--font-sans`
   (`web/src/styles/tokens.css:59-60`).
-- Logo D-027 (`docs/decisions/DECISION_LOG.md:265-270`): rendered from generated geometry
+- Logo D-027 (`docs/decisions/DECISION_LOG.md:299-304`): rendered from generated geometry
   (`web/src/components/brand/logo.tsx:1`, `web/src/components/brand/logo-geometry.ts:1`), never typeset
-  (`CLAUDE.md:54`).
-- Compiler: reads `:12`, writes both outputs `:13,145`, contrast pairs and minimums `:41-60`, check mode `:132-143`,
-  `@theme` emit `:86-99`.
+  (`CLAUDE.md:62`).
+- Compiler: reads `web/scripts/build-tokens.mjs:12`, writes both outputs `:13,145`, contrast pairs and minimums `:41-60`, check mode `:132-143`,
+  `@theme` emit `web/scripts/build-tokens.mjs:86-99`.
 - Rules for components: semantic roles and shared primitives only, no HEX, no `dark:` overrides, change values only
-  in `tokens.json` then `npm run tokens` (`CLAUDE.md:51-53`). Pipeline doc: `design-system/DESIGN_TOKENS.md:7-19`.
+  in `tokens.json` then `npm run tokens` (`CLAUDE.md:59-61`). Pipeline doc: `design-system/DESIGN_TOKENS.md:7-19`.
 
 Citations: `design-system/tokens.json:2,4-27,377-385`, `web/scripts/build-tokens.mjs:12-13,41-75,132-145`
 
@@ -47,7 +47,7 @@ Citations: `design-system/tokens.json:2,4-27,377-385`, `web/scripts/build-tokens
 
 ## If you change this
 
-- **Hits:** `npm run tokens` in `web/` and commit both `tokens.css`; `npm run tokens:check` in verify (`CLAUDE.md:62`); a `color.brand.*` change → rerun `design-system/scripts/build-brand-assets.mjs` (it reads the colours, `:30-32`) and commit `web/public/brand/**`, the icon files and both `logo-geometry.ts`; a contrast failure blocks the compile until the value is fixed; a font or logo change is a founder decision (D-015, D-027) and `docs/brand/VISUAL_IDENTITY.md`.
+- **Hits:** `npm run tokens` in `web/` and commit both `tokens.css`; `npm run tokens:check` in verify (`CLAUDE.md:70`); a `color.brand.*` change → rerun `design-system/scripts/build-brand-assets.mjs` (it reads the colours, `:30-32`) and commit `web/public/brand/**`, the icon files and both `logo-geometry.ts`; a contrast failure blocks the compile until the value is fixed; a font or logo change is a founder decision (D-015, D-027) and `docs/brand/VISUAL_IDENTITY.md`.
 - **Does not hit:** the database, `docs/help/APP_GUIDE.md`, env.
 
 ## Surfaces

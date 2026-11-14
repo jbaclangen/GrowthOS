@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 2dd74b3
+verified: 2026-11-14
+commit: 1917f9a
 consumes: ["[[diagnosis]]", "[[diagnosis-finding]]", "[[report]]", "[[business-profile]]", "[[audit-run]]", "[[audit-finding]]", "[[search-console-snapshot]]", "[[analytics-snapshot]]", "[[ai-worker]]", "[[member-role]]"]
 produces: ["[[ai-job]]", "[[diagnosis]]", "[[diagnosis-finding]]", "[[growth-plan-item]]", "[[ai-usage]]"]
 ---
@@ -36,7 +36,7 @@ A full re-run would re-crawl and re-plan for a wording correction; reusing the s
 
 ## Human gate
 
-The owner marks findings wrong and asks for the update (steps 1–2); any member whose role holds `diagnosis.correct` may (`web/src/lib/team/roles.ts:92`, [member-role](../objects/tenancy/member-role.md)). The new version is again `proposed` and waits for [confirm-diagnosis-and-plan](confirm-diagnosis-and-plan.md).
+The owner marks findings wrong and asks for the update (steps 1–2); any member whose role holds `diagnosis.correct` may (`web/src/lib/team/roles.ts:94`, [member-role](../objects/tenancy/member-role.md)). The new version is again `proposed` and waits for [confirm-diagnosis-and-plan](confirm-diagnosis-and-plan.md).
 
 ## If you change this
 

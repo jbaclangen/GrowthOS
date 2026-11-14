@@ -37,7 +37,7 @@ const SETUP = [
 const FLOW = [
   { title: "One website analysis", body: "Up to 25 pages and Google PageSpeed." },
   { title: "Your answers", body: "What's hard and your top three." },
-  { title: "Your tools", body: "Google and HubSpot, on Pro. Optional." },
+  { title: "Your tools", body: "Optional, on Pro. Google data feeds the diagnosis; HubSpot counts aren't used yet." },
   { title: "A diagnosis you confirm", body: "With the evidence for each finding." },
   { title: "One growth plan", body: "Ranked, with a first step for each action." },
   { title: "30 days of content", body: "A plan and five drafts to approve." },

@@ -3,14 +3,14 @@
 **Status / last reviewed: 2026-10-11.** Domain plan is a founder decision (D-031). The page list is a
 recommendation from a review of nine comparable SaaS sites (Semrush, HubSpot, Jasper, Mailchimp, Databox,
 Owner.com, Localo, Copy.ai, HighLevel); page copy lives in [WEBSITE_MESSAGING.md](WEBSITE_MESSAGING.md).
-**Built 2026-10-11 in `site/`** (Launch pages: Home, How it works, Product, For service businesses, Pricing, Trust, AI use, About, Contact, and draft legal pages: Terms, Privacy, Cookies, Sub-processors). Not deployed to braventa.io yet. Hidden from search engines until launch (`SITE_INDEXABLE=true` flips it; D-033). Copy on the built pages supersedes WEBSITE_MESSAGING where they differ (diagnosis and one plan instead of five opportunities; early-access CTA because sign-up is invite-only).
+**Built 2026-10-11 in `site/`** (Launch pages: Home, How it works, Product, For service businesses, Pricing, Trust, AI use, About, Contact, and draft legal pages: Terms, Privacy, Cookies, Sub-processors). Deployed to braventa.io on Vercel since 2026-10-11. Hidden from search engines until launch (`SITE_INDEXABLE=true` flips it; D-033). Copy on the built pages supersedes WEBSITE_MESSAGING where they differ (diagnosis and one plan instead of five opportunities; early-access CTA because sign-up is invite-only).
 
 ## 1. Domains
 
 | Domain | Purpose | Built with | Status |
 |---|---|---|---|
-| `braventa.io` | Public marketing site: who we are, what Braventa does, pricing, trust, legal | Next.js in this repo, Vercel (D-031) | Deploying 2026-10-11 (Vercel `braventa-site`, hidden until launch) |
-| `app.braventa.io` | The product: sign-up, sign-in, onboarding, dashboard, plans | `web/` (this app), Vercel (D-011) | Built; not deployed |
+| `braventa.io` | Public marketing site: who we are, what Braventa does, pricing, trust, legal | Next.js in this repo, Vercel (D-031) | Live since 2026-10-11 (Vercel `braventa-site`, hidden until launch) |
+| `app.braventa.io` | The product: sign-up, sign-in, onboarding, dashboard, plans | `web/` (this app), Vercel (D-011) | Live (Vercel `braventa-app`) |
 | `support.braventa.io` | Help center, capabilities, integrations and developer docs, legal — see [SUPPORT_SITE.md](../product/SUPPORT_SITE.md) | Next.js + Fumadocs in this repo, Vercel (D-031) | Planned |
 | `community.braventa.io` | User forum | Hosted forum platform (Q-017) | Future |
 | `status.braventa.io` | Uptime and incidents | Hosted status tool | Before paying customers |

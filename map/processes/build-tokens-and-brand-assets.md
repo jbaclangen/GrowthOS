@@ -2,8 +2,8 @@
 type: process
 universe: live
 status: verified
-verified: 2026-11-07
-commit: 5757423
+verified: 2026-11-14
+commit: 1917f9a
 consumes: ["[[design-tokens]]"]
 produces: ["[[design-tokens]]", "[[generators]]"]
 ---
@@ -16,11 +16,11 @@ mark move, into the logo, icon and social files, with a contrast gate in the way
 ## Input → Movement → Output
 
 The input is an edit to `design-system/tokens.json`, the only token source (`design-system/tokens.json:2`; D-009
-`docs/decisions/DECISION_LOG.md:120-123`). `web/scripts/build-tokens.mjs` resolves references, checks every
+`docs/decisions/DECISION_LOG.md:153-157`). `web/scripts/build-tokens.mjs` resolves references, checks every
 text/background role pair in light and dark mode and writes `web/src/styles/tokens.css` and
-`site/src/styles/tokens.css` (`:12-13,41-75,145`); `design-system/scripts/build-brand-assets.mjs` reads the brand
+`site/src/styles/tokens.css` (`web/scripts/build-tokens.mjs:12-13,41-75,145`); `design-system/scripts/build-brand-assets.mjs` reads the brand
 colours and font outlines and writes `web/public/brand/**`, the icon files of both apps and both `logo-geometry.ts`
-(`:1-4,30-32`). The outputs are committed and carry a "do not edit" first line.
+(`design-system/scripts/build-brand-assets.mjs:1-4,30-32`). The outputs are committed and carry a "do not edit" first line.
 
 ## Why this shape
 
@@ -30,24 +30,24 @@ The brand files embed the colours, so a brand colour change without a rerun leav
 
 ## Steps
 
-1. Change `design-system/tokens.json` only (`CLAUDE.md:51-53`). Fonts and the logo are founder decisions (see gate).
+1. Change `design-system/tokens.json` only (`CLAUDE.md:59-61`). Fonts and the logo are founder decisions (see gate).
 2. In `web/`, run `npm run tokens` (`web/package.json:10`). The script reads the source (`web/scripts/build-tokens.mjs:12`),
    fails with the offending pair when a ratio is below `PAIRS` minimums (`:41-60,62-75`), else writes both outputs
    (`:13,145`), each headed "GENERATED … do not edit" (`:83-84`; `web/src/styles/tokens.css:1-2`).
 3. Run `npm run tokens:check` (`web/package.json:11`; `web/scripts/build-tokens.mjs:132-143`): exit 1 when either
-   committed CSS lags. It is part of verify (`CLAUDE.md:62`).
+   committed CSS lags. It is part of verify (`CLAUDE.md:70`).
 4. If `color.brand.*` (`design-system/tokens.json:6-27`) or the mark changed: from the repo root run
-   `BRAND_TOOLS_DIR=<tools dir> node design-system/scripts/build-brand-assets.mjs` (`:6-9`); the tools are not app
-   dependencies on purpose (`:6`). Outputs: `:3-4`; the geometry file is marked generated
+   `BRAND_TOOLS_DIR=<tools dir> node design-system/scripts/build-brand-assets.mjs` (`design-system/scripts/build-brand-assets.mjs:6-9`); the tools are not app
+   dependencies on purpose (`design-system/scripts/build-brand-assets.mjs:6`). Outputs: `design-system/scripts/build-brand-assets.mjs:3-4`; the geometry file is marked generated
    (`web/src/components/brand/logo-geometry.ts:1`, `site/src/components/brand/logo-geometry.ts:1`).
 5. Commit `tokens.json`, both `tokens.css`, and the brand outputs together. Never edit `web/public/brand/**` by hand
-   (`CLAUDE.md:55`).
+   (`CLAUDE.md:63`).
 
 ## Human gate
 
 Founder, for anything that changes the brand rather than a value: typography (D-015,
-`docs/decisions/DECISION_LOG.md:150-152`), the logo (D-027, `:265-266`), core messaging and positioning (D-005,
-`:78-79`; `CLAUDE.md:58`). A token value that keeps the brand decisions needs no gate beyond the contrast check.
+`docs/decisions/DECISION_LOG.md:183-185`; `CLAUDE.md:62`), the logo (D-027, `docs/decisions/DECISION_LOG.md:298-299`), core messaging and
+positioning (D-005, `docs/decisions/DECISION_LOG.md:111-112`; `CLAUDE.md:66`). A token value that keeps the brand decisions needs no gate beyond the contrast check.
 
 ## If you change this
 

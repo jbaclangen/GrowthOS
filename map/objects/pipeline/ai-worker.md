@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 1917f9a
 entity: web/src/lib/ai/router.ts
 ---
 
@@ -19,24 +19,24 @@ Feature code never names a model, so models change in one file and every call pa
 ## Shape
 
 - `TaskClass` `web/src/lib/ai/router.ts:8`; `MODELS` free and paid tables `:12-29`; `ESCALATE` one tier up for `highRisk` `:31-32`, applied at `:90-91`; `modelsFor` reads `AI_MODE` (paid unless `free`, D-037) `:34-38`.
-- `WORKERS` `:40-65`, `Worker` type `:67`, `systemPrompt` adds today's date `:69-74`.
-- Called today: `extractor` (`web/src/lib/onboarding/classify.ts:24-33`, `web/src/lib/onboarding/next-questions.ts:99-108`), `business_analyst` (`web/src/lib/pipeline/website-intel.ts:299-308`), `website_auditor` (`:447-471`), `content_strategist` (`:740-749`), `content_writer` (`:803-813`, `highRisk` `:809`), `app_assistant` (`web/src/app/api/assistant/route.ts:89-90`).
-- Leftover, defined at `:44`, `:46-49` and called nowhere in `web/src`: `seo_analyst`, `crm_analyst`, `campaign_planner`, `qa_reviewer`, `marketing_assistant` (`docs/product/MVP_SCOPE.md:84-85`; that line also lists `extractor` as never called, which the two call sites above contradict).
-- `runWorker` `:78-144`: budget check of `organizations.monthly_ai_budget_usd` against `ai_spend_mtd` `:96-99`, fails closed `:100-102`, `BudgetExceededError` `:76` thrown at `:103-105`; `ai_usage` rows `:109-118` (error `:130-134`, ok `:136-142`); provider call `chat` `web/src/lib/integrations/openrouter.ts:40-45` (`BASE` `:4`).
-- `runWorkerJson` `:162-184`: two attempts, 1.5× `maxTokens` after a cut-off `:174-177`. Step ceilings `MAX_TOKENS` `web/src/lib/pipeline/prompts.ts:153-155`.
+- `WORKERS` `web/src/lib/ai/router.ts:40-65`, `Worker` type `:67`, `systemPrompt` adds today's date `:69-74`.
+- Called today: `extractor` (`web/src/lib/onboarding/classify.ts:24-33`, `web/src/lib/onboarding/next-questions.ts:99-108`), `business_analyst` (`web/src/lib/pipeline/website-intel.ts:301-310`), `website_auditor` (`:456-481`), `content_strategist` (`:776-785`), `content_writer` (`:839-849`, `highRisk` `:845`), `app_assistant` (`web/src/app/api/assistant/route.ts:90-91`; defined `web/src/lib/ai/router.ts:52`).
+- Leftover, defined at `web/src/lib/ai/router.ts:44`, `:46-49` and called nowhere in `web/src`: `seo_analyst`, `crm_analyst`, `campaign_planner`, `qa_reviewer`, `marketing_assistant` (`docs/product/MVP_SCOPE.md:85-86`; that line also lists `extractor` as never called, which the two call sites above contradict).
+- `runWorker` `web/src/lib/ai/router.ts:78-144`: budget check of `organizations.monthly_ai_budget_usd` against `ai_spend_mtd` `:96-99`, fails closed `:100-102`, `BudgetExceededError` `:76` thrown at `:103-105`; `ai_usage` rows `:109-118` (error `:130-134`, ok `:136-142`); provider call `chat` `web/src/lib/integrations/openrouter.ts:40-45` (`BASE` `:4`).
+- `runWorkerJson` `web/src/lib/ai/router.ts:162-184`: two attempts, 1.5× `maxTokens` after a cut-off `web/src/lib/ai/router.ts:174-177`. Step ceilings `MAX_TOKENS` `web/src/lib/pipeline/prompts.ts:157-159`.
 
 Citations: `web/src/lib/ai/router.ts:8-184`, `web/src/lib/integrations/openrouter.ts:4-45`.
 
 ## Connected to
 
-- **owns:** [ai-usage](ai-usage.md) rows (the only writer, `:109-118`).
+- **owns:** [ai-usage](ai-usage.md) rows (the only writer, `web/src/lib/ai/router.ts:109-118`).
 - **owned-by:** nothing; a module.
-- **joins:** [organization](../tenancy/organization.md) `monthly_ai_budget_usd` (`supabase/migrations/20261010061028_foundation.sql:14`, read at `:97`); [ai-job](ai-job.md) through `jobId` on the usage row (`:112`).
+- **joins:** [organization](../tenancy/organization.md) `monthly_ai_budget_usd` (`supabase/migrations/20261010061028_foundation.sql:14`, read at `web/src/lib/ai/router.ts:97`); [ai-job](ai-job.md) through `jobId` on the usage row (`:112`).
 - **looks-like-but-is-not:** [ai-job](ai-job.md) worker names (`website_evidence` …, `web/src/lib/pipeline/steps.ts:11`), which are pipelines; `ai_jobs.task_class`, which callers set to `complex` without consulting `WORKERS` (`web/src/lib/onboarding/start.ts:44`).
 
 ## If you change this
 
-- **Hits:** the six call sites above; `ai_usage.worker` values (`foundation.sql:243`) and anything grouping on them; the assistant's deadline path (`route.ts:90` passes `timeoutMs` and `retry`); `docs/architecture/AI_ROUTING_AND_COSTS.md`.
+- **Hits:** the seven call sites above; `ai_usage.worker` values (`foundation.sql:243`) and anything grouping on them; the assistant's deadline path (`route.ts:91` passes `timeoutMs` and `retry`); `docs/architecture/AI_ROUTING_AND_COSTS.md`.
 - **Does not hit:** the prompts in `web/src/lib/pipeline/prompts.ts` (callers build messages themselves); `ai_jobs` rows (the router never writes them).
 
 ## Surfaces

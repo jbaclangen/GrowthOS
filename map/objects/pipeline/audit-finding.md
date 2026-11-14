@@ -3,8 +3,8 @@ type: object
 cluster: pipeline
 universe: live
 status: verified
-verified: 2026-11-08
-commit: 00d230f
+verified: 2026-11-14
+commit: 1917f9a
 entity: supabase/migrations/20261011160802_website_audit.sql
 ---
 
@@ -19,25 +19,25 @@ Findings are produced by code, not a model, so each carries its rule, observed v
 ## Shape
 
 - Table `supabase/migrations/20261011160802_website_audit.sql:35-59`: `ref` ≤ 16 `:39-40`; `page_url` null means site-wide `:41`; `rule_id` `:42`; `category` (five values) `:43`; `severity`, `confidence` `:44-45`; `priority_label` (`fix_first`, `improve_next`, `monitor`) `:46`; `observed` jsonb `:48`; `source_type` `:50`; `status` (`detected`, `resolved`, `dismissed`) `:52`; `unique (audit_run_id, ref)` `:54`; composite FK `:55-56`.
-- RLS "members read" `:65`; client writes revoked `:68`.
-- Produced by `runChecks` `web/src/lib/audit/checks.ts:910-911`; inserted at `web/src/lib/pipeline/website-intel.ts:178-180` through `toFindingRow` `:188-205`, which sets no `status`, so every row keeps the default `detected`. `resolved` and `dismissed` are leftover: nothing sets them (`docs/architecture/DATA_MODEL.md:101`).
-- Cited by the diagnosis: `diagnosis_findings.audit_refs` `:73-74`, `:78`; the citable set `web/src/lib/pipeline/prompts.ts:134-150` (`T` refs `:147`); uncited findings are downgraded in `toFindings` `web/src/lib/plan/priority.ts:105`.
-- Readers: `web/src/app/analysis/[id]/report-data.ts:179-184`; `loadAuditContext` `website-intel.ts:212-216`, sorted by ref `:220`.
-- Module mapping by `category`: `web/src/lib/modules/registry.ts:79`.
+- RLS "members read" `supabase/migrations/20261011160802_website_audit.sql:65`; client writes revoked `:68`.
+- Produced by `runChecks` `web/src/lib/audit/checks.ts:910-911`; inserted at `web/src/lib/pipeline/website-intel.ts:180-182` through `toFindingRow` `:190-207`, which sets no `status`, so every row keeps the default `detected`. `resolved` and `dismissed` are leftover: nothing sets them (`docs/architecture/DATA_MODEL.md:109`).
+- Cited by the diagnosis: `diagnosis_findings.audit_refs` `supabase/migrations/20261011160802_website_audit.sql:72-73`, `:77`; the citable set `web/src/lib/pipeline/prompts.ts:136-155` (`T` refs `:150`); uncited findings are downgraded in `toFindings` `web/src/lib/plan/priority.ts:107`, `:112`.
+- Readers: `web/src/app/analysis/[id]/report-data.ts:179-184`; `loadAuditContext` `website-intel.ts:214-218`, sorted by ref `:222`.
+- Module mapping by `category`: `web/src/lib/modules/registry.ts:80`.
 
-Citations: `supabase/migrations/20261011160802_website_audit.sql:35-59`, `:65-68`, `:72-77`, `web/src/lib/pipeline/website-intel.ts:178-205`, `web/src/lib/pipeline/prompts.ts:135-150`.
+Citations: `supabase/migrations/20261011160802_website_audit.sql:35-59`, `:65-68`, `:72-77`, `web/src/lib/pipeline/website-intel.ts:180-207`, `web/src/lib/pipeline/prompts.ts:136-155`.
 
 ## Connected to
 
 - **owns:** nothing.
-- **owned-by:** [audit-run](audit-run.md) (`:55-56`).
-- **joins:** [diagnosis-finding](../report/diagnosis-finding.md) by ref text in `audit_refs` (no foreign key); [module](../modules/module-registry.md) through `findingCategories` (`registry.ts:79`).
+- **owned-by:** [audit-run](audit-run.md) (`supabase/migrations/20261011160802_website_audit.sql:55-56`).
+- **joins:** [diagnosis-finding](../report/diagnosis-finding.md) by ref text in `audit_refs` (no foreign key); [module](../modules/module-registry.md) through `findingCategories` (`registry.ts:80`).
 - **looks-like-but-is-not:** [diagnosis-finding](../report/diagnosis-finding.md), the model's finding that cites this one; `growth_plan_items.finding_positions`, which point at diagnosis findings (`supabase/migrations/20261010164133_diagnosis_and_plan.sql:61-62`).
 
 ## If you change this
 
-- **Hits:** the rules and `AUDIT_VERSION` in `checks.ts`; `toFindingRow` `website-intel.ts:188-205`; the select at `report-data.ts:182`; `promptFindings` / `loadAuditContext` (`website-intel.ts:212-227`); the category list in `registry.ts:79`.
-- **Does not hit:** stored `diagnosis_findings` rows (refs are text); the growth score (`web/src/lib/modules/score.ts:97-108` scores the assessed scores, PageSpeed and Search Console measures, not findings).
+- **Hits:** the rules and `AUDIT_VERSION` in `checks.ts`; `toFindingRow` `website-intel.ts:190-207`; the select at `report-data.ts:182`; `promptFindings` / `loadAuditContext` (`website-intel.ts:214-229`); the category list in `registry.ts:80`.
+- **Does not hit:** stored `diagnosis_findings` rows (refs are text); the growth score (`web/src/lib/modules/score.ts:133-146` scores the assessed scores, PageSpeed, Search Console and GA4 measures, not findings).
 
 ## Surfaces
 
@@ -50,4 +50,4 @@ Citations: `supabase/migrations/20261011160802_website_audit.sql:35-59`, `:65-68
 ## See
 
 - Source: `supabase/migrations/20261011160802_website_audit.sql`
-- As built: `docs/architecture/DATA_MODEL.md` (row at `:101`)
+- As built: `docs/architecture/DATA_MODEL.md` (row at `docs/architecture/DATA_MODEL.md:109`)
