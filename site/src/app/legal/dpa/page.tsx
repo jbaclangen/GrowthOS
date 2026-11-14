@@ -16,7 +16,7 @@ export default function DataProcessingAgreement() {
       <h1 className="text-4xl">Data Processing Agreement</h1>
       <DraftNotice>
         This agreement is a draft being reviewed with legal counsel and will be finalized before Braventa opens to the
-        public. Last updated November 8, 2026.
+        public. Last updated November 14, 2026.
       </DraftNotice>
 
       <h2>1. What this agreement covers</h2>
@@ -150,7 +150,8 @@ export default function DataProcessingAgreement() {
         <li>
           <strong>Personal data:</strong> names, email addresses and roles; business contact details; text from public web
           pages; your answers during setup; the email address of a connected Google account; Search Console data, which
-          is mostly aggregated (search queries can sometimes contain personal information); and, from a connected HubSpot
+          is mostly aggregated (search queries can sometimes contain personal information); Google Analytics 4 totals,
+          which are aggregated (no individual visitors, user IDs or IP addresses); and, from a connected HubSpot
           portal, counts and totals only (Braventa reads CRM records to count them but doesn&apos;t store names, email
           addresses or other record details).
         </li>

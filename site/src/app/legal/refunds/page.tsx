@@ -17,7 +17,7 @@ export default function RefundPolicy() {
       <h1 className="text-4xl">Refund policy</h1>
       <DraftNotice>
         This policy is a draft being reviewed with legal counsel. Braventa doesn&apos;t charge anything yet; this policy
-        will apply once paid plans launch. Last updated November 8, 2026.
+        will apply once paid plans launch. Last updated November 14, 2026.
       </DraftNotice>
 
       <h2>The trial</h2>

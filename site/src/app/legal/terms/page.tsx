@@ -14,7 +14,7 @@ export default function Terms() {
       <h1 className="text-4xl">Terms of Service</h1>
       <DraftNotice>
         These terms are a draft being reviewed with legal counsel and will be finalized before Braventa opens to the
-        public. During early access, use is also agreed with each business directly. Last updated November 8, 2026.
+        public. During early access, use is also agreed with each business directly. Last updated November 14, 2026.
       </DraftNotice>
 
       <h2>1. Who these terms are between</h2>

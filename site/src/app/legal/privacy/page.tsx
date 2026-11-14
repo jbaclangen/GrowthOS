@@ -17,7 +17,7 @@ export default function Privacy() {
       <h1 className="text-4xl">Privacy</h1>
       <DraftNotice>
         This is a draft of our privacy policy. It describes how Braventa handles data today and is being reviewed with
-        legal counsel before Braventa opens to the public. Last updated November 8, 2026.
+        legal counsel before Braventa opens to the public. Last updated November 14, 2026.
       </DraftNotice>
 
       <h2>Who we are</h2>
@@ -156,6 +156,59 @@ export default function Privacy() {
           data, and data already fetched stays until the owner disconnects in Braventa.
         </li>
       </ul>
+      <h3>If you connect Google Analytics 4 (optional)</h3>
+      <ul>
+        <li>
+          Google Analytics 4 comes through the same Google sign-in as Search Console: one consent screen asks for both,
+          and you can grant either or both. The same plans and owner-only rule apply.
+        </li>
+        <li>
+          Braventa asks Google for read-only access to your Google Analytics data. It can&apos;t change anything in Google
+          Analytics or in your Google account.
+        </li>
+        <li>
+          What we store: the same encrypted Google token and Google account email as for Search Console; the list of
+          Google Analytics properties that account can see, with their names, and the one you chose; and a copy of your
+          analytics data each time it&apos;s fetched. Each copy holds, for the last 28 days and the 28 days before:
+          sessions, users, engaged sessions, engagement rate, key events and page views; your top 10 traffic channels and
+          top 10 landing pages (page paths, without query strings) with their sessions, engaged sessions and key events;
+          the same figures by device; the names and counts of your key events; how many key events are set up; and the
+          property&apos;s name and creation date. It holds totals only: no individual visitors, user IDs, IP addresses
+          or cookies. We keep the 12 most recent copies.
+        </li>
+        <li>
+          Braventa fetches new data only when the owner connects or chooses a property, or when someone in your business
+          refreshes it, at most once every 10 minutes. Nothing is fetched in the background.
+        </li>
+        <li>
+          People in your business on Braventa can see this data in the Google Analytics card and which Google account and
+          property are connected.
+        </li>
+        <li>
+          We use it to show your website traffic in the app, and in your diagnosis, growth plan and growth score
+          (Analytics). For the diagnosis, a summary of the latest copy is sent to our AI providers: the property name, the
+          totals above with their change from the previous 28 days, your key events, top channels, top landing pages and
+          sessions by device. The summary never includes the token or your Google account email, and our AI providers
+          keep nothing after answering.
+        </li>
+        <li>
+          The in-app assistant (Ask Braventa) is told whether Google Analytics is connected, which property, and your
+          Analytics score. It isn&apos;t sent the analytics data itself, though your diagnosis, which it does see, may
+          mention it.
+        </li>
+        <li>
+          The Search Console rules above also apply here: we don&apos;t sell this data or use it for advertising; our use
+          follows the Google API Services User Data Policy, including the Limited Use requirements; Braventa staff
+          don&apos;t read it unless you ask us to, or when it&apos;s needed for security or to comply with the law; and on
+          Basic, after the trial, the connection is paused and the data already fetched is kept.
+        </li>
+        <li>
+          Disconnecting Google in Settings → Connections ends both Search Console and Google Analytics: Braventa revokes
+          its access at Google and deletes the token, the Google account email and all stored search and analytics data.
+          Choosing a different property, or connecting a different Google account, deletes the analytics data fetched for
+          the old one.
+        </li>
+      </ul>
       <h3>If you connect HubSpot (optional)</h3>
       <ul>
         <li>
@@ -271,6 +324,10 @@ export default function Privacy() {
           to keep.
         </li>
         <li>Google Search Console data: the 12 most recent copies, deleted when the owner disconnects.</li>
+        <li>
+          Google Analytics 4 data: the 12 most recent copies, deleted when the owner disconnects Google or chooses a
+          different property.
+        </li>
         <li>HubSpot counts: the 12 most recent copies, deleted when the owner disconnects.</li>
         <li>
           Contact form messages: until you ask us to delete them. We&apos;re setting a fixed retention period and will
@@ -314,8 +371,8 @@ export default function Privacy() {
         <li>You can correct your setup answers in the app at any time.</li>
         <li>You choose whether to connect an AI assistant, and you can revoke its access key in the app at any time.</li>
         <li>
-          The owner chooses whether to connect Google Search Console and can disconnect it at any time, which deletes
-          the stored search data.
+          The owner chooses whether to connect Google Search Console and Google Analytics 4 and can disconnect Google at
+          any time, which deletes the stored search and analytics data.
         </li>
         <li>
           The owner chooses whether to connect HubSpot and can disconnect it at any time, which deletes the stored
