@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef } from "react";
+import { useId, useRef, type ToggleEvent } from "react";
 import Link from "next/link";
 import { switchBusiness } from "@/app/settings/business-actions";
 
@@ -9,6 +9,13 @@ export type SwitcherBusiness = { id: string; name: string; plan: string };
 // The business switcher (D-062): the business the person is working on, with the others they belong to one select
 // away. A native popover, like AccountMenu: light dismiss, keyboard order from the button. Each business is a small
 // form, so switching works without JavaScript too; the server checks membership before remembering the choice.
+// A popover sits in the top layer, so CSS alone can't place it against its button (anchor positioning isn't in every
+// browser yet): on open it goes under the button, kept inside the window. Without JavaScript the classes put it at
+// the top right.
+const GUTTER = 16;
+const GAP = 8;
+const MENU_WIDTH = 288; // w-72
+
 export function BusinessSwitcher({
   businesses,
   currentId,
@@ -22,16 +29,29 @@ export function BusinessSwitcher({
 }) {
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const current = businesses.find((b) => b.id === currentId) ?? businesses[0];
   if (!current) return null;
   const hide = () => {
     ref.current?.hidePopover();
     onNavigate?.();
   };
+  const place = (e: ToggleEvent<HTMLDivElement>) => {
+    const button = buttonRef.current;
+    if (e.newState !== "open" || !button) return;
+    const rect = button.getBoundingClientRect();
+    const width = Math.min(MENU_WIDTH, window.innerWidth - 2 * GUTTER);
+    const left = Math.max(GUTTER, Math.min(rect.left, window.innerWidth - GUTTER - width));
+    const menu = e.currentTarget;
+    menu.style.top = `${rect.bottom + GAP}px`;
+    menu.style.left = `${left}px`;
+    menu.style.right = "auto";
+  };
 
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
         popoverTarget={id}
         aria-label={`Business: ${current.name}. Switch business`}
@@ -46,6 +66,7 @@ export function BusinessSwitcher({
         ref={ref}
         id={id}
         popover="auto"
+        onBeforeToggle={place}
         aria-label="Your businesses"
         className="fixed top-14 right-4 bottom-auto left-auto m-0 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-surface p-3 text-sm text-foreground shadow-md"
       >
